@@ -6498,4 +6498,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
 </root>

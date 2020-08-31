@@ -392,6 +392,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        internal sealed override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                if (lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+                {
+                    var data = (MethodWellKnownAttributeData)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+                    return data?.UnmanagedCallersOnlyAttributeData;
+                }
+
+                if (syntaxReferenceOpt is null)
+                {
+                    // no references -> no attributes
+                    return null;
+                }
+
+                return UnmanagedCallersOnlyAttributeData.Uninitialized;
+            }
+        }
+#nullable restore
+
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             CommonMethodEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
@@ -495,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
             {
-                DecodeUnmanagedCallersOnlyAttribute(arguments);
+                DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
             else
             {
@@ -814,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DecodeUnmanagedCallersOnlyAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt is not null);
             if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
@@ -823,29 +846,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
             }
 
-            if (!arguments.Attribute.CommonNamedArguments.IsDefaultOrEmpty)
-            {
-                foreach (var (key, value) in arguments.Attribute.CommonNamedArguments)
-                {
-                    if (key != "CallConvs"
-                        || value.Kind != TypedConstantKind.Array
-                        || value.Values.Any(v => v.Kind != TypedConstantKind.Type))
-                    {
-                        continue;
-                    }
-
-                    foreach (var callConvTypedConstant in value.Values)
-                    {
-                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
-                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
-                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
-                        {
-                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
-                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, arguments.AttributeSyntaxOpt.Location, callConvTypedConstant.ValueInternal ?? "null");
-                        }
-                    }
-                }
-            }
+            arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
+                DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
 
             var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
             {

@@ -102,6 +102,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
 
+#nullable enable
+        internal abstract UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData { get; }
+
+        internal void ForceCompleteUnmanagedCallersOnlyAttribute()
+        {
+            if (UnmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized)
+            {
+                this.GetAttributes();
+            }
+
+            Debug.Assert(UnmanagedCallersOnlyAttributeData != UnmanagedCallersOnlyAttributeData.Uninitialized,
+                         "UnmanagedCallersOnlyAttribute should be initialized by now");
+        }
+#nullable restore
+
         /// <summary>
         /// Returns true if this method is an extension method.
         /// </summary>
@@ -944,6 +959,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return false;
         }
+
+#nullable enable
+        protected bool CalculateUnmanagedCallersOnlyDiagnostic(ref DiagnosticInfo result)
+        {
+            UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = UnmanagedCallersOnlyAttributeData;
+            if (unmanagedCallersOnlyAttributeData == null)
+            {
+                return false;
+            }
+
+            // Either we have an UnmanagedCallersOnlyAttribute, or attributes
+            // have not yet been calculated. In the former case, we can just
+            // create a diagnosticinfo with the error. In the latter case, we
+            // need to make a lazy info that will save this method for later
+            // calculation, otherwise we could potentially trigger a cycle.
+            // For example, the user could have erroneously written:
+            //
+            // [UnmanagedCallersOnly(CallConvs = M())]
+            // static Type[] M() => null;
+            //
+            // We don't want to trigger a cycle by attempting to bind the attributes
+            // when calculating the use site diagnostics on the invocation of M.
+
+            result = unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
+                ? (DiagnosticInfo)new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(this)
+                : new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, this);
+
+            return true;
+        }
+
+        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData Attribute, Location? location, DiagnosticBag? diagnostics)
+        {
+            Debug.Assert((location == null) == (diagnostics == null));
+            ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
+            bool isValid = true;
+            if (!Attribute.CommonNamedArguments.IsDefaultOrEmpty)
+            {
+                foreach (var (key, value) in Attribute.CommonNamedArguments)
+                {
+                    if (key != "CallConvs"
+                        || value.Kind != TypedConstantKind.Array
+                        || value.Values.Any(v => v.Kind != TypedConstantKind.Type))
+                    {
+                        continue;
+                    }
+
+                    if (callingConventionTypes != null)
+                    {
+                        isValid = false;
+                    }
+
+                    foreach (var callConvTypedConstant in value.Values)
+                    {
+                        var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                        {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
+                            isValid = false;
+                        }
+                        else
+                        {
+                            _ = builder.Add(callConvType);
+                        }
+
+                        callingConventionTypes = builder.ToImmutableHashSet();
+                        builder.Free();
+                    }
+                }
+            }
+
+            return new UnmanagedCallersOnlyAttributeData(
+                callingConventionTypes == null
+                    ? ImmutableHashSet<INamedTypeSymbolInternal>.Empty
+                    : callingConventionTypes,
+                isValid);
+        }
+#nullable restore
 
         /// <summary>
         /// Return error code that has highest priority while calculating use site error for this symbol.

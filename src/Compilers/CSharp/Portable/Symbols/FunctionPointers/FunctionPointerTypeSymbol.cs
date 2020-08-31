@@ -206,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsCallingConventionModifier(NamedTypeSymbol modifierType)
         {
-            return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+            Debug.Assert(modifierType.ContainingAssembly is not null || modifierType.IsErrorType());
+            return (object?)modifierType.ContainingAssembly == modifierType.ContainingAssembly?.CorLibrary
                    && modifierType.Arity == 0
                    && modifierType.Name != "CallConv"
                    && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)

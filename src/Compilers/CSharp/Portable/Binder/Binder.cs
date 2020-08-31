@@ -705,6 +705,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind;
         }
 
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(DiagnosticBag diagnostics, MethodSymbol symbol, Location location)
+        {
+            var unmanagedCallersOnlyAttributeData = symbol.UnmanagedCallersOnlyAttributeData;
+            if (unmanagedCallersOnlyAttributeData != null)
+            {
+                // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.
+                // In the former case, we use a lazy diagnostic that may end up being ignored later, to avoid causing a
+                // binding cycle.
+                diagnostics.Add(unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
+                                    ? (DiagnosticInfo)new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol)
+                                    : new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, symbol),
+                                location);
+            }
+        }
+
         internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,

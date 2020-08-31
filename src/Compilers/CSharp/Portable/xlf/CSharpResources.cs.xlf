@@ -887,6 +887,11 @@
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_SyncAndAsyncEntryPoints">
         <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
         <target state="new">Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</target>
