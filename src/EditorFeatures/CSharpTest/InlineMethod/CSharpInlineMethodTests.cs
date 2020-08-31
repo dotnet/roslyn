@@ -18,7 +18,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
         private class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
         {
             private const string Marker = "##";
-            public static async Task TestInRegularAndScript1Async(
+
+            public static async Task TestInRegularScriptsInDifferentFilesAsync(
+                string initialMarkUpForFile1,
+                string initialMarkUpForFile2,
+                string expectedMarkUpForFile1,
+                string expectedMarkUpForFile2,
+                List<DiagnosticResult> diagnosticResults = null,
+                bool keepInlinedMethod = true)
+            {
+                diagnosticResults ??= new List<DiagnosticResult>();
+                var test = new TestVerifier
+                {
+                    CodeActionIndex = keepInlinedMethod ? 0 : 1,
+                    TestState =
+                    {
+                        Sources =
+                        {
+                            ("File1", initialMarkUpForFile1),
+                            ("File2", initialMarkUpForFile2),
+                        }
+                    },
+                    FixedState =
+                    {
+                        Sources =
+                        {
+                            ("File1", expectedMarkUpForFile1),
+                            ("File2", expectedMarkUpForFile2),
+                        }
+                    },
+                    CodeActionValidationMode = CodeActionValidationMode.None
+                };
+                test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults);
+                await test.RunAsync().ConfigureAwait(false);
+            }
+
+            public static async Task TestInRegularAndScriptInTheSameFileAsync(
                 string initialMarkUp,
                 string expectedMarkUp,
                 List<DiagnosticResult> diagnosticResults = null,
@@ -42,7 +77,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                 await test.RunAsync().ConfigureAwait(false);
             }
 
-            public static async Task TestBothKeepAndRemoveInlinedMethodAsync(
+            public static async Task TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                string initialMarkUpForCaller,
+                string initialMarkUpForCallee,
+                string expectedMarkUpForCaller,
+                string expectedMarkUpForCallee,
+                List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
+                List<DiagnosticResult> diagnosticResultsWhenRemoveInlinedMethod = null)
+            {
+                var firstMarkerIndex = expectedMarkUpForCallee.IndexOf(Marker);
+                var secondMarkerIndex = expectedMarkUpForCallee.LastIndexOf(Marker);
+                if (firstMarkerIndex == -1 || secondMarkerIndex == -1 || firstMarkerIndex == secondMarkerIndex)
+                {
+                    Assert.True(false, "Can't find proper marks that contains inlined method.");
+                }
+
+                var firstPartitionBeforeMarkUp = expectedMarkUpForCallee.Substring(0, firstMarkerIndex);
+                var inlinedMethod = expectedMarkUpForCallee.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2);
+                var lastPartitionAfterMarkup = expectedMarkUpForCallee.Substring(secondMarkerIndex + 2);
+
+                await TestInRegularScriptsInDifferentFilesAsync(
+                    initialMarkUpForCaller,
+                    initialMarkUpForCallee,
+                    expectedMarkUpForCaller,
+                    string.Concat(firstPartitionBeforeMarkUp, inlinedMethod, lastPartitionAfterMarkup),
+                    diagnosticResultsWhenKeepInlinedMethod,
+                    keepInlinedMethod: true).ConfigureAwait(false);
+
+                await TestInRegularScriptsInDifferentFilesAsync(
+                    initialMarkUpForCaller,
+                    initialMarkUpForCallee,
+                    expectedMarkUpForCaller,
+                    string.Concat(firstPartitionBeforeMarkUp, lastPartitionAfterMarkup),
+                    diagnosticResultsWhenKeepInlinedMethod,
+                    keepInlinedMethod: false).ConfigureAwait(false);
+            }
+
+            public static async Task TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 string initialMarkUp,
                 string expectedMarkUp,
                 List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
@@ -59,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                 var inlinedMethod = expectedMarkUp.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2);
                 var lastPartitionAfterMarkup = expectedMarkUp.Substring(secondMarkerIndex + 2);
 
-                await TestInRegularAndScript1Async(
+                await TestInRegularAndScriptInTheSameFileAsync(
                     initialMarkUp,
                     string.Concat(
                         firstPartitionBeforeMarkUp,
@@ -68,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     diagnosticResultsWhenKeepInlinedMethod,
                     keepInlinedMethod: true).ConfigureAwait(false);
 
-                await TestInRegularAndScript1Async(
+                await TestInRegularAndScriptInTheSameFileAsync(
                     initialMarkUp,
                     string.Concat(
                         firstPartitionBeforeMarkUp,
@@ -78,9 +149,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             }
         }
 
+//         [Fact]
+//         public Task Test2()
+//             => TestVerifier.TestInRegularScriptsInDifferentFilesAsync(
+//                 @"
+// using System.Collections.Generic;
+// public partial class TestClass
+// {
+//     private void Caller(int i)
+//     {
+//         var h = new HashSet<int>();
+//         Ca[||]llee(i, h);
+//     }
+// }",
+//                 @"
+// using System.Collections.Generic;
+// public partial class TestClass
+// {
+//     private bool Callee(int i, HashSet<int> set)
+//     {
+//         return set.Add(i);
+//     }
+// }",
+//                 @"
+// using System.Collections.Generic;
+// public partial class TestClass
+// {
+//     private void Caller(int i)
+//     {
+//         var h = new HashSet<int>();
+//         h.Add(i);
+//     }
+// }",
+//                 @"
+// using System.Collections.Generic;
+// public partial class TestClass
+// {
+//     private bool Callee(int i, HashSet<int> set)
+//     {
+//         return set.Add(i);
+//     }
+// }");
+
         [Fact]
         public Task TestInlineInvocationExpressionForExpressionStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Collections.Generic;
 public class TestClass
@@ -114,7 +227,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithSingleStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -144,7 +257,7 @@ public class TestClass
 
         [Fact]
         public Task TestExtractArrowExpressionBody()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -169,7 +282,7 @@ public class TestClass
 
         [Fact]
         public Task TestExtractExpressionBody()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -195,7 +308,7 @@ public class TestClass
 
         [Fact]
         public Task TestDefaultValueReplacementForExpressionStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -225,7 +338,7 @@ public class TestClass
 
         [Fact]
         public Task TestDefaultValueReplacementForArrowExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -251,7 +364,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithLiteralValue()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -277,7 +390,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithIdentifierReplacement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -307,7 +420,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithMethodExtraction()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -347,7 +460,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayImplicitInitializerExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -377,7 +490,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayInitializerExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -407,7 +520,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayWithOneElement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -437,7 +550,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayMethodWithIdentifier()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -467,7 +580,7 @@ public class TestClass
 ##}");
         [Fact]
         public Task TestInlineMethodWithNoElementInParamsArray()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                     @"
 public class TestClass
 {
@@ -497,7 +610,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithParamsArray()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -527,7 +640,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration1()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -557,7 +670,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -590,7 +703,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration3()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -631,7 +744,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineCalleeSelf()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
                 @"
 public class TestClass
 {
@@ -660,7 +773,7 @@ public class TestClass
 }");
         [Fact]
         public Task TestInlineMethodWithConditionalExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
                 @"
 public class TestClass
 {
@@ -690,7 +803,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineExpressionWithoutAssignedToVariable()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public void Caller(int j)
@@ -718,7 +831,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithNullCoalescingExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public void Caller(int? i)
@@ -746,7 +859,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineSimpleLambdaExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public System.Func<int, int, int> Caller()
@@ -768,7 +881,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithGenericsArguments()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System;
 public class TestClass
@@ -800,7 +913,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpressionInMethod()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -834,7 +947,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpressionInMethod2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 using System;
@@ -870,7 +983,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpresssion1()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -902,7 +1015,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpresssion2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -928,7 +1041,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpresssion3()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -954,7 +1067,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpresssion4() =>
-            TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -996,7 +1109,7 @@ public class TestClass
                 // Await can't be used in non-async method.
                 DiagnosticResult.CompilerError("CS4032").WithSpan(7, 33, 7, 56).WithArguments("int")
             };
-            return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                            @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1035,7 +1148,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpresssion6() =>
-            TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1067,7 +1180,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpressionInLambda()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System;
 using System.Threading.Tasks;
@@ -1109,7 +1222,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpressionInLocalMethod()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1148,7 +1261,7 @@ public class TestClass
 ##}");
         [Fact]
         public Task TestInlineMethodForLambda()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System;
 public class TestClass
@@ -1176,7 +1289,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinDoStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1214,7 +1327,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinForStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1252,7 +1365,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinIfStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1290,7 +1403,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinLockStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1328,7 +1441,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinReturnStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1362,7 +1475,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithinThrowStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1396,7 +1509,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinWhileStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1432,7 +1545,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithinTryStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
             @"
 public class TestClass
 {
@@ -1470,7 +1583,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithinYieldReturnStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass2
 {
@@ -1502,7 +1615,7 @@ public class TestClass2
 
         [Fact]
         public Task TestInlineExtensionMethod1()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 static class Program
 {
@@ -1534,7 +1647,7 @@ static class Program
 
         [Fact]
         public Task TestInlineExtensionMethod2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 static class Program
 {
@@ -1564,7 +1677,7 @@ static class Program
 
         [Fact]
         public Task TestInlineExtensionMethod3()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 static class Program
 {
@@ -1598,7 +1711,7 @@ static class Program
 
         [Fact]
         public Task TestInlineExpressionAsLeftValueInLeftAssociativeExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1634,7 +1747,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1670,7 +1783,7 @@ public class TestClass
 
         [Fact]
         public Task TestAddExpressionWithMultiply()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1706,7 +1819,7 @@ public class TestClass
 
         [Fact]
         public Task TestIsExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1736,7 +1849,7 @@ public class TestClass
 
         [Fact]
         public Task TestUnaryPlusOperator()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1766,7 +1879,7 @@ public class TestClass
 
         [Fact]
         public Task TestLogicalNotExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1796,7 +1909,7 @@ public class TestClass
 
         [Fact]
         public Task TestBitWiseNotExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1826,7 +1939,7 @@ public class TestClass
 
         [Fact]
         public Task TestCastExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1856,7 +1969,7 @@ public class TestClass
 
         [Fact]
         public Task TestIsPatternExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1890,7 +2003,7 @@ public class TestClass
 
         [Fact]
         public Task TestAsExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1920,7 +2033,7 @@ public class TestClass
 
         [Fact]
         public Task TestCoalesceExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1950,7 +2063,7 @@ public class TestClass
 
         [Fact]
         public Task TestCoalesceExpressionAsRightValue()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -1980,7 +2093,7 @@ public class TestClass
 
         [Fact]
         public Task TestSimpleMemberAccessExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2004,7 +2117,7 @@ public class TestClass
 
         [Fact]
         public Task TestElementAccessExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2028,7 +2141,7 @@ public class TestClass
 
         [Fact]
         public Task TestSwitchExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Calller()
@@ -2061,7 +2174,7 @@ public class TestClass
 
         [Fact]
         public Task TestConditionalExpressionSyntax()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Calller(int x)
@@ -2088,7 +2201,7 @@ public class TestClass
 
         [Fact]
         public Task TestSuppressNullableWarningExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 #nullable enable
 public class TestClass
 {
@@ -2113,7 +2226,7 @@ public class TestClass
 
         [Fact]
         public Task TestSimpleAssignmentExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private int Calller(int x)
@@ -2138,7 +2251,7 @@ public class TestClass
         [InlineData("++")]
         [InlineData("--")]
         public Task TestPreExpression(string op)
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2170,7 +2283,7 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpressionWithFireAndForgot()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System.Threading.Tasks;
 public class TestClass
 {
@@ -2201,7 +2314,7 @@ public class TestClass
         [InlineData("++")]
         [InlineData("--")]
         public Task TestPostExpression(string op)
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2233,7 +2346,7 @@ public class TestClass
 
         [Fact]
         public Task TestObjectCreationExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2262,7 +2375,7 @@ public class TestClass
 ##}");
         [Fact]
         public Task TestConditionalInvocationExpression2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2286,7 +2399,7 @@ public class TestClass
 
         [Fact]
         public Task TestConditionalInvocationExpression1()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
 {
@@ -2321,7 +2434,7 @@ public class TestClass
         [InlineData(">>")]
         [InlineData("<<")]
         public Task TestAssignmentExpression(string op)
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     private void Calller(int x)
@@ -2344,7 +2457,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineLambdaInsideInvocation()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
 {
@@ -2376,7 +2489,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineTypeCast()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public void Caller()
@@ -2406,7 +2519,7 @@ public class TestClass
 
         [Fact]
         public Task TestNestedConditionalInvocationExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class LinkedList
 {
     public LinkedList Next { get; }
@@ -2448,7 +2561,7 @@ public class TestClass
 
         [Fact]
         public Task TestThrowStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
 {
@@ -2480,7 +2593,7 @@ public class TestClass
 
         [Fact]
         public Task TestThrowExpressionToThrowStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
 {
@@ -2506,7 +2619,7 @@ public class TestClass
 
         [Fact]
         public Task TestThrowExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
 {
@@ -2532,7 +2645,7 @@ public class TestClass
 
         [Fact]
         public Task TestThrowStatementToThrowExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
 {
@@ -2564,7 +2677,7 @@ public class TestClass
 
         [Fact]
         public Task TestWriteSingleParameter()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public void Caller(bool a)
@@ -2595,7 +2708,7 @@ public class TestClass
 
         [Fact]
         public Task TestReadMultipleTimesForParameter()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public void Caller(bool a)
