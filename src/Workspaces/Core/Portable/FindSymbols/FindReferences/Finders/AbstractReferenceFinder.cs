@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             string identifier,
             Document document,
             SemanticModel semanticModel,
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId);
             return FindReferencesInDocumentUsingIdentifierAsync(
-                identifier, document, semanticModel, symbolsMatch,
+                identifier, document, semanticModel, symbolsMatchAsync,
                 docCommentId, findInGlobalSuppressions, cancellationToken);
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             string identifier,
             Document document,
             SemanticModel semanticModel,
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             string? docCommentId,
             bool findInGlobalSuppressions,
             CancellationToken cancellationToken)
@@ -203,13 +203,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var references = FindReferencesInTokens(
+            var references = await FindReferencesInTokensAsync(
                 document,
                 semanticModel,
                 tokens,
                 t => IdentifiersMatch(syntaxFacts, identifier, t),
-                symbolsMatch,
-                cancellationToken);
+                symbolsMatchAsync,
+                cancellationToken).ConfigureAwait(false);
 
             if (!findInGlobalSuppressions)
                 return references;
@@ -242,29 +242,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
         }
 
-        protected static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsMatchFunction(
+        protected static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
             ISymbol symbol, Func<SyntaxToken, SyntaxNode>? findParentNode, Solution solution, CancellationToken cancellationToken)
         {
-            var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
+            var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode ??= (t => t.Parent!);
-            return (token, model) => nodeMatch(findParentNode(token), model);
+            return (token, model) => nodeMatchAsync(findParentNode(token), model);
         }
 
-        protected static Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsNodeMatchFunction(
+        protected static Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
             ISymbol searchSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            return (node, model) =>
+            return async (node, model) =>
             {
                 var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
 
                 var symbolToMatch = symbolInfoToMatch.Symbol;
                 var symbolToMatchCompilation = model.Compilation;
 
-                if (SymbolFinder.OriginalSymbolsMatch(solution, searchSymbol, symbolInfoToMatch.Symbol, cancellationToken))
+                if (await SymbolFinder.OriginalSymbolsMatchAsync(solution, searchSymbol, symbolInfoToMatch.Symbol, cancellationToken).ConfigureAwait(false))
                 {
                     return (matched: true, CandidateReason.None);
                 }
-                else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(solution, searchSymbol, s, cancellationToken)))
+                else if (await symbolInfoToMatch.CandidateSymbols.AnyAsync(s => SymbolFinder.OriginalSymbolsMatchAsync(solution, searchSymbol, s, cancellationToken)).ConfigureAwait(false))
                 {
                     return (matched: true, symbolInfoToMatch.CandidateReason);
                 }
@@ -275,12 +275,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             };
         }
 
-        protected static ImmutableArray<FinderLocation> FindReferencesInTokens(
+        protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
             Document document,
             SemanticModel semanticModel,
             IEnumerable<SyntaxToken> tokens,
             Func<SyntaxToken, bool> tokensMatch,
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 if (tokensMatch(token))
                 {
-                    var (matched, reason) = symbolsMatch(token, semanticModel);
+                    var (matched, reason) = await symbolsMatchAsync(token, semanticModel).ConfigureAwait(false);
                     if (matched)
                     {
                         RoslynDebug.Assert(token.Parent != null);
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<FinderLocation> nonAliasReferences,
             Document document,
             SemanticModel semanticModel,
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var aliasSymbols = GetAliasSymbols(document, semanticModel, nonAliasReferences, cancellationToken);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<FinderLocation>.Empty;
             }
 
-            return await FindReferencesThroughAliasSymbolsAsync(document, semanticModel, aliasSymbols, symbolsMatch, cancellationToken).ConfigureAwait(false);
+            return await FindReferencesThroughAliasSymbolsAsync(document, semanticModel, aliasSymbols, symbolsMatchAsync, cancellationToken).ConfigureAwait(false);
         }
 
         private static ImmutableArray<IAliasSymbol> GetAliasSymbols(
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             SemanticModel semanticModel,
             ImmutableArray<IAliasSymbol> aliasSymbols,
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(aliasSymbol, out var docCommentId);
 
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
-                    aliasSymbol.Name, document, semanticModel, symbolsMatch,
+                    aliasSymbol.Name, document, semanticModel, symbolsMatchAsync,
                     docCommentId, findInGlobalSuppressions, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
-                        simpleName, document, semanticModel, symbolsMatch,
+                        simpleName, document, semanticModel, symbolsMatchAsync,
                         docCommentId, findInGlobalSuppressions, cancellationToken).ConfigureAwait(false);
                     allAliasReferences.AddRange(aliasReferences);
                 }
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, symbol.Name, document, semanticModel, cancellationToken: cancellationToken);
         }
 
-        protected static ImmutableArray<FinderLocation> FindReferencesInTokens(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -967,12 +967,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, bool> tokensMatch,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInTokens(
+            return FindReferencesInTokensAsync(
                 symbol, document, semanticModel, tokens, tokensMatch,
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        protected static ImmutableArray<FinderLocation> FindReferencesInTokens(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -981,14 +981,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
 
-            return FindReferencesInTokens(
+            return FindReferencesInTokensAsync(
                 document,
                 semanticModel,
                 tokens,
                 tokensMatch,
-                symbolsMatch,
+                symbolsMatchAsync,
                 cancellationToken);
         }
 
@@ -1013,16 +1013,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId);
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             return FindReferencesInDocumentAsync(document, semanticModel, tokensMatch,
-                symbolsMatch, docCommentId, findInGlobalSuppressions, cancellationToken);
+                symbolsMatchAsync, docCommentId, findInGlobalSuppressions, cancellationToken);
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             Document document,
             SemanticModel semanticModel,
             Func<SyntaxToken, bool> tokensMatch,
-            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync,
             string? docCommentId,
             bool findInGlobalSuppressions,
             CancellationToken cancellationToken)
@@ -1031,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
             var tokens = root.DescendantTokens(descendIntoTrivia: true);
-            var references = FindReferencesInTokens(document, semanticModel, tokens, tokensMatch, symbolsMatch, cancellationToken);
+            var references = await FindReferencesInTokensAsync(document, semanticModel, tokens, tokensMatch, symbolsMatchAsync, cancellationToken).ConfigureAwait(false);
 
             if (!findInGlobalSuppressions)
                 return references;

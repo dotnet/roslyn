@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             None = 0,
             UnableToLoadAnalyzer = 1,
             UnableToCreateAnalyzer = 2,
-            NoAnalyzers = 3
+            NoAnalyzers = 3,
+            ReferencesFramework = 4
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalyzerLoadFailureEventArgs(FailureErrorCode errorCode, string message, Exception? exceptionOpt = null, string? typeNameOpt = null)
         {
-            if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.NoAnalyzers)
+            if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.ReferencesFramework)
             {
                 throw new ArgumentOutOfRangeException(nameof(errorCode));
             }

@@ -15,23 +15,12 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
-    public class AssetStorageTests
+    public class SolutionAssetCacheTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void TestCreation()
-        {
-            var storage = new AssetStorage();
-            var source = new SimpleAssetSource(new Dictionary<Checksum, object>());
-            storage.Initialize(source);
-
-            var stored = storage.GetAssetSource();
-            Assert.Equal(source, stored);
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestGetAssets()
         {
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
 
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
@@ -44,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCleanup()
         {
-            var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
+            var storage = new SolutionAssetCache(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
 
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();

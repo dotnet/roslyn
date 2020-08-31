@@ -1968,7 +1968,7 @@ class C : Base<S>
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord()
         {
             var src = @"
@@ -1980,22 +1980,341 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,7): error CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 24),
                 // (6,24): error CS1513: } expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 24),
-                // (6,24): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (6,24): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 24),
-                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28),
-                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28)
                 );
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Struct()
+        {
+            var src = @"
+struct record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Interface()
+        {
+            var src = @"
+interface record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,11): warning CS8860: Types and aliases should not be named 'record'.
+                // interface record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Enum()
+        {
+            var src = @"
+enum record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,6): warning CS8860: Types and aliases should not be named 'record'.
+                // enum record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 6)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Delegate()
+        {
+            var src = @"
+delegate void record();
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // delegate void record();
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Delegate_Escaped()
+        {
+            var src = @"
+delegate void @record();
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Alias()
+        {
+            var src = @"
+using record = System.Console;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using record = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using record = System.Console;").WithLocation(2, 1),
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
+                // using record = System.Console;
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Alias_Escaped()
+        {
+            var src = @"
+using @record = System.Console;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using @record = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @record = System.Console;").WithLocation(2, 1)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter()
+        {
+            var src = @"
+class C<record> { } // 1
+class C2
+{
+    class Nested<record> { } // 2
+}
+class C3
+{
+    void Method<record>() { } // 3
+
+    void Method2()
+    {
+        void local<record>() // 4
+        {
+            local<record>();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,9): warning CS8860: Types and aliases should not be named 'record'.
+                // class C<record> { } // 1
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 9),
+                // (5,18): warning CS8860: Types and aliases should not be named 'record'.
+                //     class Nested<record> { } // 2
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 18),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                //     void Method<record>() { } // 3
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                // (13,20): warning CS8860: Types and aliases should not be named 'record'.
+                //         void local<record>() // 4
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(13, 20)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter_Escaped()
+        {
+            var src = @"
+class C<@record> { }
+class C2
+{
+    class Nested<@record> { }
+}
+class C3
+{
+    void Method<@record>() { }
+
+    void Method2()
+    {
+        void local<@record>()
+        {
+            local<record>();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter_Escaped_Partial()
+        {
+            var src = @"
+partial class C<@record> { }
+partial class C<record> { } // 1
+
+partial class D<record> { } // 2
+partial class D<@record> { }
+
+partial class D<record> { } // 3
+partial class D<record> { } // 4
+
+partial class E<@record> { }
+partial class E<@record> { }
+
+partial class C2
+{
+    partial class Nested<record> { } // 5
+    partial class Nested<@record> { }
+}
+partial class C3
+{
+    partial void Method<@record>();
+    partial void Method<record>() { } // 6
+
+    partial void Method2<@record>() { }
+    partial void Method2<record>(); // 7
+
+    partial void Method3<record>(); // 8
+    partial void Method3<@record>() { }
+
+    partial void Method4<record>() { } // 9
+    partial void Method4<@record>();
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class C<record> { } // 1
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 17),
+                // (5,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 2
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 17),
+                // (8,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 3
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(8, 17),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 4
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                // (16,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial class Nested<record> { } // 5
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(16, 26),
+                // (22,25): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method<record>() { } // 6
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(22, 25),
+                // (25,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method2<record>(); // 7
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(25, 26),
+                // (27,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method3<record>(); // 8
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(27, 26),
+                // (30,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method4<record>() { } // 9
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(30, 26)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Record()
+        {
+            var src = @"
+record record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,8): warning CS8860: Types and aliases should not be named 'record'.
+                // record record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TwoParts()
+        {
+            var src = @"
+partial class record { }
+partial class record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15),
+                // (3,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Escaped()
+        {
+            var src = @"
+class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_MixedEscapedPartial()
+        {
+            var src = @"
+partial class @record { }
+partial class record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_MixedEscapedPartial_ReversedOrder()
+        {
+            var src = @"
+partial class record { }
+partial class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_BothEscapedPartial()
+        {
+            var src = @"
+partial class @record { }
+partial class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2019,7 +2338,11 @@ class C
     }
 }";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
@@ -3729,7 +4052,7 @@ public record C : B {
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
         public void ToString_TopLevelRecord_Empty()
         {
             var src = @"
@@ -3741,7 +4064,7 @@ record C1;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -3769,7 +4092,7 @@ record C1;
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       57 (0x39)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -3785,14 +4108,18 @@ record C1;
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  pop
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      "" } ""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0031:  pop
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""string object.ToString()""
-  IL_0038:  ret
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
 }
 ");
         }
@@ -3812,7 +4139,7 @@ record C2 : C1
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -3840,7 +4167,7 @@ record C2 : C1
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       57 (0x39)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -3856,14 +4183,18 @@ record C2 : C1
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  pop
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      "" } ""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0031:  pop
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""string object.ToString()""
-  IL_0038:  ret
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
 }
 ");
         }
@@ -3885,7 +4216,7 @@ record C2 : C1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -3915,7 +4246,7 @@ record C2 : C1
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       57 (0x39)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -3931,14 +4262,18 @@ record C2 : C1
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool Base.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  pop
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      "" } ""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0031:  pop
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""string object.ToString()""
-  IL_0038:  ret
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
 }
 ");
         }
@@ -4017,34 +4352,6 @@ record C1(int P);
         }
 
         [Fact]
-        public void ToString_TopLevelRecord_MissingStringBuilderAppendObject()
-        {
-            var src = @"
-record C1;
-";
-
-            var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendObject);
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Fact]
-        public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendObject()
-        {
-            var src = @"
-record C1(int P);
-";
-
-            var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendObject);
-            comp.VerifyEmitDiagnostics(
-                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
-                // record C1(int P);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1)
-                );
-        }
-
-        [Fact]
         public void ToString_TopLevelRecord_Empty_Sealed()
         {
             var src = @"
@@ -4056,7 +4363,7 @@ sealed record C1;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Private, print.DeclaredAccessibility);
@@ -4176,8 +4483,8 @@ abstract sealed record C1;
             Assert.True(toString.IsImplicitlyDeclared);
         }
 
-        [Fact]
-        public void ToString_TopLevelRecord_OneField()
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ValueType()
         {
             var src = @"
 var c1 = new C1() { field = 42 };
@@ -4211,6 +4518,134 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""int C1.field""
+  IL_001f:  constrained. ""int""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
+        {
+            var src = @"
+var c1 = new C1<int>() { field = 42 };
+System.Console.Write(c1.ToString());
+
+record C1<T> where T : struct
+{
+    public T field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""T C1<T>.field""
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ReferenceType()
+        {
+            var src = @"
+var c1 = new C1() { field = ""hello"" };
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public string field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldfld      ""string C1.field""
+  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0024:  pop
+  IL_0025:  ldc.i4.1
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_Unconstrained()
+        {
+            var src = @"
+var c1 = new C1<string>() { field = ""hello"" };
+System.Console.Write(c1.ToString());
+System.Console.Write("" "");
+
+var c2 = new C1<int>() { field = 42 };
+System.Console.Write(c2.ToString());
+
+record C1<T>
+{
+    public T field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello } C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
   // Code size       44 (0x2c)
   .maxstack  2
   IL_0000:  ldarg.1
@@ -4223,8 +4658,8 @@ record C1
   IL_0017:  pop
   IL_0018:  ldarg.1
   IL_0019:  ldarg.0
-  IL_001a:  ldfld      ""int C1.field""
-  IL_001f:  box        ""int""
+  IL_001a:  ldfld      ""T C1<T>.field""
+  IL_001f:  box        ""T""
   IL_0024:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
   IL_0029:  pop
   IL_002a:  ldc.i4.1
@@ -4361,8 +4796,9 @@ record C1(int Property)
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       44 (0x2c)
+  // Code size       53 (0x35)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldstr      ""Property""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
@@ -4374,11 +4810,14 @@ record C1(int Property)
   IL_0018:  ldarg.1
   IL_0019:  ldarg.0
   IL_001a:  call       ""int C1.Property.get""
-  IL_001f:  box        ""int""
-  IL_0024:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0029:  pop
-  IL_002a:  ldc.i4.1
-  IL_002b:  ret
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  constrained. ""int""
+  IL_0028:  callvirt   ""string object.ToString()""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
 }
 ");
         }
@@ -4425,8 +4864,9 @@ record C1(int A1, int B1) : Base(A1)
 
             v.VerifyIL("C1.PrintMembers", @"
 {
-  // Code size      119 (0x77)
+  // Code size      134 (0x86)
   .maxstack  2
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  call       ""bool Base.PrintMembers(System.Text.StringBuilder)""
@@ -4446,29 +4886,33 @@ record C1(int A1, int B1) : Base(A1)
   IL_002d:  ldarg.1
   IL_002e:  ldarg.0
   IL_002f:  call       ""int C1.B1.get""
-  IL_0034:  box        ""int""
-  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_003e:  pop
-  IL_003f:  ldarg.1
-  IL_0040:  ldstr      "", ""
-  IL_0045:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_004a:  pop
-  IL_004b:  ldarg.1
-  IL_004c:  ldstr      ""B2""
-  IL_0051:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0056:  pop
-  IL_0057:  ldarg.1
-  IL_0058:  ldstr      "" = ""
-  IL_005d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0062:  pop
-  IL_0063:  ldarg.1
-  IL_0064:  ldarg.0
-  IL_0065:  ldfld      ""int C1.B2""
-  IL_006a:  box        ""int""
-  IL_006f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0074:  pop
-  IL_0075:  ldc.i4.1
-  IL_0076:  ret
+  IL_0034:  stloc.0
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  constrained. ""int""
+  IL_003d:  callvirt   ""string object.ToString()""
+  IL_0042:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0047:  pop
+  IL_0048:  ldarg.1
+  IL_0049:  ldstr      "", ""
+  IL_004e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0053:  pop
+  IL_0054:  ldarg.1
+  IL_0055:  ldstr      ""B2""
+  IL_005a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_005f:  pop
+  IL_0060:  ldarg.1
+  IL_0061:  ldstr      "" = ""
+  IL_0066:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_006b:  pop
+  IL_006c:  ldarg.1
+  IL_006d:  ldarg.0
+  IL_006e:  ldflda     ""int C1.B2""
+  IL_0073:  constrained. ""int""
+  IL_0079:  callvirt   ""string object.ToString()""
+  IL_007e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0083:  pop
+  IL_0084:  ldc.i4.1
+  IL_0085:  ret
 }
 ");
         }
@@ -5896,7 +6340,7 @@ record @base;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "base {  }");
+            CompileAndVerify(comp, expectedOutput: "base { }");
         }
 
         [Fact]
@@ -5921,7 +6365,7 @@ record R3(int I1, int I2, int I3) : R2(I1, I2);
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "R1 { I1 = 1 }  R2 { I1 = 10, I2 = 11 }  R3 { I1 = 20, I2 = 21, I3 = 22 }", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "R1 { I1 = 1 } R2 { I1 = 10, I2 = 11 } R3 { I1 = 20, I2 = 21, I3 = 22 }", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]

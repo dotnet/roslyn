@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public bool MutatesSolutionState { get; }
 
-        public ExportLspMethodAttribute(string methodName, string? languageName = null, bool mutatesSolutionState = false) : base(typeof(IRequestHandler))
+        public ExportLspMethodAttribute(string methodName, bool mutatesSolutionState, string? languageName = null) : base(typeof(IRequestHandler))
         {
             if (string.IsNullOrEmpty(methodName))
             {
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             MethodName = methodName;
-            LanguageName = languageName;
             MutatesSolutionState = mutatesSolutionState;
+            LanguageName = languageName;
         }
     }
 }

@@ -1295,6 +1295,22 @@ data struct S2(int X, int Y);";
             );
         }
 
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
+        [Fact]
+        public void ClassInheritingFromRecord()
+        {
+            var src = @"
+abstract record AbstractRecord {}
+class SomeClass : AbstractRecord {}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8865: Only records may inherit from records.
+                // class SomeClass : AbstractRecord {}
+                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "AbstractRecord").WithLocation(3, 19)
+            );
+        }
+
         [Fact]
         public void RecordInheritance()
         {

@@ -19,26 +19,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly Action<Solution>? _solutionUpdater;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
-        /// </summary>
-        public Document? Document { get; }
-
-        /// <summary>
         /// The solution state that the request should operate on.
         /// </summary>
-        public Solution Solution { get; }
+        public readonly Solution Solution;
 
         /// <summary>
         /// The client capabilities for the request.
         /// </summary>
-        public ClientCapabilities ClientCapabilities { get; }
+        public readonly ClientCapabilities ClientCapabilities;
 
         /// <summary>
         /// The LSP client making the request
         /// </summary>
-        public string? ClientName { get; }
+        public readonly string? ClientName;
 
-        public RequestContext(Document? document, Solution solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
+        /// <summary>
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// </summary>
+        public readonly Document? Document;
+
+        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, Action<Solution>? solutionUpdater)
         {
             Document = document;
             Solution = solution;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void UpdateSolution(Solution solution)
         {
             Contract.ThrowIfNull(_solutionUpdater, "Mutating solution not allowed in a non-mutating request handler");
-            _solutionUpdater?.Invoke(solution);
+            _solutionUpdater.Invoke(solution);
         }
     }
 }
