@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 
                 var newNameNode = matchingMember.Name.ToIdentifierName();
                 var newExpr = (ExpressionSyntax)newNameNode;
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                 {
                     newExpr = MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), newNameNode).WithAdditionalAnnotations(Simplifier.Annotation);

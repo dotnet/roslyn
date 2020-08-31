@@ -430,6 +430,8 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly byte[][] s_signaturesOfModuleInitializerAttribute = { s_signature_HasThis_Void };
 
+        private static readonly byte[][] s_signaturesOfUnmanagedCallersOnlyAttribute = { s_signature_HasThis_Void };
+
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signaturesOfOptionalAttribute);
         internal static readonly AttributeDescription ComImportAttribute = new AttributeDescription("System.Runtime.InteropServices", "ComImportAttribute", s_signaturesOfComImportAttribute);
@@ -562,5 +564,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription SkipLocalsInitAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SkipLocalsInitAttribute", s_signaturesOfSkipLocalsInitAttribute);
         internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
         internal static readonly AttributeDescription ModuleInitializerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ModuleInitializerAttribute", s_signaturesOfModuleInitializerAttribute);
+        internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signaturesOfModuleInitializerAttribute);
     }
 }

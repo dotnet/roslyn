@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Workspace created by the remote host that mirrors the corresponding client workspace.
     /// </summary>
-    internal sealed class RemoteWorkspace : Workspace
+    internal sealed partial class RemoteWorkspace : Workspace
     {
         private readonly ISolutionCrawlerRegistrationService? _registrationService;
 
@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Remote
             _registrationService?.Unregister(this);
         }
 
-        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
+            return new AssetProvider(solutionInfo.ScopeId, assetCache, assetSource, serializerService);
         }
 
         public async Task UpdatePrimaryBranchSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)

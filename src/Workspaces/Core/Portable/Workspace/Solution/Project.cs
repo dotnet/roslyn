@@ -616,5 +616,8 @@ namespace Microsoft.CodeAnalysis
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(CancellationToken cancellationToken)
+            => _solution.State.GetGeneratorDriverRunResultAsync(_projectState, cancellationToken);
     }
 }

@@ -13,7 +13,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             [Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<MetadataReference> references,
-            [NotNull] out IDictionary<(string, string), MetadataReference>? boundReferenceDirectiveMap,
+            out IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
             out ImmutableArray<MetadataReference> boundReferenceDirectives,
             out ImmutableArray<AssemblyData> assemblies,
             out ImmutableArray<PEModule> modules,

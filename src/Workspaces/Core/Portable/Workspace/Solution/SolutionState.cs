@@ -1735,6 +1735,9 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
+            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
+
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>

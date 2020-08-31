@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -177,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
 
             return RangeExpression(
-                startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr,
-                endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr);
+                startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr?.Parenthesize(),
+                endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr?.Parenthesize());
         }
 
         private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)

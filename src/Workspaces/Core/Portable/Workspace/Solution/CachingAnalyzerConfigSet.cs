@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis
         private readonly Func<string, AnalyzerConfigOptionsResult> _computeFunction;
         private readonly AnalyzerConfigSet _underlyingSet;
 
+        public AnalyzerConfigOptionsResult GlobalConfigOptions => _underlyingSet.GlobalConfigOptions;
+
         public CachingAnalyzerConfigSet(AnalyzerConfigSet underlyingSet)
         {
             _underlyingSet = underlyingSet;

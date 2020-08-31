@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
     Friend NotInheritable Class VisualBasicEditAndContinueTestHelpers
         Inherits EditAndContinueTestHelpers
 
-        Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer(New TestActiveStatementSpanTracker())
+        Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
 
         Private ReadOnly _fxReferences As ImmutableArray(Of PortableExecutableReference)
 

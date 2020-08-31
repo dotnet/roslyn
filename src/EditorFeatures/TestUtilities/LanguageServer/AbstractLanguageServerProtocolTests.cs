@@ -246,7 +246,7 @@ namespace Roslyn.Test.Utilities
         /// Creates a solution with a document.
         /// </summary>
         /// <returns>the solution and the annotated ranges in the document.</returns>
-        protected Workspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestWorkspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
             => CreateTestWorkspace(new string[] { markup }, out locations);
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace Roslyn.Test.Utilities
         /// <returns>
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
-        protected Workspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.CreateCSharp(markups, composition: Composition);
             var solution = workspace.CurrentSolution;
