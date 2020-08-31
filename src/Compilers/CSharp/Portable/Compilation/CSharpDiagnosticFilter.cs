@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     1. Warning level
         ///     2. Syntax tree level
         ///     3. Compilation level
-        ///     4. Global warning level
+        ///     4. Global analyzer config
+        ///     5. Global warning level
         ///
         /// Pragmas are considered separately. If a diagnostic would not otherwise
         /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
@@ -191,6 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. Compilation level
                 isSpecified = true;
             }
+            else if (syntaxTreeOptions is object && syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, out report))
+            {
+                // 4. Global analyzer config level
+                isSpecified = true;
+            }
             else
             {
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
@@ -241,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportDiagnostic.Suppress;
             }
 
-            // 4. Global options
+            // 5. Global options
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
@@ -261,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
                         {
                             report = ReportDiagnostic.Suppress;
+                            isSpecified = true;
                         }
                         break;
                 }
