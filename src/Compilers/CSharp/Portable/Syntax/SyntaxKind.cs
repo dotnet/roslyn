@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     // DO NOT CHANGE NUMBERS ASSIGNED TO EXISTING KINDS OR YOU WILL BREAK BINARY COMPATIBILITY
