@@ -185,8 +185,15 @@ namespace Analyzer.Utilities.PooledObjects
         /// Note that Free will try to store recycled objects close to the start thus statistically 
         /// reducing how far we will typically search in Allocate.
         /// </remarks>
-        internal void Free(T obj)
+        internal void Free(T obj, CancellationToken cancellationToken)
         {
+            // Do not free in presence of cancellation.
+            // See https://github.com/dotnet/roslyn/issues/46859 for details.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             Validate(obj);
             ForgetTrackedObject(obj);
 

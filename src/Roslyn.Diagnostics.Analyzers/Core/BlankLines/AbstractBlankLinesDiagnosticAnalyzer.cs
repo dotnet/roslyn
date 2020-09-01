@@ -154,9 +154,9 @@ namespace Roslyn.Diagnostics.Analyzers.BlankLines
             {
                 // Blocks can be on a single line if parented by a member/accessor/lambda.
                 var blockParent = parent.Parent;
-                if (blockParent is MemberDeclarationSyntax ||
-                    blockParent is AccessorDeclarationSyntax ||
-                    blockParent is AnonymousFunctionExpressionSyntax)
+                if (blockParent is MemberDeclarationSyntax or
+                    AccessorDeclarationSyntax or
+                    AnonymousFunctionExpressionSyntax)
                 {
                     return false;
                 }

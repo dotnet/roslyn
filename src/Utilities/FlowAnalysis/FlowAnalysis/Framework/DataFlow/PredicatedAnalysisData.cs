@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_lazyPredicateDataMap != null)
             {
                 Debug.Assert(!_lazyPredicateDataMap.IsDisposed);
-                var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
+                using var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
                 foreach (var value in _lazyPredicateDataMap.Values)
                 {
                     if (value.TruePredicatedData != null)
@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         Debug.Assert(builder.Add(value.FalsePredicatedData));
                     }
                 }
-
-                builder.Free();
             }
         }
 
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, DictionaryAnalysisData<TKey, TValue>? truePredicatedData, DictionaryAnalysisData<TKey, TValue>? falsePredicatedData)
         {
             Debug.Assert(predicatedEntity.IsCandidatePredicateEntity());
-            Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            Debug.Assert(predicatedEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
 
             AssertValidAnalysisData();
 
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             RoslynDebug.Assert(_lazyPredicateDataMap != null);
             Debug.Assert(HasPredicatedDataForEntity(predicatedEntity));
-            RoslynDebug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(predicatedEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
             AssertValidAnalysisData();
 
             if (_lazyPredicateDataMap.TryGetValue(predicatedEntity, out var perEntityPredicatedAnalysisData))
@@ -128,8 +126,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(HasPredicatedDataForEntity(fromEntity));
             RoslynDebug.Assert(_lazyPredicateDataMap != null);
-            RoslynDebug.Assert(fromEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
-            RoslynDebug.Assert(toEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(fromEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
+            RoslynDebug.Assert(toEntity.CaptureId != null, "Currently we only support predicated data tracking for flow captures");
             AssertValidAnalysisData();
 
             if (_lazyPredicateDataMap!.TryGetValue(fromEntity, out var fromEntityPredicatedData))

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -47,7 +48,15 @@ namespace Analyzer.Utilities
                 return ImmutableArray<string>.Empty;
             }
 
-            return itemOptionValue.Split(s_itemMetadataValuesSeparators, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            return ProduceTrimmedArray(itemOptionValue).ToImmutableArray();
+        }
+
+        private static IEnumerable<string> ProduceTrimmedArray(string itemOptionValue)
+        {
+            foreach (var platform in itemOptionValue.Split(s_itemMetadataValuesSeparators, StringSplitOptions.RemoveEmptyEntries))
+            {
+                yield return platform.Trim();
+            }
         }
     }
 }

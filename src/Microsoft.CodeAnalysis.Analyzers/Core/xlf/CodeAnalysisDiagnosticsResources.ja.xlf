@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign</source>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
         <target state="needs-review-translation">診断の説明は、句読点で終わる 1 つまたは複数の文にする必要があります。</target>
         <note />
       </trans-unit>
@@ -78,7 +78,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
         <target state="needs-review-translation">診断メッセージには改行文字を含めないでください。また、末尾にピリオドが付いていない 1 つの文か、末尾にピリオドが付いた複数の文にする必要があります。</target>
         <note />
       </trans-unit>
@@ -88,8 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="translated">診断タイトルには、ピリオドも改行文字も含めないでください</target>
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="needs-review-translation">診断タイトルには、ピリオドも改行文字も含めないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">

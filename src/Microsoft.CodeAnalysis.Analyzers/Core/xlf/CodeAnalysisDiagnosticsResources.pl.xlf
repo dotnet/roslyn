@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign</source>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
         <target state="needs-review-translation">Opis diagnostyki powinien składać się z jednego lub wielu zdań zakończonych znakiem interpunkcyjnym.</target>
         <note />
       </trans-unit>
@@ -78,7 +78,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
         <target state="needs-review-translation">Komunikat dotyczący diagnostyki nie powinien zawierać znaku nowego wiersza i powinien być pojedynczym zdaniem bez kropki na końcu lub wieloma zdaniami z kropkami na końcu.</target>
         <note />
       </trans-unit>
@@ -88,8 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="translated">Tytuł diagnostyki nie powinien zawierać kropki ani żadnych znaków nowego wiersza</target>
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="needs-review-translation">Tytuł diagnostyki nie powinien zawierać kropki ani żadnych znaków nowego wiersza</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">

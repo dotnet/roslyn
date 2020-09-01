@@ -42,15 +42,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
 
         private static void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var stack = ArrayBuilder<SyntaxNode>.GetInstance();
-            try
-            {
-                Recurse(context, stack);
-            }
-            finally
-            {
-                stack.Free();
-            }
+            using var stack = ArrayBuilder<SyntaxNode>.GetInstance();
+            Recurse(context, stack);
         }
 
         private static void Recurse(SyntaxTreeAnalysisContext context, ArrayBuilder<SyntaxNode> stack)

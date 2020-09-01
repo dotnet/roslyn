@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             AnalyzeLocalizableStrings(localizableDescriptions, AnalyzeDescriptionCore, symbolToResourceMap, namedType,
                                 resourcesDataValueMap, context.Options, context.ReportDiagnostic, context.CancellationToken);
 
-                            symbolToResourceMap.Free();
+                            symbolToResourceMap.Free(context.CancellationToken);
                         });
                     }, SymbolKind.NamedType);
                 }
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         ReportAnalyzerReleaseTrackingDiagnostics(invalidReleaseFileEntryDiagnostics, shippedData, unshippedData, seenRuleIds, compilationEndContext);
                     }
 
-                    seenRuleIds.Free();
+                    seenRuleIds.Free(compilationEndContext.CancellationToken);
                     if (analyzeResourceStrings)
                     {
                         RoslynDebug.Assert(localizableTitles != null);
@@ -400,22 +400,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         RoslynDebug.Assert(localizableDescriptions != null);
                         RoslynDebug.Assert(resourcesDataValueMap != null);
 
-                        FreeLocalizableStringsMap(localizableTitles);
-                        FreeLocalizableStringsMap(localizableMessages);
-                        FreeLocalizableStringsMap(localizableDescriptions);
-                        resourcesDataValueMap.Free();
+                        FreeLocalizableStringsMap(localizableTitles, compilationEndContext.CancellationToken);
+                        FreeLocalizableStringsMap(localizableMessages, compilationEndContext.CancellationToken);
+                        FreeLocalizableStringsMap(localizableDescriptions, compilationEndContext.CancellationToken);
+                        resourcesDataValueMap.Free(compilationEndContext.CancellationToken);
                     }
                 });
             });
 
-            static void FreeLocalizableStringsMap(PooledLocalizabeStringsConcurrentDictionary localizableStrings)
+            static void FreeLocalizableStringsMap(PooledLocalizabeStringsConcurrentDictionary localizableStrings, CancellationToken cancellationToken)
             {
                 foreach (var builder in localizableStrings.Values)
                 {
-                    builder.Free();
+                    builder.Free(cancellationToken);
                 }
 
-                localizableStrings.Free();
+                localizableStrings.Free(cancellationToken);
             }
         }
 
@@ -501,15 +501,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeTitleCore(string title, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
+            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(title);
+            if (hasLeadingOrTrailingWhitespaces)
+            {
+                title = RemoveLeadingAndTrailingWhitespaces(title);
+            }
+
             var isMultiSentences = IsMultiSentences(title);
             var endsWithPeriod = EndsWithPeriod(title);
             var containsLineReturn = ContainsLineReturn(title);
-            if (isMultiSentences || endsWithPeriod || containsLineReturn)
+
+            if (isMultiSentences || endsWithPeriod || containsLineReturn || hasLeadingOrTrailingWhitespaces)
             {
+                // Leading and trailing spaces were already fixed
                 var fixedTitle = endsWithPeriod ? RemoveTrailingPeriod(title) : title;
                 fixedTitle = isMultiSentences ? FixMultiSentences(fixedTitle) : fixedTitle;
                 fixedTitle = containsLineReturn ? FixLineReturns(fixedTitle, allowMultisentences: false) : fixedTitle;
-                Debug.Assert(title != fixedTitle);
 
                 ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticTitleCorrectlyRule,
                     argumentOperation, fixedTitle, fixLocation, reportDiagnostic);
@@ -547,9 +554,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             [NotNullWhen(returnValue: true)] out string? filePath,
             [NotNullWhen(returnValue: true)] out TextSpan? fileSpan)
         {
-            Debug.Assert(diagnostic.Id == DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId ||
-                diagnostic.Id == DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId ||
-                diagnostic.Id == DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
+            Debug.Assert(diagnostic.Id is DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId or
+                DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId or
+                DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
 
             filePath = null;
             fileSpan = null;
@@ -591,11 +598,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeMessageCore(string message, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
+            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(message);
+            if (hasLeadingOrTrailingWhitespaces)
+            {
+                message = RemoveLeadingAndTrailingWhitespaces(message);
+            }
+
             var isMultiSentences = IsMultiSentences(message);
             var endsWithPeriod = EndsWithPeriod(message);
             var containsLineReturn = ContainsLineReturn(message);
-            if (isMultiSentences ^ endsWithPeriod || containsLineReturn)
+
+            if (isMultiSentences ^ endsWithPeriod || containsLineReturn || hasLeadingOrTrailingWhitespaces)
             {
+                // Leading and trailing spaces were already fixed
                 var fixedMessage = containsLineReturn ? FixLineReturns(message, allowMultisentences: true) : message;
                 isMultiSentences = IsMultiSentences(fixedMessage);
                 endsWithPeriod = EndsWithPeriod(fixedMessage);
@@ -630,9 +645,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeDescriptionCore(string description, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
-            if (!EndsWithPunctuation(description))
+            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(description);
+            if (hasLeadingOrTrailingWhitespaces)
             {
-                var fixedDescription = description + ".";
+                description = RemoveLeadingAndTrailingWhitespaces(description);
+            }
+
+            var endsWithPunctuation = EndsWithPunctuation(description);
+
+            if (!endsWithPunctuation || hasLeadingOrTrailingWhitespaces)
+            {
+                var fixedDescription = !endsWithPunctuation ? description + "." : description;
+
                 ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticDescriptionCorrectlyRule,
                     argumentOperation, fixedDescription, fixLocation, reportDiagnostic);
             }
@@ -857,6 +881,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Debug.Assert(EndsWithPunctuation(s));
             return s[0..^1];
+        }
+
+        private static bool HasLeadingOrTrailingWhitespaces(string s)
+            => s.Trim().Length != s.Length;
+
+        private static string RemoveLeadingAndTrailingWhitespaces(string s)
+        {
+            Debug.Assert(HasLeadingOrTrailingWhitespaces(s));
+            return s.Trim();
         }
 
         private static void AnalyzeHelpLinkUri(
@@ -1104,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            if (!ruleId.Substring(2).All(c => char.IsDigit(c)))
+            if (!ruleId[2..].All(c => char.IsDigit(c)))
             {
                 return false;
             }

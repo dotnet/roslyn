@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 Debug.Assert(IDisposableNamedType != null);
                 Debug.Assert(CollectionNamedTypes.All(ct => ct.TypeKind == TypeKind.Interface));
                 Debug.Assert(analysisContext.DisposeOwnershipTransferLikelyTypes != null);
-                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
+                Debug.Assert(analysisContext.PointsToAnalysisResult != null);
 
                 if (analysisContext.TrackInstanceFields)
                 {
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             protected override void SetAbstractValue(AbstractLocation location, DisposeAbstractValue value)
             {
                 if (!location.IsNull &&
-                    location.LocationTypeOpt != null &&
-                    (!location.LocationTypeOpt.IsValueType || location.LocationTypeOpt.IsRefLikeType) &&
-                    IsDisposable(location.LocationTypeOpt))
+                    location.LocationType != null &&
+                    (!location.LocationType.IsValueType || location.LocationType.IsRefLikeType) &&
+                    IsDisposable(location.LocationType))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -190,13 +190,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 Debug.Assert(!escapedLocations.IsEmpty);
                 Debug.Assert(parameter.RefKind != RefKind.None);
                 var escapedDisposableLocations =
-                    escapedLocations.Where(l => IsDisposable(l.LocationTypeOpt));
+                    escapedLocations.Where(l => IsDisposable(l.LocationType));
                 SetAbstractValue(escapedDisposableLocations, ValueDomain.UnknownOrMayBeValue);
             }
 
             protected override DisposeAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
                 // Special case: don't flag "out" arguments for "bool TryGetXXX(..., out value)" invocations.
                 if (operation.Parent is IInvocationOperation invocation &&
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // they should not be considered as part of current state when possible exception occurs.
                 if (operation != null &&
                     operation.Kind != OperationKind.ObjectCreation &&
-                    (!(operation is IInvocationOperation invocation) ||
+                    (operation is not IInvocationOperation invocation ||
                        invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate()))
                 {
                     base.HandlePossibleThrowingOperation(operation);
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
 
                 // Ref or out argument values from callee might be escaped by assigning to field.
-                if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
+                if (operation.Parameter.RefKind is RefKind.Out or RefKind.Ref)
                 {
                     HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
                 }
