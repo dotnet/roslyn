@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                         theme => theme.Guid,
                         theme => theme.Category.Colors
                             .Where(color => color.Foreground.HasValue)
-                            .ToImmutableDictionary(color => color.Name, color => color.Foreground.Value)));
+                            .ToImmutableDictionary(color => color.Name, color => color.Foreground!.Value)));
 
                 // Gather all the classifications from the core and scheme dictionaries.
                 var coreClassifications = DarkThemeForeground.Keys.Concat(BlueLightThemeForeground.Keys).Distinct();
