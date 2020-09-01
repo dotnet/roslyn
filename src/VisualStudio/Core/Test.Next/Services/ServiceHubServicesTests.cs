@@ -138,12 +138,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var proxy = await client.GetProxyAsync<IRemoteTodoCommentsService>(
+            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
                 callbackTarget: callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = proxy.Service.ComputeTodoCommentsAsync(cancellationTokenSource.Token);
+            var invokeTask = connection.TryInvokeAsync(
+                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
+                cancellationTokenSource.Token);
 
             var data = await callback.Data;
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
@@ -165,7 +167,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             cancellationTokenSource.Cancel();
 
-            await invokeTask;
+            Assert.True(await invokeTask);
         }
 
         private class TodoCommentsListener : ITodoCommentsListener
@@ -217,12 +219,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var proxy = await client.GetProxyAsync<IRemoteDesignerAttributeService>(
+            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(
                 WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = proxy.Service.StartScanningForDesignerAttributesAsync(cancellationTokenSource.Token);
+            var invokeTask = connection.TryInvokeAsync(
+                (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
+                cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
             Assert.Equal(1, infos.Length);
@@ -233,7 +237,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             cancellationTokenSource.Cancel();
 
-            await invokeTask;
+            Assert.True(await invokeTask);
         }
 
         private class DesignerAttributeListener : IDesignerAttributeListener

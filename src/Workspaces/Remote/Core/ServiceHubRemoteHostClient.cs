@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly HubClient _hubClient;
         private readonly IServiceBroker _serviceBroker;
         private readonly ServiceBrokerClient _serviceBrokerClient;
+        private readonly IErrorReportingService? _errorReportingService;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -67,10 +68,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
+            _errorReportingService = services.GetService<IErrorReportingService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
-            => _services.GetService<IErrorReportingService>()?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
+            => _errorReportingService?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
 
         public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<RemoteServiceProxy<T>> GetProxyAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
         {
             try
             {
@@ -161,13 +163,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var descriptor = service.GetServiceDescriptor(RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
-#pragma warning disable ISB001 // Dispose of proxies - RemoteServiceProxy takes care of disposal
+#pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
                 var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
 
                 Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
 
-                return new RemoteServiceProxy<T>(proxy);
+                return new BrokeredServiceConnection<T>(proxy, _errorReportingService);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {

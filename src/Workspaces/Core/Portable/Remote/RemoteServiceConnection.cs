@@ -22,4 +22,14 @@ namespace Microsoft.CodeAnalysis.Remote
         public Task<T> RunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => RunRemoteAsync<T>(targetName, solution, arguments, dataReader: null, cancellationToken);
     }
+
+    internal abstract class RemoteServiceConnection<T> : IDisposable
+        where T : class
+    {
+        public abstract void Dispose();
+
+        public abstract ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, Task> invocation, CancellationToken cancellationToken);
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<T, CancellationToken, Task<TResult>> invocation, CancellationToken cancellationToken);
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, Task<TResult>> invocation, TArgs args, CancellationToken cancellationToken);
+    }
 }

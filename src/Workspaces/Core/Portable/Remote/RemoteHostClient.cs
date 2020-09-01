@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return service.TryGetRemoteHostClientAsync(cancellationToken);
         }
 
-        public abstract ValueTask<RemoteServiceProxy<T>> GetProxyAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+        public abstract ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
             where T : class;
 
         public abstract Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);

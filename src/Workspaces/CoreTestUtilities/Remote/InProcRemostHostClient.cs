@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public override async ValueTask<RemoteServiceProxy<T>> GetProxyAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
         {
             var options = default(ServiceActivationOptions);
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 #pragma warning restore
 
             Contract.ThrowIfNull(proxy);
-            return new RemoteServiceProxy<T>(proxy);
+            return new BrokeredServiceConnection<T>(proxy, errorReportingService: null);
         }
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p, o) => new RemoteSymbolSearchUpdateEngine(s, p));
                 RegisterBrokeredService(WellKnownServiceHubService.RemoteDesignerAttributeService, new RemoteDesignerAttributeService.Factory());
-                RegisterService(WellKnownServiceHubService.RemoteProjectTelemetryService, (s, p, o) => new RemoteProjectTelemetryService(s, p));
+                RegisterBrokeredService(WellKnownServiceHubService.RemoteProjectTelemetryService, new RemoteProjectTelemetryService.Factory());
                 RegisterBrokeredService(WellKnownServiceHubService.RemoteTodoCommentsService, new RemoteTodoCommentsService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }

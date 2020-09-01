@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// Our connection to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceProxy<IRemoteProjectTelemetryService>? _lazyProxy;
+        private RemoteServiceConnection<IRemoteProjectTelemetryService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -105,15 +105,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            var proxy = await client.GetProxyAsync<IRemoteProjectTelemetryService>(
+            var connection = await client.CreateConnectionAsync<IRemoteProjectTelemetryService>(
                 WellKnownServiceHubService.RemoteProjectTelemetryService,
                 callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
 
             // Now kick off scanning in the OOP process.
-            await proxy.Service.ComputeProjectTelemetryAsync(cancellationToken).ConfigureAwait(false);
+            // If the call fails an error has already been reported and there is nothing more to do.
+            _ = await connection.TryInvokeAsync(
+                (service, cancellationToken) => service.ComputeProjectTelemetryAsync(cancellationToken),
+                cancellationToken).ConfigureAwait(false);
 
-            _lazyProxy = proxy;
+            _lazyConnection = connection;
         }
 
         private async Task NotifyTelemetryServiceAsync(
