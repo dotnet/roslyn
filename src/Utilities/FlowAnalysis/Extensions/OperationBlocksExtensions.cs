@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -13,10 +12,9 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var operationRoot in operationBlocks)
             {
-                IBlockOperation? topmostBlock = operationRoot.GetTopmostParentBlock();
-                if (topmostBlock != null)
+                if (operationRoot.TryGetEnclosingControlFlowGraph(out var cfg))
                 {
-                    return topmostBlock.GetEnclosingControlFlowGraph();
+                    return cfg;
                 }
             }
 

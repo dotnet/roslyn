@@ -515,6 +515,72 @@ End Class
         }
 
         [Theory]
+        [CombinatorialData]
+        public async Task CompareSymbolFromInstanceEquals_VisualBasic(
+            [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
+            [CombinatorialValues("", "Not ")] string @operator)
+        {
+            var source = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As {symbolType}, y As {symbolType})
+        If {@operator}[|x.Equals(y)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As {symbolType}, y As {symbolType})
+        If {@operator}SymbolEqualityComparer.Default.Equals(x, y) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CompareSymbolFromInstanceEquals_CSharp(
+            [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
+            [CombinatorialValues("", "!")] string @operator)
+        {
+            var source = $@"
+using Microsoft.CodeAnalysis;
+class TestClass
+{{
+    void Method1({symbolType} x , {symbolType} y)
+    {{
+        if ({@operator}[|x.Equals(y)|]) return;
+    }}
+}}
+";
+
+            var fixedSource = $@"
+using Microsoft.CodeAnalysis;
+class TestClass
+{{
+    void Method1({symbolType} x , {symbolType} y)
+    {{
+        if ({@operator}SymbolEqualityComparer.Default.Equals(x, y)) return;
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareSymbolImplementationWithInterface_EqualsComparison_CSharp(string symbolType)

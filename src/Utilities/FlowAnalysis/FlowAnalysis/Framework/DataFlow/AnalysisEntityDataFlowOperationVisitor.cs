@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected sealed override TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+            Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
             if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+            Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
             return defaultValue;
         }
@@ -102,35 +102,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             base.ProcessOutOfScopeLocalsAndFlowCaptures(locals, flowCaptures);
 
-            var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-            try
+            using var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            AddTrackedEntities(allEntities);
+
+            // Stop tracking entities for locals and capture Ids that are now out of scope.
+            foreach (var local in locals)
             {
-                AddTrackedEntities(allEntities);
-
-                // Stop tracking entities for locals and capture Ids that are now out of scope.
-                foreach (var local in locals)
+                if (AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity))
                 {
-                    if (AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity))
-                    {
-                        StopTrackingDataForEntity(analysisEntity, allEntities);
-                    }
-                    else
-                    {
-                        Debug.Fail("TryCreateForSymbolDeclaration failed");
-                    }
+                    StopTrackingDataForEntity(analysisEntity, allEntities);
                 }
-
-                foreach (var captureId in flowCaptures)
+                else
                 {
-                    if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
-                    {
-                        StopTrackingDataForEntity(analysisEntity, allEntities);
-                    }
+                    Debug.Fail("TryCreateForSymbolDeclaration failed");
                 }
             }
-            finally
+
+            foreach (var captureId in flowCaptures)
             {
-                allEntities.Free();
+                if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
+                {
+                    StopTrackingDataForEntity(analysisEntity, allEntities);
+                }
             }
         }
 
@@ -178,52 +171,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (!parameterEntities.IsEmpty)
             {
-                var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                AddTrackedEntities(allEntities);
 
-                try
+                foreach (var (parameter, parameterEntity) in parameterEntities)
                 {
-                    AddTrackedEntities(allEntities);
+                    StopTrackingDataForEntity(parameterEntity, CurrentAnalysisData, allEntities);
 
-                    foreach (var (parameter, parameterEntity) in parameterEntities)
+                    if (parameter.IsParams)
                     {
-                        StopTrackingDataForEntity(parameterEntity, CurrentAnalysisData, allEntities);
-
-                        if (parameter.IsParams)
-                        {
-                            StopTrackingDataForParamArrayParameterIndices(parameterEntity, CurrentAnalysisData, allEntities);
-                        }
+                        StopTrackingDataForParamArrayParameterIndices(parameterEntity, CurrentAnalysisData, allEntities);
                     }
-                }
-                finally
-                {
-                    allEntities.Free();
                 }
             }
         }
 
         protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData? existingData, IOperation operation)
         {
-            var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            try
-            {
-                // Get tracked entities.
-                AddTrackedEntities(entitiesBuilder);
+            // Get tracked entities.
+            using var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            AddTrackedEntities(entitiesBuilder);
 
-                // Only non-child entities are tracked for now.
-                var resultAnalysisData = GetTrimmedCurrentAnalysisData(entitiesBuilder.Where(e => !e.IsChildOrInstanceMember && HasAbstractValue(e)));
-                if (existingData != null)
-                {
-                    var mergedAnalysisData = MergeAnalysisData(resultAnalysisData, existingData);
-                    resultAnalysisData.Dispose();
-                    resultAnalysisData = mergedAnalysisData;
-                }
-
-                return resultAnalysisData;
-            }
-            finally
+            // Only non-child entities are tracked for now.
+            var resultAnalysisData = GetTrimmedCurrentAnalysisData(entitiesBuilder.Where(e => !e.IsChildOrInstanceMember && HasAbstractValue(e)));
+            if (existingData != null)
             {
-                entitiesBuilder.Free();
+                var mergedAnalysisData = MergeAnalysisData(resultAnalysisData, existingData);
+                resultAnalysisData.Dispose();
+                resultAnalysisData = mergedAnalysisData;
             }
+
+            return resultAnalysisData;
         }
 
         #region Helper methods to handle initialization/assignment operations
@@ -511,129 +489,117 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     isLambdaOrLocalFunction, hasParameterWithDelegateType);
             }
 
-            var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            var interproceduralEntitiesToRetainBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            var worklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-            var worklistPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
-            var processedPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
-            var childWorklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var interproceduralEntitiesToRetainBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var worklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var worklistPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
+            using var processedPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
+            using var childWorklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
 
-            try
+            // All tracked entities are candidates to be retained for initial interprocedural
+            // analysis data.
+            AddTrackedEntities(candidateEntitiesBuilder, forInterproceduralAnalysis: true);
+            var candidateEntitiesCount = candidateEntitiesBuilder.Count;
+
+            // Add entities and PointsTo values for invocation instance, this or me instance
+            // and argument values to the initial worklist
+
+            if (invocationInstance.HasValue)
             {
-                // All tracked entities are candidates to be retained for initial interprocedural
-                // analysis data.
-                AddTrackedEntities(candidateEntitiesBuilder, forInterproceduralAnalysis: true);
-                var candidateEntitiesCount = candidateEntitiesBuilder.Count;
+                AddWorklistEntityAndPointsToValue(invocationInstance.Value.Instance);
+                AddWorklistPointsToValue(invocationInstance.Value.PointsToValue);
+            }
 
-                // Add entities and PointsTo values for invocation instance, this or me instance
-                // and argument values to the initial worklist
+            if (thisOrMeInstanceForCaller.HasValue)
+            {
+                AddWorklistEntityAndPointsToValue(thisOrMeInstanceForCaller.Value.Instance);
+                AddWorklistPointsToValue(thisOrMeInstanceForCaller.Value.PointsToValue);
+            }
 
-                if (invocationInstance.HasValue)
+            foreach (var argument in argumentValuesMap.Values)
+            {
+                if (!AddWorklistEntityAndPointsToValue(argument.AnalysisEntity))
                 {
-                    AddWorklistEntityAndPointsToValue(invocationInstance.Value.Instance);
-                    AddWorklistPointsToValue(invocationInstance.Value.PointsToValue);
+                    // For allocations passed as arguments.
+                    AddWorklistPointsToValue(argument.InstanceLocation);
                 }
+            }
 
-                if (thisOrMeInstanceForCaller.HasValue)
+            // Worklist based algorithm to compute the transitive closure of analysis entities
+            // that are accessible in the callee via the PointsTo value chain.
+            while (worklistEntities.Count > 0 || worklistPointsToValues.Count > 0)
+            {
+                if (worklistEntities.Count > 0)
                 {
-                    AddWorklistEntityAndPointsToValue(thisOrMeInstanceForCaller.Value.Instance);
-                    AddWorklistPointsToValue(thisOrMeInstanceForCaller.Value.PointsToValue);
-                }
+                    // Add all the worklistEntities to interproceduralEntitiesBuilder
+                    // to ensure these entities are retained.
+                    interproceduralEntitiesToRetainBuilder.AddRange(worklistEntities);
 
-                foreach (var argument in argumentValuesMap.Values)
-                {
-                    if (!AddWorklistEntityAndPointsToValue(argument.AnalysisEntity))
+                    // Remove the worklistEntities from tracked candidate entities.
+                    candidateEntitiesBuilder.ExceptWith(worklistEntities);
+
+                    // Add child entities of worklistEntities to childWorklistEntities.
+                    // PERF: We cannot have any child entities for PointsToAnalysis if we
+                    // not computing complete PointsToAnalysis data.
+                    if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
                     {
-                        // For allocations passed as arguments.
-                        AddWorklistPointsToValue(argument.InstanceLocation);
-                    }
-                }
-
-                // Worklist based algorithm to compute the transitive closure of analysis entities
-                // that are accessible in the callee via the PointsTo value chain.
-                while (worklistEntities.Count > 0 || worklistPointsToValues.Count > 0)
-                {
-                    if (worklistEntities.Count > 0)
-                    {
-                        // Add all the worklistEntities to interproceduralEntitiesBuilder
-                        // to ensure these entities are retained.
-                        interproceduralEntitiesToRetainBuilder.AddRange(worklistEntities);
-
-                        // Remove the worklistEntities from tracked candidate entities.
-                        candidateEntitiesBuilder.ExceptWith(worklistEntities);
-
-                        // Add child entities of worklistEntities to childWorklistEntities.
-                        // PERF: We cannot have any child entities for PointsToAnalysis if we
-                        // not computing complete PointsToAnalysis data.
-                        if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
+                        foreach (var candidateEntity in candidateEntitiesBuilder)
                         {
-                            foreach (var candidateEntity in candidateEntitiesBuilder)
+                            foreach (var ancestorEntity in worklistEntities)
                             {
-                                foreach (var ancestorEntity in worklistEntities)
+                                if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
                                 {
-                                    if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
-                                    {
-                                        childWorklistEntities.Add(candidateEntity);
-                                        break;
-                                    }
+                                    childWorklistEntities.Add(candidateEntity);
+                                    break;
                                 }
                             }
                         }
-
-                        worklistEntities.Clear();
                     }
 
-                    if (worklistPointsToValues.Count > 0)
+                    worklistEntities.Clear();
+                }
+
+                if (worklistPointsToValues.Count > 0)
+                {
+                    // Add child entities which are accessible from PointsTo chain to childWorklistEntities.
+                    // PERF: We cannot have any child entities for PointsToAnalysis if we
+                    // not computing complete PointsToAnalysis data.
+                    if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
                     {
-                        // Add child entities which are accessible from PointsTo chain to childWorklistEntities.
-                        // PERF: We cannot have any child entities for PointsToAnalysis if we
-                        // not computing complete PointsToAnalysis data.
-                        if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
+                        foreach (var candidateEntity in candidateEntitiesBuilder)
                         {
-                            foreach (var candidateEntity in candidateEntitiesBuilder)
+                            foreach (var pointsToValue in worklistPointsToValues)
                             {
-                                foreach (var pointsToValue in worklistPointsToValues)
+                                Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
+                                if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
                                 {
-                                    Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
-                                    if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
-                                    {
-                                        childWorklistEntities.Add(candidateEntity);
-                                        break;
-                                    }
+                                    childWorklistEntities.Add(candidateEntity);
+                                    break;
                                 }
                             }
                         }
-
-                        worklistPointsToValues.Clear();
                     }
 
-                    // Move all the child work list entities and their PointsTo values to the worklist.
-                    foreach (var childEntity in childWorklistEntities)
-                    {
-                        AddWorklistEntityAndPointsToValue(childEntity);
-                    }
-
-                    childWorklistEntities.Clear();
+                    worklistPointsToValues.Clear();
                 }
 
-                // If all candidates being retained, just retain the cloned current analysis data.
-                if (interproceduralEntitiesToRetainBuilder.Count == candidateEntitiesCount)
+                // Move all the child work list entities and their PointsTo values to the worklist.
+                foreach (var childEntity in childWorklistEntities)
                 {
-                    return GetClonedCurrentAnalysisData();
+                    AddWorklistEntityAndPointsToValue(childEntity);
                 }
 
-                // Otherwise, return cloned current analysis data with trimmed keys.
-                return GetTrimmedCurrentAnalysisData(interproceduralEntitiesToRetainBuilder);
+                childWorklistEntities.Clear();
             }
-            finally
+
+            // If all candidates being retained, just retain the cloned current analysis data.
+            if (interproceduralEntitiesToRetainBuilder.Count == candidateEntitiesCount)
             {
-                candidateEntitiesBuilder.Free();
-                interproceduralEntitiesToRetainBuilder.Free();
-                worklistEntities.Free();
-                worklistPointsToValues.Free();
-                processedPointsToValues.Free();
-                childWorklistEntities.Free();
+                return GetClonedCurrentAnalysisData();
             }
+
+            // Otherwise, return cloned current analysis data with trimmed keys.
+            return GetTrimmedCurrentAnalysisData(interproceduralEntitiesToRetainBuilder);
 
             // Local functions.
             bool AddWorklistEntityAndPointsToValue(AnalysisEntity? analysisEntity)
@@ -739,29 +705,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 AnalysisDataForUnhandledThrowOperations != null &&
                 AnalysisDataForUnhandledThrowOperations.Values.Any(HasAnyAbstractValue))
             {
-                var allAnalysisEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var allAnalysisEntities = PooledHashSet<AnalysisEntity>.GetInstance();
 
-                try
+                foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
                 {
-                    foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
-                    {
-                        AddTrackedEntities(dataAtException, allAnalysisEntities, forInterproceduralAnalysis: true);
-                    }
+                    AddTrackedEntities(dataAtException, allAnalysisEntities, forInterproceduralAnalysis: true);
+                }
 
-                    foreach (var entity in allAnalysisEntities)
+                foreach (var entity in allAnalysisEntities)
+                {
+                    if (ShouldStopTrackingEntityAtExit(entity))
                     {
-                        if (ShouldStopTrackingEntityAtExit(entity))
+                        foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
                         {
-                            foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
-                            {
-                                StopTrackingDataForEntity(entity, dataAtException, allAnalysisEntities);
-                            }
+                            StopTrackingDataForEntity(entity, dataAtException, allAnalysisEntities);
                         }
                     }
-                }
-                finally
-                {
-                    allAnalysisEntities.Free();
                 }
             }
 

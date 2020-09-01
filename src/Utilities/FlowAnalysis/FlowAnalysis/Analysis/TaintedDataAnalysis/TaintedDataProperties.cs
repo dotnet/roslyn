@@ -2,16 +2,11 @@
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    internal static class TaintedTargetValue
+    internal static class TaintedDataProperties
     {
         /// <summary>
-        /// Taint return value.
+        /// Language agnostic indexer name used in tainted data rules.
         /// </summary>
-        public const string Return = ".Return";
-
-        /// <summary>
-        /// Taint the instance value.
-        /// </summary>
-        public const string This = ".This";
+        public const string IndexerName = "this[]";
     }
 }

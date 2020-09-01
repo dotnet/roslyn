@@ -374,8 +374,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 void reportDeclareNewApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, string publicApiName)
                 {
                     // TODO: workaround for https://github.com/dotnet/wpf/issues/2690
-                    if (publicApiName == "XamlGeneratedNamespace.GeneratedInternalTypeHelper" ||
-                        publicApiName == "XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void")
+                    if (publicApiName is "XamlGeneratedNamespace.GeneratedInternalTypeHelper" or
+                        "XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void")
                     {
                         return;
                     }
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 // not internal, private or protected&internal
                 return !type.IsSealed &&
                     type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
-                        m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
+                        m => m.DeclaredAccessibility is not Accessibility.Internal and not Accessibility.Private and not Accessibility.ProtectedAndInternal
                     );
             }
 

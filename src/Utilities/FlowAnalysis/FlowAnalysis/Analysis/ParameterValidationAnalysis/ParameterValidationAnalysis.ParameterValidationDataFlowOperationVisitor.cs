@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             private void ProcessLambdaOrLocalFunctionInvocation(IMethodSymbol targetMethod, IOperation invocation)
             {
-                Debug.Assert(targetMethod.MethodKind == MethodKind.LambdaMethod || targetMethod.MethodKind == MethodKind.LocalFunction);
+                Debug.Assert(targetMethod.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction);
 
                 // Lambda and local function invocations can access captured variables.
                 if (_hazardousParameterUsageBuilder != null &&
@@ -446,6 +446,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 // See comments in VisitBinaryOperatorCore override above for further details.
                 if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
                     GetNullAbstractValue(operation.Pattern) == NullAbstractValue.Null)
+                {
+                    MarkValidatedLocations(operation.Value);
+                }
+
+                // Mark a location as validated on true path where user has performed an IsPattern check with not null on true path.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue &&
+                    GetNullAbstractValue(operation.Pattern) == NullAbstractValue.NotNull)
                 {
                     MarkValidatedLocations(operation.Value);
                 }

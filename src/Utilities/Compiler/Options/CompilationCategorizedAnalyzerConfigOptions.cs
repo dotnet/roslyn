@@ -57,7 +57,7 @@ namespace Analyzer.Utilities
                     continue;
                 }
 
-                key = key.Substring(keyPrefix.Length);
+                key = key[keyPrefix.Length..];
                 var keyParts = key.Split('.').Select(s => s.Trim()).ToImmutableArray();
                 switch (keyParts.Length)
                 {

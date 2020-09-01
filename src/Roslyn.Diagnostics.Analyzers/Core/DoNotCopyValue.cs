@@ -1410,7 +1410,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return false;
                 }
 
-                if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+                if (symbol is not INamedTypeSymbol namedTypeSymbol)
                 {
                     return false;
                 }

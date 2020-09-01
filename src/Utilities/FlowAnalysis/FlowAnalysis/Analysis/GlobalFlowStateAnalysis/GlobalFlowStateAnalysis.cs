@@ -42,8 +42,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
+            var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation,
+                defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
-                interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pessimisticAnalysis,
+                interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pointsToAnalysisKind, pessimisticAnalysis,
                 performValueContentAnalysis, out valueContentAnalysisResult);
         }
 
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
+            PointsToAnalysisKind pointsToAnalysisKind,
             bool pessimisticAnalysis,
             bool performValueContentAnalysis,
             out ValueContentAnalysisResult? valueContentAnalysisResult)
@@ -63,15 +66,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             RoslynDebug.Assert(owningSymbol != null);
 
             PointsToAnalysisResult? pointsToAnalysisResult = null;
-
             valueContentAnalysisResult = performValueContentAnalysis ?
                 ValueContentAnalysis.ValueContentAnalysis.TryGetOrComputeResult(
                     cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                    PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties,
-                    interproceduralAnalysisConfig, out _,
+                    pointsToAnalysisKind, interproceduralAnalysisConfig, out _,
                     out pointsToAnalysisResult, pessimisticAnalysis,
                     performCopyAnalysis: false, interproceduralAnalysisPredicate) :
                 null;
+
+            pointsToAnalysisResult ??= PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
+                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
+                pointsToAnalysisKind, interproceduralAnalysisConfig, interproceduralAnalysisPredicate);
 
             var analysisContext = GlobalFlowStateAnalysisContext.Create(
                 GlobalFlowStateAnalysisValueSetDomain.Instance, wellKnownTypeProvider, cfg, owningSymbol,

@@ -46,14 +46,13 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenToToken = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance();
+            using var tokenToToken = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance();
 
             foreach (var diagnostic in diagnostics)
                 FixOne(root, text, tokenToToken, diagnostic, cancellationToken);
 
             var newRoot = root.ReplaceTokens(tokenToToken.Keys, (t1, _) => tokenToToken[t1]);
 
-            tokenToToken.Free();
             return newRoot;
         }
 
@@ -89,11 +88,5 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
                 secondBrace.LeadingTrivia.SkipWhile(t => t != lastEndOfLineTrivia).Skip(1));
             tokenToToken[secondBrace] = updatedSecondBrace;
         }
-
-        private static SyntaxNode AddLeadingTrivia(SyntaxNode node, SyntaxTrivia trivia)
-            => node.WithLeadingTrivia(node.GetLeadingTrivia().Insert(0, trivia));
-
-        private static SyntaxToken AddLeadingTrivia(SyntaxToken token, SyntaxTrivia trivia)
-            => token.WithLeadingTrivia(token.LeadingTrivia.Insert(0, trivia));
     }
 }
