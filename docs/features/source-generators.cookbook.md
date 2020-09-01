@@ -857,6 +857,32 @@ specialized exactly to what was written in the user class.
 
 TODO:
 
+## Breaking Changes:
+
+Between preview and release the following breaking changes were introduced:
+
+Rename `SourceGeneratorContext` to `GeneratorExecutionContext`
+Rename `IntializationContext` to `GeneratorInitializationContext`
+
+This affects users authored generators, as it means the base interface has changed to:
+
+```csharp
+    public interface ISourceGenerator
+    {
+        void Initialize(GeneratorInitializationContext context);
+        void Execute(GeneratorExecutionContext context);
+    }
+```
+
+The required action from the user is to rename the parameter types of the `Initialize` and `Execute` methods to match.
+
+**Rename `RunFullGeneration` to `RunGeneratorsAndUpdateCompilation`**
+**Add `Create()` static methods to `CSharpGeneratorDriver` and obsolete the constructor.**
+
+This affects any generator authors who have written unit tests using the `CSharpGeneratorDriver`. To create a new instance
+of the generator driver, the user should no longer call `new` but use one of the `CSharpGeneratorDriver.Create()` overloads.
+The user should no longer use the `RunFullGeneration` method, and instead call `RunGeneratorsAndUpdateCompilation` with the same arguments.
+
 ## Open Issues
 
 This section track other miscellaneous TODO items:
