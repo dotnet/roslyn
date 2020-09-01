@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override DisposeAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
                 // Special case: don't flag "out" arguments for "bool TryGetXXX(..., out value)" invocations.
                 if (operation.Parent is IInvocationOperation invocation &&
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // they should not be considered as part of current state when possible exception occurs.
                 if (operation != null &&
                     operation.Kind != OperationKind.ObjectCreation &&
-                    (!(operation is IInvocationOperation invocation) ||
+                    (operation is not IInvocationOperation invocation ||
                        invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate()))
                 {
                     base.HandlePossibleThrowingOperation(operation);
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
 
                 // Ref or out argument values from callee might be escaped by assigning to field.
-                if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
+                if (operation.Parameter.RefKind is RefKind.Out or RefKind.Ref)
                 {
                     HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
                 }

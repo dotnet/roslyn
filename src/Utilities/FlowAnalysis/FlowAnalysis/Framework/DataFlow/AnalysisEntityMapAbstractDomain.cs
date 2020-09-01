@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return resultMap;
             static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
-                => entity.Symbol?.Kind == SymbolKind.Field || entity.Symbol?.Kind == SymbolKind.Property;
+                => entity.Symbol?.Kind is SymbolKind.Field or SymbolKind.Property;
 
             TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
             {

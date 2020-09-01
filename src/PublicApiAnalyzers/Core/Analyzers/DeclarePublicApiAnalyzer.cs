@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
-                    string removedtext = text.Substring(RemovedApiPrefix.Length);
+                    string removedtext = text[RemovedApiPrefix.Length..];
                     removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
                 }
                 else
@@ -339,13 +339,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 // bool TryGetValue(string key, out string value);
                 var parameters = new object?[] { BailOnMissingPublicApiFilesEditorConfigOptionName, null };
-                if (!(tryGetValueMethod.Invoke(options, parameters) is bool hasOption) ||
+                if (tryGetValueMethod.Invoke(options, parameters) is not bool hasOption ||
                     !hasOption)
                 {
                     return false;
                 }
 
-                if (!(parameters[1] is string value) ||
+                if (parameters[1] is not string value ||
                     !bool.TryParse(value, out var boolValue))
                 {
                     return false;

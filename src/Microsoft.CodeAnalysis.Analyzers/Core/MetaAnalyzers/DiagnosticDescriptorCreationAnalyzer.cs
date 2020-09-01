@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             AnalyzeLocalizableStrings(localizableDescriptions, AnalyzeDescriptionCore, symbolToResourceMap, namedType,
                                 resourcesDataValueMap, context.Options, context.ReportDiagnostic, context.CancellationToken);
 
-                            symbolToResourceMap.Free();
+                            symbolToResourceMap.Free(context.CancellationToken);
                         });
                     }, SymbolKind.NamedType);
                 }
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         ReportAnalyzerReleaseTrackingDiagnostics(invalidReleaseFileEntryDiagnostics, shippedData, unshippedData, seenRuleIds, compilationEndContext);
                     }
 
-                    seenRuleIds.Free();
+                    seenRuleIds.Free(compilationEndContext.CancellationToken);
                     if (analyzeResourceStrings)
                     {
                         RoslynDebug.Assert(localizableTitles != null);
@@ -400,22 +400,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         RoslynDebug.Assert(localizableDescriptions != null);
                         RoslynDebug.Assert(resourcesDataValueMap != null);
 
-                        FreeLocalizableStringsMap(localizableTitles);
-                        FreeLocalizableStringsMap(localizableMessages);
-                        FreeLocalizableStringsMap(localizableDescriptions);
-                        resourcesDataValueMap.Free();
+                        FreeLocalizableStringsMap(localizableTitles, compilationEndContext.CancellationToken);
+                        FreeLocalizableStringsMap(localizableMessages, compilationEndContext.CancellationToken);
+                        FreeLocalizableStringsMap(localizableDescriptions, compilationEndContext.CancellationToken);
+                        resourcesDataValueMap.Free(compilationEndContext.CancellationToken);
                     }
                 });
             });
 
-            static void FreeLocalizableStringsMap(PooledLocalizabeStringsConcurrentDictionary localizableStrings)
+            static void FreeLocalizableStringsMap(PooledLocalizabeStringsConcurrentDictionary localizableStrings, CancellationToken cancellationToken)
             {
                 foreach (var builder in localizableStrings.Values)
                 {
-                    builder.Free();
+                    builder.Free(cancellationToken);
                 }
 
-                localizableStrings.Free();
+                localizableStrings.Free(cancellationToken);
             }
         }
 
@@ -554,9 +554,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             [NotNullWhen(returnValue: true)] out string? filePath,
             [NotNullWhen(returnValue: true)] out TextSpan? fileSpan)
         {
-            Debug.Assert(diagnostic.Id == DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId ||
-                diagnostic.Id == DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId ||
-                diagnostic.Id == DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
+            Debug.Assert(diagnostic.Id is DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId or
+                DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId or
+                DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
 
             filePath = null;
             fileSpan = null;
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            if (!ruleId.Substring(2).All(c => char.IsDigit(c)))
+            if (!ruleId[2..].All(c => char.IsDigit(c)))
             {
                 return false;
             }

@@ -66,6 +66,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override void ResetCurrentAnalysisData()
                 => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
 
+            protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation)
+            {
+                if (DataFlowAnalysisContext.CopyAnalysisResult == null &&
+                    AnalysisEntityFactory.TryCreate(operation, out var entity) &&
+                    entity.CaptureId.HasValue &&
+                    AnalysisEntityFactory.TryGetCopyValueForFlowCapture(entity.CaptureId.Value.Id, out var copyValue) &&
+                    copyValue.Kind == CopyAbstractValueKind.KnownValueCopy)
+                {
+                    return copyValue;
+                }
+
+                return base.GetCopyAbstractValue(operation);
+            }
+
             #region Predicate analysis
             protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, ValueContentAnalysisData targetAnalysisData)
                 => PredicateValueKind.Unknown;

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+            Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
             if (operation.Value.Type != null)
             {

@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
             static bool IsOptimizedValueType(ITypeSymbol type)
             {
-                return type.SpecialType == SpecialType.System_Boolean ||
-                       type.SpecialType == SpecialType.System_Char ||
-                       type.SpecialType == SpecialType.System_IntPtr ||
-                       type.SpecialType == SpecialType.System_UIntPtr;
+                return type.SpecialType is SpecialType.System_Boolean or
+                       SpecialType.System_Char or
+                       SpecialType.System_IntPtr or
+                       SpecialType.System_UIntPtr;
             }
         }
     }

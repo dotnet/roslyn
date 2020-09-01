@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -28,12 +29,19 @@ namespace Analyzer.Utilities.PooledObjects
             _pool = pool;
         }
 
-        public void Dispose() => Free();
+        public void Dispose() => Free(CancellationToken.None);
 
-        public void Free()
+        public void Free(CancellationToken cancellationToken)
         {
+            // Do not free in presence of cancellation.
+            // See https://github.com/dotnet/roslyn/issues/46859 for details.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             this.Clear();
-            _pool?.Free(this);
+            _pool?.Free(this, cancellationToken);
         }
 
         // global pool

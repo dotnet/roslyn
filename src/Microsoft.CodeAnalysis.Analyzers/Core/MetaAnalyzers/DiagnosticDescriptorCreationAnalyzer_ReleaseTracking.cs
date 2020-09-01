@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (ruleId.StartsWith("CA", StringComparison.OrdinalIgnoreCase) &&
                     ruleId.Length > 2 &&
-                    long.TryParse(ruleId.Substring(2), out _))
+                    long.TryParse(ruleId[2..], out _))
                 {
 #pragma warning disable CA1308 // Normalize strings to uppercase - use lower case ID in help link
                     return $"https://docs.microsoft.com/visualstudio/code-quality/{ruleId.ToLowerInvariant()}";
