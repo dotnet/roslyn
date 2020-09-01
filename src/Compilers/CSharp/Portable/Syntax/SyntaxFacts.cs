@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((RefTypeSyntax)parent).Type == node;
 
                     case Parameter:
-                        return ((ParameterSyntax)parent).Type == node;
+                    case FunctionPointerParameter:
+                        return ((BaseParameterSyntax)parent).Type == node;
 
                     case TypeConstraint:
                         return ((TypeConstraintSyntax)parent).Type == node;

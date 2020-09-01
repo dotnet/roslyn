@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("unmanaged")));
             }
 
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return SpecializedTasks.Null<IEnumerable<RecommendedKeyword>>();
         }
     }
 }

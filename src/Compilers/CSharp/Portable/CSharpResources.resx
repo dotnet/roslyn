@@ -363,6 +363,12 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
+  <data name="IDS_Parameter" xml:space="preserve">
+    <value>parameter</value>
+  </data>
+  <data name="IDS_Return" xml:space="preserve">
+    <value>return</value>
+  </data>
   <data name="XML_InvalidToken" xml:space="preserve">
     <value>The character(s) '{0}' cannot be used at this location.</value>
   </data>
@@ -5511,10 +5517,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field is uninitialized. Consider declaring as nullable.</value>
+    <value>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
@@ -5613,16 +5619,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
-    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
+    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match the target delegate.</value>
+    <value>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</value>
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
+    <value>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
     <value>Cannot convert null literal to non-nullable reference type.</value>
@@ -6126,7 +6132,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>&amp;method group</value>
   </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
-    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
+    <value>'{0}' is not a valid calling convention specifier for a function pointer.</value>
+  </data>
+  <data name="ERR_TypeNotFound" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
+  </data>
+  <data name="ERR_TypeMustBePublic" xml:space="preserve">
+    <value>Type '{0}' must be public to be used as a calling convention.</value>
+  </data>
+  <data name="WRN_SyncAndAsyncEntryPoints" xml:space="preserve">
+    <value>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
@@ -6195,16 +6210,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>
@@ -6317,17 +6344,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
     <value>The calling convention of '{0}' is not supported by the language.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv" xml:space="preserve">
+    <value>The target runtime doesn't support extensible or runtime-environment default calling conventions.</value>
+  </data>
   <data name="NotSameNumberParameterTypesAndRefKinds" xml:space="preserve">
     <value>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</value>
   </data>
   <data name="OutIsNotValidForReturn" xml:space="preserve">
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
   </data>
+  <data name="CallingConventionTypesRequireUnmanaged" xml:space="preserve">
+    <value>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</value>
+  </data>
+  <data name="CallingConventionTypeIsInvalid" xml:space="preserve">
+    <value>Cannot use '{0}' as a calling convention modifier.</value>
+  </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
+  </data>
+  <data name="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers" xml:space="preserve">
+    <value>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
@@ -6371,10 +6410,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
     <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
   </data>
-  <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
+  <data name="ERR_SealedAPIInRecord" xml:space="preserve">
     <value>'{0}' cannot be sealed because containing record is not sealed.</value>
   </data>
-  <data name="ERR_DoesNotOverrideBaseEquals" xml:space="preserve">
+  <data name="ERR_DoesNotOverrideBaseMethod" xml:space="preserve">
     <value>'{0}' does not override expected method from '{1}'.</value>
   </data>
   <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">
@@ -6385,6 +6424,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CloneDisallowedInRecord" xml:space="preserve">
     <value>Members named 'Clone' are disallowed in records.</value>
+  </data>
+  <data name="WRN_RecordNamedDisallowed" xml:space="preserve">
+    <value>Types and aliases should not be named 'record'.</value>
+  </data>
+  <data name="WRN_RecordNamedDisallowed_Title" xml:space="preserve">
+    <value>Types and aliases should not be named 'record'.</value>
   </data>
   <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
     <value>'{0}' must allow overriding because the containing record is not sealed.</value>
@@ -6436,5 +6481,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
     <value>extension GetEnumerator</value>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
+    <value>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_CannotUseManagedTypeInUnmanagedCallersOnly" xml:space="preserve">
+    <value>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric" xml:space="preserve">
+    <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
 </root>

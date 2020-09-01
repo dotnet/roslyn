@@ -5037,7 +5037,7 @@ class C : IDisposable
     {
         [|using var c = new C()|];
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
@@ -5053,7 +5053,7 @@ class C : IDisposable
     {
         [|using var c = new C() { P = 1 }|];
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact]

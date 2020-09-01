@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     document, semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
-            return FindReferencesInTokens(
+            return await FindReferencesInTokensAsync(
                  methodSymbol,
                  document,
                  semanticModel,
                  tokens,
                  TokensMatch,
-                 cancellationToken);
+                 cancellationToken).ConfigureAwait(false);
 
             // local functions
             bool TokensMatch(SyntaxToken t)

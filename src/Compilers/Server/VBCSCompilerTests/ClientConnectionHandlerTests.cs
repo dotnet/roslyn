@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task CompilationsDisallowed()
         {
-            var hitCompliation = false;
+            var hitCompilation = false;
             var compilerServerHost = new TestableCompilerServerHost(delegate
             {
-                hitCompliation = true;
+                hitCompilation = true;
                 Assert.True(false, "Should not reach compilation when compilations are disallowed");
                 throw new Exception("");
             });
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.Equal(CompletionData.RequestCompleted, completionData);
             Assert.True(response is RejectedBuildResponse);
-            Assert.False(hitCompliation);
+            Assert.False(hitCompilation);
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
             var task = clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection));
 
-            // Don't trigger the disconnect until we confirm that the client has issueed a 
+            // Don't trigger the disconnect until we confirm that the client has issued a 
             // build request.
             buildStartedMre.WaitOne();
             disconnectTaskCompletionSource.TrySetResult(null);

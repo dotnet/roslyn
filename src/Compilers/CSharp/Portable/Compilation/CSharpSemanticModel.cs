@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
     /// an instance is obtained by a call to <see cref="Compilation"/>.<see
-    /// cref="Compilation.GetSemanticModel"/>. 
+    /// cref="Compilation.GetSemanticModel(SyntaxTree, bool)"/>. 
     /// </summary>
     /// <remarks>
     /// <para>An instance of <see cref="CSharpSemanticModel"/> caches local symbols and semantic
@@ -5262,7 +5262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider)
+            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
                 ? NullableContextOptions.Disable
                 : Compilation.Options.NullableContextOptions;
 

@@ -26,12 +26,12 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal partial int M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(4, 26),
-                // (5,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(4, 26),
+                // (5,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal partial int M1() => 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(5, 26)
             );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -125,12 +125,12 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     private partial void M1(out int i);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(4, 26),
-                // (5,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(4, 26),
+                // (5,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     private partial void M1(out int i) { i = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(5, 26)
             );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -262,12 +262,12 @@ partial class C
 }}";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     {mod} void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods"),
-                // (5,28): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     {mod} void M1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods")
+                // (4,27): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     internal partial void M1();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0"),
+                // (5,27): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     internal partial void M1() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0")
             );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -377,12 +377,12 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,34): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,34): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal virtual partial int M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(4, 34),
-                // (5,34): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(4, 34),
+                // (5,34): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal virtual partial int M1() => 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(5, 34)
             );
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -637,14 +637,14 @@ partial class D
     public override partial string ToString();
     public override partial string ToString() => ""hello"";
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,36): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,36): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override partial string ToString();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(4, 36),
-                // (5,36): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ToString").WithArguments("extended partial methods", "9.0").WithLocation(4, 36),
+                // (5,36): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override partial string ToString() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(5, 36)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ToString").WithArguments("extended partial methods", "9.0").WithLocation(5, 36)
             );
             var method = comp.GetMember<MethodSymbol>("D.ToString");
             Assert.Equal("System.String System.Object.ToString()", method.OverriddenMethod.ToTestDisplayString());
@@ -906,14 +906,14 @@ partial class D : C
     internal sealed override partial void M1();
     internal sealed override partial void M1() { }
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (8,43): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,43): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal sealed override partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(8, 43),
-                // (9,43): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(8, 43),
+                // (9,43): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal sealed override partial void M1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 43)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(9, 43)
             );
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -1035,14 +1035,14 @@ partial class C
     [DllImport(""something.dll"")]
     internal static extern partial void M1();
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,34): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,34): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal static partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(6, 34),
-                // (9,41): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(6, 34),
+                // (9,41): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal static extern partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 41));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(9, 41));
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -1367,14 +1367,14 @@ partial class D : C
     internal new partial void M1();
     internal new partial void M1() { }
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,31): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,31): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal new partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 31),
-                // (10,31): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(9, 31),
+                // (10,31): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal new partial void M1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(10, 31));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(10, 31));
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -1866,14 +1866,14 @@ partial struct S
     public partial int M() => 42;
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,24): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,24): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public partial int M();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("extended partial methods").WithLocation(4, 24),
-                // (5,24): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("extended partial methods", "9.0").WithLocation(4, 24),
+                // (5,24): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public partial int M() => 42;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("extended partial methods").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("extended partial methods", "9.0").WithLocation(5, 24));
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();

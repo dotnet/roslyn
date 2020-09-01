@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly bool _logPerformanceInfo;
+        private readonly Action? _onAnalysisException;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedAnalyzersInAnalysisScope;
 
@@ -39,12 +41,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentAnalysisScope analysisScope,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
-            bool logPerformanceInfo)
+            bool logPerformanceInfo,
+            Action? onAnalysisException = null)
         {
             AnalysisScope = analysisScope;
             _compilationWithAnalyzers = compilationWithAnalyzers;
             _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
             _logPerformanceInfo = logPerformanceInfo;
+            _onAnalysisException = onAnalysisException;
 
             var compilationBasedAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
             _compilationBasedAnalyzersInAnalysisScope = compilationBasedAnalyzers != null
@@ -134,6 +138,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
 
+            // Remap diagnostic locations, if required.
+            diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
+
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
             Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, _compilationWithAnalyzers.Compilation).Count());
@@ -147,9 +154,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
 
-            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
-                _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
-            return resultAndTelemetry.AnalysisResult;
+            try
+            {
+                var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
+                    _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+                return resultAndTelemetry.AnalysisResult;
+            }
+            catch
+            {
+                _onAnalysisException?.Invoke();
+                throw;
+            }
         }
 
         private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
@@ -322,6 +337,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 bool shouldInclude(Diagnostic d) => span.Value.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
             }
 #endif
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
+            TextDocument textDocument,
+            ImmutableArray<DiagnosticData> diagnostics,
+            CancellationToken cancellationToken)
+        {
+            if (diagnostics.IsEmpty)
+            {
+                return diagnostics;
+            }
+
+            // Check if IWorkspaceVenusSpanMappingService is present for remapping.
+            var diagnosticSpanMappingService = textDocument.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            if (diagnosticSpanMappingService == null)
+            {
+                return diagnostics;
+            }
+
+            // Round tripping the diagnostics should ensure they get correctly remapped.
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(diagnostics.Length, out var builder);
+            foreach (var diagnosticData in diagnostics)
+            {
+                var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+                builder.Add(DiagnosticData.Create(diagnostic, textDocument));
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

@@ -40,6 +40,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]

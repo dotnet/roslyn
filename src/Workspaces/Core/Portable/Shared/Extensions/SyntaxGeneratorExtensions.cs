@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var identifier = factory.IdentifierName(parameter.Name);
             var nullExpr = factory.NullLiteralExpression();
-            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
-                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
+            var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
 
             // generates: if (s == null) throw new ArgumentNullException(nameof(s))
