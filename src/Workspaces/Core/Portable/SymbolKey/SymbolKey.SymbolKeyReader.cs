@@ -566,7 +566,8 @@ namespace Microsoft.CodeAnalysis
                     var syntaxTree = GetSyntaxTree(filePath);
                     if (syntaxTree == null)
                     {
-                        failureReason = $"({nameof(ReadLocation)} failed -> '{filePath}' not in compilation)";
+                        var filePaths = string.Join(", ", this.Compilation.SyntaxTrees.Select(t => $"'{t.FilePath}'"));
+                        failureReason = $"({nameof(ReadLocation)} failed -> '{filePath}' not in compilation filepaths: {filePaths})";
                         return null;
                     }
 
