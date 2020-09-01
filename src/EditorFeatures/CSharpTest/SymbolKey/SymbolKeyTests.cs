@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         }
 
         [Fact]
+        [WorkItem(1178861, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1178861")]
+        [WorkItem(1192188, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192188")]
+        [WorkItem(1192486, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1192486")]
         public async Task ResolveBodySymbolsInMultiProjectReferencesToOriginalProjectAsync()
         {
             var random = new Random(Seed: 0);
@@ -116,6 +119,7 @@ class Program
         </Document>
     </Project>";
 
+                // Randomize the order of the projects in the workspace.
                 if (random.Next() % 2 == 0)
                 {
                     return TestWorkspace.CreateWorkspace(XElement.Parse($@"
@@ -138,6 +142,7 @@ class Program
 
             async Task<(Compilation bodyCompilation, Compilation referenceCompilation)> GetCompilationsAsync(Project bodyProject, Project referenceProject)
             {
+                // Randomize the order that we get compilations (and thus populate our internal caches).
                 Compilation bodyCompilation, referenceCompilation;
                 if (random.Next() % 2 == 0)
                 {
@@ -155,6 +160,7 @@ class Program
 
             async Task<(ISymbol bodyLocalSymbol, ISymbol referenceAssemblySymbol)> GetSymbolsAsync(Compilation bodyCompilation, Compilation referenceCompilation)
             {
+                // Randomize the order that we get symbols from each project.
                 ISymbol bodyLocalSymbol, referenceAssemblySymbol;
                 if (random.Next() % 2 == 0)
                 {
@@ -186,6 +192,7 @@ class Program
 
             (ProjectId bodyLocalProjectId, ProjectId referenceAssemblyProjectId) GetOriginatingProjectIds(Solution solution, ISymbol bodyLocalSymbol, ISymbol referenceAssemblySymbol)
             {
+                // Randomize the order that we get try to get the originating project for the symbol.
                 ProjectId bodyLocalProjectId, referenceAssemblyProjectId;
                 if (random.Next() % 2 == 0)
                 {
