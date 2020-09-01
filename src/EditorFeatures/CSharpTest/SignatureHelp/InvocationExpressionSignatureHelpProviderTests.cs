@@ -2426,5 +2426,43 @@ class C
 
             await TestAsync(markup, expectedOrderedItems);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [CompilerTrait(CompilerFeature.FunctionPointers)]
+        public async Task TestFunctionPointer()
+        {
+            var markup = @"
+class C
+{
+    unsafe static void M()
+    {
+        delegate*<int, int> functionPointer;
+        functionPointer($$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem> { new SignatureHelpTestItem("int delegate*(int)", currentParameterIndex: 0) };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [CompilerTrait(CompilerFeature.FunctionPointers)]
+        public async Task TestFunctionPointerMultipleArguments()
+        {
+            var markup = @"
+class C
+{
+    unsafe static void M()
+    {
+        delegate*<string, long, int> functionPointer;
+        functionPointer("""", $$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem> { new SignatureHelpTestItem("int delegate*(string, long)", currentParameterIndex: 1) };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
     }
 }

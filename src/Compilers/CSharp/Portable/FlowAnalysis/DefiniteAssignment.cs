@@ -20,7 +20,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -366,14 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected static bool HasInitializer(Symbol field) => field switch
-        {
-            SourceMemberFieldSymbol f => f.HasInitializer,
-            SynthesizedBackingFieldSymbol f => f.HasInitializer,
-            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
-            _ => false
-        };
-
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
         /// </summary>
@@ -489,8 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
         {
             public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals([AllowNull] Diagnostic x, [AllowNull] Diagnostic y) => x.Equals(y);
-            public override int GetHashCode([DisallowNull] Diagnostic obj) =>
+            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
+            public override int GetHashCode(Diagnostic obj) =>
                 Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
         }
 

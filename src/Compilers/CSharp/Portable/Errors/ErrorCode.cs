@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidWithReceiverType = 8857,
         ERR_NoSingleCloneMethod = 8858,
         ERR_CloneDisallowedInRecord = 8859,
-        // Unused 8860
+        WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
         ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
         ERR_MultipleRecordParameterLists = 8863,
@@ -1863,8 +1863,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
         ERR_DoesNotOverrideMethodFromObject = 8869,
-        ERR_SealedGetHashCodeInRecord = 8870,
-        ERR_DoesNotOverrideBaseEquals = 8871,
+        ERR_SealedAPIInRecord = 8870,
+        ERR_DoesNotOverrideBaseMethod = 8871,
         ERR_NotOverridableAPIInRecord = 8872,
         ERR_NonPublicAPIInRecord = 8873,
         ERR_SignatureMismatchInRecord = 8874,
@@ -1885,7 +1885,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationOut = 8886,
         WRN_UseDefViolation = 8887,
 
+        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 8888,
+        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 8889,
+        ERR_TypeNotFound = 8890,
+        ERR_TypeMustBePublic = 8891,
+
+        WRN_SyncAndAsyncEntryPoints = 8892,
+
+        ERR_InvalidUnmanagedCallersOnlyCallConv = 8893,
+        ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
+        ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric = 8895,
+        ERR_UnmanagedCallersOnlyRequiresStatic = 8896,
+
         #endregion diagnostics introduced for C# 9.0
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

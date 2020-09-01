@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             int offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
-            var symbol = await completionService.GetSymbolAsync(document, offset, completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var symbol = await completionService.GetSymbolAsync(new XamlCompletionContext(document, offset), completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
                 return completionItem;

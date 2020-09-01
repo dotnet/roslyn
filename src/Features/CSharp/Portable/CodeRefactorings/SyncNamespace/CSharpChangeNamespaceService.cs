@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 newNode = newNode.WithTriviaFrom(oldNode);
                 return true;
             }
-            else if (syntaxFacts.IsNameOfMemberAccessExpression(nameRef))
+            else if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameRef) ||
+                     syntaxFacts.IsNameOfMemberBindingExpression(nameRef))
             {
                 RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;

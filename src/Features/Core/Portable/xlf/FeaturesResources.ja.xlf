@@ -590,6 +590,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">switch 式を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
+        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
+        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">名前空間へのコンテンツの移動...</target>
@@ -611,8 +626,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
+        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="needs-review-translation">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -978,7 +993,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">式</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1248,7 +1263,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">名前</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1348,7 +1363,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">いいえ</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1731,7 +1746,7 @@ ECMAScript 準拠の動作が指定されている場合、\w は [a-zA-Z_0-9] �
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">はい</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2062,12 +2077,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">ここでは、'{0}' は null ではありません。</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

@@ -2169,9 +2169,9 @@ class C
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'target-typed conditional expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         x = y ? throw ex1 : throw ex2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y ? throw ex1 : throw ex2").WithArguments("target-typed conditional expression").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "y ? throw ex1 : throw ex2").WithArguments("target-typed conditional expression", "9.0").WithLocation(6, 13)
                 );
 
             string expectedOperationTree = @"

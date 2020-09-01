@@ -198,6 +198,7 @@ long _f = 0l;
             options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
                 new TestSyntaxTreeOptionsProvider(
                     StringComparer.Ordinal,
+                    globalOption: default,
                     (tree, new[] { ("cs0078", ReportDiagnostic.Suppress) }))
             );
 
@@ -638,7 +639,7 @@ namespace A.B {
              options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.RegularPreview) },
+                    options: TestOptions.Regular9) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
@@ -711,12 +712,12 @@ namespace A.B {
              );
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8059: Feature 'top-level statements' is not available in C# 6. Please use language version 9.0 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("top-level statements").WithLocation(1, 1),
-                // (1,1): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS8059: Feature 'extern local functions' is not available in C# 6. Please use language version 9.0 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "extern").WithArguments("extern local functions", "9.0").WithLocation(1, 1),
                 // (1,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Alias").WithArguments("local functions", "7.0").WithLocation(1, 14),

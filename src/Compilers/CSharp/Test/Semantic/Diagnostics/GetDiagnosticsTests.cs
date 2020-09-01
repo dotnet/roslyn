@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -663,6 +664,33 @@ class C3
             }
 
             await Task.WhenAll(tasks);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(46950, "https://github.com/dotnet/roslyn/issues/46950")]
+        public async Task TestGetAnalyzerSyntaxDiagnosticsWithCancellation(bool concurrent)
+        {
+            var source = @"class C { }";
+            var compilation = CreateCompilation(source);
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(concurrent));
+            var tree = compilation.SyntaxTrees.First();
+
+            var analyzer = new RegisterSyntaxTreeCancellationAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: concurrent,
+                    logAnalyzerExecutionTime: false));
+
+            // First call into analyzer mimics cancellation.
+            await Assert.ThrowsAsync<OperationCanceledException>(() => compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, analyzer.CancellationToken));
+
+            // Second call into analyzer reports diagnostic.
+            var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, CancellationToken.None);
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(RegisterSyntaxTreeCancellationAnalyzer.DiagnosticId, diagnostic.Id);
         }
     }
 }

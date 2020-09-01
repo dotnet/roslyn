@@ -106,7 +106,7 @@ class TypeTwo
             var sourceThree = Parse(@"
 class TypeThree
 {
-}", options: parseOptions, encoding: Encoding.UTF7);
+}", options: parseOptions, encoding: Encoding.Unicode);
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
@@ -272,6 +272,7 @@ public struct StructWithValue
                 kind: SourceCodeKind.Regular);
 
             yield return parseOptions;
+            yield return parseOptions.WithLanguageVersion(LanguageVersion.CSharp9);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Latest);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Preview);
         }

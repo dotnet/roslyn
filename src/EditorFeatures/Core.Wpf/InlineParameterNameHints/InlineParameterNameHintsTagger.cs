@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     internal sealed class InlineParameterNameHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
     {
         private readonly ITagAggregator<InlineParameterNameHintDataTag> _tagAggregator;
-        private readonly ITextBuffer _buffer;
-        private readonly IWpfTextView _textView;
 
         /// <summary>
         /// stores the parameter hint tags in a global location 
@@ -43,16 +41,25 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// </summary>
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
+
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
+        private readonly InlineParameterNameHintsTaggerProvider _inlineParameterNameHintsTaggerProvider;
+
+        private readonly ITextBuffer _buffer;
+        private readonly IWpfTextView _textView;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, IWpfTextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
+
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
+            _inlineParameterNameHintsTaggerProvider = taggerProvider;
+
             _textView = textView;
             _buffer = buffer;
+
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
@@ -118,7 +125,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView, Format)));
+                        var parameterHintSnapshotSpan = new SnapshotSpan(dataTagSpan.Start, 0);
+                        var parameterHintUITag = InlineParameterNameHintsTag.Create(textTag.ParameterName,
+                                   Format, _textView, dataTagSpan, textTag.ParameterSymbolKey, _inlineParameterNameHintsTaggerProvider);
+
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(parameterHintSnapshotSpan, parameterHintUITag));
                     }
                 }
             }

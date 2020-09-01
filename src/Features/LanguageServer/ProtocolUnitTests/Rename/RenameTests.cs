@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
-            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
         [WpfFact]
@@ -67,7 +67,7 @@ $@"<Workspace>
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
-            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
         [WpfFact]
@@ -113,7 +113,7 @@ $@"<Workspace>
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
-            AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
+            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
         private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)

@@ -4,7 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {

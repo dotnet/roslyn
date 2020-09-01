@@ -141,7 +141,7 @@ Class D
 End Class")
 
             Dim options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
                     (tree, {("BC42024", ReportDiagnostic.Suppress)}),
                     (newTree, {("BC4024", ReportDiagnostic.Error)})))
             Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
@@ -168,8 +168,9 @@ End Class")
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
                     StringComparer.Ordinal,
+                    Nothing,
                     (tree, {("bc42024", ReportDiagnostic.Suppress)}))
             )
 
@@ -1479,7 +1480,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing, Nothing, Nothing))
         End Sub
 
         <Fact>
