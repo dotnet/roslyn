@@ -27,11 +27,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
             ServicesVSResources.Entire_solution
 
-        Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
+        Public ReadOnly Property Option_use_64bit_analysis_process As String =
+            ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart
 
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
                 Return BasicVSResources.Show_procedure_line_separators
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_Display_inline_parameter_name_hints As String
+            Get
+                Return ServicesVSResources.Display_inline_parameter_name_hints
             End Get
         End Property
 

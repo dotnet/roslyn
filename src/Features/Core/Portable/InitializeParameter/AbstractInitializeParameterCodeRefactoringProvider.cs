@@ -113,13 +113,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // List with parameterNodes that pass all checks
-            var listOfPotentiallyValidParametersNodes = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var listOfPotentiallyValidParametersNodes);
             foreach (var parameterNode in parameterNodes)
             {
                 if (!TryGetParameterSymbol(parameterNode, semanticModel, out parameter, cancellationToken))
-                {
                     return;
-                }
 
                 // Update the list of valid parameter nodes
                 listOfPotentiallyValidParametersNodes.Add(parameterNode);
@@ -130,16 +128,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
                 context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
-                    document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
+                    document, functionDeclaration, methodSymbol, blockStatementOpt,
+                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
             }
+
+            return;
 
             static bool TryGetParameterSymbol(
                 SyntaxNode parameterNode,
                 SemanticModel semanticModel,
-                out IParameterSymbol parameter,
+                [NotNullWhen(true)] out IParameterSymbol? parameter,
                 CancellationToken cancellationToken)
             {
-                parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
                 return parameter != null && parameter.Name != "";
             }
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected bool CanOfferRefactoring(
             SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken, [MaybeNullWhen(false)] out IBlockOperation? blockStatementOpt)
+            CancellationToken cancellationToken, out IBlockOperation? blockStatementOpt)
         {
             blockStatementOpt = null;
 

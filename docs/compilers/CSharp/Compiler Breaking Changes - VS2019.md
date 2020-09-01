@@ -117,3 +117,4 @@ Each entry should include a short description of the break, followed by either a
         }
     }
     ```
+12. https://github.com/dotnet/roslyn/issues/32732 Switch statements that handle both a `true` case and a `false` case are now considered to handle all of the possible input values.

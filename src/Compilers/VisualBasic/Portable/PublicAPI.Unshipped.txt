@@ -1,3 +1,1 @@
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer = 0, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer, consumeFullText As Boolean) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
-*REMOVED*Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer = 0, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSyntaxTreeOptionsProvider(provider As Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions

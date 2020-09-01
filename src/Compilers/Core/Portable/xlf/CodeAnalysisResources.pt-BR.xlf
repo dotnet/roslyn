@@ -12,6 +12,11 @@
         <target state="translated">Um nome de idioma deve ser especificado para esta opção.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">Não é permitido alterar a versão de uma referência de assembly durante a depuração: a versão de '{0}' foi alterada para '{1}'.</target>
@@ -31,12 +36,17 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName contains an invalid character '{0}' at position {1}.</source>
-        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <target state="translated">O hintName contém um caractere inválido '{0}' na posição {1}.</target>
         <note>{0}: the invalid character, {1} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <target state="translated">O hintName do arquivo de origem adicionado precisa ser exclusivo em um gerador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -106,8 +116,13 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="needs-review-translation">Somente um único {0} pode ser registrado por gerador.</target>
+        <target state="translated">Somente um único {0} pode ser registrado por gerador.</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -566,12 +581,12 @@
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
         <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <target state="translated">Vários arquivos de configuração do analisador global definem a mesma chave '{0}' na seção '{1}'. Essa definição foi removida. A chave foi definida pelos seguintes arquivos: '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
         <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <target state="translated">Vários arquivos de configuração do analisador global definem a mesma chave. Essa definição foi removida.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">

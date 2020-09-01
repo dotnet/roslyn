@@ -469,8 +469,6 @@ namespace Microsoft.CodeAnalysis.Emit
         where TEmbeddedTypesManager : CommonEmbeddedTypesManager
         where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
     {
-        private readonly Cci.RootModuleType _rootModuleType = new Cci.RootModuleType();
-
         internal readonly TSourceModuleSymbol SourceModule;
         internal readonly TCompilation Compilation;
 
@@ -479,6 +477,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
+        public Cci.RootModuleType RootModuleType { get; } = new Cci.RootModuleType();
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
@@ -562,9 +561,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 Dispatch(typeReferenceIndexer);
             }
 
-            AddTopLevelType(names, _rootModuleType);
-            VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
-            yield return _rootModuleType;
+            AddTopLevelType(names, RootModuleType);
+            VisitTopLevelType(typeReferenceIndexer, RootModuleType);
+            yield return RootModuleType;
 
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {

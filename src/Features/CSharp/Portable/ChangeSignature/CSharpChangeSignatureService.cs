@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
         }
 
-        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol? symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
-                    var updatedParameters = UpdateDeclaration(SeparatedList<ParameterSyntax>(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
+                    var updatedParameters = UpdateDeclaration(SeparatedList(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
                     return ParenthesizedLambdaExpression(
                         lambda.AsyncKeyword,
                         ParameterList(updatedParameters),

@@ -2432,7 +2432,7 @@ class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource,
                 options: TestOptions.ReleaseDll,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             AssertInstrumented(verifier, "C.M1");
             AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0()");
@@ -2462,7 +2462,7 @@ class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource,
                 options: TestOptions.ReleaseDll,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             AssertInstrumented(verifier, "C.M1");
             AssertInstrumented(verifier, "C.<M1>g__L1|0_0(ref C.<>c__DisplayClass0_0)");
@@ -2509,7 +2509,7 @@ class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource,
                 options: TestOptions.ReleaseDll,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             AssertInstrumented(verifier, "C.M1");
             AssertInstrumented(verifier, "C.<>c__DisplayClass0_0.<M1>g__L1|0()");
@@ -2750,7 +2750,7 @@ class C
 }
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
-                options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+                options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9);
 
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.init");
@@ -3375,11 +3375,11 @@ static void Test()
             var expectedOutput = @"Test
 " + checker.ExpectedOutput;
 
-            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             checker.CompleteCheck(verifier.Compilation, source);
             verifier.VerifyDiagnostics();
 
-            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             checker.CompleteCheck(verifier.Compilation, source);
             verifier.VerifyDiagnostics();
         }

@@ -10,6 +10,8 @@ Imports Roslyn.Test.Utilities.TestHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicSyntaxTreeTests
+        ' Diagnostic options on syntax trees are now obsolete
+#Disable warning BC40000
         <Fact>
         Public Sub CreateTreeWithDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
@@ -93,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions)
             Assert.NotEqual(tree, newTree)
         End Sub
+#Enable warning BC40000
 
         <Fact>
         Public Sub WithRootAndOptions_ParsedTree()
@@ -111,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithRootAndOptions_ParsedTreeWithText()
-            Dim oldText = SourceText.From("Class B : End Class", Encoding.UTF7, SourceHashAlgorithm.Sha256)
+            Dim oldText = SourceText.From("Class B : End Class", Encoding.Unicode, SourceHashAlgorithm.Sha256)
             Dim oldTree = SyntaxFactory.ParseSyntaxTree(oldText)
 
             Dim newRoot = SyntaxFactory.ParseCompilationUnit("Class C : End Class")
@@ -122,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString())
             Assert.Same(newOptions, newTree.Options)
 
-            Assert.Same(Encoding.UTF7, newText.Encoding)
+            Assert.Same(Encoding.Unicode, newText.Encoding)
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm)
         End Sub
 
@@ -151,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithFilePath_ParsedTreeWithText()
-            Dim oldText = SourceText.From("Class B : End Class", Encoding.UTF7, SourceHashAlgorithm.Sha256)
+            Dim oldText = SourceText.From("Class B : End Class", Encoding.Unicode, SourceHashAlgorithm.Sha256)
             Dim oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path:="old.vb")
             Dim newTree = oldTree.WithFilePath("new.vb")
             Dim newText = newTree.GetText()
@@ -159,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(newTree.FilePath, "new.vb")
             Assert.Equal(oldTree.ToString(), newTree.ToString())
 
-            Assert.Same(Encoding.UTF7, newText.Encoding)
+            Assert.Same(Encoding.Unicode, newText.Encoding)
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm)
         End Sub
 

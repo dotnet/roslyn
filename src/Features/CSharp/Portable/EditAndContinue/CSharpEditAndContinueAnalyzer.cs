@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,8 +23,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             {
-                return new CSharpEditAndContinueAnalyzer(languageServices.WorkspaceServices.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+                return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
             }
         }
 
         // Public for testing purposes
-        public CSharpEditAndContinueAnalyzer(IActiveStatementSpanTracker activeStatementSpanTracker)
-            : base(activeStatementSpanTracker)
+        public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
+            : base(testFaultInjector)
         {
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // No need to special case property initializers here, the active statement always spans the initializer expression.
 
-                if (declarationBody.Parent!.Kind() == SyntaxKind.ConstructorDeclaration)
+                if (declarationBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
                 {
                     var constructor = (ConstructorDeclarationSyntax)declarationBody.Parent;
                     var partnerConstructor = (ConstructorDeclarationSyntax?)partnerDeclarationBody?.Parent;
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
             => SpecializedCollections.SingletonEnumerable(lambdaBody);
 
-        protected override SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        protected override SyntaxNode? TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
             => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // The only legitimate update of an indexer/property declaration is an update of its expression body.
                     // The expression body itself may have been updated, replaced with an explicit getter, or added to replace an explicit getter.
                     // In any case, the update is to the property getter symbol.
-                    var propertyOrIndexer = model.GetDeclaredSymbol(node, cancellationToken);
+                    var propertyOrIndexer = model.GetRequiredDeclaredSymbol(node, cancellationToken);
                     return ((IPropertySymbol)propertyOrIndexer).GetMethod;
                 }
             }
@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsNestedFunction(SyntaxNode node)
             => node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
 
-        internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
+        internal override bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? body1, out SyntaxNode? body2)
             => LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
 
         internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
             var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
-            return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
+            return (IMethodSymbol)model.GetRequiredEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode? GetContainingQueryExpression(SyntaxNode node)

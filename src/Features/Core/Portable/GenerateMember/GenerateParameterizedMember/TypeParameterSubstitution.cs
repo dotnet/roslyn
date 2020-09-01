@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 var symbol = constraintType;
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
 
                 var implementedTypes = await SymbolFinder.FindImplementationsAsync(
-                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
 
                 return derivedClasses.Concat(implementedTypes).ToSet();
             }

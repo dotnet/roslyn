@@ -254,10 +254,11 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                        case ErrorCode.WRN_RecordNamedDisallowed:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
-                        case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
                         case ErrorCode.WRN_NoRuntimeMetadataVersion:
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
@@ -274,6 +275,7 @@ class X
                         case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
@@ -304,6 +306,7 @@ class X
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
@@ -316,6 +319,7 @@ class X
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_ConstOutOfRangeChecked:
                         case ErrorCode.WRN_MemberNotNull:
                         case ErrorCode.WRN_MemberNotNullWhen:
                         case ErrorCode.WRN_MemberNotNullBadMember:
@@ -328,6 +332,21 @@ class X
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_StaticInAsOrIs:
+                        case ErrorCode.WRN_PrecedenceInversion:
+                        case ErrorCode.WRN_UnassignedThisAutoProperty:
+                        case ErrorCode.WRN_UnassignedThis:
+                        case ErrorCode.WRN_ParamUnassigned:
+                        case ErrorCode.WRN_UseDefViolationProperty:
+                        case ErrorCode.WRN_UseDefViolationField:
+                        case ErrorCode.WRN_UseDefViolationThis:
+                        case ErrorCode.WRN_UseDefViolationOut:
+                        case ErrorCode.WRN_UseDefViolation:
+                        case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
+                            Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -370,6 +389,19 @@ class X
                     ErrorCode.WRN_GeneratorFailedDuringGeneration,
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
+                    ErrorCode.WRN_ConstOutOfRangeChecked,
+                    ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
+                    ErrorCode.WRN_PrecedenceInversion,
+                    ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.WRN_UseDefViolation,
+                    ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                    ErrorCode.WRN_RecordNamedDisallowed,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

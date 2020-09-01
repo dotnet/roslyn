@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 var codeCleaners = providers.IsDefault ? GetDefaultProviders() : providers;
 
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var normalizedSpan = spans.ToNormalizedSpans();
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
@@ -465,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             using (Logger.LogBlock(FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
             {
                 var currentDocument = annotatedDocument;
-                Document previousDocument = null;
+                Document? previousDocument = null;
                 var spans = ImmutableArray<TextSpan>.Empty;
 
 #if DEBUG
@@ -483,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     if (previousDocument != currentDocument)
                     {
                         // Document was changed by the previous code cleaner, compute new spans.
-                        var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var root = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
                         spans = GetSpans(root, spanGetter);
                     }
@@ -546,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             using (Logger.LogBlock(FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
             {
                 var currentRoot = annotatedRoot;
-                SyntaxNode previousRoot = null;
+                SyntaxNode? previousRoot = null;
                 var spans = ImmutableArray<TextSpan>.Empty;
 
                 var current = 0;
@@ -590,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private string GetCodeCleanerTypeName(ICodeCleanupProvider codeCleaner)
-            => codeCleaner.ToString();
+            => codeCleaner.ToString() ?? "";
 
         private static SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
         {
@@ -667,6 +669,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             public static SpanMarker FromAnnotation(SyntaxAnnotation annotation)
             {
+                Contract.ThrowIfNull(annotation.Data);
+
                 var types = annotation.Data.Split(s_separators).Select(s => (SpanMarkerType)Enum.Parse(typeof(SpanMarkerType), s)).ToArray();
                 return new SpanMarker(types[0], types[1], annotation);
             }

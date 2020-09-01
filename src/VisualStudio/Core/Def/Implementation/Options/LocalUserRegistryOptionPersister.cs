@@ -138,7 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
-                value = null;
                 return false;
             }
 

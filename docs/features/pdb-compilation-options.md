@@ -261,35 +261,35 @@ Example:
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
-| PDB Key | Documentation   |
-| ------- | --------------- |
-| portability-policy | see [portability policy](#portability-policy) |
-| checked | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
-| default-encoding | see [file encoding](#file-encoding) |
-| compiler-version | full version with SHA |
-| fallback-encoding | see see [file encoding](#file-encoding) |
-| define | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
-| language | string for language. `CSharp` or `VisualBasic` |
-| language-version | Version of the language used, matches `[0-9]+(\.[0-9]+)?`. See [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
-| nullable | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
-| optimization | see [optimization](#optimization) |
-| runtime-version | see [runtime version](#runtime-version) |
-| unsafe | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
+| PDB Key                | Format                                  | Default   | Description  |
+| ---------------------- | --------------------------------------- | --------- | ------------ |
+| language               | `CSharp`                                | required  | Language name. |
+| language-version       | `[0-9]+(\.[0-9]+)?`                     | required  | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
+| compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
+| runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
+| optimization           | `(debug|debug-plus|release)`            | `debug`   | [optimization](#optimization) |
+| portability-policy     | `(0|1|2|3)`                             | `0`       | [portability policy](#portability-policy) |
+| default-encoding       | string                                  | none      | [file encoding](#file-encoding) |
+| fallback-encoding      | string                                  | none      | [file encoding](#file-encoding) |
+| define                 | `,`-separated identifier list           | empty     | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
+| checked                | `(True|False)`                          | `False`   | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
+| nullable               | `(Disable|Warnings|Annotations|Enable)` | `Disable` | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
+| unsafe                 | `(True|False)`                          | `False`   | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
 
 #### Options For Visual Basic
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/compiler-options-listed-alphabetically) documentation
 
-| PDB Key | Documentation   |
-| ------- | --------------- |
-| compiler-version | full version with SHA |
-| define | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
-| language | string for language. `CSharp` or `VisualBasic` |
-| language-version | Version of the language used, matches `[0-9]+(\.[0-9]+)?`. See [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
-| optimization | see [optimization](#optimization) |
-| strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
-| runtime-version | see [runtime version](#runtime-version) |
-| checked | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
+| PDB Key                | Format                                     | Default  | Description |
+| ---------------------- | ------------------------------------------ | -------- | ----------- |
+| language               | `Visual Basic`                             | required | Language name. |
+| language-version       | `[0-9]+(\.[0-9]+)?`                        | required | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
+| compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
+| runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
+| optimization           | `(debug|debug-plus|release)`               | `debug`  | [optimization](#optimization) |
+| define                 | `,`-separated list of name `=` value pairs | empty    | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
+| strict                 | `(Off|Custom|On)`                          | `Off`    | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
+| checked                | `(True|False)`                             | `False`  | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
 
 #### Portability Policy
 

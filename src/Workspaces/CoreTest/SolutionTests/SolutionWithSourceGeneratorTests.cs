@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,9 +24,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        private static Project CreateEmptyProject()
+        private static Project AddEmptyProject(Solution solution)
         {
-            var solution = new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
             return solution.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
@@ -43,8 +42,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             bool fetchCompilationBeforeAddingGenerator,
             bool generatorSupportsIncrementalUpdates)
         {
+            using var workspace = new AdhocWorkspace();
             var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator() { CanApplyChanges = generatorSupportsIncrementalUpdates });
-            var project = CreateEmptyProject()
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
             // Optionally fetch the compilation first, which validates that we handle both running the generator
@@ -69,8 +69,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public async Task SourceGeneratorsRerunAfterSourceChange(bool generatorSupportsIncrementalUpdates)
         {
+            using var workspace = new AdhocWorkspace();
             var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator() { CanApplyChanges = generatorSupportsIncrementalUpdates });
-            var project = CreateEmptyProject()
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Hello.cs", "// Source File").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -98,8 +99,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
+            using var workspace = new AdhocWorkspace();
             var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator());
-            var project = CreateEmptyProject()
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Hello.cs", "// Source File").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -117,8 +119,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
+            using var workspace = new AdhocWorkspace();
             var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator());
-            var solution = CreateEmptyProject()
+            var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project.Solution;
 
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             public bool CanApplyChanges { get; set; } = true;
 
-            public void Execute(SourceGeneratorContext context)
+            public void Execute(GeneratorExecutionContext context)
             {
                 foreach (var file in context.AdditionalFiles)
                 {
@@ -167,12 +170,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            public void Initialize(InitializationContext context)
+            public void Initialize(GeneratorInitializationContext context)
             {
                 // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
             }
 
-            private static void AddSourceForAdditionalFile(SourceGeneratorContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
+            private static void AddSourceForAdditionalFile(GeneratorExecutionContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
             private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
         }

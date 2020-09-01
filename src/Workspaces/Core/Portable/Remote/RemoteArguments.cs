@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.Remote
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
             var symbol = SymbolKey.ResolveString(
-                SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
+                SymbolKeyData, compilation, out var failureReason, cancellationToken).GetAnySymbol();
 
             if (symbol == null)
             {
                 try
                 {
                     throw new InvalidOperationException(
-                        $"We should always be able to resolve a symbol back on the host side:\r\n{SymbolKeyData}");
+                        $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
                 }
                 catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
                 {

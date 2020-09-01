@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Inherits BasicTestBase
 
         Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
-            Return New VisualBasicEditAndContinueAnalyzer(New TestActiveStatementSpanTracker())
+            Return New VisualBasicEditAndContinueAnalyzer()
         End Function
 
         Public Enum StateMachineKind
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return New SemanticEditDescription(kind, symbolProvider, Nothing, preserveLocalVariables)
         End Function
 
-        Private Shared Function ParseSource(source As String, Optional options As ParseOptions = Nothing) As SyntaxTree
+        Private Shared Function ParseSource(source As String) As SyntaxTree
             Return VisualBasicEditAndContinueTestHelpers.CreateInstance().ParseText(ActiveStatementsDescription.ClearTags(source))
         End Function
 

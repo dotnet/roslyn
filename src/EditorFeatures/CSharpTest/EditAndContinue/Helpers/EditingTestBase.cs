@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
         {
-            return new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker());
+            return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
         }
 
         internal enum MethodKind
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var body2 = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(decl2).GetRoot()).Body;
 
             var diagnostics = new List<RudeEditDiagnostic>();
-            var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
+            _ = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
             var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
             // Active methods are detected to preserve local variables for variable mapping and
