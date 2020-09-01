@@ -133,6 +133,7 @@
          TargetType="$(OutputType)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
+         TransformerOrder="$(RoslynExTransformerOrder)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
          UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
          UseSharedCompilation="$(UseSharedCompilation)"

@@ -165,6 +165,11 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> AnalyzerConfigPaths { get; internal set; }
 
         /// <summary>
+        /// Namespace-qualified names of transformer types. Their order specifies the execution order of the corresponding transformations.
+        /// </summary>
+        public ImmutableArray<string> TransformerOrder { get; internal set; }
+
+        /// <summary>
         /// A set of additional non-code text files that can be used by analyzers.
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
@@ -473,6 +478,7 @@ namespace Microsoft.CodeAnalysis
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
             var transformerBuilder = ImmutableArray.CreateBuilder<ISourceTransformer>();
+            var transformerOrders = new List<ImmutableArray<string>>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -529,10 +535,16 @@ namespace Microsoft.CodeAnalysis
                     resolvedReference.AddAnalyzers(analyzerBuilder, language);
                 resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AddTransformers(transformerBuilder, language);
+                resolvedReference.AddTransformerOrder(transformerOrders);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
+
+            if (TransformerOrder != null)
+                transformerOrders.Add(TransformerOrder);
+
+            TransformerDependencyResolver.Sort(ref transformerBuilder, transformerOrders, diagnostics);
 
             transfomers = transformerBuilder.ToImmutable();
             generators = generatorBuilder.ToImmutable();

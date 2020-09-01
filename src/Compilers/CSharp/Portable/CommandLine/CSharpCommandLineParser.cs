@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
             var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
+            var transformerOrder = ArrayBuilder<string>.GetInstance();
             List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
@@ -1279,6 +1280,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
 
+                        case "transformerorder":
+                            unquoted = RemoveQuotesAndSlashes(value);
+                            if (RoslynString.IsNullOrEmpty(unquoted))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                                continue;
+                            }
+
+                            transformerOrder.AddRange(ParseSeparatedStrings(unquoted, new[] { ';' }));
+                            continue;
+
                         case "embed":
                             if (RoslynString.IsNullOrEmpty(value))
                             {
@@ -1497,6 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
                 AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
+                TransformerOrder = transformerOrder.ToImmutableAndFree(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),

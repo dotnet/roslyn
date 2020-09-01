@@ -198,6 +198,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _transformers.AddExtensions(builder, language);
         }
 
+        internal void AddTransformerOrder(List<ImmutableArray<string>> transformerOrders)
+        {
+            var attribute = GetAssembly()?.GetCustomAttribute<TransformerOrderAttribute>();
+            if (attribute != null)
+                transformerOrders.Add(attribute.TransformerNames.ToImmutableArray());
+        }
+
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
             // unwrap:

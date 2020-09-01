@@ -473,6 +473,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynEx.Sdk", "src\RoslynE
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RoslynEx.Shared", "src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.shproj", "{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RoslynEx.CodeAnalysis", "src\RoslynEx\RoslynEx.CodeAnalysis\RoslynEx.CodeAnalysis.shproj", "{694A15AF-5944-4EE5-A8BE-AD2C19BB27F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynEx.UnitTests", "src\RoslynEx\RoslynEx.UnitTests\RoslynEx.UnitTests.csproj", "{DC32E27E-EBF3-4259-985B-F56D3325C34B}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -482,6 +486,7 @@ Global
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.CodeAnalysis\RoslynEx.CodeAnalysis.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
@@ -509,6 +514,7 @@ Global
 		src\Analyzers\Core\CodeFixes\CodeFixes.projitems*{5ff1e493-69cc-4d0b-83f2-039f469a04e1}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems*{5ff1e493-69cc-4d0b-83f2-039f469a04e1}*SharedItemsImports = 5
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{60db272a-21c9-4e8d-9803-ff4e132392c8}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.CodeAnalysis\RoslynEx.CodeAnalysis.projitems*{694a15af-5944-4ee5-a8be-ad2c19bb27f8}*SharedItemsImports = 13
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{699fea05-aea7-403d-827e-53cf4e826955}*SharedItemsImports = 13
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1842}*SharedItemsImports = 5
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1843}*SharedItemsImports = 5
@@ -1231,6 +1237,10 @@ Global
 		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC32E27E-EBF3-4259-985B-F56D3325C34B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC32E27E-EBF3-4259-985B-F56D3325C34B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC32E27E-EBF3-4259-985B-F56D3325C34B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC32E27E-EBF3-4259-985B-F56D3325C34B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1448,6 +1458,8 @@ Global
 		{C832D674-0A77-4839-9667-5DFA47F2A2DB} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
 		{FDADE459-74F3-41C3-8311-C6ECD6EA450D} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
 		{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
+		{694A15AF-5944-4EE5-A8BE-AD2C19BB27F8} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
+		{DC32E27E-EBF3-4259-985B-F56D3325C34B} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

@@ -401,9 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (Exception ex)
                 {
-                    var diagnostic = Diagnostic.Create(
-                        new DiagnosticDescriptor("RE001", "Transformer failed", "Transformer '{0}' failed: {1}", Diagnostic.CompilerDiagnosticCategory, DiagnosticSeverity.Error, true),
-                        location: null, transformer.GetType().Name, ex);
+                    var diagnostic = Diagnostic.Create(new DiagnosticInfo(
+                        RoslynExMessageProvider.Instance, RoslynExMessageProvider.ERR_TransformerFailed, transformer.GetType().Name, ex));
                     diagnostics.Add(diagnostic);
                 }
             }

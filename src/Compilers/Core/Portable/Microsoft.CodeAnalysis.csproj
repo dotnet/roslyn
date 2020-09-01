@@ -89,6 +89,7 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
+    <InternalsVisibleTo Include="RoslynEx.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
@@ -108,4 +109,5 @@
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems" Label="Shared" />
+  <Import Project="..\..\..\RoslynEx\RoslynEx.CodeAnalysis\RoslynEx.CodeAnalysis.projitems" Label="Shared" />
 </Project>

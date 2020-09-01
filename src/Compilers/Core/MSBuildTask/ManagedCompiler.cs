@@ -149,6 +149,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[]?)_store[nameof(AnalyzerConfigFiles)]; }
         }
 
+        public string? TransformerOrder
+        {
+            set { _store[nameof(TransformerOrder)] = value; }
+            get { return (string?)_store[nameof(TransformerOrder)]; }
+        }
+
         public bool EmitDebugInformation
         {
             set { _store[nameof(EmitDebugInformation)] = value; }
@@ -841,6 +847,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);
             AddAnalyzerConfigFilesToCommandLine(commandLine);
+
+            commandLine.AppendSwitchIfNotNull("/transformerorder:", TransformerOrder);
         }
 
         /// <summary>

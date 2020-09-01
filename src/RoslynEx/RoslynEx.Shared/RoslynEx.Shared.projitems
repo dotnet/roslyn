@@ -12,5 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformerOrderAttribute.cs" />
   </ItemGroup>
 </Project>
