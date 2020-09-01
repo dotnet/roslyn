@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -299,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
+            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -319,8 +321,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // Compilation wide user settings from ruleset/nowarn/warnaserror overrides the analyzer author.
-                if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
+                // Global editorconfig settings overrides the analyzer author
+                // Compilation wide user settings (diagnosticOptions) from ruleset/nowarn/warnaserror overrides the analyzer author and global editorconfig settings.
+                // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
+                // which should not alter 'isSuppressed'.
+                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
+                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, analyzerExecutor.CancellationToken, out severity)) &&
+                    severity != ReportDiagnostic.Default)
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }
@@ -337,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions))
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analyzerExecutor.CancellationToken))
                 {
                     isSuppressed = false;
                 }
@@ -365,15 +372,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticDescriptor descriptor,
                 SeverityFilter severityFilter,
                 Compilation? compilation,
-                AnalyzerOptions? analyzerOptions)
+                AnalyzerOptions? analyzerOptions,
+                CancellationToken cancellationToken)
             {
                 if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
                     foreach (var tree in compilation.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, out var configuredValue) ||
-                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out configuredValue))
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
+                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out configuredValue))
                         {
                             if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
                             {

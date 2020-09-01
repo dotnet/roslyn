@@ -121,10 +121,6 @@
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
       </ReferencePath>
-
-      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.StaticReviews.Embeddable'">
-        <EmbedInteropTypes>true</EmbedInteropTypes>
-      </ReferencePath>      
     </ItemGroup>
   </Target>
 

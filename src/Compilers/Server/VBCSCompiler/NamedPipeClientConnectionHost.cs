@@ -94,7 +94,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Debug.Assert(_queue is object);
             Debug.Assert(_listenTasks is object);
 
-            _cancellationTokenSource.Cancel();
+            try
+            {
+                // Even though the Tasks created to run the compilation servers can never throw, 
+                // the CancellationToken from this source ends up getting passed throughout the 
+                // named pipe infrastructure. Parts of that infrastructure hook into 
+                // CancellationToken.Register and those will throw during a Cancel operation. 
+                //
+                // Most notably of these is IOCancellationHelper.Cancel. This has a race where it
+                // will try to cancel IO on a disposed SafeHandle. That causes an ObjectDisposedException
+                // to propagate out from the Cancel method here.
+                //
+                // There is no good way to guard against this hence we just have to accept it as a
+                // possible outcome.
+                _cancellationTokenSource.Cancel();
+            }
+            catch (Exception ex)
+            {
+                CompilerServerLogger.LogException(ex, $"Cancelling server listens threw an exception");
+            }
+
             try
             {
                 Task.WaitAll(_listenTasks);

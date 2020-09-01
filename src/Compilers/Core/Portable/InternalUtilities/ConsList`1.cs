@@ -8,7 +8,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Roslyn.Utilities
@@ -20,14 +19,12 @@ namespace Roslyn.Utilities
     {
         public static readonly ConsList<T> Empty = new ConsList<T>();
 
-        [AllowNull, MaybeNull]
-        private readonly T _head;
+        private readonly T? _head;
         private readonly ConsList<T>? _tail;
 
         internal struct Enumerator : IEnumerator<T>
         {
-            [AllowNull, MaybeNull]
-            private T _current;
+            private T? _current;
             private ConsList<T> _tail;
 
             internal Enumerator(ConsList<T> list)

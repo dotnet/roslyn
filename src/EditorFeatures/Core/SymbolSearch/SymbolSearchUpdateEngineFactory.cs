@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -53,13 +54,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private sealed class NoOpUpdateEngine : ISymbolSearchUpdateEngine
         {
             public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
+                => SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
 
             public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
+                => SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
 
             public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+                => SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
 
             public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
                 => Task.CompletedTask;

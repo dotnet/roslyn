@@ -74,11 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => compilation.GetSpecialType(SpecialType.System_Object),
             };
 
-#if !CODE_STYLE
-
-        public static SyntaxNode IsPatternExpression(this SyntaxGenerator generator, SyntaxNode expression, SyntaxNode pattern)
+        public static SyntaxNode IsPatternExpression(this SyntaxGeneratorInternal generator, SyntaxNode expression, SyntaxNode pattern)
             => generator.IsPatternExpression(expression, isToken: default, pattern);
-
-#endif
     }
 }

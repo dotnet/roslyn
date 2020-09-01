@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
             missingSyntaxNodes.Add(SyntaxKind.WithExpression);
             missingSyntaxNodes.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxNodes.Add(SyntaxKind.FunctionPointerType);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);

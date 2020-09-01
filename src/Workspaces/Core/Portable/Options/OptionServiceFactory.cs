@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Options
             public SerializableOptionSet GetOptions() => GetSerializableOptionsSnapshot(ImmutableHashSet<string>.Empty);
             public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages) => _globalOptionService.GetSerializableOptionsSnapshot(languages, this);
             public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
-            [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
-            [return: MaybeNull] public T GetOption<T>(Option2<T> option) => _globalOptionService.GetOption(option);
-            [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
-            [return: MaybeNull] public T GetOption<T>(PerLanguageOption2<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
+            public T? GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
+            public T? GetOption<T>(Option2<T> option) => _globalOptionService.GetOption(option);
+            public T? GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
+            public T? GetOption<T>(PerLanguageOption2<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => _globalOptionService.TryMapEditorConfigKeyToOption(key, language, out storageLocation, out optionKey);
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
