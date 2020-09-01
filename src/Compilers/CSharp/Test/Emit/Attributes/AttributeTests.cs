@@ -9133,10 +9133,10 @@ public class C
             comp.VerifyDiagnostics(
                 // (12,20): warning CS0612: 'C.M()' is obsolete
                 //         Action a = M;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.M()").WithArguments("C.M()").WithLocation(12, 20),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M").WithArguments("C.M()").WithLocation(12, 20),
                 // (13,24): warning CS0612: 'C.M()' is obsolete
                 //         a = new Action(M);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.M()").WithArguments("C.M()").WithLocation(13, 24)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M").WithArguments("C.M()").WithLocation(13, 24)
             );
         }
 

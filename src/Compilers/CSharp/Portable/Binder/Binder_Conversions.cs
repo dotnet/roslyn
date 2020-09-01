@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -65,8 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)destination != null);
             RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-
+            if (syntax is ObjectCreationExpressionSyntax objectCreationSyntax && source.Type is object)
+            {
+                var arguments = objectCreationSyntax.ArgumentList?.Arguments;
+                if (arguments.HasValue && arguments.Value.Count > 0 && arguments.Value[0].Expression is not null)
+                {
+                    ReportDiagnosticsIfObsolete(diagnostics, source.Type, arguments.Value[0].Expression, false);
+                }
+            }
             if (conversion.IsIdentity)
             {
                 if (source is BoundTupleLiteral sourceTuple)
@@ -86,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return source;
                 }
             }
+
+            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
 
             if (conversion.IsMethodGroup)
             {
