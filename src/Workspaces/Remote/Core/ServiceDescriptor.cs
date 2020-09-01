@@ -49,5 +49,11 @@ namespace Microsoft.CodeAnalysis.Remote
             formatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             return formatter;
         }
+
+        protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
+        {
+            jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
+            return base.CreateConnection(jsonRpc);
+        }
     }
 }
