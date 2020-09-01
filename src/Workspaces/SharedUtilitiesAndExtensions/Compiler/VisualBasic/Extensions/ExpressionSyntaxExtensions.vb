@@ -53,15 +53,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
+        Public Function IsSimpleMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                    DirectCast(expression.Parent, MemberAccessExpressionSyntax).Name Is expression
         End Function
 
         <Extension()>
         Public Function IsAnyMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
-            Return expression IsNot Nothing AndAlso
-                   TypeOf expression.Parent Is MemberAccessExpressionSyntax AndAlso
+            Return TypeOf expression?.Parent Is MemberAccessExpressionSyntax AndAlso
                    DirectCast(expression.Parent, MemberAccessExpressionSyntax).Name Is expression
         End Function
 
@@ -72,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsRightSideOfDot(expression As ExpressionSyntax) As Boolean
-            Return expression.IsMemberAccessExpressionName() OrElse expression.IsRightSideOfQualifiedName()
+            Return expression.IsSimpleMemberAccessExpressionName() OrElse expression.IsRightSideOfQualifiedName()
         End Function
 
         <Extension()>

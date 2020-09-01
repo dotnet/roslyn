@@ -165,11 +165,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 Symbol = SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
                 Options = SerializableRenameOptionSet.Dehydrate(Options),
-                OriginalSymbolResult = SerializableSearchResult.Dehydrate(solution, _originalSymbolResult, cancellationToken),
-                MergedResult = SerializableSearchResult.Dehydrate(solution, _mergedResult, cancellationToken),
-                OverloadsResult = _overloadsResult.IsDefault ? null : _overloadsResult.Select(r => SerializableSearchResult.Dehydrate(solution, r, cancellationToken)).ToArray(),
-                StringsResult = _stringsResult.IsDefault ? null : _stringsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
-                CommentsResult = _commentsResult.IsDefault ? null : _commentsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
+                Result = SerializableSearchResult.Dehydrate(solution, _result, cancellationToken),
             };
 
         internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
@@ -184,52 +180,13 @@ namespace Microsoft.CodeAnalysis.Rename
             if (symbol == null)
                 return null;
 
-            ImmutableArray<SearchResult> overloadsResult = default;
-            ImmutableArray<RenameLocation> stringsResult = default;
-            ImmutableArray<RenameLocation> commentsResult = default;
-
-            if (locations.OverloadsResult != null)
-            {
-                using var _ = ArrayBuilder<SearchResult>.GetInstance(locations.OverloadsResult.Length, out var builder);
-                foreach (var res in locations.OverloadsResult)
-                    builder.Add(await res.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-                overloadsResult = builder.ToImmutable();
-            }
-
-            if (locations.StringsResult != null)
-            {
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(locations.StringsResult.Length, out var builder);
-                foreach (var res in locations.StringsResult)
-                    builder.Add(await res.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-                stringsResult = builder.ToImmutable();
-            }
-
-            if (locations.CommentsResult != null)
-            {
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(locations.CommentsResult.Length, out var builder);
-                foreach (var res in locations.CommentsResult)
-                    builder.Add(await res.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-                commentsResult = builder.ToImmutable();
-            }
-
-            var originalSymbolResult = locations.OriginalSymbolResult == null
-                ? null
-                : await locations.OriginalSymbolResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-
-            Contract.ThrowIfNull(locations.MergedResult);
+            Contract.ThrowIfNull(locations.Result);
 
             return new RenameLocations(
                 symbol,
                 solution,
                 locations.Options.Rehydrate(),
-                originalSymbolResult,
-                await locations.MergedResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
-                overloadsResult,
-                stringsResult,
-                commentsResult);
+                await locations.Result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
         }
     }
 
@@ -237,13 +194,7 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public SerializableSymbolAndProjectId? Symbol;
         public SerializableRenameOptionSet Options;
-        public SerializableSearchResult? OriginalSymbolResult;
-        public SerializableSearchResult? MergedResult;
-
-        // We use arrays so we can represent default immutable arrays.
-        public SerializableSearchResult[]? OverloadsResult;
-        public SerializableRenameLocation[]? StringsResult;
-        public SerializableRenameLocation[]? CommentsResult;
+        public SerializableSearchResult? Result;
     }
 
     internal class SerializableComplexifiedSpan

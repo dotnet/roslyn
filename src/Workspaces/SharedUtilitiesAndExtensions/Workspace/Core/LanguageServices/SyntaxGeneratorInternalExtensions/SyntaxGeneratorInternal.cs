@@ -68,5 +68,21 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
         internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
         internal abstract SyntaxNode InterpolationFormatClause(string format);
+        internal abstract SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames);
+
+        #region Patterns
+
+        internal abstract bool SupportsPatterns(ParseOptions options);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
+
+        internal abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode TypePattern(SyntaxNode type);
+
+        #endregion
     }
 }

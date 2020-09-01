@@ -26,6 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
+        public static string Option_use_64bit_analysis_process
+            => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
+
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
 
@@ -205,6 +208,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations
             => ServicesVSResources.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations;
+
+        public static string Edit_color_scheme
+            => ServicesVSResources.Editor_Color_Scheme;
 
         public static string Option_Color_Scheme_VisualStudio2019 =>
             ServicesVSResources.Visual_Studio_2019;

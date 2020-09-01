@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var comp = CreateCompilation(
                 source,
                 references,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
                 targetFramework: targetFramework);
 
@@ -49,18 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
         {
-            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.Regular9, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
         private CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
         {
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
         }
 
         private CSharpCompilation CreateCompilationWithFunctionPointersAndIl(string source, string ilStub, IEnumerable<MetadataReference>? references = null)
         {
-            return CreateCompilationWithIL(source, ilStub, references: references, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilationWithIL(source, ilStub, references: references, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
         }
 
         [Theory]
@@ -673,7 +673,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithIL(source: "", ilSource, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithIL(source: "", ilSource, parseOptions: TestOptions.Regular9);
             var testClass = compilation.GetTypeByMetadataName("Test1")!;
 
             var m = testClass.GetMethod("M");
@@ -2758,7 +2758,7 @@ using System;
 public unsafe class C
 {
     public delegate*<I1> M() => throw null;
-}", references: new[] { nopiaReference }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { nopiaReference }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             CompileAndVerifyFunctionPointers(@"
 unsafe class C2
@@ -2795,7 +2795,7 @@ using System.Runtime.CompilerServices;
 internal class B
 {
     internal unsafe delegate*<A> M() => throw null;
-}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             var cComp = CreateCompilation(@"
 internal class C
@@ -2804,7 +2804,7 @@ internal class C
     {
         b.M()();
     }
-}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics(
                     // (6,9): error CS0122: 'B.M()' is inaccessible due to its protection level
@@ -2825,7 +2825,7 @@ using System.Runtime.CompilerServices;
 internal class B
 {
     internal unsafe delegate*<A> M() => throw null;
-}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             var cComp = CreateCompilation(@"
 internal class C
@@ -2834,7 +2834,7 @@ internal class C
     {
         b.M()();
     }
-}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics();
         }
@@ -5162,7 +5162,7 @@ static unsafe class C
         Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (7,14): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
@@ -7606,7 +7606,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7626,7 +7626,7 @@ unsafe class C
             var coreLib = CreateEmptyCompilation(source1);
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7675,7 +7675,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7695,7 +7695,7 @@ unsafe class C
             var coreLib = CreateEmptyCompilation(source1);
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7826,6 +7826,704 @@ unsafe class C
             Assert.False(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.ConsiderEverything));
             Assert.True(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.False(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.ConsiderEverything));
+        }
+
+        private const string UnmanagedCallersOnlyAttribute = @"
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public Type[] CallConvs;
+        public string EntryPoint;
+    }
+}
+";
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresStatic()
+        {
+            var comp = CreateCompilation(new[] { @"
+#pragma warning disable 8321 // Unreferenced local function
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    void M1() {}
+
+    public void M2()
+    {
+        [UnmanagedCallersOnly]
+        void local() {}
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
+                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyAllowedOnStatics()
+        {
+            var comp = CreateCompilation(new[] { @"
+#pragma warning disable 8321 // Unreferenced local function
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static void M1() {}
+
+    public void M2()
+    {
+        [UnmanagedCallersOnly]
+        static void local() {}
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustComeFromCorrectNamespace()
+        {
+            var comp = CreateEmptyCompilation(new[] { @"
+using System.Runtime.InteropServices;
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+}
+class CallConvTest
+{
+}
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (26,6): error CS8893: 'CallConvTest' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })").WithArguments("CallConvTest").WithLocation(26, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustComeFromCorelib()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+namespace System.Runtime.CompilerServices
+{
+    class CallConvTest
+    {
+    }
+}
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (12,6): error CS8893: 'CallConvTest' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })").WithArguments("System.Runtime.CompilerServices.CallConvTest").WithLocation(12, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustStartWithCallConv()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(ExtensionAttribute) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8893: 'ExtensionAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.ExtensionAttribute) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(ExtensionAttribute) })").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(6, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvNull()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: 'null' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new System.Type[] { null })").WithArguments("null").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvDefault()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new System.Type[] { default })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: 'null' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { default })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new System.Type[] { default })").WithArguments("null").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Errors()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static string M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2(object o) {}
+
+    [UnmanagedCallersOnly]
+    static T M3<T>() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M4<T>(T t) {}
+
+    [UnmanagedCallersOnly]
+    static T M5<T>() where T : struct => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M6<T>(T t) where T : struct {}
+
+    [UnmanagedCallersOnly]
+    static T M7<T>() where T : unmanaged => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M8<T>(T t) where T : unmanaged {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,12): error CS8894: Cannot use 'string' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static string M1() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "string").WithArguments("string", "return").WithLocation(6, 12),
+                // (9,20): error CS8894: Cannot use 'object' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M2(object o) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "object o").WithArguments("object", "parameter").WithLocation(9, 20),
+                // (11,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(11, 6),
+                // (12,12): error CS8894: Cannot use 'T' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static T M3<T>() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T").WithArguments("T", "return").WithLocation(12, 12),
+                // (14,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(14, 6),
+                // (15,23): error CS8894: Cannot use 'T' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M4<T>(T t) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T t").WithArguments("T", "parameter").WithLocation(15, 23),
+                // (17,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(17, 6),
+                // (18,12): error CS8894: Cannot use 'T' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static T M5<T>() where T : struct => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T").WithArguments("T", "return").WithLocation(18, 12),
+                // (20,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(20, 6),
+                // (21,23): error CS8894: Cannot use 'T' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M6<T>(T t) where T : struct {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T t").WithArguments("T", "parameter").WithLocation(21, 23),
+                // (23,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(23, 6),
+                // (26,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(26, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Valid()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+#pragma warning disable CS0169 // unused private field
+struct S
+{
+    private int _field;
+}
+class C
+{
+    [UnmanagedCallersOnly]
+    static int M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2(int o) {}
+
+    [UnmanagedCallersOnly]
+    static S M3() => throw null;
+
+    [UnmanagedCallersOnly]
+    public static void M4(S s) {}
+
+    [UnmanagedCallersOnly]
+    static int? M5() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M6(int? o) {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_MethodWithGenericParameter()
+        {
+            var comp = CreateCompilation(new[] { @"
+#pragma warning disable CS8321 // Unused local function
+using System.Runtime.InteropServices;
+public struct S<T> where T : unmanaged
+{
+    public T t;
+}
+class C
+{
+    [UnmanagedCallersOnly] // 1
+    static S<T> M1<T>() where T : unmanaged => throw null;
+
+    [UnmanagedCallersOnly] // 2
+    static void M2<T>(S<T> o) where T : unmanaged {}
+
+    static void M3<T>()
+    {
+        [UnmanagedCallersOnly] // 3
+        static void local1() {}
+
+        static void local2()
+        {
+            [UnmanagedCallersOnly] // 4
+            static void local3() { }
+        }
+
+        System.Action a = () =>
+        {
+            [UnmanagedCallersOnly] // 5
+            static void local4() { }
+        };
+    }
+
+    static void M4()
+    {
+        [UnmanagedCallersOnly] // 6
+        static void local2<T>() {}
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (10,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 1
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(10, 6),
+                // (13,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 2
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(13, 6),
+                // (18,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 3
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(18, 10),
+                // (23,14): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //             [UnmanagedCallersOnly] // 4
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(23, 14),
+                // (29,14): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //             [UnmanagedCallersOnly] // 5
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(29, 14),
+                // (36,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 6
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(36, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_TypeWithGenericParameter()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S<T> where T : unmanaged
+{
+    public T t;
+}
+class C<T> where T : unmanaged
+{
+    [UnmanagedCallersOnly] // 1
+    static S<T> M1() => throw null;
+
+    [UnmanagedCallersOnly] // 2
+    static void M2(S<T> o) {}
+
+    [UnmanagedCallersOnly] // 3
+    static S<int> M3() => throw null;
+
+    [UnmanagedCallersOnly] // 4
+    static void M4(S<int> o) {}
+
+    class C2
+    {
+        [UnmanagedCallersOnly] // 5
+        static void M5() {}
+    }
+
+    struct S2
+    {
+        [UnmanagedCallersOnly] // 6
+        static void M6() {}
+    }
+
+#pragma warning disable CS8321 // Unused local function
+    static void M7()
+    {
+        [UnmanagedCallersOnly] // 7
+        static void local1() { }
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (9,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 1
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(9, 6),
+                // (12,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 2
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(12, 6),
+                // (15,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 3
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(15, 6),
+                // (18,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 4
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(18, 6),
+                // (23,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 5
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(23, 10),
+                // (29,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 6
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(29, 10),
+                // (36,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 7
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(36, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_TypeAndMethodWithGenericParameter()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C<T1>
+{
+    [UnmanagedCallersOnly]
+    static void M<T2>() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_StructWithGenericParameters_1()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S<T>
+{
+    public T t;
+}
+class C
+{
+    [UnmanagedCallersOnly]
+    static S<int> M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2(S<int> o) {}
+
+    [UnmanagedCallersOnly]
+    static S<S<int>> M2() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M3(S<S<int>> o) {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_StructWithGenericParameters_2()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S<T>
+{
+    public T t;
+}
+class C
+{
+    [UnmanagedCallersOnly]
+    static S<object> M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2(S<object> o) {}
+
+    [UnmanagedCallersOnly]
+    static S<S<object>> M2() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M3(S<S<object>> o) {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (10,12): error CS8894: Cannot use 'S<object>' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static S<object> M1() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "S<object>").WithArguments("S<object>", "return").WithLocation(10, 12),
+                // (13,20): error CS8894: Cannot use 'S<object>' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M2(S<object> o) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "S<object> o").WithArguments("S<object>", "parameter").WithLocation(13, 20),
+                // (16,12): error CS8894: Cannot use 'S<S<object>>' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static S<S<object>> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "S<S<object>>").WithArguments("S<S<object>>", "return").WithLocation(16, 12),
+                // (19,20): error CS8894: Cannot use 'S<S<object>>' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M3(S<S<object>> o) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "S<S<object>> o").WithArguments("S<S<object>>", "parameter").WithLocation(19, 20)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInDefinition_1()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public Type[]? CallConvs;
+        public string? EntryPoint;
+
+        [UnmanagedCallersOnly]
+        static void M() {}
+    }
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInDefinition_2()
+        {
+            var comp = CreateCompilation(@"
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
+        public UnmanagedCallersOnlyAttribute() { }
+        public Type[] CallConvs;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithLocation(7, 10),
+                // (7,10): error CS8893: 'UnmanagedCallersOnlyAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithArguments("System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute").WithLocation(7, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInUsage_1()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(C) })]
+    public static void Func() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: 'C' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(C) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(C) })").WithArguments("C").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInUsage_2()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class A
+{
+    struct B { }
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(B) })]
+    static void F() { }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8893: 'A.B' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(B) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(B) })").WithArguments("A.B").WithLocation(6, 6)
+            );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        public void UnmanagedCallersOnlyWithLoopInUsage_3()
+        {
+
+            var comp = CreateCompilation(new[] { @"
+#nullable enable
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = F())]
+    static Type[] F() { }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyUnrecognizedConstructor()
+        {
+            var comp = CreateCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    // Invalid typeof for the regular constructor, non-static method
+    [UnmanagedCallersOnly(CallConvs: new[] { typeof(string) })]
+    public void M() {}
+}
+
+#nullable enable
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute(Type[]? CallConvs)
+        {
+        }
+
+        public string? EntryPoint;
+    }
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsWithADifferentType()
+        {
+            var comp = CreateCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+    public static void M1() {}
+
+    [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+    public void M2() {}
+}
+
+#nullable enable
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public string? EntryPoint;
+        public int[]? CallConvs;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })").WithLocation(8, 6)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

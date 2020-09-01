@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 // Even though the Tasks created to run the compilation servers can never throw, 
-                // the CancellationToken from this source ends up getting passeed throughout the 
+                // the CancellationToken from this source ends up getting passed throughout the 
                 // named pipe infrastructure. Parts of that infrastructure hook into 
                 // CancellationToken.Register and those will throw during a Cancel operation. 
                 //

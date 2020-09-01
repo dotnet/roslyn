@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Select Case diagnostic.Id
                 Case BC30311
                     If Not DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
-                        Return Task.FromResult(Of SyntaxNode)(Nothing)
+                        Return SpecializedTasks.Null(Of SyntaxNode)()
                     End If
                     Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC37055
                     If Not DoesExpressionReturnTask(expression, semanticModel) Then
-                        Return Task.FromResult(Of SyntaxNode)(Nothing)
+                        Return SpecializedTasks.Null(Of SyntaxNode)()
                     End If
                     Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC42358

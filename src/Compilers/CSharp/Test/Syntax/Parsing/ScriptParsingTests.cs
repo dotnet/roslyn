@@ -2559,11 +2559,11 @@ fixed int x[10];
         {
             // pointer decl
             string test = @"a.b * c;";
-            ParseAndValidate(test, TestOptions.RegularPreview);
+            ParseAndValidate(test, TestOptions.Regular9);
 
             // pointer decl
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.RegularPreview, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
+            ParseAndValidate(test, TestOptions.Regular9, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
 
             // multiplication
             test = @"a.b * c;";

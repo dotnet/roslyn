@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static CSharpCompilation CreateFunctionPointerCompilation(string source, TargetFramework targetFramework = TargetFramework.Standard)
         {
-            return CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, targetFramework: targetFramework);
+            return CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll, targetFramework: targetFramework);
         }
 
         [InlineData("", RefKind.None, "delegate*<System.Object>")]
@@ -1045,7 +1045,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithIL("", ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL("", ilSource, parseOptions: TestOptions.Regular9);
             var testClass = comp.GetTypeByMetadataName("Test1")!;
             var m = testClass.GetMethod("M");
 
@@ -1380,7 +1380,7 @@ static class C
         ptr.M();
     }
 }";
-            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
 
             var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped);
             verifier.VerifyIL("C.Main", expectedIL: @"
@@ -1555,7 +1555,8 @@ unsafe class C
             var ptr = comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.VarArgs);
 
             Assert.Equal(SignatureCallingConvention.VarArgs, ptr.Signature.CallingConvention);
-            AssertEx.Equal("error CS8806: The calling convention of 'delegate* unmanaged[]<string>' is not supported by the language.", ptr.EnsureCSharpSymbolOrNull(nameof(ptr)).GetUseSiteDiagnostic().ToString());
+            var expectedMessage = "error CS8806: " + string.Format(CSharpResources.ERR_UnsupportedCallingConvention, "delegate* unmanaged[]<string>");
+            AssertEx.Equal(expectedMessage, ptr.EnsureCSharpSymbolOrNull(nameof(ptr)).GetUseSiteDiagnostic().ToString());
         }
 
         [Fact]
@@ -1961,7 +1962,7 @@ namespace System
         }
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
             var mainComp = CreateCompilation("");
             var returnType = mainComp.GetSpecialType(SpecialType.System_String).GetPublicSymbol();
@@ -2030,7 +2031,7 @@ namespace System
 
             static void verifyEquality((FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr1, (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr2, bool expectedConventionEquality, bool expectedFullEquality, bool skipGetCallingConventionModifiersCheck = false)
             {
-                // No equality between pointers with differring refkinds
+                // No equality between pointers with differing refkinds
                 Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
                 Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
                 Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
@@ -2087,7 +2088,7 @@ namespace System
         }
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
             var returnType = comp.GetSpecialType(SpecialType.System_String);
 
@@ -2100,7 +2101,7 @@ namespace System
 
             static void verifyEquality((FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr1, (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr2, bool expectedConventionEquality, bool expectedFullEquality)
             {
-                // No equality between pointers with differring refkinds
+                // No equality between pointers with differing refkinds
                 Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
                 Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
                 Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
@@ -2156,7 +2157,7 @@ namespace System
 
             static void verifyEquality((FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr1, (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr2, bool expectedTypeConventionEquality, bool expectedRefConventionEquality)
             {
-                // No equality between pointers with differring refkinds
+                // No equality between pointers with differing refkinds
                 Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
                 Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
                 Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));

@@ -3,7 +3,7 @@
     x:ClassModifier="internal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
     xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
@@ -29,6 +29,8 @@
                     </StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
+                    <CheckBox x:Name="Use_64bit_analysis_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
@@ -129,7 +131,7 @@
             <GroupBox x:Uid="ClassificationsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
                 <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
+                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Edit_color_scheme}">
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
                     </ComboBox>

@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,47 +17,48 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private class AssemblyReferenceCodeAction : AddImportCodeAction
         {
-            private readonly Lazy<string> _lazyResolvedPath;
-
             public AssemblyReferenceCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData)
                 : base(originalDocument, fixData)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
-                _lazyResolvedPath = new Lazy<string>(ResolvePath);
             }
 
-            private string ResolvePath()
+            private Task<string?> ResolvePathAsync(CancellationToken cancellationToken)
             {
-                var assemblyResolverService = OriginalDocument.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
+                var assemblyResolverService = OriginalDocument.Project.Solution.Workspace.Services.GetRequiredService<IFrameworkAssemblyPathResolver>();
 
-                var assemblyPath = assemblyResolverService?.ResolveAssemblyPath(
+                return assemblyResolverService.ResolveAssemblyPathAsync(
                     OriginalDocument.Project.Id,
                     FixData.AssemblyReferenceAssemblyName,
-                    FixData.AssemblyReferenceFullyQualifiedTypeName);
-
-                return assemblyPath;
+                    FixData.AssemblyReferenceFullyQualifiedTypeName,
+                    cancellationToken);
             }
 
-            internal override bool PerformFinalApplicabilityCheck
-                => true;
+            protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+                => ComputeOperationsAsync(isPreview: true, cancellationToken);
 
-            internal override bool IsApplicable(Workspace workspace)
-                => !string.IsNullOrWhiteSpace(_lazyResolvedPath.Value);
+            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+                => ComputeOperationsAsync(isPreview: false, cancellationToken);
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            private async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(bool isPreview, CancellationToken cancellationToken)
             {
-                var service = OriginalDocument.Project.Solution.Workspace.Services.GetService<IMetadataService>();
-                var resolvedPath = _lazyResolvedPath.Value;
-                var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
-
                 var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var newProject = newDocument.Project;
 
                 // Now add the actual assembly reference.
-                var newProject = newDocument.Project;
-                newProject = newProject.WithMetadataReferences(
-                    newProject.MetadataReferences.Concat(reference));
+                if (!isPreview)
+                {
+                    var resolvedPath = await ResolvePathAsync(cancellationToken).ConfigureAwait(false);
+                    if (!string.IsNullOrWhiteSpace(resolvedPath))
+                    {
+                        var service = OriginalDocument.Project.Solution.Workspace.Services.GetRequiredService<IMetadataService>();
+                        var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
+                        newProject = newProject.WithMetadataReferences(
+                            newProject.MetadataReferences.Concat(reference));
+                    }
+                }
 
                 var operation = new ApplyChangesOperation(newProject.Solution);
                 return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);

@@ -688,7 +688,8 @@ public class Program
             VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46784"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WorkItem(46784, "https://github.com/dotnet/roslyn/issues/46784")]
         public void ConfigureSeverity()
         {
             var markup = @"
@@ -735,7 +736,7 @@ class C
                     new ErrorListItem(
                         severity: expectedSeverity,
                         description: "The variable 'x' is declared but never used",
-                        project: "TestProj.csproj",
+                        project: "TestProj",
                         fileName: "Class1.cs",
                         line: 7,
                         column: 13)

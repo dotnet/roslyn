@@ -114,17 +114,44 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            if (TryGetTextForContextualKeyword(token, out var text) ||
+            if (TryGetTextForSpecialCharacters(token, out var text) ||
+                TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
-                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
-                TryGetTextForOperator(token, document, out text))
+                TryGetTextForOperator(token, document, out text) ||
+                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
             {
                 return text;
             }
 
             return string.Empty;
+        }
+
+        private bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
+        {
+            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+            {
+                text = "$_CSharpKeyword";
+                return true;
+            }
+
+            if (token.IsVerbatimStringLiteral())
+            {
+                text = "@_CSharpKeyword";
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
+            {
+                text = "@$_CSharpKeyword";
+                return true;
+            }
+
+            text = null;
+            return false;
         }
 
         private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, out string text)
@@ -192,9 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.ColonToken && token.Parent is NameColonSyntax)
+            if (token.IsKind(SyntaxKind.ColonToken) && token.Parent is NameColonSyntax)
             {
-                text = "cs_namedParameter";
+                text = "namedParameter_CSharpKeyword";
                 return true;
             }
 
@@ -207,18 +234,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 text = "=>_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.PlusEqualsToken))
-            {
-                text = "+=_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.MinusEqualsToken))
-            {
-                text = "-=_CSharpKeyword";
                 return true;
             }
 
@@ -313,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private static bool TryGetTextForKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
         {
-            if (token.Kind() == SyntaxKind.InKeyword)
+            if (token.IsKind(SyntaxKind.InKeyword))
             {
                 if (token.GetAncestor<FromClauseSyntax>() != null)
                 {

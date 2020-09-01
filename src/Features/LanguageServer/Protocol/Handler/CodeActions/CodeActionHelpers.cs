@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,19 +31,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public static async Task<VSCodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
+            CodeActionsCache codeActionsCache,
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
-            LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (!actionSets.HasValue)
             {
                 return Array.Empty<VSCodeAction>();
             }
+
+            await codeActionsCache.UpdateActionSetsAsync(document, request.Range, actionSets.Value, cancellationToken).ConfigureAwait(false);
 
             var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var codeActions);
             foreach (var set in actionSets)
@@ -105,18 +105,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Used by CodeActionResolveHandler and RunCodeActionHandler.
         /// </remarks>
         public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            CodeActionsCache codeActionsCache,
             Document document,
+            LSP.Range selection,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
-            LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (!actionSets.HasValue)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                actionSets = await GetActionSetsAsync(
+                    document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+
+                if (!actionSets.HasValue)
+                {
+                    return ImmutableArray<CodeAction>.Empty;
+                }
+
+                await codeActionsCache.UpdateActionSetsAsync(document, selection, actionSets.Value, cancellationToken).ConfigureAwait(false);
             }
 
             var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
@@ -165,23 +173,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
-            // The logic to filter code actions requires the UI thread
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var codeFixes = UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixes_MustBeCalledFromUIThread(
+            var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan, includeSuppressionFixes: true,
-                isBlocking: false, addOperationScope: _ => null, cancellationToken);
+                isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
-            var codeRefactorings = UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactorings_MustBeCalledFromUIThread(
+            var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                 document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, isBlocking: false,
-                addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken);
+                addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(codeFixes, codeRefactorings, textSpan);
             return actionSets;

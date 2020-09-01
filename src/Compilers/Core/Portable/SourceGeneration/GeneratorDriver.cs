@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -51,7 +52,12 @@ namespace Microsoft.CodeAnalysis
             return FromState(state);
         }
 
+        // https://github.com/dotnet/roslyn/issues/46623
+        [Obsolete("Use RunGeneratorsAndUpdateCompilation", error: true)]
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
+            => throw new NotImplementedException("Use RunGeneratorsAndUpdateCompilation");
+
+        public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var state = RunGeneratorsCore(compilation, diagnosticsBag, cancellationToken);
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
         }
 
-        public GeneratorDriver TryApplyEdits(Compilation compilation, out Compilation outputCompilation, out bool success, CancellationToken cancellationToken = default)
+        internal GeneratorDriver TryApplyEdits(Compilation compilation, out Compilation outputCompilation, out bool success, CancellationToken cancellationToken = default)
         {
             // if we can't apply any partial edits, just instantly return
             if (_state.EditsFailed || _state.Edits.Length == 0)
@@ -121,6 +127,12 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
+        public GeneratorDriver RemoveAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
+        {
+            var newState = _state.With(additionalTexts: _state.AdditionalTexts.RemoveRange(additionalTexts));
+            return FromState(newState);
+        }
+
         public GeneratorDriverRunResult GetRunResult()
         {
             var results = _state.Generators.ZipAsArray(
@@ -157,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                 // initialize the generator if needed
                 if (!generatorState.Info.Initialized)
                 {
-                    InitializationContext context = new InitializationContext(cancellationToken);
+                    var context = new GeneratorInitializationContext(cancellationToken);
                     Exception? ex = null;
                     try
                     {
@@ -234,7 +246,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
+                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
                 try
                 {
                     generator.Execute(context);
@@ -273,7 +285,7 @@ namespace Microsoft.CodeAnalysis
                 if (edit.AcceptedBy(generatorState.Info))
                 {
                     // attempt to apply the edit
-                    var context = new EditContext(generatorState.SourceTexts.ToImmutableArray(), cancellationToken);
+                    var context = new GeneratorEditContext(generatorState.SourceTexts.ToImmutableArray(), cancellationToken);
                     var succeeded = edit.TryApply(generatorState.Info, context);
                     if (!succeeded)
                     {
@@ -353,8 +365,26 @@ namespace Microsoft.CodeAnalysis
 
         private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
         {
-            var message = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
-            var diagnostic = Diagnostic.Create(provider, message, generator.GetType().Name);
+            var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
+
+            // ISSUE: Diagnostics don't currently allow descriptions with arguments, so we have to manually create the diagnostic description
+            // ISSUE: Exceptions also don't support IFormattable, so will always be in the current UI Culture.
+            // ISSUE: See https://github.com/dotnet/roslyn/issues/46939
+
+            var description = string.Format(provider.GetDescription(errorCode).ToString(CultureInfo.CurrentUICulture), e);
+
+            var descriptor = new DiagnosticDescriptor(
+                provider.GetIdForErrorCode(errorCode),
+                provider.GetTitle(errorCode),
+                provider.GetMessageFormat(errorCode),
+                description: description,
+                category: "Compiler",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.AnalyzerException);
+
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetType().Name, e.GetType().Name, e.Message);
+
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }
