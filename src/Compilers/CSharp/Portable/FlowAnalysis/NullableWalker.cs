@@ -2156,10 +2156,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_hasInitialState)
                 {
-                    // A record primary constructor's parameters are entered
-                    // before analyzing initializers, so we skip parameters
-                    // on the second pass over the primary constructor body.
-                    // (this will matter more when we support a user-defined body on the record primary constructor.)
+                    // A record primary constructor's parameters are entered before analyzing initializers.
+                    // On the second pass, the correct parameter states (potentially modified by initializers)
+                    // are contained in the initial state.
                     return;
                 }
             }
