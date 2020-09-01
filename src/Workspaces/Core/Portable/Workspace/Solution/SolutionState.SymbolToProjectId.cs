@@ -4,7 +4,9 @@
 
 #nullable enable
 
+using System;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -83,6 +85,33 @@ namespace Microsoft.CodeAnalysis
                 var tree = typeParameter.Locations[0].SourceTree;
                 var doc = this.GetDocumentState(tree, projectId: null);
                 return doc?.Id.ProjectId;
+            }
+            else if (SymbolKey.IsBodyLevelSymbol(symbol))
+            {
+                // If this is a method-body-level symbol, then we will have it's syntax tree.  Since  we already have a
+                // mapping from syntax-trees to docs, so we can immediately map this back to it's originating project.
+                //
+                // Note: we don't do this for all source symbols, only method-body-level ones.  That's because other
+                // source symbols may be *retargetted*.  So you can have the same symbol retargetted into multiple
+                // projects, but which have the same syntax-tree (which is only in one project).  We need to actually
+                // check it's assembly symbol so that we get the actual project it is from (the original project, or the
+                // retargetted project).
+                var syntaxTree = symbol.DeclaringSyntaxReferences[0].SyntaxTree;
+                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
+                if (documentId == null)
+                {
+                    try
+                    {
+                        throw new InvalidOperationException(
+                            $"We should always be able to map a source symbol back to a document:\r\n{symbol.Kind}\r\n{symbol.Name}\r\n{syntaxTree.FilePath}");
+                    }
+                    catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                    {
+                        return null;
+                    }
+                }
+
+                return documentId.ProjectId;
             }
 
             return null;
