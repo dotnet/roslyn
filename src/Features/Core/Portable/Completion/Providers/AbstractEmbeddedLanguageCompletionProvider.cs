@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            foreach (var language in GetLanguageProviders(context => context.Document, context))
+            foreach (var language in GetLanguageProviders(context => context?.Document, context))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
