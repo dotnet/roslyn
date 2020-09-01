@@ -7,10 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
@@ -77,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 return;
             }
-
             context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
         }
 
@@ -171,6 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
+            var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
+            // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property, 
+            // or the syntax allows for the slice method to be run
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && IsWriteableIndexer(invocation, indexer))
+            {
+                return null;
+            }
+
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
@@ -224,5 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
+
+        private static bool IsWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)
+        {
+            var refReturnMismatch = indexer.ReturnsByRef != invocation.TargetMethod.ReturnsByRef;
+            var indexerIsReadWrite = indexer.IsWriteableFieldOrProperty();
+            return refReturnMismatch && !indexerIsReadWrite;
+        }
     }
 }

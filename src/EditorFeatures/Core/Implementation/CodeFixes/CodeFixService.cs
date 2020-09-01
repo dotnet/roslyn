@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(EditorFeaturesResources.Removal_of_document_not_supported);
         }
 
-        private bool TryGetWorkspaceFixersMap(Document document, out Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> fixerMap)
+        private bool TryGetWorkspaceFixersMap(Document document, [NotNullWhen(true)] out Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>? fixerMap)
         {
             if (_lazyWorkspaceFixersMap == null)
             {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return _lazyWorkspaceFixersMap.TryGetValue(document.Project.Language, out fixerMap);
         }
 
-        private bool TryGetWorkspaceFixersPriorityMap(Document document, out Lazy<ImmutableDictionary<CodeFixProvider, int>> fixersPriorityMap)
+        private bool TryGetWorkspaceFixersPriorityMap(Document document, [NotNullWhen(true)] out Lazy<ImmutableDictionary<CodeFixProvider, int>>? fixersPriorityMap)
         {
             if (_lazyFixerPriorityMap == null)
             {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     allFixers.AddRange(projectFixers);
                 }
 
-                if (hasAnySharedFixer && fixerMap.Value.TryGetValue(diagnosticId, out var workspaceFixers))
+                if (hasAnySharedFixer && fixerMap!.Value.TryGetValue(diagnosticId, out var workspaceFixers))
                 {
                     if (isInteractive)
                     {
@@ -706,14 +706,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (hasAnyProjectFixer)
             {
-                allFixers = allFixers.AddRange(projectFixers);
+                allFixers = allFixers.AddRange(projectFixers!);
             }
 
             var dx = await diagnostic.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
             if (hasConfigurationFixer)
             {
-                foreach (var lazyConfigurationProvider in lazyConfigurationProviders.Value)
+                foreach (var lazyConfigurationProvider in lazyConfigurationProviders!.Value)
                 {
                     if (lazyConfigurationProvider.IsFixableDiagnostic(dx))
                     {
@@ -743,26 +743,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var fixer in allFixers)
             {
                 await extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask).ConfigureAwait(false);
-                foreach (var fix in fixes)
-                {
-                    if (!fix.Action.PerformFinalApplicabilityCheck)
-                    {
-                        return true;
-                    }
-
-                    // Have to see if this fix is still applicable.  Jump to the foreground thread
-                    // to make that check.
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-                    var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
-
-                    await TaskScheduler.Default;
-
-                    if (applicable)
-                    {
-                        return true;
-                    }
-                }
+                if (fixes.Count > 0)
+                    return true;
             }
 
             return false;

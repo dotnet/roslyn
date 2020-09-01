@@ -17,7 +17,6 @@
 #define REFERENCE_STATE
 #endif
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -123,13 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
+            bool strictAnalysis,
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false,
             bool trackStaticMembers = false)
             : base(compilation, member, node,
-                   compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
+                   strictAnalysis ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
@@ -149,9 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node,
-                   emptyStructs ?? (compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation)),
-                   trackUnassignments)
+            : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -367,53 +365,124 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected static bool HasInitializer(Symbol field) => field switch
-        {
-            SourceMemberFieldSymbol f => f.HasInitializer,
-            SynthesizedBackingFieldSymbol f => f.HasInitializer,
-            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
-            _ => false
-        };
-
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
         /// </summary>
-        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
+        public static void Analyze(
+            CSharpCompilation compilation,
+            MethodSymbol member,
+            BoundNode node,
+            DiagnosticBag diagnostics,
+            bool requireOutParamsAssigned = true)
         {
             Debug.Assert(diagnostics != null);
 
-            var walker = new DefiniteAssignmentPass(
-                compilation,
-                member,
-                node,
-                requireOutParamsAssigned: requireOutParamsAssigned);
-            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
-
-            try
+            // Run the strongest version of analysis
+            DiagnosticBag strictDiagnostics = analyze(strictAnalysis: true);
+            if (strictDiagnostics.IsEmptyWithoutResolution)
             {
-                bool badRegion = false;
-                walker.Analyze(ref badRegion, diagnostics);
-                Debug.Assert(!badRegion);
-            }
-            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
-            {
-                ex.AddAnError(diagnostics);
-            }
-            finally
-            {
-                walker.Free();
+                // If it reports nothing, there is nothing to report and we are done.
+                strictDiagnostics.Free();
+                return;
             }
 
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
+            // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
+            // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
+            DiagnosticBag compatDiagnostics = analyze(strictAnalysis: false);
+
+            // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
+            // So we just report the compat ones including that error.
+            if (compatDiagnostics.AsEnumerable().Any(d => (ErrorCode)d.Code == ErrorCode.ERR_InsufficientStack))
             {
-                NullableWalker.Analyze(compilation, member, node, diagnostics);
+                diagnostics.AddRangeAndFree(compatDiagnostics);
+                strictDiagnostics.Free();
+                return;
             }
-#if DEBUG
-            else
+
+            // If the compat diagnostics did not overflow and we have the same number of diagnostics, we just report the stricter set.
+            // It is OK if the strict analysis had an overflow here, causing the sets to be incomparable: the reported diagnostics will
+            // include the error reporting that fact.
+            if (strictDiagnostics.Count == compatDiagnostics.Count)
             {
-                NullableWalker.Analyze(compilation, member, node, new DiagnosticBag());
+                diagnostics.AddRangeAndFree(strictDiagnostics);
+                compatDiagnostics.Free();
+                return;
             }
-#endif
+
+            HashSet<Diagnostic> compatDiagnosticSet = new HashSet<Diagnostic>(compatDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
+            compatDiagnostics.Free();
+            foreach (var diagnostic in strictDiagnostics.AsEnumerable())
+            {
+                // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
+                if (diagnostic.Severity != DiagnosticSeverity.Error || compatDiagnosticSet.Contains(diagnostic))
+                {
+                    diagnostics.Add(diagnostic);
+                    continue;
+                }
+
+                // Otherwise downgrade the error to a warning.
+                ErrorCode oldCode = (ErrorCode)diagnostic.Code;
+                ErrorCode newCode = oldCode switch
+                {
+#pragma warning disable format
+                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
+#pragma warning restore format
+                };
+
+                // We don't know any other way this can happen, but if it does we recover gracefully in production.
+                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
+
+                var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
+                diagnostics.Add(newCode, diagnostic.Location, args);
+            }
+
+            strictDiagnostics.Free();
+            return;
+
+            DiagnosticBag analyze(bool strictAnalysis)
+            {
+                DiagnosticBag result = DiagnosticBag.GetInstance();
+                var walker = new DefiniteAssignmentPass(
+                    compilation,
+                    member,
+                    node,
+                    strictAnalysis: strictAnalysis,
+                    requireOutParamsAssigned: requireOutParamsAssigned);
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+
+                try
+                {
+                    bool badRegion = false;
+                    walker.Analyze(ref badRegion, result);
+                    Debug.Assert(!badRegion);
+                }
+                catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+                {
+                    ex.AddAnError(result);
+                }
+                finally
+                {
+                    walker.Free();
+                }
+
+                return result;
+            }
+        }
+
+        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
+        {
+            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
+            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
+            public override int GetHashCode(Diagnostic obj) =>
+                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
         }
 
         /// <summary>

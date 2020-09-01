@@ -30,11 +30,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
                 SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword)
 
-        Public Shared ReadOnly PreferredModifierOrder As [Option2](Of CodeStyleOption2(Of String)) = CreateOption(
+        Public Shared ReadOnly PreferredModifierOrder As Option2(Of CodeStyleOption2(Of String)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.Modifier, NameOf(PreferredModifierOrder),
             defaultValue:=New CodeStyleOption2(Of String)(String.Join(",", PreferredModifierOrderDefault.Select(AddressOf SyntaxFacts.GetText)), NotificationOption2.Silent),
             EditorConfigStorageLocation.ForStringCodeStyleOption("visual_basic_preferred_modifier_order"),
             New RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferredModifierOrder)}"))
+
+        Public Shared ReadOnly PreferIsNotExpression As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
+            VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferIsNotExpression),
+            defaultValue:=New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Suggestion),
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("visual_basic_style_prefer_isnot_expression"),
+            New RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferIsNotExpression)}"))
 
         Public Shared ReadOnly UnusedValueExpressionStatement As [Option2](Of CodeStyleOption2(Of UnusedValuePreference)) =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(

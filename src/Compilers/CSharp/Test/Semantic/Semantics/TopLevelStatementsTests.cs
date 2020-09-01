@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.TopLevelStatements)]
     public class TopLevelStatementsTests : CompilingTestBase
     {
-        private static CSharpParseOptions DefaultParseOptions => TestOptions.RegularPreview;
+        private static CSharpParseOptions DefaultParseOptions => TestOptions.Regular9;
 
         [Fact]
         public void Simple_01()
@@ -601,9 +601,9 @@ void local() => System.Console.WriteLine(i);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"System.Console.WriteLine(""Hi!"");").WithArguments("top-level statements").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, @"System.Console.WriteLine(""Hi!"");").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
                 );
         }
 
@@ -620,7 +620,7 @@ class Test
             var comp = CreateCompilation(text, parseOptions: DefaultParseOptions);
 
             var expected = new[] {
-                // (4,29): error CS1519: Invalid token '(' in class, struct, or interface member declaration
+                // (4,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 29),
                 // (4,30): error CS1031: Type expected
@@ -632,7 +632,7 @@ class Test
                 // (4,30): error CS1026: ) expected
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""Hi!""").WithLocation(4, 30),
-                // (4,30): error CS1519: Invalid token '"Hi!"' in class, struct, or interface member declaration
+                // (4,30): error CS1519: Invalid token '"Hi!"' in class, record, struct, or interface member declaration
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @"""Hi!""").WithArguments(@"""Hi!""").WithLocation(4, 30)
                 };
@@ -1962,9 +1962,9 @@ namespace N1
 
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8107: Feature 'top-level statements' is not available in C# 7.0. Please use language version 9.0 or greater.
                 // string Test = "1";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test = ""1"";").WithArguments("top-level statements").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"string Test = ""1"";").WithArguments("top-level statements", "9.0").WithLocation(2, 1)
                 );
         }
 
@@ -2339,9 +2339,9 @@ namespace N1
 
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8107: Feature 'top-level statements' is not available in C# 7.0. Please use language version 9.0 or greater.
                 // string Test() => "1";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test() => ""1"";").WithArguments("top-level statements").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"string Test() => ""1"";").WithArguments("top-level statements", "9.0").WithLocation(2, 1)
                 );
         }
 
@@ -4388,7 +4388,7 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                // (14,14): error CS0751: A partial method must be declared within a partial type
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context

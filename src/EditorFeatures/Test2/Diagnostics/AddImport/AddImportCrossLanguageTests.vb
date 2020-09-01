@@ -224,7 +224,7 @@ End Namespace
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function AddProjectReference_CSharpToCSharp_Test() As Task
             Dim input =
                 <Workspace>
@@ -305,7 +305,7 @@ namespace CSAssembly2
             Await TestMissing(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_CSharpToCSharp_WithProjectRenamed() As Task
             Dim input =
                 <Workspace>
@@ -358,7 +358,7 @@ namespace CSAssembly2
                             End Sub)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_VBToVB() As Task
             Dim input =
                 <Workspace>
@@ -404,7 +404,7 @@ End Namespace
             Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IWorkspaceServiceFactory).First(
                         Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
             Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
-            solutionCrawler.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzer))
+            solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -449,7 +449,7 @@ class C
             Await TestMissing(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         <WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
         Public Async Function TestAddProjectReference_EvenWithExistingUsing() As Task
             Dim input =

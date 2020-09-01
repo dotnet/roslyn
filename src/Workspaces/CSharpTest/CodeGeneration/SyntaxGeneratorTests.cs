@@ -3463,6 +3463,19 @@ class C
 }");
         }
 
+        [Fact]
+        public void TestAsyncMethodModifier()
+        {
+            TestModifiersAsync(DeclarationModifiers.Async,
+                @"
+using System.Threading.Tasks;
+class C
+{
+    [|public async Task DoAsync() { await Task.CompletedTask; }|]
+}
+");
+        }
+
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestPropertyModifiers1()
         {

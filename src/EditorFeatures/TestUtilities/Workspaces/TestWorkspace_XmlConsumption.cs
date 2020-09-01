@@ -56,34 +56,65 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => RuntimeHelpers.GetHashCode(this);
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null)
-            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider);
+        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null, TestComposition composition = null)
+            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider, composition);
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string workspaceKind = null)
         {
-            return Create(workspaceElement, openDocuments, exportProvider, workspaceKind);
+            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
         }
 
         internal static TestWorkspace Create(
             XElement workspaceElement,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string workspaceKind = null,
             IDocumentServiceProvider documentServiceProvider = null,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+        {
+            var workspace = new TestWorkspace(exportProvider, composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
+            workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
+            return workspace;
+        }
+
+        internal void InitializeDocuments(
+            string language,
+            CompilationOptions compilationOptions = null,
+            ParseOptions parseOptions = null,
+            string[] files = null,
+            string[] metadataReferences = null,
+            string extension = null,
+            bool commonReferences = true,
+            bool openDocuments = true,
+            IDocumentServiceProvider documentServiceProvider = null)
+        {
+            var workspaceElement = CreateWorkspaceElement(
+                language,
+                compilationOptions,
+                parseOptions,
+                files,
+                metadataReferences,
+                extension,
+                commonReferences);
+
+            InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
+        }
+
+        internal void InitializeDocuments(
+            XElement workspaceElement,
+            bool openDocuments = true,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
                 throw new ArgumentException();
             }
-
-            exportProvider ??= TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
-
-            var workspace = new TestWorkspace(exportProvider, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
@@ -95,15 +126,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var project = CreateProject(
                     workspaceElement,
                     projectElement,
-                    exportProvider,
-                    workspace,
+                    ExportProvider,
+                    this,
                     documentServiceProvider,
                     ref projectIdentifier,
                     ref documentIdentifier);
+
                 Assert.False(projectNameToTestHostProject.ContainsKey(project.Name), $"The workspace XML already contains a project with name {project.Name}");
                 projectNameToTestHostProject.Add(project.Name, project);
                 projectElementToProjectName.Add(projectElement, project.Name);
-                workspace.Projects.Add(project);
+                Projects.Add(project);
             }
 
             var documentFilePaths = new HashSet<string>();
@@ -113,20 +145,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     Assert.True(document.IsLinkFile || documentFilePaths.Add(document.FilePath));
 
-                    workspace.Documents.Add(document);
+                    Documents.Add(document);
                 }
             }
 
-            var submissions = CreateSubmissions(workspace, workspaceElement.Elements(SubmissionElementName), exportProvider);
+            var submissions = CreateSubmissions(workspaceElement.Elements(SubmissionElementName), ExportProvider);
 
             foreach (var submission in submissions)
             {
                 projectNameToTestHostProject.Add(submission.Name, submission);
-                workspace.Documents.Add(submission.Documents.Single());
+                Documents.Add(submission.Documents.Single());
             }
 
             var solution = new TestHostSolution(projectNameToTestHostProject.Values.ToArray());
-            workspace.AddTestSolution(solution);
+            AddTestSolution(solution);
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
             {
@@ -140,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
 
-                    workspace.OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default));
+                    OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default));
                 }
             }
 
@@ -155,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     if (submissions[j].CompilationOptions != null)
                     {
-                        workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
+                        OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
                         break;
                     }
                 }
@@ -172,12 +204,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     }
                 }
             }
-
-            return workspace;
         }
 
-        private static IList<TestHostProject> CreateSubmissions(
-            TestWorkspace workspace,
+        private IList<TestHostProject> CreateSubmissions(
             IEnumerable<XElement> submissionElements,
             ExportProvider exportProvider)
         {
@@ -188,14 +217,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 var submissionName = "Submission" + (submissionIndex++);
 
-                var languageName = GetLanguage(workspace, submissionElement);
+                var languageName = GetLanguage(this, submissionElement);
 
                 // The document
                 var markupCode = submissionElement.NormalizedValue();
                 MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-                var languageServices = workspace.Services.GetLanguageServices(languageName);
+                var languageServices = Services.GetLanguageServices(languageName);
 
                 // The project
 
@@ -217,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     continue;
                 }
 
-                var metadataService = workspace.Services.GetService<IMetadataService>();
+                var metadataService = Services.GetService<IMetadataService>();
                 var metadataResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(fileReferenceProvider: metadataService.GetReference);
                 var syntaxFactory = languageServices.GetService<ISyntaxTreeFactoryService>();
                 var compilationFactory = languageServices.GetService<ICompilationFactoryService>();
@@ -227,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 var parseOptions = syntaxFactory.GetDefaultParseOptions().WithKind(SourceCodeKind.Script);
 
-                var references = CreateCommonReferences(workspace, submissionElement);
+                var references = CreateCommonReferences(this, submissionElement);
 
                 var project = new TestHostProject(
                     languageServices,
@@ -418,12 +447,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (language == LanguageNames.CSharp)
             {
-                var languageVersion = (CodeAnalysis.CSharp.LanguageVersion)Enum.Parse(typeof(CodeAnalysis.CSharp.LanguageVersion), languageVersionAttribute.Value);
+                _ = CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, out var languageVersion);
                 parseOptions = ((CSharpParseOptions)parseOptions).WithLanguageVersion(languageVersion);
             }
             else if (language == LanguageNames.VisualBasic)
             {
-                var languageVersion = (CodeAnalysis.VisualBasic.LanguageVersion)Enum.Parse(typeof(CodeAnalysis.VisualBasic.LanguageVersion), languageVersionAttribute.Value);
+                var languageVersion = CodeAnalysis.VisualBasic.LanguageVersion.Default;
+                _ = CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, ref languageVersion);
                 parseOptions = ((VisualBasicParseOptions)parseOptions).WithLanguageVersion(languageVersion);
             }
 
@@ -730,9 +760,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     ? SourceCodeKind.Regular
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
-
-            var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
-            var contentType = contentTypeLanguageService.GetDefaultContentType();
 
             TestFileMarkupParser.GetPositionAndSpans(markupCode,
                 out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);

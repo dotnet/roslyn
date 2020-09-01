@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -347,7 +348,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(Workspace workspace, IDiagnosticService diagnosticService,
+        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(TestWorkspace workspace, IDiagnosticService diagnosticService,
             int expectedNumberOfCallbacks, params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
@@ -374,11 +375,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, Workspace workspace, IDiagnosticService mockDiagnosticService)
+            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
-                var protocol = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<LanguageServerProtocol>();
+                var protocol = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: null);
+                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, listenerProvider, clientName: null);
                 return languageServer;
             }
         }

@@ -1922,12 +1922,12 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8370: Feature 'parenthesized pattern' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(((x: 3)))").WithArguments("parenthesized pattern").WithLocation(1, 19),
-                // (1,20): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(((x: 3)))").WithArguments("parenthesized pattern", "9.0").WithLocation(1, 19),
+                // (1,20): error CS8370: Feature 'parenthesized pattern' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "((x: 3))").WithArguments("parenthesized pattern").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "((x: 3))").WithArguments("parenthesized pattern", "9.0").WithLocation(1, 20)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -8087,9 +8087,9 @@ switch (e)
         public void PatternCombinators_01()
         {
             UsingStatement("_ = e is a or b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'or pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is a or b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a or b").WithArguments("or pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a or b").WithArguments("or pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8136,9 +8136,9 @@ switch (e)
         public void PatternCombinators_02()
         {
             UsingStatement("_ = e is a and b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'and pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is a and b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a and b").WithArguments("and pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a and b").WithArguments("and pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8185,9 +8185,9 @@ switch (e)
         public void PatternCombinators_03()
         {
             UsingStatement("_ = e is not b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is not b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not b").WithArguments("not pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not b").WithArguments("not pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8227,9 +8227,9 @@ switch (e)
         public void PatternCombinators_04()
         {
             UsingStatement("_ = e is not null;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is not null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not null").WithArguments("not pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not null").WithArguments("not pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8276,18 +8276,18 @@ switch (e)
     not null => 4,
 };",
                 TestOptions.RegularWithoutPatternCombinators,
-                // (2,5): error CS8652: The feature 'or pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,5): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     a or b => 1,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a or b").WithArguments("or pattern").WithLocation(2, 5),
-                // (3,5): error CS8652: The feature 'and pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a or b").WithArguments("or pattern", "9.0").WithLocation(2, 5),
+                // (3,5): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     c and d => 2,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c and d").WithArguments("and pattern").WithLocation(3, 5),
-                // (4,5): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "c and d").WithArguments("and pattern", "9.0").WithLocation(3, 5),
+                // (4,5): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     not e => 3,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not e").WithArguments("not pattern").WithLocation(4, 5),
-                // (5,5): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not e").WithArguments("not pattern", "9.0").WithLocation(4, 5),
+                // (5,5): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     not null => 4,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not null").WithArguments("not pattern").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not null").WithArguments("not pattern", "9.0").WithLocation(5, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8421,24 +8421,24 @@ switch (e)
     != 5 => 5,
 };",
                 TestOptions.RegularWithoutPatternCombinators,
-                // (2,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     < 0 => 0,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "< 0").WithArguments("relational pattern").WithLocation(2, 5),
-                // (3,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "< 0").WithArguments("relational pattern", "9.0").WithLocation(2, 5),
+                // (3,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     <= 1 => 1,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<= 1").WithArguments("relational pattern").WithLocation(3, 5),
-                // (4,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "<= 1").WithArguments("relational pattern", "9.0").WithLocation(3, 5),
+                // (4,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     > 2 => 2,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "> 2").WithArguments("relational pattern").WithLocation(4, 5),
-                // (5,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "> 2").WithArguments("relational pattern", "9.0").WithLocation(4, 5),
+                // (5,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     >= 3 => 3,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">= 3").WithArguments("relational pattern").WithLocation(5, 5),
-                // (6,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">= 3").WithArguments("relational pattern", "9.0").WithLocation(5, 5),
+                // (6,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "== 4").WithArguments("relational pattern").WithLocation(6, 5),
-                // (7,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "== 4").WithArguments("relational pattern", "9.0").WithLocation(6, 5),
+                // (7,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "!= 5").WithArguments("relational pattern").WithLocation(7, 5)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "!= 5").WithArguments("relational pattern", "9.0").WithLocation(7, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -9924,79 +9924,61 @@ switch (e)
         public void PrecedenceInversionWithBlockLambda()
         {
             UsingExpression("() => {} + d",
-                TestOptions.Regular.WithStrictFeature(),
-                // (1,10): error CS1073: Unexpected token '+'
+                // (1,10): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 // () => {} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 10)
                 );
-            verify();
-
-            UsingExpression("()=>{} + d");
-            verify();
-
-            void verify()
+            N(SyntaxKind.AddExpression);
             {
-                N(SyntaxKind.AddExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                EOF();
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
             }
+            EOF();
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithAnonymousMethod()
         {
             UsingExpression("delegate {} + d",
-                TestOptions.Regular.WithStrictFeature(),
-                // (1,13): error CS1073: Unexpected token '+'
+                // (1,13): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 // delegate {} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 13)
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 13)
                 );
-            verify();
-
-            UsingExpression("delegate {} + d");
-            verify();
-
-            void verify()
+            N(SyntaxKind.AddExpression);
             {
-                N(SyntaxKind.AddExpression);
+                N(SyntaxKind.AnonymousMethodExpression);
                 {
-                    N(SyntaxKind.AnonymousMethodExpression);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                EOF();
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
             }
+            EOF();
         }
 
         [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]

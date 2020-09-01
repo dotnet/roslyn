@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly Option2<bool> DirectDependencyPropagationOnly = new Option2<bool>(nameof(InternalSolutionCrawlerOptions), "Project propagation only on direct dependency", defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Project propagation only on direct dependency"));
 
-        public static readonly Option2<int> ActiveFileWorkerBackOffTimeSpanInMS = new Option2<int>(nameof(InternalSolutionCrawlerOptions), "Active file worker backoff timespan in ms", defaultValue: 400,
+        public static readonly Option2<int> ActiveFileWorkerBackOffTimeSpanInMS = new Option2<int>(nameof(InternalSolutionCrawlerOptions), "Active file worker backoff timespan in ms", defaultValue: 100,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Active file worker backoff timespan in ms"));
 
         public static readonly Option2<int> AllFilesWorkerBackOffTimeSpanInMS = new Option2<int>(nameof(InternalSolutionCrawlerOptions), "All files worker backoff timespan in ms", defaultValue: 1500,

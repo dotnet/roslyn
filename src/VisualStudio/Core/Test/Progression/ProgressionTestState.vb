@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
-            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Return New ProgressionTestState(workspace)
         End Function

@@ -33,15 +33,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool IsExpandedCompletion { get; set; } = true;
 
+        private bool DisallowAddingImports { get; set; }
+
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, DisallowAddingImports);
         }
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         #region "Option tests"
 
@@ -744,6 +747,7 @@ namespace NS
         #endregion
 
         #region "Commit Change Tests"
+
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -773,6 +777,41 @@ namespace Baz
     class Bat
     {
         Bar$$
+    }
+}";
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_NoImport_InProject_DisallowAddingImports(SourceCodeKind kind)
+        {
+            DisallowAddingImports = true;
+
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{
+    }}
+}}";
+
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+        $$
+    }
+}";
+            var expectedCodeAfterCommit = @"
+namespace Baz
+{
+    class Bat
+    {
+        Foo.Bar$$
     }
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -889,7 +928,7 @@ class Bar
         #endregion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGLobalAliasedMetadataReference()
+        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGlobalAliasedMetadataReference()
         {
             var file1 = $@"
 namespace Foo

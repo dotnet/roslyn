@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             Title,
             MessageFormat,
             DiagnosticCategory.Compiler,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: Description);
 

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -244,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyNotNullMembers;
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
+            public MethodSymbol _lazyExplicitClassOverride;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -285,6 +287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyNotNullMembers = ImmutableArray<string>.Empty;
                 retVal._lazyNotNullMembersWhenTrue = ImmutableArray<string>.Empty;
                 retVal._lazyNotNullMembersWhenFalse = ImmutableArray<string>.Empty;
+            }
+
+            if (_packedFlags.IsExplicitOverrideIsPopulated)
+            {
+                retVal._lazyExplicitClassOverride = null;
             }
 
             return retVal;
@@ -1169,6 +1176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
+            // Disabling optimization to work around a JIT bug in .NET 5.
+            // See https://github.com/dotnet/roslyn/issues/46575
+            [MethodImpl(MethodImplOptions.NoOptimization)]
             get
             {
                 var explicitInterfaceImplementations = _lazyExplicitMethodImplementations;
@@ -1194,9 +1204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         anyToRemove = true;
                         sawObjectFinalize =
-                            (method.ContainingType.SpecialType == SpecialType.System_Object &&
-                             method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
-                             method.MethodKind == MethodKind.Destructor);
+                           (method.ContainingType.SpecialType == SpecialType.System_Object &&
+                            method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
+                            method.MethodKind == MethodKind.Destructor);
                     }
 
                     if (anyToRemove && sawObjectFinalize)
@@ -1204,13 +1214,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
                     }
                 }
-
-                // CONSIDER: could assert that we're writing the existing value if it's already there
-                // CONSIDER: what we'd really like to do is set this bit only in cases where the explicitly
-                // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
-                // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
-                // which depend on this property) to determine which method OverriddenMethod will return.
-                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
 
                 explicitInterfaceImplementations = explicitlyOverriddenMethods;
 
@@ -1226,9 +1229,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
 
                     explicitInterfaceImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree();
+
+                    MethodSymbol uniqueClassOverride = null;
+                    foreach (MethodSymbol method in explicitlyOverriddenMethods)
+                    {
+                        if (method.ContainingType.IsClassType())
+                        {
+                            if (uniqueClassOverride is { })
+                            {
+                                // not unique
+                                uniqueClassOverride = null;
+                                break;
+                            }
+
+                            uniqueClassOverride = method;
+                        }
+                    }
+
+                    if (uniqueClassOverride is { })
+                    {
+                        Interlocked.CompareExchange(ref AccessUncommonFields()._lazyExplicitClassOverride, uniqueClassOverride, null);
+                    }
                 }
 
+                // CONSIDER: what we'd really like to do is set this bit only in cases where the explicitly
+                // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
+                // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
+                // which depend on this property) to determine which method OverriddenMethod will return.
+                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
+
                 return InterlockedOperations.Initialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
+            }
+        }
+
+        /// <summary>
+        /// If a methodimpl record indicates a unique overridden method, that method. Otherwise null.
+        /// </summary>
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
+        {
+            get
+            {
+                return IsExplicitClassOverride ? AccessUncommonFields()._lazyExplicitClassOverride : null;
             }
         }
 

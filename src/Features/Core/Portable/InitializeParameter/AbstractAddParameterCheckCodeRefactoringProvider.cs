@@ -235,6 +235,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
+            if (parameter.RefKind == RefKind.Out)
+            {
+                return false;
+            }
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already

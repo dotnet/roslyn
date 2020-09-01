@@ -13,11 +13,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -39,7 +39,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -87,7 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
 
         private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new Dictionary<string, UIContext?>();
-        private readonly JoinableTaskCollection _deferredJoinableTasks;
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -113,7 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
-            _deferredJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -130,7 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
-            exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
 
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
@@ -383,9 +379,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
-            => !IsCPSProject(project);
-
         internal bool IsCPSProject(CodeAnalysis.Project project)
             => IsCPSProject(project.Id);
 
@@ -395,11 +388,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.TryGetHierarchy(projectId, out var hierarchy))
             {
-                // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
-                // This is because the remove/add of the documents in CPS is not synchronous
-                // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
-                // expecting the changes to happen immediately.  Because they are deferred in CPS
-                // this causes problems.
                 return hierarchy.IsCapabilityMatch("CPS");
             }
 
@@ -1153,7 +1141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Must save the document first for things like Breakpoints to be preserved.
-                projectItemForDocument.Save();
+                // WORKAROUND: Check if the document needs to be saved before calling save. 
+                // Should remove the if below and just call save() once 
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163405
+                // is fixed
+                if (!projectItemForDocument.Saved)
+                {
+                    projectItemForDocument.Save();
+                }
 
                 var uniqueName = projectItemForDocument.Collection
                     .GetUniqueNameIgnoringProjectItem(
@@ -1318,8 +1313,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
-
-                _deferredJoinableTasks.Join();
             }
 
             base.Dispose(finalize);
@@ -1358,9 +1351,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureEditableDocuments(params DocumentId[] documents)
             => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
 
-        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+        internal override async Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
         {
-            _foregroundObject.AssertIsForeground();
+            await _foregroundObject.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {
@@ -1533,11 +1527,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
-                _deferredJoinableTasks.Add(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     RefreshProjectExistsUIContextForLanguage(languageName);
-                }));
+                });
             }
         }
 

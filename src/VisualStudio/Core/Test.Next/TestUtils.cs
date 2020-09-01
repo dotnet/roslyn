@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests
 {
     internal static class TestUtils
     {
-        public static void VerifyAssetStorage<T>(IEnumerable<KeyValuePair<Checksum, T>> items, AssetStorage storage)
+        public static void VerifyAssetStorage<T>(IEnumerable<KeyValuePair<Checksum, T>> items, SolutionAssetCache storage)
         {
             foreach (var kv in items)
             {

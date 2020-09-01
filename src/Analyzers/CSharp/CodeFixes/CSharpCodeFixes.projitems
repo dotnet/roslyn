@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\CSharpConvertAnonymousTypeToTupleCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderCodeFixProvider.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementCodeFixProvider.cs" />

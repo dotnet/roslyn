@@ -868,7 +868,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
@@ -11262,6 +11262,153 @@ public static class Extensions
 }";
 
             CompileAndVerify(code, expectedOutput: @"2");
+        }
+
+        [Fact]
+        public void GenericTypeOverriddenMethod()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue F(TKey key) => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue F(A key) => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d.F(a);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<MethodSymbol>();
+                Assert.Equal("B Derived<B>.F(A key)", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenMethod(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.F(A key)", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenProperty()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue this[TKey key] => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue this[A key] => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d[a];
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<PropertySymbol>();
+                Assert.Equal("B Derived<B>.this[A key] { get; }", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenProperty(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.this[A key] { get; }", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenEvent()
+        {
+            var source0 =
+@"public delegate TValue D<TKey, TValue>(TKey key);
+public abstract class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public abstract event D<TKey, TValue> E;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override event D<A, TValue> E { add { } remove { } }
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        d.E += (A a) => default(B);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<EventSymbol>();
+                Assert.Equal("event D<A, B> Derived<B>.E", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
+                Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
+            }
         }
     }
 }
