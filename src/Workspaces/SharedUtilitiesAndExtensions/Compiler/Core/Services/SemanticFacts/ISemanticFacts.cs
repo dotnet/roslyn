@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface ISemanticFacts
+    internal partial interface ISemanticFacts
     {
         /// <summary>
         /// True if this language supports implementing an interface by signature only. If false,
@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
-
-        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
 
         ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
