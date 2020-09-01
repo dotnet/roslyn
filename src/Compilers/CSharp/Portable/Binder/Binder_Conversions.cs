@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)destination != null);
             RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
+            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+
             if (conversion.IsIdentity)
             {
                 if (source is BoundTupleLiteral sourceTuple)
@@ -84,8 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return source;
                 }
             }
-
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
 
             if (conversion.IsMethodGroup)
             {
