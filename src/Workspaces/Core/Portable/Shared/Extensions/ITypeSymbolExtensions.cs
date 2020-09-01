@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static ImmutableArray<ISymbol> FindImplementationsForInterfaceMember(
+        public static async Task<ImmutableArray<ISymbol>> FindImplementationsForInterfaceMemberAsync(
             this ITypeSymbol typeSymbol,
             ISymbol interfaceMember,
             Solution solution,
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // OriginalSymbolMatch allows types to be matched across different assemblies if they are considered to
                 // be the same type, which provides a more accurate implementations list for interfaces.
                 var constructedInterfaceMember =
-                    constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefault(
-                        typeSymbol => SymbolFinder.OriginalSymbolsMatch(solution, typeSymbol, interfaceMember, cancellationToken));
+                    await constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefaultAsync(
+                        typeSymbol => SymbolFinder.OriginalSymbolsMatchAsync(solution, typeSymbol, interfaceMember, cancellationToken)).ConfigureAwait(false);
 
                 if (constructedInterfaceMember == null)
                 {

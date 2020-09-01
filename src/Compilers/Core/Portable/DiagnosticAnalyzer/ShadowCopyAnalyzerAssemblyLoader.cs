@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis
 
         private void DeleteLeftoverDirectories()
         {
+            // Avoid first chance exception
+            if (!Directory.Exists(_baseDirectory))
+                return;
+
             IEnumerable<string> subDirectories;
             try
             {

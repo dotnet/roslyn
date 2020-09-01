@@ -32,6 +32,11 @@
         <target state="translated">Discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_color_scheme">
+        <source>Edit color scheme</source>
+        <target state="new">Edit color scheme</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="new">Format document</target>

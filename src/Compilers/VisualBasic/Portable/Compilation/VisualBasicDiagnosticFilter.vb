@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -29,7 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostic As Diagnostic,
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
-            syntaxTreeOptions As SyntaxTreeOptionsProvider) As Diagnostic
+            syntaxTreeOptions As SyntaxTreeOptionsProvider,
+            cancellationToken As CancellationToken) As Diagnostic
 
             ' Diagnostic ids must be processed in case-insensitive fashion in VB.
             Dim caseInsensitiveSpecificDiagnosticOptions =
@@ -67,14 +68,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
                 caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
                 report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
-                diagnostic.IsEnabledByDefault,
-                VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
-                diagnostic.Location,
-                diagnostic.Category,
-                generalDiagnosticOption,
-                caseInsensitiveSpecificDiagnosticOptions,
-                syntaxTreeOptions,
-                hasSourceSuppression)
+                    diagnostic.IsEnabledByDefault,
+                    VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
+                    diagnostic.Location,
+                    diagnostic.Category,
+                    generalDiagnosticOption,
+                    caseInsensitiveSpecificDiagnosticOptions,
+                    syntaxTreeOptions,
+                    cancellationToken,
+                    hasSourceSuppression)
             Else
                 report = GetDiagnosticReport(
                     diagnostic.Severity,
@@ -85,6 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     generalDiagnosticOption,
                     caseInsensitiveSpecificDiagnosticOptions,
                     syntaxTreeOptions,
+                    cancellationToken,
                     hasSourceSuppression)
             End If
 
@@ -123,20 +126,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    generalDiagnosticOption As ReportDiagnostic,
                                                    caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
                                                    syntaxTreeOptions As SyntaxTreeOptionsProvider,
+                                                   cancellationToken As CancellationToken,
                                                    <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
             hasDisableDirectiveSuppression = False
 
             Dim report As ReportDiagnostic
-            Dim tree = If(location IsNot Nothing, location.SourceTree, Nothing)
+            Dim tree = location?.SourceTree
             Dim isSpecified As Boolean = False
 
             ' Global options depend on other options, so calculate those first
             If tree IsNot Nothing AndAlso syntaxTreeOptions IsNot Nothing AndAlso
-               syntaxTreeOptions.TryGetDiagnosticValue(tree, id, report) Then
+               syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, report) Then
                 ' 2. Syntax tree level
                 isSpecified = True
             ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
                 ' 3. Compilation level
+                isSpecified = True
+            ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, report) Then
+                ' 4. Global analyzer config level
                 isSpecified = True
             Else
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)

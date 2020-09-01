@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             static bool TryGetParameterSymbol(
                 SyntaxNode parameterNode,
                 SemanticModel semanticModel,
-                out IParameterSymbol parameter,
+                [NotNullWhen(true)] out IParameterSymbol? parameter,
                 CancellationToken cancellationToken)
             {
-                parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
                 return parameter != null && parameter.Name != "";
             }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected bool CanOfferRefactoring(
             SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken, [MaybeNullWhen(false)] out IBlockOperation? blockStatementOpt)
+            CancellationToken cancellationToken, out IBlockOperation? blockStatementOpt)
         {
             blockStatementOpt = null;
 
