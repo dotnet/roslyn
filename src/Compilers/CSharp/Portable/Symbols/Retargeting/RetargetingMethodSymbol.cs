@@ -232,13 +232,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     var underlyingData = _underlyingMethod.UnmanagedCallersOnlyAttributeData;
                     if (underlyingData == UnmanagedCallersOnlyAttributeData.Uninitialized)
                     {
-                        // Underlying hasn't been found yet either, just return it.
+                        // Underlying hasn't been found yet either, just return it. We'll check again the next
+                        // time this is called
                         return underlyingData;
                     }
 
                     if (underlyingData == null || (underlyingData.CallingConventionTypes?.IsEmpty != false))
                     {
-                        return Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, underlyingData, UnmanagedCallersOnlyAttributeData.Uninitialized);
+                        _ = Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, underlyingData, UnmanagedCallersOnlyAttributeData.Uninitialized);
+                        return _lazyUnmanagedAttributeData;
                     }
 
                     var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
