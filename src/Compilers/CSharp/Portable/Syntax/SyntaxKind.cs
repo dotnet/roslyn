@@ -4,8 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     // DO NOT CHANGE NUMBERS ASSIGNED TO EXISTING KINDS OR YOU WILL BREAK BINARY COMPATIBILITY
@@ -463,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
         /// <summary>Represents that nothing was specified as a type argument.</summary>
-        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
         OmittedTypeArgumentToken = 8492,
         /// <summary>Represents that nothing was specified as an array size.</summary>
         /// <remarks>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of <see cref="OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
