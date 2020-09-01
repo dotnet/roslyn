@@ -430,8 +430,9 @@ namespace Analyzer.Utilities.Extensions
                 case IPropertyInitializerOperation propertyInitializerOperation:
                     return ControlFlowGraph.Create(propertyInitializerOperation);
 
-                case IParameterInitializerOperation parameterInitializerOperation:
-                    return ControlFlowGraph.Create(parameterInitializerOperation);
+                case IParameterInitializerOperation:
+                    // We do not support flow analysis for parameter initializers
+                    return null;
 
                 default:
                     // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
