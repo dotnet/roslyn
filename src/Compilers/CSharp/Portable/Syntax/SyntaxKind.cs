@@ -6,6 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix - The prefix is required since this file is referenced in projects that can't access syntax nodes
     // DO NOT CHANGE NUMBERS ASSIGNED TO EXISTING KINDS OR YOU WILL BREAK BINARY COMPATIBILITY
     public enum SyntaxKind : ushort
     {
