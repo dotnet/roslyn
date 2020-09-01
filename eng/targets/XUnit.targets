@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
-    <Compile Include="$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)" />
+    <Compile Include="$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)"
+             Condition="Exists('$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)')"/>
   </ItemGroup>
 
   <!-- Add a default test app.config, if the project doesn't already have one-->
