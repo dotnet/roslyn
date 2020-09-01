@@ -1,8 +1,8 @@
 <Themes>
-    <!-- 
+    <!--
         Every Roslyn classification should be listed in this file for each theme.
         Some classifications do not define Foreground colors because we want them to
-        inherit their color from the their parent classification (For instance Type 
+        inherit their color from the their parent classification (For instance Type
         and Member name classifications inherit from Identifier).
     -->
     <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
@@ -140,7 +140,7 @@
                 <Foreground Type="CT_RAW" Source="FF6464B9" />
             </Color>
             <Color Name="xml literal - cdata section">
-                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+                <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
             <Color Name="xml literal - comment">
                 <Foreground Type="CT_RAW" Source="FF629755" />
@@ -301,7 +301,7 @@
                 <Foreground Type="CT_RAW" Source="FF6464B9" />
             </Color>
             <Color Name="xml literal - cdata section">
-                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+                <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
             <Color Name="xml literal - comment">
                 <Foreground Type="CT_RAW" Source="FF629755" />
