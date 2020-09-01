@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -22,7 +23,18 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteTodoCommentsIncrementalAnalyzer(ITodoCommentsListener callback)
             => _callback = callback;
 
-        protected override Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
-            => _callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken);
+        protected override async Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ConnectionLostException)
+            {
+                // The client might have terminated without signalling the cancellation token.
+                // Ignore this failure to avoid reporting Watson from the solution crawler.
+                // Same effect as if cancellation had been requested.
+            }
+        }
     }
 }

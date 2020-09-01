@@ -11,8 +11,8 @@
   <ItemGroup>
     <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
-    <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService" />
-    <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService" />
+    <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
     <ServiceHubService Include="roslynRemoteTodoCommentsService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.LanguageServer" />

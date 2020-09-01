@@ -10,19 +10,23 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.Remoting;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
-using Nerdbank;
+using Nerdbank.Streams;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
-    internal sealed class InProcRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
+    internal sealed partial class InProcRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
     {
         private readonly HostWorkspaceServices _services;
         private readonly InProcRemoteServices _inprocServices;
@@ -108,7 +112,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 options.ClientRpcTarget = callbackTarget;
             }
 
+#pragma warning disable ISB001 // Dispose of proxies - caller disposes
             var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(service.GetServiceDescriptor(isRemoteHost64Bit: IntPtr.Size == 8), options, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
+
             Contract.ThrowIfNull(proxy);
             return new RemoteServiceProxy<T>(proxy);
         }
@@ -170,26 +177,50 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _services = services;
             }
 
-            public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged;
+            public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged { add { } remove { } }
 
             public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw ExceptionUtilities.Unreachable;
 
-            public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
+            public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
             {
-                return new ValueTask<T?>((T?)_services.CreateServiceInstance(serviceDescriptor, options));
+                var pipePair = FullDuplexStream.CreatePipePair();
+
+                var clientConnection = descriptor.ConstructRpcConnection(pipePair.Item2);
+
+                Contract.ThrowIfFalse(options.ClientRpcTarget is null == descriptor.ClientInterface is null);
+
+                if (descriptor.ClientInterface != null)
+                {
+                    Contract.ThrowIfNull(options.ClientRpcTarget);
+                    clientConnection.AddLocalRpcTarget(options.ClientRpcTarget);
+                }
+
+                var serverConnection = descriptor.ConstructRpcConnection(pipePair.Item1);
+
+                if (descriptor.ClientInterface != null)
+                {
+                    options.ClientRpcTarget = serverConnection.ConstructRpcClient(descriptor.ClientInterface);
+                }
+
+                var serviceInstance = _services.CreateBrokeredService(descriptor.Moniker, options);
+                serverConnection.AddLocalRpcTarget(serviceInstance);
+
+                serverConnection.StartListening();
+                clientConnection.StartListening();
+
+                return new ValueTask<T?>(clientConnection.ConstructRpcClient<T>());
             }
         }
 
         private sealed class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
+            private readonly Dictionary<ServiceMoniker, ServiceBase.FactoryBase> _brokeredFactoryMap;
             private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap;
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap;
 
-            public readonly InProcServiceBroker ServiceBroker;
+            public readonly IServiceBroker ServiceBroker;
 
             public InProcRemoteServices(RemoteHostTestData testData)
             {
@@ -197,6 +228,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 _serviceProvider = new ServiceProvider(remoteLogger, testData);
                 _factoryMap = new Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>>();
+                _brokeredFactoryMap = new Dictionary<ServiceMoniker, ServiceBase.FactoryBase>();
                 _serviceNameMap = new Dictionary<string, WellKnownServiceHubService>();
 
                 ServiceBroker = new InProcServiceBroker(this);
@@ -204,9 +236,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p, o) => new RemoteSymbolSearchUpdateEngine(s, p));
-                RegisterService(WellKnownServiceHubService.RemoteDesignerAttributeService, (s, p, o) => new RemoteDesignerAttributeService(s, p));
+                RegisterBrokeredService(WellKnownServiceHubService.RemoteDesignerAttributeService, new RemoteDesignerAttributeService.Factory());
                 RegisterService(WellKnownServiceHubService.RemoteProjectTelemetryService, (s, p, o) => new RemoteProjectTelemetryService(s, p));
-                RegisterService(WellKnownServiceHubService.RemoteTodoCommentsService, (s, p, o) => new RemoteTodoCommentsService(s, p, ServiceBroker));
+                RegisterBrokeredService(WellKnownServiceHubService.RemoteTodoCommentsService, new RemoteTodoCommentsService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
@@ -215,21 +247,26 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: true), name.WellKnownService);
-            }
-
-            public object CreateServiceInstance(ServiceRpcDescriptor descriptor, ServiceActivationOptions options)
-            {
-                var factory = _factoryMap[_serviceNameMap[descriptor.Moniker.Name]];
-                var streams = FullDuplexStream.CreateStreams();
-                return factory(streams.Item1, _serviceProvider, options);
+                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)
             {
                 var factory = _factoryMap[serviceName];
-                var streams = FullDuplexStream.CreateStreams();
+                var streams = FullDuplexStream.CreatePair();
                 return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, _serviceProvider, default), streams.Item2));
+            }
+
+            public void RegisterBrokeredService(RemoteServiceName service, ServiceBase.FactoryBase serviceFactory)
+            {
+                var moniker = new ServiceMoniker(service.ToString(isRemoteHost64Bit: IntPtr.Size == 8));
+                _brokeredFactoryMap.Add(moniker, serviceFactory);
+            }
+
+            public object CreateBrokeredService(ServiceMoniker moniker, ServiceActivationOptions options)
+            {
+                var factory = _brokeredFactoryMap[moniker];
+                return factory.CreateService(_serviceProvider, ServiceBroker, options);
             }
 
             private sealed class WrappedStream : Stream

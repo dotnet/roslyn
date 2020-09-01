@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -15,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal sealed class RemoteDesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteEndPoint _endPoint;
+        private readonly IDesignerAttributeListener _callback;
 
-        public RemoteDesignerAttributeIncrementalAnalyzerProvider(RemoteEndPoint endPoint)
+        public RemoteDesignerAttributeIncrementalAnalyzerProvider(IDesignerAttributeListener callback)
         {
-            _endPoint = endPoint;
+            _callback = callback;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteDesignerAttributeIncrementalAnalyzer(workspace, _endPoint);
+            => new RemoteDesignerAttributeIncrementalAnalyzer(workspace, _callback);
     }
 }

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -17,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteEndPoint _endPoint;
+        private readonly IProjectTelemetryListener _callback;
 
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteEndPoint endPoint)
-            => _endPoint = endPoint;
+        public RemoteProjectTelemetryIncrementalAnalyzer(IProjectTelemetryListener callback)
+            => _callback = callback;
 
         /// <summary>
         /// Collects data from <paramref name="project"/> and reports it to the telemetry service.
@@ -68,10 +69,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 _projectToData[projectId] = info;
             }
 
-            await _endPoint.InvokeAsync(
-                nameof(IProjectTelemetryListener.ReportProjectTelemetryDataAsync),
-                new object[] { info },
-                cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await _callback.ReportProjectTelemetryDataAsync(info, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ConnectionLostException)
+            {
+                // The client might have terminated without signalling the cancellation token.
+                // Ignore this failure to avoid reporting Watson from the solution crawler.
+                // Same effect as if cancellation had been requested.
+            }
         }
 
         public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)

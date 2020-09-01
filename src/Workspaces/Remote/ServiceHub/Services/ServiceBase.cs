@@ -12,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.ServiceHub.Framework.Services;
+using Nerdbank.Streams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -31,6 +33,36 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal abstract class ServiceBase : IDisposable
     {
+        internal abstract class FactoryBase : IServiceHubServiceFactory
+        {
+            internal abstract object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ServiceActivationOptions serviceActivationOptions);
+            internal abstract WellKnownServiceHubService ServiceId { get; }
+
+            public Task<object> CreateAsync(
+               Stream stream,
+               IServiceProvider hostProvidedServices,
+               ServiceActivationOptions serviceActivationOptions,
+               IServiceBroker serviceBroker,
+               AuthorizationServiceClient? authorizationServiceClient)
+            {
+                // Dispose the AuthorizationServiceClient since we won't be using it
+                authorizationServiceClient?.Dispose();
+
+                var descriptor = ServiceId.GetServiceDescriptor(isRemoteHost64Bit: IntPtr.Size == 8);
+                var connection = descriptor.ConstructRpcConnection(stream.UsePipe());
+
+                if (descriptor.ClientInterface is not null)
+                {
+                    serviceActivationOptions.ClientRpcTarget ??= connection.ConstructRpcClient(descriptor.ClientInterface);
+                }
+
+                var service = CreateService(hostProvidedServices, serviceBroker, serviceActivationOptions);
+
+                connection.AddLocalRpcTarget(service);
+                return Task.FromResult(service);
+            }
+        }
+
         private static int s_instanceId;
 
         protected readonly RemoteEndPoint EndPoint;
@@ -42,9 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // TODO: move to WM?
         protected readonly SolutionAssetSource? SolutionAssetSource;
 
-#pragma warning disable ISB001 // Dispose of proxies (TODO)
         protected readonly ServiceBrokerClient? ServiceBrokerClient;
-#pragma warning restore
 
         // test data are only available when running tests:
         internal readonly RemoteHostTestData? TestData;
@@ -92,15 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
-            if (EndPoint.IsDisposed)
-            {
-                // guard us from double disposing. this can happen in unit test
-                // due to how we create test mock service hub stream that tied to
-                // remote host service
-                return;
-            }
-
-            EndPoint.Dispose();
+            EndPoint?.Dispose();
             ServiceBrokerClient?.Dispose();
         }
 

@@ -6,6 +6,7 @@
 
 using System;
 using Microsoft.ServiceHub.Framework;
+using Nerdbank.Streams;
 using Newtonsoft.Json;
 using StreamJsonRpc;
 
@@ -13,8 +14,14 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
+        // Enables remote APIs to pass Stream as parameter.
+        private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
+        {
+            ProtocolMajorVersion = 3
+        }.GetFrozenCopy();
+
         private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, Formatters.UTF8, MessageDelimiters.HttpLikeHeaders)
+            : base(serviceMoniker, clientInterface, Formatters.UTF8, MessageDelimiters.HttpLikeHeaders, s_multiplexingStreamOptions)
         {
         }
 
@@ -39,9 +46,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static JsonMessageFormatter ConfigureFormatter(JsonMessageFormatter formatter)
         {
-            // disable interpreting of strings as DateTime during deserialization:
-            formatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
-
             formatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             return formatter;
         }

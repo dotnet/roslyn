@@ -10,16 +10,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class RemoteProjectTelemetryService : ServiceBase, IRemoteProjectTelemetryService
     {
-        public RemoteProjectTelemetryService(
-            Stream stream, IServiceProvider serviceProvider)
-            : base(serviceProvider, stream)
+        internal sealed class Factory : FactoryBase
         {
-            StartService();
+            internal override WellKnownServiceHubService ServiceId
+                => WellKnownServiceHubService.RemoteProjectTelemetryService;
+
+            internal override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ServiceActivationOptions serviceActivationOptions)
+                => new RemoteProjectTelemetryService(serviceProvider, serviceBroker, (IProjectTelemetryListener)serviceActivationOptions.ClientRpcTarget!);
+        }
+
+        private readonly IProjectTelemetryListener _callback;
+
+        public RemoteProjectTelemetryService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, IProjectTelemetryListener callback)
+            : base(serviceProvider, serviceBroker)
+        {
+            _callback = callback;
         }
 
         public Task ComputeProjectTelemetryAsync(CancellationToken cancellation)
@@ -29,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = GetWorkspace();
                 var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteProjectTelemetryIncrementalAnalyzerProvider(endpoint);
+                var analyzerProvider = new RemoteProjectTelemetryIncrementalAnalyzerProvider(_callback);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,

@@ -5,9 +5,11 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -16,28 +18,40 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteEndPoint _endPoint;
+        private readonly IDesignerAttributeListener _callback;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
+        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, IDesignerAttributeListener callback)
             : base(workspace)
         {
-            _endPoint = endPoint;
+            _callback = callback;
         }
 
-        protected override Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        protected override async Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            return _endPoint.InvokeAsync(
-                nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
-                new object[] { projectId },
-                cancellationToken);
+            try
+            {
+                await _callback.OnProjectRemovedAsync(projectId, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ConnectionLostException)
+            {
+                // The client might have terminated without signalling the cancellation token.
+                // Ignore this failure to avoid reporting Watson from the solution crawler.
+                // Same effect as if cancellation had been requested.
+            }
         }
 
-        protected override Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+        protected override async Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            return _endPoint.InvokeAsync(
-                nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
-                new object[] { data },
-                cancellationToken);
+            try
+            {
+                await _callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+            }
+            catch (ConnectionLostException)
+            {
+                // The client might have terminated without signalling the cancellation token.
+                // Ignore this failure to avoid reporting Watson from the solution crawler.
+                // Same effect as if cancellation had been requested.
+            }
         }
     }
 }

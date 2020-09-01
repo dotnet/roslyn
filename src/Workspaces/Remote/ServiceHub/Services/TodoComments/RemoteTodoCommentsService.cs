@@ -11,37 +11,26 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.ServiceHub.Framework.Services;
-using Nerdbank.Streams;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class RemoteTodoCommentsService : ServiceBase, IRemoteTodoCommentsService
     {
-        internal sealed class Factory : IServiceHubServiceFactory
+        internal sealed class Factory : FactoryBase
         {
-            public Task<object> CreateAsync(
-                Stream stream,
-                IServiceProvider hostProvidedServices,
-                ServiceActivationOptions serviceActivationOptions,
-                IServiceBroker serviceBroker,
-                AuthorizationServiceClient? authorizationServiceClient)
-            {
-                // Dispose the AuthorizationServiceClient since we won't be using it
-                authorizationServiceClient?.Dispose();
+            internal override WellKnownServiceHubService ServiceId
+                => WellKnownServiceHubService.RemoteTodoCommentsService;
 
-                return Task.FromResult<object>(new RemoteTodoCommentsService(stream, hostProvidedServices, serviceBroker));
-            }
+            internal override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ServiceActivationOptions serviceActivationOptions)
+                => new RemoteTodoCommentsService(serviceProvider, serviceBroker, (ITodoCommentsListener)serviceActivationOptions.ClientRpcTarget!);
         }
 
         private readonly ITodoCommentsListener _callback;
 
-        public RemoteTodoCommentsService(Stream stream, IServiceProvider serviceProvider, IServiceBroker serviceBroker)
+        public RemoteTodoCommentsService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ITodoCommentsListener callback)
             : base(serviceProvider, serviceBroker)
         {
-            var descriptor = (IntPtr.Size == 4) ? ServiceDescriptors.RemoteTodoCommentsService32 : ServiceDescriptors.RemoteTodoCommentsService64;
-            _callback = descriptor.ConstructRpc<ITodoCommentsListener>(rpcTarget: this, stream.UsePipe());
+            _callback = callback;
         }
 
         public Task ComputeTodoCommentsAsync(CancellationToken cancellation)

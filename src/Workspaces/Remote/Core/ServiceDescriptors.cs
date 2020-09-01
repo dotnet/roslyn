@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -25,11 +26,23 @@ namespace Microsoft.CodeAnalysis.Remote
             clientInterface: typeof(ITodoCommentsListener),
             isRemoteHost64Bit: false);
 
+        public static ServiceDescriptor RemoteDesignerAttributeService64 { get; } = ServiceDescriptor.CreateRemoteServiceDescriptor(
+            WellKnownServiceHubService.RemoteDesignerAttributeService,
+            clientInterface: typeof(IDesignerAttributeListener),
+            isRemoteHost64Bit: true);
+
+        public static ServiceDescriptor RemoteDesignerAttributeService32 { get; } = ServiceDescriptor.CreateRemoteServiceDescriptor(
+            WellKnownServiceHubService.RemoteDesignerAttributeService,
+            clientInterface: typeof(IDesignerAttributeListener),
+            isRemoteHost64Bit: false);
+
         public static ServiceRpcDescriptor GetServiceDescriptor(this WellKnownServiceHubService service, bool isRemoteHost64Bit)
             => (service, isRemoteHost64Bit) switch
             {
                 (WellKnownServiceHubService.RemoteTodoCommentsService, true) => RemoteTodoCommentsService64,
                 (WellKnownServiceHubService.RemoteTodoCommentsService, false) => RemoteTodoCommentsService32,
+                (WellKnownServiceHubService.RemoteDesignerAttributeService, true) => RemoteDesignerAttributeService64,
+                (WellKnownServiceHubService.RemoteDesignerAttributeService, false) => RemoteDesignerAttributeService32,
                 _ => throw ExceptionUtilities.UnexpectedValue(service)
             };
     }

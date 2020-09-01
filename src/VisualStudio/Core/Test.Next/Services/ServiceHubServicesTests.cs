@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
-using Nerdbank;
+using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var remoteLogger = new TraceSource("inprocRemoteClient");
             var testData = new RemoteHostTestData(new RemoteWorkspaceManager(new SolutionAssetCache()), isInProc: true);
-            var streams = FullDuplexStream.CreateStreams();
+            var streams = FullDuplexStream.CreatePair();
             using var _ = new RemoteHostService(streams.Item1, new InProcRemoteHostClient.ServiceProvider(remoteLogger, testData));
         }
 
@@ -138,16 +138,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync(
+            using var proxy = await client.GetProxyAsync<IRemoteTodoCommentsService>(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
-                callback,
+                callbackTarget: callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = connection.RunRemoteAsync(
-                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
-                cancellationTokenSource.Token);
+            var invokeTask = proxy.Service.ComputeTodoCommentsAsync(cancellationTokenSource.Token);
 
             var data = await callback.Data;
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
@@ -221,16 +217,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync(
+            using var proxy = await client.GetProxyAsync<IRemoteDesignerAttributeService>(
                 WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = connection.RunRemoteAsync(
-                nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
-                cancellationTokenSource.Token);
+            var invokeTask = proxy.Service.StartScanningForDesignerAttributesAsync(cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
             Assert.Equal(1, infos.Length);
