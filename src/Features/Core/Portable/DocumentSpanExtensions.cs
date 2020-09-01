@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class DocumentSpanExtensions
     {
-        public static bool CanNavigateTo(this DocumentSpan documentSpan)
+        public static bool CanNavigateTo(this DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             var workspace = documentSpan.Document.Project.Solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan);
+            return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab)
+        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
             options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
 
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
+            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken, options);
         }
 
         public static async Task<bool> IsHiddenAsync(

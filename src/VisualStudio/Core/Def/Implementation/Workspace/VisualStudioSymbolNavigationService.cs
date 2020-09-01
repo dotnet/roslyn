@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, cancellationToken, options);
                 }
                 else
                 {
@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     workspace: editorWorkspace,
                     documentId: openedDocument.Id,
                     textSpan: result.IdentifierLocation.SourceSpan,
-                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                    cancellationToken: cancellationToken, options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
             }
 
             return true;

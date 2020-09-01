@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return context.Message;
 
             await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions()).ConfigureAwait(false);
+                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions(), cancellationToken).ConfigureAwait(false);
             return null;
         }
     }

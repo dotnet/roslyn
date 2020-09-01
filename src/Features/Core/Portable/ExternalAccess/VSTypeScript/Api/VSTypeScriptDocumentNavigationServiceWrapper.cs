@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 
@@ -20,6 +21,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => new VSTypeScriptDocumentNavigationServiceWrapper(workspace.Services.GetRequiredService<IDocumentNavigationService>());
 
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet? options = null)
-            => _underlyingObject.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options);
+            => _underlyingObject.TryNavigateToPosition(workspace, documentId, position, CancellationToken.None, virtualSpace, options);
     }
 }

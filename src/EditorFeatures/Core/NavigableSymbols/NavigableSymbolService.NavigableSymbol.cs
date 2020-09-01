@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         _document.Project.Solution,
                         _definitions[0].NameDisplayParts.GetFullText(),
                         _threadingContext,
-                        _presenter));
+                        _presenter,
+                        CancellationToken.None));
         }
     }
 }

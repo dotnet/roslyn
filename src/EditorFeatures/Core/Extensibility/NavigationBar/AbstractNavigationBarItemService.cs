@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
             if (navigationPoint.HasValue)
             {
-                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value);
+                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value, cancellationToken);
             }
         }
 
-        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint)
+        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
         {
             var documentToNavigate = solution.GetDocument(navigationPoint.Tree);
             var workspace = solution.Workspace;
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-            if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces))
+            if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, cancellationToken, navigationPoint.VirtualSpaces))
             {
-                navigationService.TryNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces);
+                navigationService.TryNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, cancellationToken, navigationPoint.VirtualSpaces);
             }
             else
             {

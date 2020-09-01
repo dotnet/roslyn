@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -31,17 +32,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
         private class MockDocumentNavigationService : IDocumentNavigationService
         {
-            public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset) => true;
+            public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken) => true;
 
-            public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0) => true;
+            public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken, int virtualSpace = 0) => true;
 
-            public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan) => true;
+            public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken) => true;
 
-            public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null) => true;
+            public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken, OptionSet options = null) => true;
 
-            public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null) => true;
+            public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken, int virtualSpace = 0, OptionSet options = null) => true;
 
-            public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null) => true;
+            public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken, OptionSet options = null) => true;
         }
     }
 }

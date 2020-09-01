@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -155,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
                                            .WithChangedOption(NavigationOptions.ActivateTab, activate);
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
+            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, CancellationToken.None, options))
             {
                 return true;
             }

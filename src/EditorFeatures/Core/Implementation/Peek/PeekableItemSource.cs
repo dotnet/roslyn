@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 foreach (var item in navigableItems)
                 {
                     var document = item.Document;
-                    if (navigationService.CanNavigateToPosition(workspace, document.Id, item.SourceSpan.Start))
+                    if (navigationService.CanNavigateToPosition(workspace, document.Id, item.SourceSpan.Start, cancellationToken))
                     {
                         var text = document.GetTextSynchronously(cancellationToken);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);

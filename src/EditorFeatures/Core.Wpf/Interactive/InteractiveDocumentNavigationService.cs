@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal sealed class InteractiveDocumentNavigationService : IDocumentNavigationService
     {
-        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
+        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
             => true;
 
-        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
+        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
             => false;
 
-        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
+        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken, int virtualSpace = 0)
             => false;
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken, OptionSet options)
         {
             if (!(workspace is InteractiveWorkspace interactiveWorkspace))
             {
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return true;
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken, OptionSet options)
             => throw new NotSupportedException();
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken, int virtualSpace, OptionSet options)
             => throw new NotSupportedException();
     }
 }

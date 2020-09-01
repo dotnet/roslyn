@@ -104,9 +104,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
-            public override bool CanNavigateTo(Workspace workspace) => true;
+            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
                 => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()

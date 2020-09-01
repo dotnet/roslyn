@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                 }
 
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
+                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0, context.OperationContext.UserCancellationToken);
 
                 return true;
             }

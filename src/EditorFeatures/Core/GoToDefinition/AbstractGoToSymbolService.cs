@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var solution = document.Project.Solution;
             var definitions = GoToDefinitionHelpers.GetDefinitions(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken)
-                .WhereAsArray(d => d.CanNavigateTo(solution.Workspace));
+                .WhereAsArray(d => d.CanNavigateTo(solution.Workspace, cancellationToken));
 
             await TaskScheduler.Default;
 
