@@ -153,7 +153,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var mergedDataForUnhandledThrowOperations = OperationVisitor.GetMergedDataForUnhandledThrowOperations();
 
                 var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
-                    OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
+                    OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(),
+                    OperationVisitor.InterproceduralResultsMap, OperationVisitor.StandaloneLocalFunctionAnalysisResultsMap,
+                    OperationVisitor.EscapedLocalFunctions, OperationVisitor.EscapedLambdas,
                     resultBuilder.EntryBlockOutputData!, normalPathsExitBlockData!, exceptionPathsExitBlockData,
                     mergedDataForUnhandledThrowOperations, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
                     OperationVisitor.TaskWrappedValuesMap, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);

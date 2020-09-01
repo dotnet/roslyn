@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 _escapedReturnValueLocationsBuilder = PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
                 _escapedEntityLocationsBuilder = PooledDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
 
-                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData.AssertValidPointsToAnalysisData();
+                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData?.AssertValidPointsToAnalysisData();
             }
 
             internal TrackedEntitiesBuilder TrackedEntitiesBuilder { get; }
@@ -667,7 +667,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
-            private static void HandleEscapingLocations(PointsToAbstractValue pointsToValueOfEscapedInstance, ImmutableHashSet<AbstractLocation>.Builder builder)
+            private void HandleEscapingLocations(
+                PointsToAbstractValue pointsToValueOfEscapedInstance,
+                ImmutableHashSet<AbstractLocation>.Builder builder)
             {
                 foreach (var escapedLocation in pointsToValueOfEscapedInstance.Locations)
                 {
@@ -678,6 +680,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         builder.Add(escapedLocation);
                     }
                 }
+
+                MarkEscapedLambdasAndLocalFunctions(pointsToValueOfEscapedInstance);
             }
 
             private void HandlePossibleEscapingForAssignment(IOperation target, IOperation value, IOperation operation)

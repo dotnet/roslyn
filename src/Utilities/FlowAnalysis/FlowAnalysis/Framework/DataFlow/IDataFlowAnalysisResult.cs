@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -12,5 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKind { get; }
         object? AnalysisDataForUnhandledThrowOperations { get; }
         object? TaskWrappedValuesMap { get; }
+        ImmutableHashSet<IMethodSymbol> EscapedLocalFunctions { get; }
+        ImmutableHashSet<IFlowAnonymousFunctionOperation> EscapedLambdas { get; }
     }
 }

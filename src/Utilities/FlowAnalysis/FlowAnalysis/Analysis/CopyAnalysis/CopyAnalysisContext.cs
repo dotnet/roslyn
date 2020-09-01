@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public override CopyAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedControlFlowGraph,
-            IOperation operation,
             PointsToAnalysisResult? pointsToAnalysisResult,
             CopyAnalysisResult? copyAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,

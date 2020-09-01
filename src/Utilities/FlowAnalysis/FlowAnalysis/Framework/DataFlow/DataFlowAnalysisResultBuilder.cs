@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
             (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKind,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
+            ImmutableDictionary<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>> standaloneLocalFunctionAnalysisResultsMap,
+            ImmutableHashSet<IMethodSymbol> escapedLocalFunctions,
+            ImmutableHashSet<IFlowAnonymousFunctionOperation> escapedLambdas,
             TAnalysisData entryBlockOutputData,
             TAnalysisData exitBlockData,
             TAnalysisData? exceptionPathsExitBlockData,
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutableDictionaryAndFree(), stateMap,
                 predicateValueKindMap, returnValueAndPredicateKind, interproceduralResultsMap,
+                standaloneLocalFunctionAnalysisResultsMap, escapedLocalFunctions, escapedLambdas,
                 entryBlockOutputResult, exitBlockOutputResult, exceptionPathsExitBlockOutputResult,
                 mergedStateForUnhandledThrowOperations, analysisDataForUnhandledThrowOperations,
                 taskWrappedValuesMap, cfg, defaultUnknownValue);
