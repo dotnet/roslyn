@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders<T>(Func<T, Document> documentProvider, T state)
+        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders<T>(Func<T?, Document?> documentProvider, T state)
         {
             if (_languageProviders.IsDefault)
             {
-                var languagesProvider = documentProvider(state).Project.LanguageServices.GetService<IEmbeddedLanguagesProvider>();
+                var languagesProvider = documentProvider(state)?.Project.LanguageServices.GetService<IEmbeddedLanguagesProvider>();
                 ImmutableInterlocked.InterlockedInitialize(ref _languageProviders, languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty);
             }
 
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            foreach (var language in GetLanguageProviders(text => text.GetOpenDocumentInCurrentContextWithChanges(), text))
+            foreach (var language in GetLanguageProviders(text => text?.GetOpenDocumentInCurrentContextWithChanges(), text))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
