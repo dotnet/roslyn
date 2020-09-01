@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             /// <summary>
             /// Determines if any Classification foreground colors have been customized in Fonts and Colors.
             /// </summary>
-            public bool AreClassificationsCustomized(SchemeName schemeName, Guid themeId)
+            public bool AreForegroundColorsCustomized(SchemeName schemeName, Guid themeId)
             {
                 AssertIsForeground();
 
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 // Make no changes when in high contast mode or in unknown theme.
                 if (SystemParameters.HighContrast ||
                     !_colorSchemes.TryGetValue(schemeName, out var colorScheme) ||
-                    !colorScheme.ContainsKey(themeId))
+                    !colorScheme.TryGetValue(themeId, out var colorSchemeTheme))
                 {
                     return false;
                 }
@@ -114,8 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var coreThemeColors = (themeId == KnownColorThemes.Dark)
                     ? DarkThemeForeground
                     : BlueLightThemeForeground;
-
-                var colorSchemeTheme = colorScheme[themeId];
 
                 // Open Text Editor category for readonly access and do not load items if they are defaulted.
                 if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) != VSConstants.S_OK)
@@ -163,10 +161,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 string classification)
             {
                 AssertIsForeground();
+                Contract.ThrowIfNull(_fontAndColorUtilities);
 
                 var foregroundColorRef = colorItem.crForeground;
 
-                if (_fontAndColorUtilities!.GetColorType(foregroundColorRef, out var foregroundColorType) != VSConstants.S_OK)
+                if (_fontAndColorUtilities.GetColorType(foregroundColorRef, out var foregroundColorType) != VSConstants.S_OK)
                 {
                     // Without being able to check color type, we cannot make a determination.
                     return false;
