@@ -97,7 +97,7 @@
     <MicrosoftNETFrameworkReferenceAssembliesnet40Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet40Version>
     <MicrosoftNETFrameworkReferenceAssembliesnet20Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet20Version>
     <jnm2ReferenceAssembliesnet35Version>1.0.1</jnm2ReferenceAssembliesnet35Version>
-    <MicrosoftNETTestSdkVersion>16.0.1</MicrosoftNETTestSdkVersion>
+    <MicrosoftNETTestSdkVersion>16.8.0-preview-20200812-03</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
     <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0-preview.1</MicrosoftNetFrameworkReferenceAssembliesVersion>
