@@ -259,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return RewriteDecimalConversion(syntax, rewrittenOperand, rewrittenOperand.Type, rewrittenType, @checked, conversion.Kind.IsImplicitConversion(), constantValueOpt);
                     }
+
+                    if (rewrittenType.IsNativeIntegerType || rewrittenOperand.Type.IsNativeIntegerType)
+                    {
+                        Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, _diagnostics);
+                    }
                     break;
 
                 case ConversionKind.ImplicitTupleLiteral:

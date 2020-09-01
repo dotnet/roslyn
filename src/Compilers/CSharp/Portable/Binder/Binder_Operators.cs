@@ -166,6 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorSignature bestSignature = best.Signature;
 
+            switch (bestSignature.Kind & BinaryOperatorKind.TypeMask)
+            {
+                case BinaryOperatorKind.NInt:
+                case BinaryOperatorKind.NUInt:
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    break;
+            }
+
             if (CheckOverflowAtRuntime)
             {
                 bestSignature = new BinaryOperatorSignature(
@@ -568,6 +576,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_VoidError, node);
                         hasErrors = true;
                     }
+                    break;
+            }
+
+            switch (resultOperatorKind & BinaryOperatorKind.TypeMask)
+            {
+                case BinaryOperatorKind.NInt:
+                case BinaryOperatorKind.NUInt:
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
                     break;
             }
 
@@ -2106,6 +2122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var signature = best.Signature;
 
+            switch (signature.Kind & UnaryOperatorKind.TypeMask)
+            {
+                case UnaryOperatorKind.NInt:
+                case UnaryOperatorKind.NUInt:
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    break;
+            }
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -2476,6 +2500,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultMethod = signature.Method;
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType.SpecialType, diagnostics);
+
+            switch (resultOperatorKind & UnaryOperatorKind.TypeMask)
+            {
+                case UnaryOperatorKind.NInt:
+                case UnaryOperatorKind.NUInt:
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    break;
+            }
 
             return new BoundUnaryOperator(
                 node,
