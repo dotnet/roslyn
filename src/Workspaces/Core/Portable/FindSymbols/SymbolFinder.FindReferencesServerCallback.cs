@@ -75,7 +75,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ISymbol symbol;
                 lock (_gate)
                 {
-                    symbol = _definitionMap[definition];
+                    // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.
+                    // Just ignore this reference.  Note: while this is a degraded experience:
+                    //
+                    // 1. TryRehydrateAsync logs an NFE so we can track down while we're failing to dountrip the
+                    //    definition so we can track down that issue.
+                    // 2. NFE'ing and failing to show a result, is much better than NFE'ing and then crashing
+                    //    immediately afterwards.
+                    if (!_definitionMap.TryGetValue(definition, out symbol))
+                        return;
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
