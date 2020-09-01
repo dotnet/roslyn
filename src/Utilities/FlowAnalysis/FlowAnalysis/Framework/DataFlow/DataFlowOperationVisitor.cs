@@ -2472,29 +2472,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        private protected void MarkEscapedLambdasAndLocalFunctions(PointsToAbstractValue pointsToAbstractValue)
-        {
-            Debug.Assert(IsPointsToAnalysis);
-
-            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
-            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
-            if (ResolveLambdaOrDelegateOrLocalFunctionTargets(pointsToAbstractValue, methodTargetsOptBuilder, lambdaTargets))
-            {
-                foreach (var (targetMethod, _) in methodTargetsOptBuilder)
-                {
-                    if (targetMethod.MethodKind == MethodKind.LocalFunction)
-                    {
-                        _escapedLocalFunctions.Add(targetMethod);
-                    }
-                }
-
-                foreach (var flowAnonymousFunctionOperation in lambdaTargets)
-                {
-                    _escapedLambdas.Add(flowAnonymousFunctionOperation);
-                }
-            }
-        }
-
         private ImmutableDictionary<ISymbol, PointsToAbstractValue> GetCapturedVariablesMap(
             ControlFlowGraph cfg,
             IMethodSymbol invokedMethod,
@@ -2570,7 +2547,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
             if (analysisResult != null)
             {
-                // Save the interprocedural result for the invocation/creation operation.
+                // Save the interprocedural result for the local function.
                 // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
                 _standaloneLocalFunctionAnalysisResultsBuilder[localFunction] = analysisResult;
             }
@@ -3159,17 +3136,40 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 invokedAsDelegate: false, originalOperation: operation, defaultValue: value);
         }
 
-        private bool ResolveLambdaOrDelegateOrLocalFunctionTargets(
-            IOperation operation,
-            PooledHashSet<(IMethodSymbol method, IOperation? instance)> methodTargetsOptBuilder,
-            PooledHashSet<IFlowAnonymousFunctionOperation> lambdaTargets)
-        => ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(operation, invocationTarget: null, methodTargetsOptBuilder, lambdaTargets);
+        private protected void MarkEscapedLambdasAndLocalFunctions(PointsToAbstractValue pointsToAbstractValue)
+        {
+            Debug.Assert(IsPointsToAnalysis);
+
+            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
+            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            if (ResolveLambdaOrDelegateOrLocalFunctionTargets(pointsToAbstractValue, methodTargetsOptBuilder, lambdaTargets))
+            {
+                foreach (var (targetMethod, _) in methodTargetsOptBuilder)
+                {
+                    if (targetMethod.MethodKind == MethodKind.LocalFunction)
+                    {
+                        _escapedLocalFunctions.Add(targetMethod);
+                    }
+                }
+
+                foreach (var flowAnonymousFunctionOperation in lambdaTargets)
+                {
+                    _escapedLambdas.Add(flowAnonymousFunctionOperation);
+                }
+            }
+        }
 
         private bool ResolveLambdaOrDelegateOrLocalFunctionTargets(
             PointsToAbstractValue invocationTarget,
             PooledHashSet<(IMethodSymbol method, IOperation? instance)> methodTargetsOptBuilder,
             PooledHashSet<IFlowAnonymousFunctionOperation> lambdaTargets)
         => ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(operation: null, invocationTarget, methodTargetsOptBuilder, lambdaTargets);
+
+        private bool ResolveLambdaOrDelegateOrLocalFunctionTargets(
+            IOperation operation,
+            PooledHashSet<(IMethodSymbol method, IOperation? instance)> methodTargetsOptBuilder,
+            PooledHashSet<IFlowAnonymousFunctionOperation> lambdaTargets)
+        => ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(operation, invocationTarget: null, methodTargetsOptBuilder, lambdaTargets);
 
         private bool ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(
             IOperation? operation,

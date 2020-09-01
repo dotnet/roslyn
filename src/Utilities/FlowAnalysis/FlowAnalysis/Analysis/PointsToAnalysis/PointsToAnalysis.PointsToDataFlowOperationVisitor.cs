@@ -667,9 +667,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
-            private void HandleEscapingLocations(
-                PointsToAbstractValue pointsToValueOfEscapedInstance,
-                ImmutableHashSet<AbstractLocation>.Builder builder)
+            private void HandleEscapingLocations(PointsToAbstractValue pointsToValueOfEscapedInstance, ImmutableHashSet<AbstractLocation>.Builder builder)
             {
                 foreach (var escapedLocation in pointsToValueOfEscapedInstance.Locations)
                 {
