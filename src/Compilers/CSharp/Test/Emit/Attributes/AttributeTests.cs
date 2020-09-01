@@ -9110,6 +9110,36 @@ public class C2
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
+        [Fact]
+        [WorkItem(47308, "https://github.com/dotnet/roslyn/issues/47308")]
+        public void ObsoleteAttribute_Delegate()
+        {
+            string source = @"
+using System;
+public class C
+{
+    [Obsolete]
+    public void M()
+    {
+    }
+    
+    void M2()
+    {
+        Action a = M;
+        a = new Action(M);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,20): warning CS0612: 'C.M()' is obsolete
+                //         Action a = M;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.M()").WithArguments("C.M()").WithLocation(12, 20),
+                // (13,24): warning CS0612: 'C.M()' is obsolete
+                //         a = new Action(M);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.M()").WithArguments("C.M()").WithLocation(13, 24)
+            );
+        }
+
         #endregion
     }
 }
