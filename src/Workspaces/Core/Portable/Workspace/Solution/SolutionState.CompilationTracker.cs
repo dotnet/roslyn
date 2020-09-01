@@ -120,9 +120,14 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.NetModule ||
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
+
                 var unrootedSymbolSet = state.UnrootedSymbolSet;
                 if (unrootedSymbolSet == null)
+                {
+                    // this was not a tracker that hands out symbols (for example, it's a 'declaration table only'
+                    // tracker).  So we have nothing to check this symbol against.
                     return false;
+                }
 
                 if (primary)
                 {
