@@ -100,14 +100,39 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol)
+            /// <summary>
+            /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
+            /// given <paramref name="symbol"/>.  The symbol must be a <see cref="IAssemblySymbol"/>, <see
+            /// cref="IModuleSymbol"/> or <see cref="IDynamicTypeSymbol"/>.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="primary"/> is true, then <see cref="Compilation.References"/> will not be considered
+            /// when answering this question.  In other words, if <paramref name="symbol"/>  is an <see
+            /// cref="IAssemblySymbol"/> and <paramref name="primary"/> is <see langword="true"/> then this will only
+            /// return true if the symbol is <see cref="Compilation.Assembly"/>.  If <paramref name="primary"/> is
+            /// false, then it can return true if <paramref name="symbol"/> is <see cref="Compilation.Assembly"/> or any
+            /// of the symbols returned by <see cref="Compilation.GetAssemblyOrModuleSymbol(MetadataReference)"/> for
+            /// any of the references of the <see cref="Compilation.References"/>.
+            /// </remarks>
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
                              symbol.Kind == SymbolKind.NetModule ||
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
                 var unrootedSymbolSet = state.UnrootedSymbolSet;
-                return unrootedSymbolSet?.Contains(symbol) ?? false;
+                if (unrootedSymbolSet == null)
+                    return false;
+
+                if (primary)
+                {
+                    return symbol.Equals(unrootedSymbolSet.Value.PrimaryAssemblySymbol.GetTarget()) ||
+                           symbol.Equals(unrootedSymbolSet.Value.PrimaryDynamicSymbol.GetTarget());
+                }
+                else
+                {
+                    return unrootedSymbolSet.Value.SecondaryReferencedSymbols.Contains(symbol);
+                }
             }
 
             /// <summary>

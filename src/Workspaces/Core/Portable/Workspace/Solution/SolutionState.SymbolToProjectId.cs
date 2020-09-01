@@ -53,9 +53,24 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!unrootedSymbolToProjectId.TryGetValue(symbol, out var projectId))
                 {
+                    // look through all the projects, and see if this symbol came from the primary assembly for that
+                    // project.  (i.e. was a source symbol from that project, or was retargetted into that project).  If
+                    // so, that's the originating project.
                     foreach (var (id, tracker) in _projectIdToTrackerMap)
                     {
-                        if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol))
+                        if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary: true))
+                        {
+                            projectId = id;
+                            break;
+                        }
+                    }
+
+                    // now, look through all the secondary assemblies (i.e. references) for that project.  This is the
+                    // case for metadata symbols.  A metadata symbol might be found in many projects, so we just return
+                    // the first result as that's just as good for finding the metadata symbol as any other project.
+                    foreach (var (id, tracker) in _projectIdToTrackerMap)
+                    {
+                        if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary: false))
                         {
                             projectId = id;
                             break;
