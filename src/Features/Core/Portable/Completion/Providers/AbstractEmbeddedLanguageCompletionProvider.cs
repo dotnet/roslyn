@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders<T>(Func<T?, Document?> documentProvider, T state)
+        protected ImmutableArray<IEmbeddedLanguage> GetLanguageProviders<T>(Func<T, Document?> documentProvider, T state)
         {
             if (_languageProviders.IsDefault)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            foreach (var language in GetLanguageProviders(text => text?.GetOpenDocumentInCurrentContextWithChanges(), text))
+            foreach (var language in GetLanguageProviders(text => text.GetOpenDocumentInCurrentContextWithChanges(), text))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            foreach (var language in GetLanguageProviders(context => context?.Document, context))
+            foreach (var language in GetLanguageProviders(context => context.Document, context))
             {
                 var completionProvider = (language as IEmbeddedLanguageFeatures)?.CompletionProvider;
                 if (completionProvider != null)
