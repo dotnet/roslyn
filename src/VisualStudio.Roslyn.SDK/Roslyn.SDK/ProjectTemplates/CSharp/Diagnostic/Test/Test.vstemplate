@@ -21,19 +21,19 @@
       <ProjectItem ReplaceParameters="true" TargetFileName="$saferootidentifiername$UnitTests.cs">UnitTests.cs</ProjectItem>
 
       <!-- File names are shortened to avoid PathTooLongException on project creation... -->
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpAnalyzerVerifier`1.cs">Verifiers\CSAnalyzerVerifier`1.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpAnalyzerVerifier`1+Test.cs">Verifiers\CSAnalyzerVerifier`1+Test.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeFixVerifier`2.cs">Verifiers\CSCodeFixVerifier`2.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeFixVerifier`2+Test.cs">Verifiers\CSCodeFixVerifier`2+Test.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeRefactoringVerifier`1.cs">Verifiers\CSRefactoringVerifier`1.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeRefactoringVerifier`1+Test.cs">Verifiers\CSRefactoringVerifier`1+Test.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpVerifierHelper.cs">Verifiers\CSVerifierHelper.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicAnalyzerVerifier`1.cs">Verifiers\VBAnalyzerVerifier`1.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicAnalyzerVerifier`1+Test.cs">Verifiers\VBAnalyzerVerifier`1+Test.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeFixVerifier`2.cs">Verifiers\VBCodeFixVerifier`2.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeFixVerifier`2+Test.cs">Verifiers\VBCodeFixVerifier`2+Test.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeRefactoringVerifier`1.cs">Verifiers\VBRefactoringVerifier`1.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeRefactoringVerifier`1+Test.cs">Verifiers\VBRefactoringVerifier`1+Test.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpAnalyzerVerifier`1.cs">Verifiers\CSAnalyzer`1.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpAnalyzerVerifier`1+Test.cs">Verifiers\CSAnalyzer`1+Test.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeFixVerifier`2.cs">Verifiers\CSCodeFix`2.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeFixVerifier`2+Test.cs">Verifiers\CSCodeFix`2+Test.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeRefactoringVerifier`1.cs">Verifiers\CSRefactoring`1.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpCodeRefactoringVerifier`1+Test.cs">Verifiers\CSRefactoring`1+Test.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CSharpVerifierHelper.cs">Verifiers\CSHelper.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicAnalyzerVerifier`1.cs">Verifiers\VBAnalyzer`1.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicAnalyzerVerifier`1+Test.cs">Verifiers\VBAnalyzer`1+Test.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeFixVerifier`2.cs">Verifiers\VBCodeFix`2.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeFixVerifier`2+Test.cs">Verifiers\VBCodeFix`2+Test.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeRefactoringVerifier`1.cs">Verifiers\VBRefactoring`1.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="VisualBasicCodeRefactoringVerifier`1+Test.cs">Verifiers\VBRefactoring`1+Test.cs</ProjectItem>
     </Project>
   </TemplateContent>
   <WizardExtension>
