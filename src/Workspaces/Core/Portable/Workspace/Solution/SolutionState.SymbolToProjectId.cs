@@ -98,7 +98,9 @@ namespace Microsoft.CodeAnalysis
                 // projects, but which have the same syntax-tree (which is only in one project).  We need to actually
                 // check it's assembly symbol so that we get the actual project it is from (the original project, or the
                 // retargetted project).
-                var syntaxTree = symbol.DeclaringSyntaxReferences[0].SyntaxTree;
+                var syntaxTree = symbol.Locations[0].SourceTree;
+                Contract.ThrowIfNull(syntaxTree);
+
                 var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
                 if (documentId == null)
                 {
