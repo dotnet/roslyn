@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Complete RPC right away so the client can start reading from the stream.
             _ = Task.Run(() =>
             {
-                using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
+                using var writer = new ObjectWriter(outputStream, leaveOpen: true, cancellationToken);
 
                 var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
                 var serializer = _services.GetRequiredService<ISerializerService>();

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
+using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Remote
             using var provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor).ConfigureAwait(false);
             Contract.ThrowIfNull(provider.Proxy);
 
-            using var stream = new MemoryStream();
-            await provider.Proxy.GetAssetsAsync(stream, scopeId, checksums.ToArray(), cancellationToken).ConfigureAwait(false);
-            return RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken);
+            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+            await provider.Proxy.GetAssetsAsync(serverStream, scopeId, checksums.ToArray(), cancellationToken).ConfigureAwait(false);
+            return RemoteHostAssetSerialization.ReadData(clientStream, scopeId, checksums, serializerService, cancellationToken);
         }
 
         public async Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)

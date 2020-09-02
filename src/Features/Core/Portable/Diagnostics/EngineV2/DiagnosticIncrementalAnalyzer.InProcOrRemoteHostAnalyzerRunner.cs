@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -196,9 +197,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 solution,
                 async (service, solutionInfo, cancellationToken) =>
                 {
-                    using var stream = new MemoryStream();
-                    await service.CalculateDiagnosticsAsync(solutionInfo, argument, stream, cancellationToken).ConfigureAwait(false);
-                    return await ReadCompilerAnalysisResultAsync(stream, analyzerMap, documentAnalysisScope, project, cancellationToken).ConfigureAwait(false);
+                    var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+                    await service.CalculateDiagnosticsAsync(solutionInfo, argument, serverStream, cancellationToken).ConfigureAwait(false);
+                    return await ReadCompilerAnalysisResultAsync(clientStream, analyzerMap, documentAnalysisScope, project, cancellationToken).ConfigureAwait(false);
                 },
                 callbackTarget: null,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
