@@ -531,10 +531,11 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
+        private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
+            ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
         public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
         {
-            var kinds = ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
-            containingLambdaOrLocalFunctionOperation = operation.GetAncestor(kinds);
+            containingLambdaOrLocalFunctionOperation = operation.GetAncestor(s_LambdaAndLocalFunctionKinds);
             return containingLambdaOrLocalFunctionOperation != null;
         }
 
