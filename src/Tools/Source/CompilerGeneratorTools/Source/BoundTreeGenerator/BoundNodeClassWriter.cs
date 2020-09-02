@@ -308,7 +308,7 @@ namespace BoundTreeGenerator
                             abstr = "MustInherit ";
                         else if (CanBeSealed(node))
                             abstr = "NotInheritable ";
-                        WriteLine("Friend {1}Partial Class {0}", node.Name, abstr);
+                        WriteLine("Partial {1}Friend Class {0}", node.Name, abstr);
                         Indent();
                         WriteLine("Inherits {0}", node.Base);
                         Blank();
