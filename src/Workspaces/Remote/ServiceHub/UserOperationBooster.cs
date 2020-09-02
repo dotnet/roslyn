@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal struct UserOperationBooster : IDisposable
     {
-        private static bool settingPrioritySupported = true;
+        private static bool s_settingPrioritySupported = true;
         private static int s_count = 0;
         private static readonly object s_gate = new object();
 
@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (s_count == 1)
                 {
                     // try boosting to normal priority
-                    if (settingPrioritySupported && !Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.Normal))
+                    if (!s_settingPrioritySupported || !Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.Normal))
                     {
                         // The runtime does not support changing process priority, so just return a NOP booster.
-                        settingPrioritySupported = false;
+                        s_settingPrioritySupported = false;
 
                         return new UserOperationBooster();
                     }
