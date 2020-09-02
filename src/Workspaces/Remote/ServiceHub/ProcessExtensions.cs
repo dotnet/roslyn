@@ -13,8 +13,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal static class ProcessExtensions
     {
+        private static bool s_settingPrioritySupported = true;
+
         public static bool TrySetPriorityClass(this Process process, ProcessPriorityClass priorityClass)
         {
+            if (!s_settingPrioritySupported)
+            {
+                return false;
+            }
+
             try
             {
                 process.PriorityClass = priorityClass;
@@ -23,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception e) when (e is PlatformNotSupportedException || e is Win32Exception)
             {
                 // the runtime does not support changing process priority
+                s_settingPrioritySupported = false;
+
                 return false;
             }
         }
