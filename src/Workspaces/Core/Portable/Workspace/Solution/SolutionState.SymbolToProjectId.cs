@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis
                     // references) for that project.  This is the case for metadata symbols.  A metadata symbol might be
                     // found in many projects, so we just return the first result as that's just as good for finding the
                     // metadata symbol as any other project.
-                    var id = TryGetProjectId(symbol, primary: true) ??
-                             TryGetProjectId(symbol, primary: false);
+                    projectId = TryGetProjectId(symbol, primary: true) ??
+                                TryGetProjectId(symbol, primary: false);
 
                     // Have to lock as there's no atomic AddOrUpdate in netstandard2.0 and we could throw if two
                     // threads tried to add the same item.
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var (id, tracker) in _projectIdToTrackerMap)
                 {
-                    if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary: true))
+                    if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary))
                         return id;
                 }
 
