@@ -8,17 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.ServiceHub.Framework.Services;
-using Nerdbank.Streams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -68,7 +63,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
-            EndPoint?.Dispose();
+            if (EndPoint.IsDisposed)
+            {
+                // guard us from double disposing. this can happen in unit test
+                // due to how we create test mock service hub stream that tied to
+                // remote host service
+                return;
+            }
+
+            EndPoint.Dispose();
+
+            Log(TraceEventType.Information, "Service instance disposed");
         }
 
         protected void StartService()

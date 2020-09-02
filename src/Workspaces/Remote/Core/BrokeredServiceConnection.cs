@@ -7,18 +7,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class BrokeredServiceConnection<T> : RemoteServiceConnection<T>
-        where T : class
+    internal sealed class BrokeredServiceConnection<TService> : RemoteServiceConnection<TService>
+        where TService : class
     {
         private readonly IErrorReportingService _errorReportingService;
         private readonly SolutionAssetStorage _solutionAssetStorage;
-        private readonly T _service;
+        private readonly TService _service;
 
-        public BrokeredServiceConnection(T service, SolutionAssetStorage solutionAssetStorage, IErrorReportingService errorReportingService)
+        public BrokeredServiceConnection(TService service, SolutionAssetStorage solutionAssetStorage, IErrorReportingService errorReportingService)
         {
             _errorReportingService = errorReportingService;
             _solutionAssetStorage = solutionAssetStorage;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // without solution
 
-        public override async ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(Func<TService, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<TService, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
         {
             try
             {
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // with solution
 
-        public override async ValueTask<bool> TryInvokeAsync(Solution solution, Func<T, PinnedSolutionInfo, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(Solution solution, Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<T, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Solution solution, Func<T, PinnedSolutionInfo, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Solution solution, Func<TService, PinnedSolutionInfo, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
         {
             try
             {

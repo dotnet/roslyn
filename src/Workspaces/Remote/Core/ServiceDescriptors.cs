@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Service descriptors of brokered ServiceHub services.
+    /// Service descriptors of brokered Roslyn ServiceHub services.
     /// </summary>
     internal static class ServiceDescriptors
     {

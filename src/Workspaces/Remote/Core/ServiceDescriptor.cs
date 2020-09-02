@@ -12,6 +12,10 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Describes Roslyn remote brokered service. 
+    /// Adds Roslyn specific JSON converters and RPC settings to the default implementation.
+    /// </summary>
     internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
         // Enables remote APIs to pass Stream as parameter.
