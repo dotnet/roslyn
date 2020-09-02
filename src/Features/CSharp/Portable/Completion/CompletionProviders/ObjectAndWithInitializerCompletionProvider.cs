@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     // Provides symbol completions in object and 'with' initializers:
+    // - new() { $$
     // - new C() { $$
     // - expr with { $$
     [ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp)]
@@ -136,6 +137,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
             {
                 var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
+                if (type is ITypeParameterSymbol typeParameterSymbol)
+                {
+                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
+                }
+
+                return Tuple.Create(type, token.GetLocation());
+            }
+
+            // new() { bar = $$
+            if (token.Parent.Parent.IsKind(SyntaxKind.ImplicitObjectCreationExpression, out ImplicitObjectCreationExpressionSyntax implicitObjectCreation))
+            {
+                var type = semanticModel.GetTypeInfo(implicitObjectCreation, cancellationToken).ConvertedType;
                 if (type is ITypeParameterSymbol typeParameterSymbol)
                 {
                     return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
