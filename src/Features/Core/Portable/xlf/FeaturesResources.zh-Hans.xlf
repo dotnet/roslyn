@@ -345,6 +345,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">示例:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="new">Extract base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">提取接口…</target>
@@ -527,7 +532,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">将类设置为 "abstract"</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -590,6 +595,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">修改包含 switch 表达式的“{0}”将阻止调试会话继续执行。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
+        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
+        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">将内容移动到命名空间...</target>
@@ -611,8 +631,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">修改源文件 {0} 将防止调试会话因内部错误 {1} 而继续进行。</target>
+        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="needs-review-translation">修改源文件 {0} 将防止调试会话因内部错误 {1} 而继续进行。</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -973,7 +993,7 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">表达式</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1243,7 +1263,7 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">名称</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1343,7 +1363,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">否</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1726,7 +1746,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">是</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1792,7 +1812,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">删除 "async" 修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2057,12 +2077,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">“{0}”在此处不为 null。</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">“{0}”可能在此处为 null。</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

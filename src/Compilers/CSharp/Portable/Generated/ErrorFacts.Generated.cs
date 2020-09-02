@@ -25,7 +25,7 @@
                 case ErrorCode.WRN_BadRefCompareLeft:
                 case ErrorCode.WRN_BadRefCompareRight:
                 case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
+                case ErrorCode.WRN_PatternNotPublicOrNotInstance:
                 case ErrorCode.WRN_PatternBadSignature:
                 case ErrorCode.WRN_SequentialOnPartialClass:
                 case ErrorCode.WRN_MainCantBeGeneric:
@@ -249,6 +249,18 @@
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_UnassignedThisAutoProperty:
+                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_ParamUnassigned:
+                case ErrorCode.WRN_UseDefViolationProperty:
+                case ErrorCode.WRN_UseDefViolationField:
+                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationOut:
+                case ErrorCode.WRN_UseDefViolation:
+                case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                case ErrorCode.WRN_ParameterIsStaticClass:
+                case ErrorCode.WRN_ReturnTypeIsStaticClass:
                     return true;
                 default:
                     return false;

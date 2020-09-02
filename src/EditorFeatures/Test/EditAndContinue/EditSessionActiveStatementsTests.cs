@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             public readonly EditSession EditSession;
 
             private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
-                typeof(DummyLanguageService),
-                typeof(TestActiveStatementSpanTrackerFactory));
+                typeof(DummyLanguageService));
 
             public Validator(
                 string[] markedSource,
@@ -115,8 +114,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
-
-                Assert.IsType<TestActiveStatementSpanTracker>(Workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
 
                 var telemetry = new EditSessionTelemetry();
                 EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);

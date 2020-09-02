@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias hub;
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +15,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.Remote
+namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     public class JsonConverterTests
     {
@@ -163,7 +159,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)
         {
             var serializer = new JsonSerializer();
-            serializer.Converters.Add(hub::Microsoft.CodeAnalysis.Remote.AggregateJsonConverter.Instance);
+            serializer.Converters.Add(AggregateJsonConverter.Instance);
 
             using (var writer = new StringWriter())
             {

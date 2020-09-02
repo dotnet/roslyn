@@ -35,8 +35,10 @@
       Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+      We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
+      allow nullable warnings regardless of target framework.
     -->
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
 
     <!--
       Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
@@ -170,6 +172,23 @@
     -->
     <ItemGroup>
       <Analyzer Remove="@(Analyzer)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Work around missing code fix references causing VBCSCompiler.exe to reject compilations.
+    https://github.com/dotnet/roslyn/issues/46684
+  -->
+  <Target Name="ExcludeCodeFixes"
+          BeforeTargets="CoreCompile"
+          Condition="'$(UseRoslynAnalyzers)' != 'false' AND '$(BuildingProject)' == 'true'">
+    <!--
+      Disable analyzers that only provide code fixes.
+    -->
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)"
+                Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
+                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
     </ItemGroup>
   </Target>
 

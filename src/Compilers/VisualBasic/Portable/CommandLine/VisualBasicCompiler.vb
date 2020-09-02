@@ -54,7 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ParseFile(consoleOutput As TextWriter,
                                    parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
-                                   diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                                    ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile,
                                    errorLogger As ErrorLogger) As SyntaxTree
@@ -72,8 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 content,
                 If(file.IsScript, scriptParseOptions, parseOptions),
-                file.Path,
-                diagnosticOptions)
+                file.Path)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -87,7 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
                                                     touchedFilesLogger As TouchedFileLogger,
                                                     errorLogger As ErrorLogger,
-                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
+                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult),
+                                                    globalAnalyzerConfigOptions As AnalyzerConfigOptionsResult) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -109,9 +108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
-                                If(analyzerConfigOptions.IsDefault,
-                                    Nothing,
-                                    analyzerConfigOptions(i).TreeOptions),
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
@@ -126,9 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         consoleOutput,
                         parseOptions,
                         scriptParseOptions,
-                        If(analyzerConfigOptions.IsDefault,
-                            Nothing,
-                            analyzerConfigOptions(i).TreeOptions),
                         hadErrors,
                         sourceFiles(i),
                         errorLogger)
@@ -166,6 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
             Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
+            Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalAnalyzerConfigOptions)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -176,7 +170,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
-                     WithSourceReferenceResolver(sourceFileResolver))
+                     WithSourceReferenceResolver(sourceFileResolver).
+                     WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
@@ -255,10 +250,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
+            skipAnalyzers As Boolean,
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
             ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, analyzers, generators)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

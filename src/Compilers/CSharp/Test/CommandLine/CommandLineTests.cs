@@ -239,20 +239,21 @@ my_option2 = my_val2");
 
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
-            AssertEx.SetEqual(new[] {
-                KeyValuePairUtil.Create("cs0169", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress)
-            }, tree.DiagnosticOptions);
+            var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", CancellationToken.None, out var severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", CancellationToken.None, out severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
 
-            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-            var options = provider.GetOptions(tree);
+            var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = analyzerOptions.GetOptions(tree);
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option", out string val));
             Assert.Equal("my_val", val);
             Assert.False(options.TryGetValue("my_option2", out _));
             Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
 
-            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            options = analyzerOptions.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option2", out val));
             Assert.Equal("my_val2", val);
@@ -1533,6 +1534,8 @@ class C
         [InlineData("7.3", LanguageVersion.CSharp7_3)]
         [InlineData("8", LanguageVersion.CSharp8)]
         [InlineData("8.0", LanguageVersion.CSharp8)]
+        [InlineData("9", LanguageVersion.CSharp9)]
+        [InlineData("9.0", LanguageVersion.CSharp9)]
         [InlineData("preview", LanguageVersion.Preview)]
         public void LangVersion_CanParseCorrectVersions(string value, LanguageVersion expectedVersion)
         {
@@ -1654,7 +1657,6 @@ class C
         {
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
-            // - update the IDE drop-down for selecting Language Version (in project-systems repo)
             // - update all the tests that call this canary
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
@@ -1708,10 +1710,11 @@ class C
             InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
             InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
-            InlineData(LanguageVersion.Preview, LanguageVersion.CSharp9),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.CSharp9),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.Default),
+            InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
@@ -7209,7 +7212,6 @@ public class C
 a.cs(1,7): error CS1001: Identifier expected
 a.cs(1,7): error CS1514: { expected
 a.cs(1,7): error CS1513: } expected
-a.cs(1,7): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
 a.cs(1,7): error CS8803: Top-level statements must precede namespace and type declarations.
 a.cs(1,7): error CS1525: Invalid expression term '??'
 a.cs(1,9): error CS1525: Invalid expression term '{'
@@ -9126,6 +9128,66 @@ public class C { }
             var output = outWriter.ToString();
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersParse()
+        {
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/SKIPANALYZERS+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersSemantics(bool skipAnalyzers)
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var skipAnalyzersFlag = "/skipanalyzers" + (skipAnalyzers ? "+" : "-");
+            var csc = CreateCSharpCompiler(null, srcDirectory, new[] { skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            if (skipAnalyzers)
+            {
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.DoesNotContain(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
@@ -12228,6 +12290,44 @@ generated_code = auto");
             }
         }
 
+        [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
+        [CombinatorialData, Theory]
+        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        {
+            // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
+            // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
+            //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
+            //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
+            var analyzerShouldBeSkipped = !isEnabledByDefault ||
+                defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info;
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes: analyzerShouldBeSkipped);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+
+            // Verify '/warnaserror-:DiagnosticId' behavior.
+            var args = new[] { "/warnaserror+", $"/warnaserror-:{diagnosticId}", "/nologo", "/t:library", "/preferreduilang:en", src.Path };
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            var expectedExitCode = !analyzerShouldBeSkipped && defaultSeverity == DiagnosticSeverity.Error ? 1 : 0;
+            Assert.Equal(expectedExitCode, exitCode);
+
+            var output = outWriter.ToString();
+            if (analyzerShouldBeSkipped)
+            {
+                Assert.Empty(output);
+            }
+            else
+            {
+                var prefix = defaultSeverity == DiagnosticSeverity.Warning ? "warning" : "error";
+                Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", output);
+            }
+        }
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -12244,6 +12344,55 @@ class C
 
             var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void TestSourceGeneratorsWithAnalyzers(bool includeCurrentAssemblyAsAnalyzerReference, bool skipAnalyzers)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            // 'skipAnalyzers' should have no impact on source generator execution, but should prevent analyzer execution.
+            var skipAnalyzersFlag = "/skipAnalyzers" + (skipAnalyzers ? "+" : "-");
+
+            // Verify analyzers were executed only if both the following conditions were satisfied:
+            //  1. Current assembly was added as an analyzer reference, i.e. "includeCurrentAssemblyAsAnalyzerReference = true" and
+            //  2. We did not explicitly request skipping analyzers, i.e. "skipAnalyzers = false".
+            var expectedAnalyzerExecution = includeCurrentAssemblyAsAnalyzerReference && !skipAnalyzers;
+
+            // 'WarningDiagnosticAnalyzer' generates a warning for each named type.
+            // We expect two warnings for this test: type "C" defined in source and the source generator defined type.
+            // Additionally, we also have an analyzer that generates "warning CS8032: An instance of analyzer cannot be created"
+            var expectedWarningCount = expectedAnalyzerExecution ? 3 : 0;
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference,
+                expectedWarningCount: expectedWarningCount,
+                additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe", skipAnalyzersFlag },
+                generators: new[] { generator });
+
+            // Verify source generator was executed, regardless of the value of 'skipAnalyzers'.
+            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+
+            if (expectedAnalyzerExecution)
+            {
+                Assert.Contains("warning Warning01", output, StringComparison.Ordinal);
+                Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Empty(output);
+            }
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12592,6 +12741,119 @@ key3 = value3");
             Assert.False(options.TryGetValue("key2", out _));
             Assert.True(options.TryGetValue("key3", out val));
             Assert.Equal("value3", val);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = error;
+");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.CS0164.severity = warning;
+");
+            var none = Array.Empty<TempFile>();
+            var globalOnly = new[] { globalConfig };
+            var globalAndSpecific = new[] { globalConfig, analyzerConfig };
+
+            // by default a warning, which can be suppressed via cmdline
+            verify(configs: none, expectedWarnings: 1);
+            verify(configs: none, noWarn: "CS0164", expectedWarnings: 0);
+
+            // the global analyzer config ups the warning to an error, but the cmdline setting overrides it
+            verify(configs: globalOnly, expectedErrors: 1);
+            verify(configs: globalOnly, noWarn: "CS0164", expectedWarnings: 0);
+            verify(configs: globalOnly, noWarn: "164", expectedWarnings: 0); // cmdline can be shortened, but still works
+
+            // the non global config wins and downgrades the error back to warning, and overrides the cmdline too
+            verify(configs: globalAndSpecific, expectedWarnings: 1);
+            verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 1);
+
+
+            void verify(TempFile[] configs, int expectedWarnings = 0, int expectedErrors = 0, string noWarn = "0")
+                => VerifyOutput(dir, src,
+                                expectedErrorCount: expectedErrors,
+                                expectedWarningCount: expectedWarnings,
+                                includeCurrentAssemblyAsAnalyzerReference: false,
+                                analyzers: null,
+                                additionalFlags: configs.SelectAsArray(c => "/analyzerconfig:" + c.Path)
+                                                         .Add("/noWarn:" + noWarn).ToArray());
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSpecificDiagnosticOptionsOverrideGeneralCommandLineOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = none;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSectionsOverrideCommandLine()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+
+[{PathUtilities.NormalizeWithForwardSlash(src.Path)}]
+dotnet_diagnostic.CS0164.severity = error;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:0164", "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigCanSetDiagnosticWithNoLocation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+dotnet_diagnostic.Warning01.severity = error;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
         }
 
         [Theory, CombinatorialData]

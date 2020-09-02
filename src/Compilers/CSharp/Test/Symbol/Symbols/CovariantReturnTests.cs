@@ -402,7 +402,7 @@ namespace System.Runtime.CompilerServices
 
             return CreateCompilation(
                 source,
-                parseOptions: parseOptions,
+                parseOptions: parseOptions ?? TestOptions.Regular9,
                 references: references,
                 targetFramework: TargetFramework.Empty,
                 assemblyName: assemblyName,
@@ -421,7 +421,7 @@ namespace System.Runtime.CompilerServices
 
             return CreateCompilation(
                 source,
-                parseOptions: parseOptions,
+                parseOptions: parseOptions ?? TestOptions.Regular8,
                 references: references,
                 targetFramework: TargetFramework.Empty,
                 assemblyName: assemblyName,
@@ -635,15 +635,15 @@ public class Derived2 : Base
 
             CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns)
                 .VerifyDiagnostics(
-                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M1() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(12, 28),
-                // (13,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("covariant returns", "9.0").WithLocation(12, 28),
+                // (13,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P1 => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("covariant returns").WithLocation(13, 28),
-                // (16,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P1").WithArguments("covariant returns", "9.0").WithLocation(13, 28),
+                // (16,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string this[int index] => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(16, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "this").WithArguments("covariant returns", "9.0").WithLocation(16, 28)
                 );
             var comp = CreateCompilationWithCovariantReturns(source)
                 .VerifyDiagnostics(
@@ -696,9 +696,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
 
@@ -770,9 +770,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override U M<T, U>() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -829,9 +829,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override U M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -891,9 +891,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override T M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(9, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -951,9 +951,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
 
@@ -1020,9 +1020,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override U M => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -1084,9 +1084,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override T M => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(9, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -1146,9 +1146,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string this[int i] => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "this").WithArguments("covariant returns", "9.0").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -1208,9 +1208,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override U this[int i] => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "this").WithArguments("covariant returns", "9.0").WithLocation(8, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -1275,9 +1275,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public override T this[int i] => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(9, 23)
+                    // (9,23): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //     public override T this[int i] => null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "this").WithArguments("covariant returns", "9.0").WithLocation(9, 23)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -1425,9 +1425,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
@@ -1488,9 +1488,9 @@ public class Program
 ";
             var references = new[] { baseMetadata };
             var comp = CreateCompilationWithCovariantReturns(source, references: references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source, references: references).VerifyDiagnostics(
@@ -1552,9 +1552,9 @@ public class Program
 ";
             var references = new[] { baseMetadata };
             var comp = CreateCompilationWithCovariantReturns(source, references: references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string this[int i] => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "this").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
@@ -1614,9 +1614,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -1811,15 +1811,15 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (10,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M1 => null; // A
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(10, 28),
-                // (11,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("covariant returns", "9.0").WithLocation(10, 28),
+                // (11,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M2 => null; // B
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(11, 28),
-                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M2").WithArguments("covariant returns", "9.0").WithLocation(11, 28),
+                // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M3 => null; // C
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M3").WithArguments("covariant returns").WithLocation(12, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M3").WithArguments("covariant returns", "9.0").WithLocation(12, 28),
                 // (17,28): error CS1715: 'Derived2.M2': type must be 'string' to match overridden member 'Derived.M2'
                 //     public override object M2 => null; // 1
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived2.M2", "Derived.M2", "string").WithLocation(17, 28),
@@ -1888,12 +1888,12 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (9,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,33): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IIn<object> M1 => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(9, 33),
-                // (10,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("covariant returns", "9.0").WithLocation(9, 33),
+                // (10,34): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IOut<string> M2 => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(10, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M2").WithArguments("covariant returns", "9.0").WithLocation(10, 34)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -2080,9 +2080,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -2214,9 +2214,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public override string P { get; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28)
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     public override string P { get => string.Empty; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -2279,9 +2279,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P { get => string.Empty; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(8, 28),
                 // (12,53): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
                 //     public override string P { get => string.Empty; set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
@@ -2334,9 +2334,9 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P { get => string.Empty; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(8, 28),
                 // (12,32): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
                 //     public override string P { set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
@@ -2388,12 +2388,12 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,40): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,40): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override System.IComparable P { get => string.Empty; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 40),
-                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(8, 40),
+                // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P { get => string.Empty; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(12, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -2506,12 +2506,12 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (8,49): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,49): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public abstract override System.IComparable M();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 49),
-                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(8, 49),
+                // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(12, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -2856,9 +2856,9 @@ public class Program
 
             var references = new[] { ref0, ref1a };
             var comp = CreateCompilationWithCovariantReturns(s2, references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify1(SourceView(comp, assignments1));
 
@@ -2922,9 +2922,9 @@ public class Derived : Mid
             var assignments = "";
             var references = new[] { ref0, ref1a };
             var comp = CreateCompilationWithCovariantReturns(s2, references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify1(comp);
 
@@ -2989,9 +2989,9 @@ public class Derived : Mid
             var assignments = "";
             var references = new[] { ref0, ref1a };
             var comp = CreateCompilationWithCovariantReturns(s2, references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify1(comp);
 
@@ -3089,12 +3089,12 @@ public class D : C
 ";
             var assignments = "";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (14,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string get_P() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get_P").WithArguments("covariant returns").WithLocation(14, 28),
-                // (19,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "get_P").WithArguments("covariant returns", "9.0").WithLocation(14, 28),
+                // (19,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(19, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(19, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -3131,9 +3131,9 @@ public class C : B
 ";
             var assignments = "";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P").WithArguments("covariant returns", "9.0").WithLocation(12, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -3173,9 +3173,9 @@ public class C : B
 ";
             var assignments = "";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(12, 28)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
@@ -3561,42 +3561,42 @@ public class Program
 }
 ";
             var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
-                // (20,29): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (20,29): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string? M1() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(20, 29),
-                // (21,29): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("covariant returns", "9.0").WithLocation(20, 29),
+                // (21,29): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string? P1 => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("covariant returns").WithLocation(21, 29),
-                // (22,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P1").WithArguments("covariant returns", "9.0").WithLocation(21, 29),
+                // (22,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M2() => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(22, 28),
-                // (23,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M2").WithArguments("covariant returns", "9.0").WithLocation(22, 28),
+                // (23,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string P2 => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("covariant returns").WithLocation(23, 28),
-                // (24,35): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P2").WithArguments("covariant returns", "9.0").WithLocation(23, 28),
+                // (24,35): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IOut<string?> M3() => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M3").WithArguments("covariant returns").WithLocation(24, 35),
-                // (25,35): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M3").WithArguments("covariant returns", "9.0").WithLocation(24, 35),
+                // (25,35): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IOut<string?> P3 => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("covariant returns").WithLocation(25, 35),
-                // (26,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P3").WithArguments("covariant returns", "9.0").WithLocation(25, 35),
+                // (26,34): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IOut<string> M4() => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("covariant returns").WithLocation(26, 34),
-                // (27,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M4").WithArguments("covariant returns", "9.0").WithLocation(26, 34),
+                // (27,34): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IOut<string> P4 => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("covariant returns").WithLocation(27, 34),
-                // (28,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P4").WithArguments("covariant returns", "9.0").WithLocation(27, 34),
+                // (28,34): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IIn<object?> M5() => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M5").WithArguments("covariant returns").WithLocation(28, 34),
-                // (29,34): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M5").WithArguments("covariant returns", "9.0").WithLocation(28, 34),
+                // (29,34): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IIn<object?> P5 => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("covariant returns").WithLocation(29, 34),
-                // (30,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P5").WithArguments("covariant returns", "9.0").WithLocation(29, 34),
+                // (30,33): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IIn<object> M6() => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M6").WithArguments("covariant returns").WithLocation(30, 33),
-                // (31,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M6").WithArguments("covariant returns", "9.0").WithLocation(30, 33),
+                // (31,33): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override IIn<object> P6 => null!;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("covariant returns").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "P6").WithArguments("covariant returns", "9.0").WithLocation(31, 33)
                 );
             verify(SourceView(comp, assignments));
 
@@ -3741,12 +3741,12 @@ public class Program
             var references = new[] { ilReference };
             var comp = CreateCompilationWithCovariantReturns(cSharpSource, references, parseOptions: TestOptions.WithoutCovariantReturns);
             comp.VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M1() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(4, 28),
-                // (5,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("covariant returns", "9.0").WithLocation(4, 28),
+                // (5,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M2() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(5, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M2").WithArguments("covariant returns", "9.0").WithLocation(5, 28)
                 );
             verify(SourceView(comp, assignments));
 
@@ -3835,9 +3835,9 @@ public class Derived : Base2<string>
                 else if (!withCovariantReturnFeatureEnabled)
                 {
                     expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
+                    // (15,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
+                    //     public override string M(ref string x, out string y) { y = null; return null; }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3958,9 +3958,9 @@ public class Derived : Base2<string>
                 else if (!withCovariantReturnFeatureEnabled)
                 {
                     expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (15,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -4078,9 +4078,9 @@ public class Derived : Base<string>
                 else if (!withCovariantReturnFeatureEnabled)
                 {
                     expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -4193,9 +4193,9 @@ public class Derived : Base<string>
                 else if (!withCovariantReturnFeatureEnabled)
                 {
                     expectedDiagnostics = expectedDiagnostics.Append(
-                        // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (12,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -4312,9 +4312,9 @@ public class Derived : Base2<string>
             else if (!withCovariantReturnFeatureEnabled)
             {
                 expectedDiagnostics = expectedDiagnostics.Append(
-                    // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (14,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                     //     public override string M(out string y) { y = null; return null; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0")
                     ).ToArray();
                 anyErrors = true;
             }
@@ -4427,9 +4427,9 @@ public class Derived : Base<object>
                     if (overrideProperty)
                     {
                         expectedDiagnostics = expectedDiagnostics.Append(
-                            // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                             //     public override string Prop => null;
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("covariant returns")
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Prop").WithArguments("covariant returns", "9.0")
                             ).ToArray();
                     }
                     else

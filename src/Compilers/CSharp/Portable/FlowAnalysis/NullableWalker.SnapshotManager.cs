@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int position,
                 BoundNode nodeToAnalyze,
                 Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
+                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder analyzedNullabilityMap,
                 SnapshotManager.Builder newManagerOpt)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
                 return (new NullableWalker(binder.Compilation,
                                            sharedState.Symbol,
+                                           useConstructorExitWarnings: false,
                                            useDelegateInvokeParameterTypes: false,
                                            delegateInvokeMethodOpt: null,
                                            nodeToAnalyze,
@@ -225,7 +226,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                     _currentWalkerSlot = previousSlot;
                 }
 
-                internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
+                internal void TakeIncrementalSnapshot(BoundNode? node, LocalState currentState)
                 {
                     if (node == null || node.WasCompilerGenerated)
                     {

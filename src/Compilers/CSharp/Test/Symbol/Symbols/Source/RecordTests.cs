@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only fails verification
                 verify: Verification.Skipped);
 
@@ -74,9 +74,9 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 12),
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
                 // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
@@ -847,7 +847,11 @@ public record C(int x, int y)
     public int Z;
     public int W = 123;
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
+                );
 
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var clone = c.GetMethod(WellKnownMemberNames.CloneMethodName);
@@ -859,7 +863,12 @@ public record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
+                );
+
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -981,7 +990,11 @@ record C
 }", expectedOutput: @"False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+                // (5,17): warning CS0414: The field 'C.X' is assigned but its value is never used
+                //     private int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(5, 17)
+                );
 
             verifier.VerifyIL("C.Equals(object)", @"
 {
@@ -1040,7 +1053,12 @@ record C(int X, string Y)
 {
     public event Action E;
 }
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
+                );
+
             var v2 = CompileAndVerify(@"
 using System;
 record C
@@ -1048,7 +1066,11 @@ record C
     public int X { get; }
     public string Y { get; }
     public event Action E;
-}").VerifyDiagnostics();
+}").VerifyDiagnostics(
+                // (7,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(7, 25)
+                );
 
             Assert.Equal(v1.VisualizeIL("C.Equals(C)"), v2.VisualizeIL("C.Equals(C)"));
             Assert.Equal(v1.VisualizeIL("C.Equals(object)"), v2.VisualizeIL("C.Equals(object)"));
@@ -1076,6 +1098,10 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder! builder)",
+                "System.Boolean C.operator !=(C? r1, C? r2)",
+                "System.Boolean C.operator ==(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -1177,6 +1203,21 @@ partial record C
         }
 
         [Fact]
+        public void PartialTypes_04_PartialBeforeModifiers()
+        {
+            var src = @"
+partial public record C
+{
+}
+";
+            CreateCompilation(src).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // partial public record C
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
         public void DataClassAndStruct()
         {
             var src = @"
@@ -1254,6 +1295,22 @@ data struct S2(int X, int Y);";
             );
         }
 
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
+        [Fact]
+        public void ClassInheritingFromRecord()
+        {
+            var src = @"
+abstract record AbstractRecord {}
+class SomeClass : AbstractRecord {}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8865: Only records may inherit from records.
+                // class SomeClass : AbstractRecord {}
+                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "AbstractRecord").WithLocation(3, 19)
+            );
+        }
+
         [Fact]
         public void RecordInheritance()
         {
@@ -1315,7 +1372,7 @@ enum H : C { }
 ";
 
             var comp2 = CreateCompilation(src2,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 references: new[] {
                 emitReference ? comp.EmitToImageReference() : comp.ToMetadataReference()
             });
@@ -1428,7 +1485,7 @@ class C
 }";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.ReleaseExe);
 
             var r = comp.GlobalNamespace.GetTypeMember("R");

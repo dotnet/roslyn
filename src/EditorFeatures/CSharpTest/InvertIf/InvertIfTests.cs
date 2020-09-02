@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         {
             await TestFixOneAsync(
 @"[||]if (a is Goo) { a(); } else { b(); }",
-@"if (!(a is Goo)) { b(); } else { a(); }");
+@"if (a is not Goo) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -1033,7 +1033,7 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
-@"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
+@"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
         }
     }
 }

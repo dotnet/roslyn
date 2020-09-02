@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -27,19 +29,22 @@ namespace Microsoft.CodeAnalysis.AddImport
             private bool ShouldAddProjectReference()
                 => FixData.ProjectReferenceToAdd != null && FixData.ProjectReferenceToAdd != OriginalDocument.Project.Id;
 
-            internal override bool PerformFinalApplicabilityCheck
-                => ShouldAddProjectReference();
-
-            internal override bool IsApplicable(Workspace workspace)
-                => ShouldAddProjectReference() &&
-                   workspace.CanAddProjectReference(
-                    OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd);
-
-            protected override Project UpdateProject(Project project)
+            protected override async Task<Project> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
             {
-                return ShouldAddProjectReference()
-                    ? project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd))
-                    : project;
+                if (!ShouldAddProjectReference())
+                {
+                    return project;
+                }
+
+                if (!isPreview)
+                {
+                    if (!await project.Solution.Workspace.CanAddProjectReferenceAsync(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, cancellationToken).ConfigureAwait(false))
+                    {
+                        return project;
+                    }
+                }
+
+                return project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd));
             }
         }
     }

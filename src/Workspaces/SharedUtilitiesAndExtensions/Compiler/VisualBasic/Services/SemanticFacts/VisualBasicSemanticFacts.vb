@@ -55,14 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(expression, ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken)
         End Function
 
-        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
-                                                  expression As SyntaxNode,
-                                                  capitalize As Boolean,
-                                                  cancellationToken As CancellationToken) As String Implements ISemanticFacts.GenerateNameForExpression
-            Return semanticModel.GenerateNameForExpression(
-                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
-        End Function
-
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.GetDeclaredSymbol
             Dim location = token.GetLocation()
 

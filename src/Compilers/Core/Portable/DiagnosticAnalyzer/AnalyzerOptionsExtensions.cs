@@ -6,6 +6,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxTree tree,
             Compilation compilation,
             DiagnosticDescriptor descriptor,
+            CancellationToken cancellationToken,
             out ReportDiagnostic severity)
         {
             // Analyzer bulk configuration does not apply to:
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // bulk configuration should not be applied.
             // For example, 'dotnet_diagnostic.CA1000.severity = error'
             if (compilation.Options.SpecificDiagnosticOptions.ContainsKey(descriptor.Id) ||
-                tree.DiagnosticOptions.ContainsKey(descriptor.Id))
+                compilation.Options.SyntaxTreeOptionsProvider?.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out _) == true)
             {
                 severity = default;
                 return false;

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis
             var analyzerManager = new AnalyzerManager(analyzersArray);
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException,
                 analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, out var newCompilation, cancellationToken);
-
+            Debug.Assert(newCompilation.SemanticModelProvider != null);
             var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
             var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;
             var allDiagnostics = includeCompilerDiagnostics ?

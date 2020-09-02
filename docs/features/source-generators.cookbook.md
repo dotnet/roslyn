@@ -85,9 +85,9 @@ Create a generator that will create the missing type when run:
 [Generator]
 public class CustomGenerator : ISourceGenerator
 {
-    public void Initialize(InitializationContext context) {}
+    public void Initialize(GeneratorInitializationContext context) {}
 
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         context.AddSource("myGeneratedFile.cs", SourceText.From(@"
 namespace GeneratedNamespace
@@ -108,7 +108,7 @@ namespace GeneratedNamespace
 
 **User scenario:** As a generator author I want to be able to transform an external non-C# file into an equivalent C# representation.
 
-**Solution:** Use the additional files property of the `SourceGeneratorContext` to retrieve the contents of the file, convert it to the C# representation and return it.
+**Solution:** Use the additional files property of the `GeneratorExecutionContext` to retrieve the contents of the file, convert it to the C# representation and return it.
 
 **Example:**
 
@@ -116,9 +116,9 @@ namespace GeneratedNamespace
 [Generator]
 public class FileTransformGenerator : ISourceGenerator
 {
-    public void Initialize(InitializationContext context) {}
+    public void Initialize(GeneratorInitializationContext context) {}
 
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // find anything that matches our files
         var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
@@ -163,13 +163,13 @@ public partial class UserClass
 [Generator]
 public class AugmentingGenerator : ISourceGenerator
 {
-    public void Initialize(InitializationContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
         // Register a factory that can create our custom syntax receiver
         context.RegisterForSyntaxNotifications(() => new MySyntaxReceiver());
     }
 
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // the generator infrastructure will create a receiver and populate it
         // we can retrieve the populated instance via the context
@@ -208,6 +208,58 @@ public partial class {userClass.Identifier}
                 ClassToAugment = cds;
             }
         }
+    }
+}
+```
+
+### Issue Diagnostics
+
+**User Scenario:** As a generator author I want to be able to add diagnostics to the users compilation.
+
+**Solution:** Diagnostics can be added to the compilation via `GeneratorExecutionContext.ReportDiagnostic()`. These can be in response to the content of the users compilation:
+for instance if the generator is expecting a well formed `AdditionalFile` but can not parse it, the generator could emit a warning notifying the user that generation can not proceed.
+
+For code-based issues, the generator author should also consider implementing a [diagnostic analyzer](https://docs.microsoft.com/en-us/visualstudio/code-quality/roslyn-analyzers-overview?view=vs-2019) that identifies the problem, and offers a code-fix to resolve it.
+
+**Example:**
+
+```csharp
+[Generator]
+public class MyXmlGenerator : ISourceGenerator
+{
+
+    private static readonly DiagnosticDescriptor InvalidXmlWarning = new DiagnosticDescriptor(id: "MYXMLGEN001",
+                                                                                              title: "Couldn't parse XML file",
+                                                                                              messageFormat: "Couldn't parse XML file '{0}'.",
+                                                                                              category: "MyXmlGenerator",
+                                                                                              DiagnosticSeverity.Warning,
+                                                                                              isEnabledByDefault: true);
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // Using the context, get any additional files that end in .xml
+        IEnumerable<AdditionalText> xmlFiles = context.AdditionalFiles.Where(at => at.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+        foreach (AdditionalText xmlFile in xmlFiles)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            string text = xmlFile.GetText(context.CancellationToken).ToString();
+            try
+            {
+                xmlDoc.LoadXml(text);
+            }
+            catch (XmlException)
+            {
+                // issue warning MYXMLGEN001: Couldn't parse XML file '<path>'
+                context.ReportDiagnostic(Diagnostic.Create(InvalidXmlWarning, Location.None, xmlFile.Path));
+                continue;
+            }
+
+            // continue generation...
+        }
+    }
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
     }
 }
 ```
@@ -338,7 +390,7 @@ using System.Linq;
 [Generator]
 public class SerializingGenerator : ISourceGenerator
 {
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // check that the users compilation references the expected library 
         if (!context.Compilation.ReferencedAssemblyNames.Any(ai => ai.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase)))
@@ -347,7 +399,7 @@ public class SerializingGenerator : ISourceGenerator
         }
     }
 
-    public void Initialize(InitializationContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
     }
 }
@@ -384,7 +436,7 @@ The author would then have to package the `Newtonsoft.Json` library alongside th
 [Generator]
 public class JsonUsingGenerator : ISourceGenerator
 {
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // use the newtonsoft.json library, but don't add any source code that depends on it
 
@@ -401,7 +453,7 @@ namespace GeneratedNamespace
 
     }
 
-    public void Initialize(InitializationContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
     }
 }
@@ -417,7 +469,7 @@ namespace GeneratedNamespace
 - As a generator author I want to access key-value pairs that customize the generator output.
 - As a user of a generator I want to be able to customize the generated code and override defaults.
 
-**Solution**: Generators can access analyzer config values via the `AnalyzerConfigOptions` property of the `SourceGeneratorContext`. Analyzer config values can either be accessed in the context of a `SyntaxTree`, `AdditionalFile` or globally via `GlobalOptions`. Global options are 'ambient' in that they don't apply to any specific context, but will be included when requesting option within a specific context.
+**Solution**: Generators can access analyzer config values via the `AnalyzerConfigOptions` property of the `GeneratorExecutionContext`. Analyzer config values can either be accessed in the context of a `SyntaxTree`, `AdditionalFile` or globally via `GlobalOptions`. Global options are 'ambient' in that they don't apply to any specific context, but will be included when requesting option within a specific context.
 
 A generator is free to use a global option to customize its output. For example, consider a generator that can optionally emit logging. The author may choose to check the value of a global analyzer config value in order to control whether or not to emit the logging code. A user can then choose to enable the setting per project via an `.editorconfig` file:
 
@@ -429,7 +481,7 @@ mygenerator_emit_logging = true
 [Generator]
 public class MyGenerator : ISourceGenerator
 {
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // control logging via analyzerconfig
         bool emitLogging = false;
@@ -441,7 +493,7 @@ public class MyGenerator : ISourceGenerator
         // add the source with or without logging...
     }
 
-    public void Initialize(InitializationContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
     }
 }
@@ -466,7 +518,7 @@ For example, consider a generator that creates source based on additional files,
 </ItemGroup>
 ```
 
-The value of `MyGenerator_EnableLogging` property will then be emitted to a generated analyzer config file before build, with a name of `build_property.MyGenerator_EnableLogging`. The generator is then able read this property from via the `AnalyzerConfigOptions` property of the `SourceGeneratorContext`:
+The value of `MyGenerator_EnableLogging` property will then be emitted to a generated analyzer config file before build, with a name of `build_property.MyGenerator_EnableLogging`. The generator is then able read this property from via the `AnalyzerConfigOptions` property of the `GeneratorExecutionContext`:
 
 ```c#
 context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MyGenerator_EnableLogging", out var emitLoggingSwitch);
@@ -540,7 +592,7 @@ MyGenerator.cs:
 [Generator]
 public class MyGenerator : ISourceGenerator
 {
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // global logging from project file
         bool emitLoggingGlobal = false;
@@ -562,7 +614,7 @@ public class MyGenerator : ISourceGenerator
         }
     }
 
-    public void Initialize(InitializationContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
     }
 }
@@ -581,13 +633,13 @@ It is anticipated there will be a mechanism for providing symbol mapping for lig
 [Generator]
 public class InteractiveGenerator : ISourceGenerator
 {
-    public void Initialize(InitializationContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
         // Register for additional file callbacks
         context.RegisterForAdditionalFileChanges(OnAdditionalFilesChanged);
     }
 
-    public void Execute(SourceGeneratorContext context)
+    public void Execute(GeneratorExecutionContext context)
     {
         // generators must always support a total generation pass
     }

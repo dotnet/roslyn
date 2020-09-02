@@ -6,18 +6,21 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class SourceTextSerializationTests
     {
         [Fact]
         public void TestSourceTextSerialization()
         {
-            var textService = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textService = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
 
             var maxSize = SourceTextExtensions.SourceTextLengthThreshold * 3;
             var sb = new StringBuilder(0, maxSize);

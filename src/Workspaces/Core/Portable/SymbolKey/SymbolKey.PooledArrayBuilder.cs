@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             public int Count => Builder.Count;
             public T this[int index] => Builder[index];
 
-            public void AddIfNotNull(T value)
+            public void AddIfNotNull(T? value)
             {
                 if (value != null)
                 {

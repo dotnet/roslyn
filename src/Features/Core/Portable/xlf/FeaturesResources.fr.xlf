@@ -345,6 +345,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Exemples :</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="new">Extract base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Extraire l'interface...</target>
@@ -590,6 +595,21 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La modification de '{0}', qui contient une expression de switch, va empêcher la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
+        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
+        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">Déplacer le contenu vers un espace de noms...</target>
@@ -611,8 +631,8 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">Le fait de modifier le fichier source {0} empêche la session de débogage de se poursuivre en raison de l’erreur interne : {1}.</target>
+        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="needs-review-translation">Le fait de modifier le fichier source {0} empêche la session de débogage de se poursuivre en raison de l’erreur interne : {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -973,7 +993,7 @@ L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caract
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">expression</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1243,7 +1263,7 @@ L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caract
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">nom</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1343,7 +1363,7 @@ Vous pouvez concaténer au moins deux plages de caractères. Par exemple, pour s
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">non</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1726,7 +1746,7 @@ Si vous spécifiez un comportement conforme à ECMAScript, \w équivaut à [a-zA
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">oui</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2057,12 +2077,12 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">'{0}' n'a pas une valeur null ici.</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">'{0}' a peut-être une valeur null ici.</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
