@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
+    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         private readonly ImmutableHashSet<string> _csTriggerCharacters;
         private readonly ImmutableHashSet<string> _vbTriggerCharacters;
@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
         }
 
-        public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
-                return Array.Empty<LSP.CompletionItem>();
+                return null;
             }
 
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter && !char.IsLetterOrDigit(triggerCharacter) &&
                 !IsValidTriggerCharacterForDocument(document, request.Context.TriggerCharacter))
             {
-                return Array.Empty<LSP.CompletionItem>();
+                return null;
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -90,12 +90,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
-                return Array.Empty<LSP.CompletionItem>();
+                return null;
             }
 
             var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
-            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger)).ToArray();
+            return new LSP.VSCompletionList
+            {
+                Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger)).ToArray(),
+                SuggesstionMode = list.SuggestionModeItem != null,
+            };
 
             // Local functions
             bool IsValidTriggerCharacterForDocument(Document document, string triggerCharacter)
