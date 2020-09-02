@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -34,28 +35,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var service = document.GetLanguageService<ITodoCommentService>();
-            var todoLists = await service.GetTodoCommentsAsync(document,
+            var todoComments = await service.GetTodoCommentsAsync(document,
                 TodoCommentDescriptor.Parse(TodoCommentOptions.TokenList.DefaultValue),
                 CancellationToken.None);
 
+            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+            await TodoComment.ConvertAsync(document, todoComments, converted, CancellationToken.None);
+
             var expectedLists = hostDocument.SelectedSpans;
-            Assert.Equal(todoLists.Length, expectedLists.Count);
+            Assert.Equal(converted.Count, expectedLists.Count);
 
             var sourceText = await document.GetTextAsync();
             var tree = await document.GetSyntaxTreeAsync();
-            for (var i = 0; i < todoLists.Length; i++)
+            for (var i = 0; i < converted.Count; i++)
             {
-                var todo = todoLists[i];
+                var todo = converted[i];
                 var span = expectedLists[i];
 
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
                 var text = initialTextSnapshot.GetText(span.ToSpan());
 
-                var converted = todo.CreateSerializableData(document, sourceText, tree);
-
-                Assert.Equal(converted.MappedLine, line.LineNumber);
-                Assert.Equal(converted.MappedColumn, span.Start - line.Start);
-                Assert.Equal(converted.Message, text);
+                Assert.Equal(todo.MappedLine, line.LineNumber);
+                Assert.Equal(todo.MappedColumn, span.Start - line.Start);
+                Assert.Equal(todo.Message, text);
             }
         }
     }

@@ -233,8 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // TS doesn't have syntax trees, so just explicitly pass along null when converting the data.
-            foreach (var comment in todoComments)
-                converted.Add(comment.CreateSerializableData(document, text, tree: null));
+            await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
