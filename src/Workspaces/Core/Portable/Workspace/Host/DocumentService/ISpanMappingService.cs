@@ -59,11 +59,6 @@ namespace Microsoft.CodeAnalysis.Host
 
         public MappedSpanResult(string filePath, LinePositionSpan linePositionSpan, TextSpan span)
         {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new System.ArgumentException(nameof(filePath));
-            }
-
             FilePath = filePath;
             LinePositionSpan = linePositionSpan;
             Span = span;
