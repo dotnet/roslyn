@@ -843,8 +843,8 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestExpressionWithNullConditionalAccess()
         {
             var source =
