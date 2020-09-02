@@ -345,6 +345,8 @@ class X
                         case ErrorCode.WRN_UseDefViolationOut:
                         case ErrorCode.WRN_UseDefViolation:
                         case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                        case ErrorCode.WRN_ParameterIsStaticClass:
+                        case ErrorCode.WRN_ReturnTypeIsStaticClass:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -401,6 +403,8 @@ class X
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
                     ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                    ErrorCode.WRN_ParameterIsStaticClass,
+                    ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
                 };
 
