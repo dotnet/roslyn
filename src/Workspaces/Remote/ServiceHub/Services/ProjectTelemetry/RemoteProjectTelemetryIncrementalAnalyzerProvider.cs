@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal class RemoteProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly IProjectTelemetryListener _callback;
+        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
 
-        public RemoteProjectTelemetryIncrementalAnalyzerProvider(IProjectTelemetryListener callback)
+        public RemoteProjectTelemetryIncrementalAnalyzerProvider(RemoteCallback<IProjectTelemetryListener> callback)
         {
             _callback = callback;
         }

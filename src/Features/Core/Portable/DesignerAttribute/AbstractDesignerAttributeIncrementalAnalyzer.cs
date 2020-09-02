@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
-        protected abstract Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
 
-        protected abstract Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken);
 
-        public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => ReportProjectRemovedAsync(projectId, cancellationToken);
+        public override async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+            => await ReportProjectRemovedAsync(projectId, cancellationToken).ConfigureAwait(false);
 
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, specificDocument: null, cancellationToken);

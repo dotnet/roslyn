@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,40 +17,22 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly IDesignerAttributeListener _callback;
+        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, IDesignerAttributeListener callback)
+        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteCallback<IDesignerAttributeListener> callback)
             : base(workspace)
         {
             _callback = callback;
         }
 
-        protected override async Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _callback.OnProjectRemovedAsync(projectId, cancellationToken).ConfigureAwait(false);
-            }
-            catch (ConnectionLostException)
-            {
-                // The client might have terminated without signalling the cancellation token.
-                // Ignore this failure to avoid reporting Watson from the solution crawler.
-                // Same effect as if cancellation had been requested.
-            }
-        }
+        protected override ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+            => _callback.InvokeAsync(
+                (callback, cancellationToken) => callback.OnProjectRemovedAsync(projectId, cancellationToken),
+                cancellationToken);
 
-        protected override async Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
-            }
-            catch (ConnectionLostException)
-            {
-                // The client might have terminated without signalling the cancellation token.
-                // Ignore this failure to avoid reporting Watson from the solution crawler.
-                // Same effect as if cancellation had been requested.
-            }
-        }
+        protected override ValueTask ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+            => _callback.InvokeAsync(
+                (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken),
+                cancellationToken);
     }
 }

@@ -186,11 +186,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
+        public ValueTask ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
-            return Task.CompletedTask;
+            return new ValueTask();
         }
     }
 }

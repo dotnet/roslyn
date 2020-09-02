@@ -196,17 +196,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     clientConnection.AddLocalRpcTarget(options.ClientRpcTarget);
                 }
 
-                var serverConnection = descriptor.ConstructRpcConnection(pipePair.Item1);
+                _ = _services.CreateBrokeredService(descriptor.Moniker, pipePair.Item1, options);
 
-                if (descriptor.ClientInterface != null)
-                {
-                    options.ClientRpcTarget = serverConnection.ConstructRpcClient(descriptor.ClientInterface);
-                }
-
-                var serviceInstance = _services.CreateBrokeredService(descriptor.Moniker, options);
-                serverConnection.AddLocalRpcTarget(serviceInstance);
-
-                serverConnection.StartListening();
                 clientConnection.StartListening();
 
                 return new ValueTask<T?>(clientConnection.ConstructRpcClient<T>());
@@ -216,9 +207,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private sealed class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
-            private readonly Dictionary<ServiceMoniker, ServiceBase.FactoryBase> _brokeredFactoryMap;
-            private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap;
-            private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap;
+            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.FactoryBase> _brokeredFactoryMap = new();
+            private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap = new();
+            private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
             public readonly IServiceBroker ServiceBroker;
 
@@ -227,9 +218,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 var remoteLogger = new TraceSource("inprocRemoteClient");
 
                 _serviceProvider = new ServiceProvider(remoteLogger, testData);
-                _factoryMap = new Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>>();
-                _brokeredFactoryMap = new Dictionary<ServiceMoniker, ServiceBase.FactoryBase>();
-                _serviceNameMap = new Dictionary<string, WellKnownServiceHubService>();
 
                 ServiceBroker = new InProcServiceBroker(this);
 
@@ -257,16 +245,16 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, _serviceProvider, default), streams.Item2));
             }
 
-            public void RegisterBrokeredService(RemoteServiceName service, ServiceBase.FactoryBase serviceFactory)
+            public void RegisterBrokeredService(RemoteServiceName service, BrokeredServiceBase.FactoryBase serviceFactory)
             {
                 var moniker = new ServiceMoniker(service.ToString(isRemoteHost64Bit: IntPtr.Size == 8));
                 _brokeredFactoryMap.Add(moniker, serviceFactory);
             }
 
-            public object CreateBrokeredService(ServiceMoniker moniker, ServiceActivationOptions options)
+            public object CreateBrokeredService(ServiceMoniker moniker, IDuplexPipe pipe, ServiceActivationOptions options)
             {
                 var factory = _brokeredFactoryMap[moniker];
-                return factory.CreateService(_serviceProvider, ServiceBroker, options);
+                return factory.Create(pipe, _serviceProvider, options, ServiceBroker);
             }
 
             private sealed class WrappedStream : Stream

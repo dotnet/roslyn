@@ -14,28 +14,28 @@ using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsService : ServiceBase, IRemoteTodoCommentsService
+    internal partial class RemoteTodoCommentsService : BrokeredServiceBase, IRemoteTodoCommentsService
     {
-        internal sealed class Factory : FactoryBase
+        internal sealed class Factory : FactoryBase<ITodoCommentsListener>
         {
-            internal override WellKnownServiceHubService ServiceId
+            protected override WellKnownServiceHubService ServiceId
                 => WellKnownServiceHubService.RemoteTodoCommentsService;
 
-            internal override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ServiceActivationOptions serviceActivationOptions)
-                => new RemoteTodoCommentsService(serviceProvider, serviceBroker, (ITodoCommentsListener)serviceActivationOptions.ClientRpcTarget!);
+            protected override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<ITodoCommentsListener> callback)
+                => new RemoteTodoCommentsService(serviceProvider, serviceBroker, callback);
         }
 
-        private readonly ITodoCommentsListener _callback;
+        private readonly RemoteCallback<ITodoCommentsListener> _callback;
 
-        public RemoteTodoCommentsService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ITodoCommentsListener callback)
-            : base(serviceProvider, serviceBroker)
+        public RemoteTodoCommentsService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<ITodoCommentsListener> callback)
+            : base(serviceProvider, serviceBroker, callback.ClientDisconnectedSource)
         {
             _callback = callback;
         }
 
-        public Task ComputeTodoCommentsAsync(CancellationToken cancellation)
+        public ValueTask ComputeTodoCommentsAsync(CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() =>
+            return RunServiceAsync(cancellationToken =>
             {
                 var workspace = GetWorkspace();
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
                 return Task.CompletedTask;
-            }, cancellation);
+            }, cancellationToken);
         }
     }
 }

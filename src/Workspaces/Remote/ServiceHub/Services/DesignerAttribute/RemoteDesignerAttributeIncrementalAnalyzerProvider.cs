@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal sealed class RemoteDesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly IDesignerAttributeListener _callback;
+        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
 
-        public RemoteDesignerAttributeIncrementalAnalyzerProvider(IDesignerAttributeListener callback)
+        public RemoteDesignerAttributeIncrementalAnalyzerProvider(RemoteCallback<IDesignerAttributeListener> callback)
         {
             _callback = callback;
         }

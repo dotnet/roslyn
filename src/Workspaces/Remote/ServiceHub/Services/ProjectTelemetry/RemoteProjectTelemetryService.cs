@@ -14,31 +14,30 @@ using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteProjectTelemetryService : ServiceBase, IRemoteProjectTelemetryService
+    internal partial class RemoteProjectTelemetryService : BrokeredServiceBase, IRemoteProjectTelemetryService
     {
-        internal sealed class Factory : FactoryBase
+        internal sealed class Factory : FactoryBase<IProjectTelemetryListener>
         {
-            internal override WellKnownServiceHubService ServiceId
+            protected override WellKnownServiceHubService ServiceId
                 => WellKnownServiceHubService.RemoteProjectTelemetryService;
 
-            internal override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ServiceActivationOptions serviceActivationOptions)
-                => new RemoteProjectTelemetryService(serviceProvider, serviceBroker, (IProjectTelemetryListener)serviceActivationOptions.ClientRpcTarget!);
+            protected override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IProjectTelemetryListener> callback)
+                => new RemoteProjectTelemetryService(serviceProvider, serviceBroker, callback);
         }
 
-        private readonly IProjectTelemetryListener _callback;
+        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
 
-        public RemoteProjectTelemetryService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, IProjectTelemetryListener callback)
-            : base(serviceProvider, serviceBroker)
+        public RemoteProjectTelemetryService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IProjectTelemetryListener> callback)
+            : base(serviceProvider, serviceBroker, callback.ClientDisconnectedSource)
         {
             _callback = callback;
         }
 
-        public Task ComputeProjectTelemetryAsync(CancellationToken cancellation)
+        public ValueTask ComputeProjectTelemetryAsync(CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() =>
+            return RunServiceAsync(cancellationToken =>
             {
                 var workspace = GetWorkspace();
-                var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
                 var analyzerProvider = new RemoteProjectTelemetryIncrementalAnalyzerProvider(_callback);
 
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
                 return Task.CompletedTask;
-            }, cancellation);
+            }, cancellationToken);
         }
     }
 }

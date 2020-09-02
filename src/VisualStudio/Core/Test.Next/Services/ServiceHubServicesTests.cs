@@ -176,10 +176,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
-            public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+            public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
-                return Task.CompletedTask;
+                return new ValueTask();
             }
         }
 
@@ -246,13 +246,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => Task.CompletedTask;
+            public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => new ValueTask();
 
-            public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
+            public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
-                return Task.CompletedTask;
+                return new ValueTask();
             }
         }
 

@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public abstract void Dispose();
 
-        public abstract ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, Task> invocation, CancellationToken cancellationToken);
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<T, CancellationToken, Task<TResult>> invocation, CancellationToken cancellationToken);
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, Task<TResult>> invocation, TArgs args, CancellationToken cancellationToken);
+        public abstract ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken);
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken);
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken);
     }
 }

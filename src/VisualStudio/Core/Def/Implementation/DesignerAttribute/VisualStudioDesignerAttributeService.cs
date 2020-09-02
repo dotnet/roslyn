@@ -334,17 +334,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(data);
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
-        public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             _cpsProjects.TryRemove(projectId, out _);
-            return Task.CompletedTask;
+            return new ValueTask();
         }
     }
 }

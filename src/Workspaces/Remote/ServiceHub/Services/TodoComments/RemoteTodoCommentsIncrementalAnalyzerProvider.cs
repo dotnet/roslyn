@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal sealed class RemoteTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly ITodoCommentsListener _callback;
+        private readonly RemoteCallback<ITodoCommentsListener> _callback;
 
-        public RemoteTodoCommentsIncrementalAnalyzerProvider(ITodoCommentsListener callback)
+        public RemoteTodoCommentsIncrementalAnalyzerProvider(RemoteCallback<ITodoCommentsListener> callback)
         {
             _callback = callback;
         }

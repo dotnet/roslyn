@@ -26,54 +26,44 @@ namespace Microsoft.CodeAnalysis.Remote
         public override void Dispose()
             => (_service as IDisposable)?.Dispose();
 
-        public override async ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, Task> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {
                 await invocation(_service, cancellationToken).ConfigureAwait(false);
                 return true;
             }
-            catch (Exception exception) when (ReportUnlessCanceled(exception, cancellationToken))
+            catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
             {
                 OnUnexpectedException(exception, cancellationToken);
                 return false;
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<T, CancellationToken, Task<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
                 return await invocation(_service, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception exception) when (ReportUnlessCanceled(exception, cancellationToken))
+            catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
             {
                 OnUnexpectedException(exception, cancellationToken);
                 return default;
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, Task<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
         {
             try
             {
                 return await invocation(_service, args, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception exception) when (ReportUnlessCanceled(exception, cancellationToken))
+            catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
             {
                 OnUnexpectedException(exception, cancellationToken);
                 return default;
             }
-        }
-
-        private static bool ReportUnlessCanceled(Exception exception, CancellationToken cancellationToken)
-        {
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                FatalError.ReportWithoutCrash(exception);
-            }
-
-            return true;
         }
 
         private void OnUnexpectedException(Exception exception, CancellationToken cancellationToken)
@@ -85,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // TODO: better message depending on the exception (https://github.com/dotnet/roslyn/issues/40476):
             // "Feature xyz is currently unavailable due to network issues" (connection exceptions)
             // "Feature xyz is currently unavailable due to an internal error [Details]" (exception is RemoteInvocationException, serialization issues)
-            // "Feature xyz is currently unavailable" (connection exceptions during shutdown cancellation when cancellationToken is not signaled)
+            // "Feature xyz is currently unavailable" (connection exceptions during shutdown cancellation when cancellationToken is not signalled)
 
             _errorReportingService?.ShowRemoteHostCrashedErrorInfo(exception);
         }

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -17,6 +18,7 @@ using Nerdbank.Streams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -33,36 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal abstract class ServiceBase : IDisposable
     {
-        internal abstract class FactoryBase : IServiceHubServiceFactory
-        {
-            internal abstract object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, ServiceActivationOptions serviceActivationOptions);
-            internal abstract WellKnownServiceHubService ServiceId { get; }
-
-            public Task<object> CreateAsync(
-               Stream stream,
-               IServiceProvider hostProvidedServices,
-               ServiceActivationOptions serviceActivationOptions,
-               IServiceBroker serviceBroker,
-               AuthorizationServiceClient? authorizationServiceClient)
-            {
-                // Dispose the AuthorizationServiceClient since we won't be using it
-                authorizationServiceClient?.Dispose();
-
-                var descriptor = ServiceId.GetServiceDescriptor(isRemoteHost64Bit: IntPtr.Size == 8);
-                var connection = descriptor.ConstructRpcConnection(stream.UsePipe());
-
-                if (descriptor.ClientInterface is not null)
-                {
-                    serviceActivationOptions.ClientRpcTarget ??= connection.ConstructRpcClient(descriptor.ClientInterface);
-                }
-
-                var service = CreateService(hostProvidedServices, serviceBroker, serviceActivationOptions);
-
-                connection.AddLocalRpcTarget(service);
-                return Task.FromResult(service);
-            }
-        }
-
         private static int s_instanceId;
 
         protected readonly RemoteEndPoint EndPoint;
@@ -70,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly TraceSource Logger;
 
         protected readonly RemoteWorkspaceManager WorkspaceManager;
-
-        // TODO: move to WM?
-        protected readonly SolutionAssetSource? SolutionAssetSource;
-
-        protected readonly ServiceBrokerClient? ServiceBrokerClient;
 
         // test data are only available when running tests:
         internal readonly RemoteHostTestData? TestData;
@@ -85,27 +52,6 @@ namespace Microsoft.CodeAnalysis.Remote
             WatsonTraceListener.Install();
         }
 
-        protected ServiceBase(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
-        {
-            InstanceId = Interlocked.Add(ref s_instanceId, 1);
-
-            TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
-            WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
-
-            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
-            Log(TraceEventType.Information, "Service instance created");
-
-#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-            ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
-#pragma warning restore
-
-            SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient);
-
-            // TODO:
-            EndPoint = null!;
-        }
-
-        // TODO: remove once all services transition to ISB
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
@@ -123,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public void Dispose()
         {
             EndPoint?.Dispose();
-            ServiceBrokerClient?.Dispose();
         }
 
         protected void StartService()
@@ -142,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource ?? WorkspaceManager.GetAssetSource());
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
             return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 

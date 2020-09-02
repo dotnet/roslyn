@@ -221,10 +221,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public async Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
-            var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-            workQueue.AddWork(new DocumentAndComments(documentId, infos));
+            try
+            {
+                var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
+                workQueue.AddWork(new DocumentAndComments(documentId, infos));
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            {
+                // report NFW before returning back to the remote process
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>

@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface IRemoteTodoCommentsService
     {
-        Task ComputeTodoCommentsAsync(CancellationToken cancellation);
+        ValueTask ComputeTodoCommentsAsync(CancellationToken cancellation);
     }
 }

@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly IProjectTelemetryListener _callback;
+        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
 
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(IProjectTelemetryListener callback)
+        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteCallback<IProjectTelemetryListener> callback)
             => _callback = callback;
 
         /// <summary>
@@ -69,16 +69,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 _projectToData[projectId] = info;
             }
 
-            try
-            {
-                await _callback.ReportProjectTelemetryDataAsync(info, cancellationToken).ConfigureAwait(false);
-            }
-            catch (ConnectionLostException)
-            {
-                // The client might have terminated without signalling the cancellation token.
-                // Ignore this failure to avoid reporting Watson from the solution crawler.
-                // Same effect as if cancellation had been requested.
-            }
+            await _callback.InvokeAsync(
+                (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(info, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
 
         public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
