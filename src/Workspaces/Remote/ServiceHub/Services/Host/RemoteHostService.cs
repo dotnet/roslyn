@@ -64,10 +64,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (TestData == null || !TestData.IsInProc)
             {
-                // Set this process's priority BelowNormal.
-                // this should let us to freely try to use all resources possible without worrying about affecting
-                // host's work such as responsiveness or build.
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                try
+                {
+                    // Set this process's priority BelowNormal.
+                    // this should let us to freely try to use all resources possible without worrying about affecting
+                    // host's work such as responsiveness or build.
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                }
+                catch (Exception e) when (e is PlatformNotSupportedException || e is Win32Exception)
+                {
+                    // the runtime does not support changing process priority, so just ignore this
+                }
             }
 
             // this service provide a way for client to make sure remote host is alive
