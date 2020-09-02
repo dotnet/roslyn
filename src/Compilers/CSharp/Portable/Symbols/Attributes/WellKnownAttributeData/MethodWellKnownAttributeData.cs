@@ -124,7 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                VerifySealed(expected: true);
+                // We do not verify sealed here because we need to check to see whether
+                // an UnmanagedCallersOnly was decoded during decode of ModuleInitializerAttribute
+                // in order to issue an error
                 return _unmanagedCallersOnlyAttributeData;
             }
             set

@@ -1820,20 +1820,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
                     }
                 }
-                else if (viableEntryPoints.Count > 1)
-                {
-                    viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
-                    var info = new CSDiagnosticInfo(
-                         ErrorCode.ERR_MultipleEntryPoints,
-                         args: Array.Empty<object>(),
-                         symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
-
-                    diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
-                }
                 else
                 {
-                    entryPoint = viableEntryPoints[0];
+                    foreach (var viableEntryPoint in viableEntryPoints)
+                    {
+                        if (viableEntryPoint.UnmanagedCallersOnlyAttributeData is { } data)
+                        {
+                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.Locations.First());
+                        }
+                    }
+
+                    if (viableEntryPoints.Count > 1)
+                    {
+                        viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
+                        var info = new CSDiagnosticInfo(
+                             ErrorCode.ERR_MultipleEntryPoints,
+                             args: Array.Empty<object>(),
+                             symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
+                             additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+
+                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                    }
+                    else
+                    {
+                        entryPoint = viableEntryPoints[0];
+                    }
                 }
 
                 taskEntryPoints.Free();
@@ -2114,6 +2126,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
+        }
+
+        internal bool IsMethodSymbolModuleInitializer(MethodSymbol method)
+        {
+            if (_moduleInitializerMethods is not null)
+            {
+                return _moduleInitializerMethods.Contains(method);
+            }
+
+            return false;
         }
 
         #endregion

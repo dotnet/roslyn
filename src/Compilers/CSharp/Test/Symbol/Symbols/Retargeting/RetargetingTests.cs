@@ -1070,9 +1070,14 @@ public class C
             unmanagedCallersOnlyAssembly.VerifyDiagnostics();
 
             var afterRetargeting = CreateCompilation(originalIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { corlibSource }, new MetadataReference[0]);
+            afterRetargeting.VerifyDiagnostics();
 
-            var finalComp = CreateEmptyCompilation(@"", references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
-            finalComp.VerifyDiagnostics();
+            var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
+            finalComp.VerifyDiagnostics(
+                // (1,1): error CS8897: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
+            );
 
             var m = finalComp.GetTypeByMetadataName("C").GetMethod("M");
             var unmanagedCallersOnlyData = m.UnmanagedCallersOnlyAttributeData;
@@ -1080,6 +1085,79 @@ public class C
             var containingAssembly = unmanagedCallersOnlyData.CallingConventionTypes.Single().ContainingAssembly;
             Assert.NotSame(containingAssembly, beforeRetargeting.Assembly);
             Assert.Same(containingAssembly, afterRetargeting.Assembly);
+        }
+
+        [Fact]
+        public void RetargetedUnmanagedCallersOnlyEmptyData()
+        {
+            var originalIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+            // Custom corlib is necessary as the CallConv type must be defined in corlib, and we need to make
+            // sure that it's retargeted correctly.
+            string corlibSource = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+            public sealed class UnmanagedCallersOnlyAttribute : Attribute
+            {
+                public UnmanagedCallersOnlyAttribute()
+                {
+                }
+
+                public Type[] CallConvs;
+                public string EntryPoint;
+            }
+        }
+        namespace CompilerServices
+        {
+            public sealed class CallConvCdecl {}
+        }
+    }
+}
+namespace System.Runtime.InteropServices
+{
+}
+";
+            var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);
+            beforeRetargeting.VerifyDiagnostics();
+
+            var unmanagedCallersOnlyAssembly = CreateEmptyCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly]
+    public static void M(int s) {}
+}
+", new[] { beforeRetargeting.ToMetadataReference() });
+            unmanagedCallersOnlyAssembly.VerifyDiagnostics();
+
+            var afterRetargeting = CreateCompilation(originalIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { corlibSource }, new MetadataReference[0]);
+            afterRetargeting.VerifyDiagnostics();
+
+            var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
+            finalComp.VerifyDiagnostics(
+                // (1,1): error CS8897: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
+            );
         }
     }
 

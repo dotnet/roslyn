@@ -227,31 +227,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if (_lazyUnmanagedAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized)
+                if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
                 {
-                    var underlyingData = _underlyingMethod.UnmanagedCallersOnlyAttributeData;
-                    if (underlyingData == UnmanagedCallersOnlyAttributeData.Uninitialized)
+                    var data = _underlyingMethod.UnmanagedCallersOnlyAttributeData;
+                    if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized))
                     {
                         // Underlying hasn't been found yet either, just return it. We'll check again the next
                         // time this is called
-                        return underlyingData;
+                        return data;
                     }
 
-                    if (underlyingData == null || (underlyingData.CallingConventionTypes?.IsEmpty != false))
+                    if (data?.CallingConventionTypes.IsEmpty == false)
                     {
-                        _ = Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, underlyingData, UnmanagedCallersOnlyAttributeData.Uninitialized);
-                        return _lazyUnmanagedAttributeData;
+                        var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                        foreach (var identifier in data.CallingConventionTypes)
+                        {
+                            builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
+                        }
+
+                        data = new UnmanagedCallersOnlyAttributeData(builder.ToImmutableHashSet(), data.IsValid);
+                        builder.Free();
                     }
 
-                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
-                    foreach (var identifier in underlyingData.CallingConventionTypes)
-                    {
-                        builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
-                    }
-
-                    var newData = builder.Count == 0 ? ImmutableHashSet<INamedTypeSymbolInternal>.Empty : builder.ToImmutableHashSet();
-                    builder.Free();
-                    Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, new UnmanagedCallersOnlyAttributeData(newData, underlyingData.IsValid), UnmanagedCallersOnlyAttributeData.Uninitialized);
+                    Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, data, UnmanagedCallersOnlyAttributeData.Uninitialized);
                 }
 
                 return _lazyUnmanagedAttributeData;

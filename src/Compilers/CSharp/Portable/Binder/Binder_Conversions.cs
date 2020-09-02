@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportUnsafeIfNotAllowed(syntax, diagnostics);
             }
 
-            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process

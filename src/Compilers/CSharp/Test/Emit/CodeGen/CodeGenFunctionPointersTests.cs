@@ -8389,7 +8389,7 @@ public class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (10,9): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                // (10,9): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         M1();
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1()").WithArguments("C.M1()").WithLocation(10, 9)
             );
@@ -8423,7 +8423,7 @@ class D
 ", references: new[] { reference });
 
                 comp1.VerifyDiagnostics(
-                    // (6,9): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                    // (6,9): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                     //         C.M1();
                     Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M1()").WithArguments("C.M1()").WithLocation(6, 9)
                 );
@@ -9011,7 +9011,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,9): error CS8897: 'CExt.GetEnumerator(S)' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                // (7,9): error CS8897: 'CExt.GetEnumerator(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         foreach (var i in s) {}
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "foreach").WithArguments("CExt.GetEnumerator(S)").WithLocation(7, 9)
             );
@@ -9105,18 +9105,370 @@ public class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (11,20): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                // (11,20): error CS8898: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //         Action a = M1;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1").WithArguments("C.M1()").WithLocation(11, 20),
-                // (12,13): error CS8897: 'local()' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "M1").WithArguments("C.M1()").WithLocation(11, 20),
+                // (12,13): error CS8898: 'local()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //         a = local;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "local").WithArguments("local()").WithLocation(12, 13),
-                // (13,24): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "local").WithArguments("local()").WithLocation(12, 13),
+                // (13,24): error CS8898: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //         a = new Action(M1);
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1").WithArguments("C.M1()").WithLocation(13, 24),
-                // (14,24): error CS8897: 'local()' is attributed with 'UnmanagedCallersOnly' cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "M1").WithArguments("C.M1()").WithLocation(13, 24),
+                // (14,24): error CS8898: 'local()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //         a = new Action(local);
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "local").WithArguments("local()").WithLocation(14, 24)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "local").WithArguments("local()").WithLocation(14, 24)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCaptureToDelegate_OverloadStillPicked()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+public class C 
+{
+    [UnmanagedCallersOnly]
+    public static void M(int s) { }
+
+    public static void M(object o) { }
+
+    void N()
+    {
+        Action<int> a = M;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (13,25): error CS8898: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         Action<int> a = M;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "M").WithArguments("C.M(int)").WithLocation(13, 25)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnExtensionsCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static void M(S s)
+    {
+        s.Extension();
+        CExt.Extension(s);
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static void Extension(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8897: 'CExt.Extension(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         s.Extension();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s.Extension()").WithArguments("CExt.Extension(S)").WithLocation(8, 9),
+                // (9,9): error CS8897: 'CExt.Extension(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         CExt.Extension(s);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "CExt.Extension(s)").WithArguments("CExt.Extension(S)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionDeconstructCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static void M(S s, List<S> ls)
+    {
+        var (i1, i2) = s;
+        (i1, i2) = s;
+        foreach (var (_, _) in ls) { }
+        _ = s is (int _, int _);
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static void Deconstruct(this S s, out int i1, out int i2) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (9,24): error CS8897: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         var (i1, i2) = s;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(9, 24),
+                // (10,20): error CS8897: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         (i1, i2) = s;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(10, 20),
+                // (11,32): error CS8897: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         foreach (var (_, _) in ls) { }
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "ls").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(11, 32),
+                // (12,18): error CS8897: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = s is (int _, int _);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "(int _, int _)").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(12, 18)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionAddCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+struct S : IEnumerable
+{
+    static void M(S s, List<S> ls)
+    {
+        _ = new S() { 1, 2, 3 };
+    }
+
+    public IEnumerator GetEnumerator() => throw null;
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static void Add(this S s, int i) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (10,23): error CS8897: 'CExt.Add(S, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = new S() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "1").WithArguments("CExt.Add(S, int)").WithLocation(10, 23),
+                // (10,26): error CS8897: 'CExt.Add(S, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = new S() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "2").WithArguments("CExt.Add(S, int)").WithLocation(10, 26),
+                // (10,29): error CS8897: 'CExt.Add(S, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = new S() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "3").WithArguments("CExt.Add(S, int)").WithLocation(10, 29)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionGetAwaiterCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static async void M(S s)
+    {
+        await s;
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static TaskAwaiter GetAwaiter(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8897: 'CExt.GetAwaiter(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         await s;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "await s").WithArguments("CExt.GetAwaiter(S)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionGetPinnableReferenceCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static void M(S s)
+    {
+        unsafe
+        {
+            fixed (int* i = s)
+            {
+
+            }
+        }
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static ref int GetPinnableReference(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (10,29): error CS8897: 'CExt.GetPinnableReference(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //             fixed (int* i = s)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.GetPinnableReference(S)").WithLocation(10, 29)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_1()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    public static void Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,24): error CS8898: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(6, 24)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_2()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static void Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,24): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(5, 24),
+                // (10,24): error CS8898: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(10, 24)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_3()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static void Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_4()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+class C
+{
+    public static async Task Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static async Task Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 30),
+                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 30),
+                // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
+                // (11,30): error CS8898: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30),
+                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_5()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+class C
+{
+    public static void Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static async Task Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
+                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnModuleInitializer()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+
+public class C
+{
+    [UnmanagedCallersOnly, ModuleInitializer]
+    public static void M1() {}
+
+    [ModuleInitializer, UnmanagedCallersOnly]
+    public static void M2() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (9,28): error CS8899: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly, ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "ModuleInitializer").WithLocation(9, 28),
+                // (12,25): error CS8899: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
+                //     [ModuleInitializer, UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "UnmanagedCallersOnly").WithLocation(12, 25)
             );
         }
 

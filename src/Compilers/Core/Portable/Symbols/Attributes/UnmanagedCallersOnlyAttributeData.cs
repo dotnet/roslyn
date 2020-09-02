@@ -6,26 +6,20 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class UnmanagedCallersOnlyAttributeData
     {
-        internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: null, isValid: false);
+        internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
 
-        public readonly ImmutableHashSet<INamedTypeSymbolInternal>? CallingConventionTypes;
+        public readonly ImmutableHashSet<INamedTypeSymbolInternal> CallingConventionTypes;
 
-#pragma warning disable 8775 // Invariant is verified in the constructor
-        [MemberNotNullWhen(true, nameof(CallingConventionTypes))]
         public bool IsValid { get; }
-#pragma warning restore 8775
 
-        public UnmanagedCallersOnlyAttributeData(ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes, bool isValid)
+        public UnmanagedCallersOnlyAttributeData(ImmutableHashSet<INamedTypeSymbolInternal> callingConventionTypes, bool isValid)
         {
-            Debug.Assert(callingConventionTypes is not null || !isValid);
             CallingConventionTypes = callingConventionTypes;
             IsValid = isValid;
         }

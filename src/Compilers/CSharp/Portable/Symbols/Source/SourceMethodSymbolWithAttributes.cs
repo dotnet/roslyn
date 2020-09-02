@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
                 {
-                    var data = (MethodWellKnownAttributeData)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+                    var data = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
                     return data?.UnmanagedCallersOnlyAttributeData;
                 }
 
@@ -831,6 +831,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasError = true;
             }
 
+            // In DecodeUnmanagedCallersOnlyAttribute, we check to see if this is a module initializer. In
+            // DecodeModuleInitializerAttribute, we check to see if this method is attributed with UnmanagedCallersOnly.
+            // When decoding a method we could have either order, so the first check will not find the presence of the
+            // other. The second check will find the presence and appropriately report an error.
+            if (arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData is { } methodData)
+            {
+                Debug.Assert(!ReferenceEquals(methodData, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
+                hasError = true;
+            }
+
             if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
@@ -873,6 +884,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var param in Parameters)
             {
                 checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
+            }
+
+            // In DecodeUnmanagedCallersOnlyAttribute, we check to see if this is a module initializer. In
+            // DecodeModuleInitializerAttribute, we check to see if this method is attributed with UnmanagedCallersOnly.
+            // When decoding a method we could have either order, so the first check will not find the presence of the
+            // other. The second check will find the presence and appropriately report an error.
+            if (DeclaringCompilation.IsMethodSymbolModuleInitializer(this))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
             }
 
             static bool isGenericMethod([DisallowNull] MethodSymbol? method)
