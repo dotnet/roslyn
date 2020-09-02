@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             ///     DoSomething(a, b);
             /// }
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax expression)> ParametersToGenerateFreshVariablesFor { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)> ParametersToGenerateFreshVariablesFor { get; }
 
             /// <summary>
             /// A dictionary that contains Parameter that should be directly replaced. Key is the parameter and Value is the replacement exprssion
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             public MethodParametersInfo(
                 ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
-                ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax expression)> parametersToGenerateFreshVariablesFor,
+                ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)> parametersToGenerateFreshVariablesFor,
                 ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace,
                 bool mergeInlineContentAndVariableDeclarationArgument)
             {
@@ -168,11 +168,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var allArgumentOperations = invocationOperation.Arguments
-                .WhereAsArray(argument => argument.Children.IsSingle());
+            var allArgumentOperations = invocationOperation.Arguments;
 
             // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
             // For params array, it should be included here if it is accept an array identifier as argument.
+            // Note: this might change the order of evaluation if the identifiers are property, this is by design because strictly
+            // follow the semantics will cause strange code and this is a refactoring.
             // Example:
             // Before:
             // void Caller(int i, int j, bool[] k)
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             var operationsWithIdentifierArgument = allArgumentOperations
                 .WhereAsArray(argument =>
-                    _syntaxFacts.IsIdentifierName(argument.Children.Single().Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
+                    _syntaxFacts.IsIdentifierName(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
 
             // 2. Find all the declaration arguments (e.g. out var declaration in C#).
             // After inlining, an declaration needs to be put before the invocation. And also use the declared identifier to replace the mapping parameter in callee.
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // void Callee(out int i) => i = 100;
             var operationsWithVariableDeclarationArgument = allArgumentOperations
                 .WhereAsArray(argument =>
-                    _syntaxFacts.IsDeclarationExpression(argument.Children.Single().Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
+                    _syntaxFacts.IsDeclarationExpression(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
 
             // 3. Find the literal arguments, and the mapping parameter will be replaced by that literal expression
             // Example:
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             var operationsWithLiteralArgument = allArgumentOperations
                 .WhereAsArray(argument =>
-                    _syntaxFacts.IsLiteralExpression(argument.Children.Single().Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
+                    _syntaxFacts.IsLiteralExpression(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
 
             // 4. Find the default value parameters. Similarly to 3, they should be replaced by the default value.
             // Example:
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .RemoveRange(operationsWithVariableDeclarationArgument)
                 .RemoveRange(operationsWithLiteralArgument)
                 .RemoveRange(operationsWithDefaultValue)
-                .WhereAsArray(argument => argument.Children.Single().Syntax is TExpressionSyntax);
+                .WhereAsArray(argument => argument.Value.Syntax is TExpressionSyntax);
 
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             // There is a special case that should be treated differently. If the parameter is only read once in the method body.
@@ -314,8 +315,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // {
             //     DoSomething(a, b);
             // }
-            var operationsAreReadOnlyOnce = await GetArgumentsReadOnlyOnceAsync(
-                document, operationsToGenerateFreshVariablesFor, calleeMethodNode, cancellationToken).ConfigureAwait(false);
+            // Note: this change might change the order of evaluation. Strictly keep the semantics will make the
+            // code becomes strange so it is by design.
+            var operationsAreReadOnlyOnce =
+                await GetArgumentsReadOnlyOnceAsync(
+                    document,
+                    operationsToGenerateFreshVariablesFor,
+                    calleeMethodNode,
+                    cancellationToken).ConfigureAwait(false);
             operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsAreReadOnlyOnce);
             var parametersToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor
                 .SelectAsArray(argument => (argument.Parameter, GenerateArgumentExpression(syntaxGenerator, argument)));
@@ -350,7 +357,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var parametersWithVariableDeclarationArgument = operationsWithVariableDeclarationArgument
                 .Select(argument => (
                     argument.Parameter,
-                    semanticModel.GetSymbolInfo(argument.Children.Single().Syntax, cancellationToken).GetAnySymbol()?.Name))
+                    semanticModel.GetSymbolInfo(argument.Value.Syntax, cancellationToken).GetAnySymbol()?.Name))
                 .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
                 .ToImmutableArray();
 
@@ -410,19 +417,19 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             TMethodDeclarationSyntax calleeMethodNode,
             CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<IArgumentOperation>.GetInstance();
+            using var _ = ArrayBuilder<IArgumentOperation>.GetInstance(out var builder);
             foreach (var argument in arguments)
             {
                 var parameterSymbol = argument.Parameter;
                 var allReferences = await SymbolFinder
-                    .FindReferencesAsync(parameterSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    .FindReferencesAsync(parameterSymbol, document.Project.Solution, ImmutableHashSet<Document>.Empty.Add(document), cancellationToken).ConfigureAwait(false);
                 // Need to check if the node is in CalleeMethodNode, because for this case
                 // void Caller() { Callee(i: 10); }
                 // void Callee(int i) { DoSomething(); }
                 // the 'i' in the caller will be considered as the referenced location
                 var allReferencedLocations = allReferences
                     .SelectMany(@ref => @ref.Locations)
-                    .Where(location => calleeMethodNode.Contains(location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken)))
+                    .Where(location => !location.IsImplicit && calleeMethodNode.Contains(location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken)))
                     .ToImmutableArray();
 
                 if (allReferencedLocations.Length == 1
@@ -432,7 +439,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -479,7 +486,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IArgumentOperation argumentOperation)
         {
             var parameterSymbol = argumentOperation.Parameter;
-            var argumentExpressionOperation = argumentOperation.Children.Single();
+            var argumentExpressionOperation = argumentOperation.Value;
             if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
                 && parameterSymbol.Type is IArrayTypeSymbol paramArrayParameter
                 && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
@@ -499,9 +506,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             // In all the other cases, one parameter should only maps to one argument.
             if (argumentOperation.ArgumentKind == ArgumentKind.DefaultValue
-                && argumentOperation.Parameter.HasExplicitDefaultValue)
+                && parameterSymbol.HasExplicitDefaultValue)
             {
-                return (TExpressionSyntax)syntaxGenerator.LiteralExpression(argumentOperation.Parameter.ExplicitDefaultValue);
+                return GenerateLiteralExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue);
             }
 
             return (TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpressionOperation.Syntax);

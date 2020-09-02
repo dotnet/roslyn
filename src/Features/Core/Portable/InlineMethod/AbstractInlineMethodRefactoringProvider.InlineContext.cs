@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             // Check if there is await expression. It is used later if the caller should be changed to async
             var awaitExpressions = inlineExpression
-                .DescendantNodesAndSelf()
-                .Where(node => node != null && _syntaxFacts.IsAwaitExpression(node))
+                .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunction(node))
+                .Where(_syntaxFacts.IsAwaitExpression)
                 .ToImmutableArray();
             foreach (var awaitExpression in awaitExpressions)
             {
@@ -310,10 +310,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             foreach (var (symbol, syntaxNode) in replacementTable)
             {
                 var allReferences = await SymbolFinder
-                    .FindReferencesAsync(symbol, document.Project.Solution, cancellationToken)
+                    .FindReferencesAsync(symbol, document.Project.Solution, ImmutableHashSet<Document>.Empty.Add(document), cancellationToken)
                     .ConfigureAwait(false);
                 var allSyntaxNodesToReplace = allReferences
                     .SelectMany(reference => reference.Locations
+                        .Where(location => !location.IsImplicit)
                         .Select(location => location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken)))
                     .ToImmutableArray();
 
@@ -336,7 +337,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         private ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
             IMethodSymbol calleeMethodSymbol,
-            ImmutableArray<(IParameterSymbol parameter, string identifierName)> parametersWithVariableDeclarationArgument,
+            ImmutableArray<(IParameterSymbol parameter, string identifierName)>
+                parametersWithVariableDeclarationArgument,
             ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace,
             SyntaxGenerator syntaxGenerator,
             ImmutableDictionary<ISymbol, string> renameTable)

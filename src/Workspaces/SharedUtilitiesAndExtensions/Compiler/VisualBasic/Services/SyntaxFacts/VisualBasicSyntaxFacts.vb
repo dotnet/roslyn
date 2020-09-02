@@ -2380,13 +2380,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsThrowStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsThrowStatement
             Return node.IsKind(SyntaxKind.ThrowStatement)
         End Function
-
-        Public Function IsArrowExpressionClause(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsArrowExpressionClause
-            Return False
-        End Function
-
-        Public Function GetExpressionOfArrowExpressionClause(arrowExpressionClause As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfArrowExpressionClause
-            Throw New NotImplementedException
-        End Function
     End Class
 End Namespace

@@ -6,21 +6,20 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<MethodDeclarationSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax>
+        AbstractInlineMethodRefactoringProvider<BaseMethodDeclarationSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         {
         }
 
-        protected override ExpressionSyntax? GetRawInlineExpression(MethodDeclarationSyntax methodDeclarationSyntax)
+        protected override ExpressionSyntax? GetRawInlineExpression(BaseMethodDeclarationSyntax methodDeclarationSyntax)
         {
             var blockSyntaxNode = methodDeclarationSyntax.Body;
             if (blockSyntaxNode != null)
@@ -86,6 +85,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override StatementSyntax ConvertToStatement(ExpressionSyntax expression, bool createReturnStatement)
             => expression.ConvertToStatement(SyntaxFactory.Token(SyntaxKind.SemicolonToken), createReturnStatement);
+
+        protected override ExpressionSyntax GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value)
+            => ExpressionGenerator.GenerateExpression(typeSymbol, value, canUseFieldReference: true);
+
+        protected override bool IsMethodWithExpressionBody(SyntaxNode callerNode)
+        {
+            if (callerNode is BaseMethodDeclarationSyntax methodDeclarationNode)
+            {
+                return methodDeclarationNode.ExpressionBody != null;
+            }
+
+            if (callerNode is LambdaExpressionSyntax lambdaExpressionNode)
+            {
+                return lambdaExpressionNode.ExpressionBody != null;
+            }
+
+            return false;
+        }
 
         protected override bool IsValidExpressionUnderExpressionStatement(ExpressionSyntax expressionNode)
         {

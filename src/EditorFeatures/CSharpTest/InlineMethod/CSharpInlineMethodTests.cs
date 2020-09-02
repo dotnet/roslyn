@@ -2878,27 +2878,6 @@ public class TestClass
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
-    public void Caller(bool a) => Ca[||]llee();
-
-    private int Callee() => 1;
-}
-", @"
-public class TestClass
-{
-    public void Caller(bool a)
-    {
-        int temp = 1;
-    }
-##
-    private int Callee() => 1;
-##}
-");
-
-        [Fact]
-        public Task TestChangeToMethodBlock3()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
-public class TestClass
-{
     public void Caller() => Ca[||]llee(out var j);
 
     private void Callee(out int i) => i = 1;

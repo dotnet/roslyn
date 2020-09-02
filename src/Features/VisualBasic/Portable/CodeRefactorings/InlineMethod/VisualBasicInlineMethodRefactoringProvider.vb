@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -63,6 +64,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Throw New NotImplementedException
         End Function
 
+        Protected Overrides Function GenerateLiteralExpression(typeSymbol As ITypeSymbol, value As Object) As ExpressionSyntax
+            Return GenerateExpression(typeSymbol, value, canUseFieldReference := True)
+        End Function
+
         Protected Overrides Function IsValidExpressionUnderExpressionStatement(expressionNode As ExpressionSyntax) As Boolean
             Return expressionNode.IsKind(SyntaxKind.AwaitExpression) OrElse expressionNode.IsKind(SyntaxKind.InvocationExpression)
         End Function
@@ -70,6 +75,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Protected Overrides Function CanBeReplacedByThrowExpression(syntaxNode As SyntaxNode) As Boolean
             ' Throw Expression doesn't exist in VB
             Return False
+        End Function
+
+        Protected Overrides Function IsMethodWithExpressionBody(callerNode As SyntaxNode) As Boolean
+            Return callerNode.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse callerNode.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
         End Function
     End Class
 End Namespace
