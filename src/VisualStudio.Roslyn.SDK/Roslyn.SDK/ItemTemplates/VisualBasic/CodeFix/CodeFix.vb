@@ -1,4 +1,4 @@
-Imports System.Composition
+﻿Imports System.Composition
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
