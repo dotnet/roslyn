@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Remote
         // brokered services:
 
         public async ValueTask<bool> TryInvokeAsync<TService>(
-            object? callbackTarget,
             Func<TService, CancellationToken, ValueTask> invocation,
+            object? callbackTarget,
             CancellationToken cancellationToken)
             where TService : class
         {
@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
-            object? callbackTarget,
             Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+            object? callbackTarget,
             CancellationToken cancellationToken)
             where TService : class
         {
@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async ValueTask<bool> TryInvokeAsync<TService>(
             Solution solution,
-            object? callbackTarget,
             Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask> invocation,
+            object? callbackTarget,
             CancellationToken cancellationToken)
             where TService : class
         {
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
             Solution solution,
-            object? callbackTarget,
             Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation,
+            object? callbackTarget,
             CancellationToken cancellationToken)
             where TService : class
         {

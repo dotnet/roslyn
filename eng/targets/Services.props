@@ -10,8 +10,10 @@
   -->
   <ItemGroup>
     <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
-    <ServiceHubService Include="roslynRemoteDiagnosticAnalyzerService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
+    <ServiceHubService Include="roslynRemoteDiagnosticAnalyzerService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="roslynRemoteSemanticClassificationService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="roslynRemoteSemanticClassificationCacheService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationCacheService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />

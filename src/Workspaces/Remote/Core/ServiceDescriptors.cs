@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
@@ -27,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteDesignerAttributeService), callbackInterface: typeof(IDesignerAttributeListener)),
             CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IProjectTelemetryListener)),
             CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
+            CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
+            CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
         });
 
         private static KeyValuePair<Type, (ServiceDescriptor, ServiceDescriptor)> CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)

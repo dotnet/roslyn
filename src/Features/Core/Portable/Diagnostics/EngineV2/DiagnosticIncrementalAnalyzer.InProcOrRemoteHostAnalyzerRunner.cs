@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
 
                 _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
-                    callbackTarget: null,
                     (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
@@ -194,14 +194,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>>(
                 solution,
-                callbackTarget: null,
                 async (service, solutionInfo, cancellationToken) =>
                 {
                     using var stream = new MemoryStream();
                     await service.CalculateDiagnosticsAsync(solutionInfo, argument, stream, cancellationToken).ConfigureAwait(false);
                     return await ReadCompilerAnalysisResultAsync(stream, analyzerMap, documentAnalysisScope, project, cancellationToken).ConfigureAwait(false);
                 },
-                cancellationToken).ConfigureAwait(false);
+                callbackTarget: null,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
         }

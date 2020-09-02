@@ -231,6 +231,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(new RemoteProjectTelemetryService.Factory());
                 RegisterService(new RemoteTodoCommentsService.Factory());
                 RegisterService(new RemoteDiagnosticAnalyzerService.Factory());
+                RegisterService(new RemoteSemanticClassificationService.Factory());
+                RegisterService(new RemoteSemanticClassificationCacheService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
