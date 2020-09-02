@@ -7621,35 +7621,57 @@ record B
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 
-record B([AllowNull] string X)
+record B([AllowNull] string X) // 1
 {
     static void M1(B b)
     {
         b.X.ToString();
-        b = b with { X = null }; // ok
-        b.X.ToString(); // ok
+        b = b with { X = null }; // 2
+        b.X.ToString(); // 3
         b = new B((string?)null);
-        b.X.ToString(); // ok
+        b.X.ToString();
     }
 }";
-            // We should have a way to propagate attributes on
-            // positional parameters to the corresponding properties.
-            // https://github.com/dotnet/roslyn/issues/44691
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8601: Possible null reference assignment.
-                // record B([AllowNull] string X)
+                // record B([AllowNull] string X) // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "[AllowNull] string X").WithLocation(5, 10),
                 // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         b = b with { X = null }; // ok
+                //         b = b with { X = null }; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
                 // (11,9): warning CS8602: Dereference of a possibly null reference.
-                //         b.X.ToString(); // ok
+                //         b.X.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 9));
+        }
+
+        [Fact, WorkItem(44691, "https://github.com/dotnet/roslyn/issues/44691")]
+        public void WithExpr_NullableAnalysis_08()
+        {
+            var src = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+record B([property: AllowNull][AllowNull] string X)
+{
+    static void M1(B b)
+    {
+        b.X.ToString();
+        b = b with { X = null };
+        b.X.ToString(); // 1
+        b = new B((string?)null);
+        b.X.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.X.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 9));
         }
 
         [Fact]
-        public void WithExpr_NullableAnalysis_08()
+        public void WithExpr_NullableAnalysis_09()
         {
             var src = @"
 #nullable enable
@@ -7688,7 +7710,7 @@ record B(string? X, string? Y)
         }
 
         [Fact]
-        public void WithExpr_NullableAnalysis_09()
+        public void WithExpr_NullableAnalysis_10()
         {
             var src = @"
 #nullable enable
@@ -7712,7 +7734,7 @@ record B(string? X, string? Y)
         }
 
         [Fact]
-        public void WithExpr_NullableAnalysis_10()
+        public void WithExpr_NullableAnalysis_11()
         {
             var src = @"
 #nullable enable
