@@ -995,15 +995,13 @@ namespace Microsoft.CodeAnalysis
                                 continue;
 
                             var newTree = tree
-                                // TODO: this causes https://github.com/dotnet/roslyn/issues/47278; consider fixing that bug in Roslyn or somehow working around it?
+                                // TODO: this causes https://github.com/dotnet/roslyn/issues/47278; fix that bug in Roslyn
                                 .WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options)
-                                // TODO: make the new path better reflect the old path?
                                 .WithFilePath(Path.Combine(Guid.NewGuid().ToString(), Path.GetFileName(tree.FilePath)));
 
                             compilation = compilation.ReplaceSyntaxTree(tree, newTree);
 
                             var text = newTree.GetText();
-
                             if (!text.CanBeEmbedded)
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
 

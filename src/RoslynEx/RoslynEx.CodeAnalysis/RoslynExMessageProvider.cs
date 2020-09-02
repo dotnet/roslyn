@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 
 namespace RoslynEx
 {
-    // TODO: Verify that the unimplmeneted methods are really not necessary.
     internal sealed class RoslynExMessageProvider : CommonMessageProvider
     {
         public static RoslynExMessageProvider Instance { get; } = new RoslynExMessageProvider();
@@ -150,20 +149,15 @@ namespace RoslynEx
 
         #endregion
 
-        public override Diagnostic CreateDiagnostic(DiagnosticInfo info)
-        {
-            throw new NotImplementedException();
-        }
+        public override Diagnostic CreateDiagnostic(DiagnosticInfo info) => Diagnostic.Create(info);
 
         public override Diagnostic CreateDiagnostic(int code, Location location, params object[] args)
         {
-            throw new NotImplementedException();
+            var diagnosticInfo = new DiagnosticInfo(this, code, args);
+            return new DiagnosticWithInfo(diagnosticInfo, location);
         }
 
-        public override string GetCategory(int code)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetCategory(int code) => Diagnostic.CompilerDiagnosticCategory;
 
         public override LocalizableString GetDescription(int code)
         {
@@ -175,25 +169,16 @@ namespace RoslynEx
             throw new NotImplementedException();
         }
 
-        public override string GetErrorDisplayString(ISymbol symbol)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetErrorDisplayString(ISymbol symbol) => symbol.ToString();
 
-        public override string GetHelpLink(int code)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetHelpLink(int code) => string.Empty;
 
-        public override LocalizableString GetMessageFormat(int code)
-        {
-            throw new NotImplementedException();
-        }
+        public override LocalizableString GetMessageFormat(int code) => LoadMessage(code, null);
 
-        public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture) =>
+            string.Format(culture, "{0} {1}",
+                severity == DiagnosticSeverity.Error || isWarningAsError ? "error" : "warning",
+                id);
 
         public override DiagnosticSeverity GetSeverity(int code) => DiagnosticSeverity.Error;
 
@@ -202,10 +187,7 @@ namespace RoslynEx
             throw new NotImplementedException();
         }
 
-        public override int GetWarningLevel(int code)
-        {
-            throw new NotImplementedException();
-        }
+        public override int GetWarningLevel(int code) => 0;
 
         public override string LoadMessage(int code, CultureInfo language) =>
             code switch
@@ -216,6 +198,8 @@ namespace RoslynEx
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
+
+        #region Report Roslyn diagnostics
 
         public override void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName)
         {
@@ -261,5 +245,7 @@ namespace RoslynEx
         {
             throw new NotImplementedException();
         }
+
+        #endregion
     }
 }

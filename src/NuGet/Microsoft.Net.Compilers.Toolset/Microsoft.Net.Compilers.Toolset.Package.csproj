@@ -30,7 +30,7 @@
     <PreReleaseVersionLabel>poc</PreReleaseVersionLabel>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <OfficialBuild>true</OfficialBuild>
-    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).3</OfficialBuildId>
+    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).4</OfficialBuildId>
   </PropertyGroup>
 
   <ItemGroup>
