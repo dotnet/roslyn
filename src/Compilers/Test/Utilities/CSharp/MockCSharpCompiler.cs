@@ -17,19 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly ImmutableArray<ISourceGenerator> _generators;
+        private readonly ImmutableArray<ISourceTransformer> _transformers;
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
 
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, loader)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader)
         {
         }
 
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader())
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
+            _transformers = transformers.NullToEmpty();
         }
 
         private static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null) => RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory);
@@ -50,6 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             if (!_generators.IsDefaultOrEmpty)
             {
                 generators = generators.InsertRange(0, _generators);
+            }
+            if (!_transformers.IsDefaultOrEmpty)
+            {
+                transformers = transformers.InsertRange(0, _transformers);
             }
         }
 

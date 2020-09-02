@@ -1002,7 +1002,12 @@ namespace Microsoft.CodeAnalysis
 
                             compilation = compilation.ReplaceSyntaxTree(tree, newTree);
 
-                            embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(newTree.FilePath, newTree.GetText()));
+                            var text = newTree.GetText();
+
+                            if (!text.CanBeEmbedded)
+                                text = SourceText.From(text.ToString(), Encoding.UTF8);
+
+                            embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(newTree.FilePath, text));
                         }
                     }
                 }

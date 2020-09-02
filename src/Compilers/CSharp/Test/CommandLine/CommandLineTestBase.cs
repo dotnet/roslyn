@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using RoslynEx;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -54,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         internal MockCSharpCompiler CreateCSharpCompiler(string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
         {
-            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, loader);
+            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, default, loader);
         }
 
-        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
+        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
-            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, loader);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader);
         }
     }
 }
