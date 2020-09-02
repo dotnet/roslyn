@@ -13,16 +13,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json;
@@ -53,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(solutionProvider, Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
         {
         }
 

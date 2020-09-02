@@ -20,10 +20,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -209,18 +207,22 @@ namespace Roslyn.Test.Utilities
                 Value = value
             };
 
-        protected static LSP.CompletionParams CreateCompletionParams(LSP.Location caret)
+        protected static LSP.CompletionParams CreateCompletionParams(LSP.Location caret, string triggerCharacter, LSP.CompletionTriggerKind triggerKind)
             => new LSP.CompletionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
                 Context = new LSP.CompletionContext()
                 {
-                    // TODO - completion should respect context.
+                    TriggerCharacter = triggerCharacter,
+                    TriggerKind = triggerKind
                 }
             };
 
-        protected static LSP.VSCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters, bool preselect = false)
+        protected static LSP.VSCompletionItem CreateCompletionItem(
+            string text, LSP.CompletionItemKind kind, string[] tags,
+            LSP.CompletionParams requestParameters, bool preselect = false,
+            string[]? commitCharacters = null)
             => new LSP.VSCompletionItem()
             {
                 FilterText = text,
@@ -236,7 +238,8 @@ namespace Roslyn.Test.Utilities
                     Position = requestParameters.Position
                 },
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
-                Preselect = preselect
+                Preselect = preselect,
+                CommitCharacters = commitCharacters
             };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
