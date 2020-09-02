@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.Extensions
                 }
             }
 
+            // See https://github.com/dotnet/roslyn/issues/47365
+            if (innerTypeInfo.Type is IDynamicTypeSymbol)
+            {
+                return false;
+            }
+
             // Only allow us to change associativity if all the types are the same.
             // for example, if we have: int + (int + long)  then we don't want to
             // change things such that we effectively have (int + int) + long
