@@ -5,16 +5,13 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
@@ -128,32 +125,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
                 _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
-            }
-
-            public Guid GetThemeId()
-            {
-                // Look up the value from the new roamed theme property first and
-                // fallback to the original roamed theme property if that fails.
-                var themeIdString = _workspace.Options.GetOption(VisualStudioColorTheme.CurrentThemeNew)
-                    ?? _workspace.Options.GetOption(VisualStudioColorTheme.CurrentTheme);
-
-                return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
-            }
-
-            private static class VisualStudioColorTheme
-            {
-                private const string CurrentThemeValueName = "Microsoft.VisualStudio.ColorTheme";
-                private const string CurrentThemeValueNameNew = "Microsoft.VisualStudio.ColorThemeNew";
-
-                public static readonly Option<string?> CurrentTheme = new Option<string?>(nameof(VisualStudioColorTheme),
-                    nameof(CurrentTheme),
-                    defaultValue: null,
-                    storageLocations: new RoamingProfileStorageLocation(CurrentThemeValueName));
-
-                public static readonly Option<string?> CurrentThemeNew = new Option<string?>(nameof(VisualStudioColorTheme),
-                    nameof(CurrentThemeNew),
-                    defaultValue: null,
-                    storageLocations: new RoamingProfileStorageLocation(CurrentThemeValueNameNew));
             }
         }
     }

@@ -64,30 +64,32 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         public void Initialize()
         {
-            AssertIsForeground();
-
             if (!_isInitialized)
             {
-                _isInitialized = true;
-
-                _ = _colorSchemeRegistryItems.GetValueAsync(CancellationToken.None);
-
-                // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
-                var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
-
-                VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
-
-                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
-                _settings.MigrateToColorSchemeSetting();
-
-                // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
-                // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
-                // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
-                // colors are only applicable to the Blue and Light VS themes.
-
-                UpdateColorScheme();
+                return;
             }
+
+            AssertIsForeground();
+
+            _isInitialized = true;
+
+            _ = _colorSchemeRegistryItems.GetValueAsync(CancellationToken.None);
+
+            // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
+            var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
+
+            VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
+
+            // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+            _settings.MigrateToColorSchemeSetting();
+
+            // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+            // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+            // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+            // colors are only applicable to the Blue and Light VS themes.
+
+            UpdateColorScheme();
         }
 
         private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
@@ -150,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsSupportedTheme()
-            => IsSupportedTheme(_settings.GetThemeId());
+            => IsSupportedTheme(GetThemeId());
 
         public bool IsSupportedTheme(Guid themeId)
         {
@@ -160,7 +162,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsThemeCustomized()
-            => _classificationVerifier.AreForegroundColorsCustomized(_settings.GetConfiguredColorScheme(), _settings.GetThemeId());
+            => _classificationVerifier.AreForegroundColorsCustomized(_settings.GetConfiguredColorScheme(), GetThemeId());
+
+        public Guid GetThemeId()
+        {
+            AssertIsForeground();
+
+            dynamic colorThemeService = _serviceProvider.GetService(typeof(SVsColorThemeService));
+            return (Guid)colorThemeService.CurrentTheme.ThemeId;
+        }
+
+        // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
+        [Guid("0d915b59-2ed7-472a-9de8-9161737ea1c5")]
+        private interface SVsColorThemeService
+        {
+        }
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
