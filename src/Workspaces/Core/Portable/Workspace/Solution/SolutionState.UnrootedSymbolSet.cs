@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionState
     {
         /// <summary>
+        /// A helper type for mapping <see cref="ISymbol"/> back to an originating <see cref="Project"/>.
+        /// </summary>
+        /// <remarks>
         /// In IDE scenarios we have the need to map from an <see cref="ISymbol"/> to the <see cref="Project"/> that
         /// contained a <see cref="Compilation"/> that could have produced that symbol.  This is especially needed with
         /// OOP scenarios where we have to communicate to OOP from VS (And vice versa) what symbol we are referring to.
