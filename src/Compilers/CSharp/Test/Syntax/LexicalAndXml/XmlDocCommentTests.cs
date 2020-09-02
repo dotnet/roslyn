@@ -3269,6 +3269,31 @@ public class Program
                 );
         }
 
+        [WorkItem(47278, "https://github.com/dotnet/roslyn/issues/47278")]
+        [Fact]
+        public void NormalizeWhitespace()
+        {
+            var text = @"
+namespace Foo
+{
+    /// <summary>
+    /// This is Foo.Bar
+    /// </summary>
+    class Bar { }
+}";
+
+            var tree = Parse(text);
+            tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options);
+
+            var comp = CreateCompilation(tree);
+
+            var diags = new DiagnosticBag();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(comp, null, null, diags, default);
+
+            diags.Verify();
+        }
+
         #region Xml Test helpers
 
         /// <summary>
