@@ -250,6 +250,39 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
+        /// <summary>
+        /// Gets the first ancestor of this operation with:
+        ///  1. Any OperationKind from the specified <paramref name="ancestorKinds"/>.
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
+        /// Returns null if there is no such ancestor.
+        /// </summary>
+        public static IOperation? GetAncestor(this IOperation root, ImmutableArray<OperationKind> ancestorKinds, Func<IOperation, bool>? predicate = null)
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            var ancestor = root;
+            do
+            {
+                ancestor = ancestor.Parent;
+            } while (ancestor != null && !ancestorKinds.Contains(ancestor.Kind));
+
+            if (ancestor != null)
+            {
+                if (predicate != null && !predicate(ancestor))
+                {
+                    return GetAncestor(ancestor, ancestorKinds, predicate);
+                }
+                return ancestor;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         public static IConditionalAccessOperation? GetConditionalAccess(this IConditionalAccessInstanceOperation operation)
         {
             return operation.GetAncestor(OperationKind.ConditionalAccess, (IConditionalAccessOperation c) => c.Operation.Syntax == operation.Syntax);
@@ -498,9 +531,13 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
-            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
-               operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
+        private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
+            ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
+        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
+        {
+            containingLambdaOrLocalFunctionOperation = operation.GetAncestor(s_LambdaAndLocalFunctionKinds);
+            return containingLambdaOrLocalFunctionOperation != null;
+        }
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
         {
