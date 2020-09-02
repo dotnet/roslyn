@@ -19,9 +19,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
-
     /// <summary>
     /// Operation visitor to flow the abstract dataflow analysis values across a given statement in a basic block.
     /// </summary>
@@ -2536,8 +2533,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(copyAnalysisResult?.ControlFlowGraph == null || cfg == copyAnalysisResult?.ControlFlowGraph);
             Debug.Assert(valueContentAnalysisResult?.ControlFlowGraph == null || cfg == valueContentAnalysisResult?.ControlFlowGraph);
 
-            var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(
-                cfg, localFunction, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult);
+            var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, localFunction);
 
             // Create analysis context for interprocedural analysis.
             var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
@@ -2577,8 +2573,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(copyAnalysisResult?.ControlFlowGraph == null || cfg == copyAnalysisResult?.ControlFlowGraph);
             Debug.Assert(valueContentAnalysisResult?.ControlFlowGraph == null || cfg == valueContentAnalysisResult?.ControlFlowGraph);
 
-            var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(
-                cfg, lambda.Symbol, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult);
+            var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, lambda.Symbol);
 
             // Create analysis context for interprocedural analysis.
             var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
@@ -2596,16 +2591,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(
             ControlFlowGraph cfg,
-            IMethodSymbol invokedMethod,
-            PointsToAnalysisResult? pointsToAnalysisResult,
-            CopyAnalysisResult? copyAnalysisResult,
-            ValueContentAnalysisResult? valueContentAnalysisResult)
+            IMethodSymbol invokedMethod)
         {
             var invocationInstance = (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
             var thisOrMeInstance = invocationInstance;
-            var pointsToValues = pointsToAnalysisResult?[cfg.GetEntry()].Data;
-            var copyValues = copyAnalysisResult?[cfg.GetEntry()].Data;
-            var valueContentValues = valueContentAnalysisResult?[cfg.GetEntry()].Data;
             var currentMethodsBeingAnalyzed = DataFlowAnalysisContext.InterproceduralAnalysisData?.MethodsBeingAnalyzed ?? ImmutableHashSet<TAnalysisContext>.Empty;
             var newMethodsBeingAnalyzed = currentMethodsBeingAnalyzed.Add(DataFlowAnalysisContext);
 
