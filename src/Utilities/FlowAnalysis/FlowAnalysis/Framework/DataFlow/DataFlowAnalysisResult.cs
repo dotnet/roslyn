@@ -157,25 +157,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(lambdaOrLocalFunctionOperation.Kind is OperationKind.AnonymousFunction or OperationKind.LocalFunction);
 
-            foreach (var kvp in _interproceduralResultsMap)
+            var isNestedLambdaOrLocalFunction = lambdaOrLocalFunctionOperation.IsWithinLambdaOrLocalFunction(out _);
+
+            foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _interproceduralResultsMap.Values)
             {
-                if (kvp.Key is IInvocationOperation or IFlowAnonymousFunctionOperation)
+                if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
                 {
-                    var result = (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)kvp.Value;
-                    if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
+                    yield return result;
+                }
+                else if (isNestedLambdaOrLocalFunction)
+                {
+                    foreach (var nestedResult in result.TryGetLambdaOrLocalFunctionResults(lambdaOrLocalFunctionOperation))
                     {
-                        yield return result;
+                        yield return nestedResult;
                     }
                 }
             }
 
             if (lambdaOrLocalFunctionOperation.Kind == OperationKind.LocalFunction)
             {
-                foreach (var result in _standaloneLocalFunctionAnalysisResultsMap.Values)
+                foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _standaloneLocalFunctionAnalysisResultsMap.Values)
                 {
                     if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
                     {
-                        yield return (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)result;
+                        yield return result;
+                    }
+                    else if (isNestedLambdaOrLocalFunction)
+                    {
+                        foreach (var nestedResult in result.TryGetLambdaOrLocalFunctionResults(lambdaOrLocalFunctionOperation))
+                        {
+                            yield return nestedResult;
+                        }
                     }
                 }
             }
