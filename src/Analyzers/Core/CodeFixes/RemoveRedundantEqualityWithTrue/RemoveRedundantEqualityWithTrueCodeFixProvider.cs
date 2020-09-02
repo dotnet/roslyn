@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,9 +15,17 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
 {
-    internal abstract class AbstractRemoveRedundantEqualityWithTrueCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+
+    internal sealed class RemoveRedundantEqualityWithTrueCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public RemoveRedundantEqualityWithTrueCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityWithTrueDiagnosticId);
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
@@ -38,14 +48,10 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
-                if (TryGetReplacementNode(node, out var replacement))
-                {
-                    editor.ReplaceNode(node, replacement);
-                }
+                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
+                editor.ReplaceNode(node, replacementNode);
             }
         }
-
-        protected abstract bool TryGetReplacementNode(SyntaxNode node, out SyntaxNode replacement);
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

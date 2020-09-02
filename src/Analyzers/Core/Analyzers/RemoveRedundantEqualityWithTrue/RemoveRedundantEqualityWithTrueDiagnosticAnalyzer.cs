@@ -35,12 +35,22 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             {
                 return;
             }
-            var rightValue = operation.RightOperand.ConstantValue;
-            var leftValue = operation.LeftOperand.ConstantValue;
-            if ((rightValue.HasValue && rightValue.Value is true) ||
-                (leftValue.HasValue && leftValue.Value is true))
+            var rightOperand = operation.RightOperand;
+            var leftOperand = operation.LeftOperand;
+            // The reported additionalLocations represents the non-true side of equality.
+            // This is used by the codefix as the location of the replacement node.
+            // So, the code fix will do: Replace(diagnostic.Location, diagnostic.AdditionalLocations[0]).
+            if (rightOperand.ConstantValue.HasValue && rightOperand.ConstantValue.Value is true)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, operation.Syntax.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor,
+                    operation.Syntax.GetLocation(),
+                    additionalLocations: new[] { leftOperand.Syntax.GetLocation() }));
+            }
+            else if (leftOperand.ConstantValue.HasValue && leftOperand.ConstantValue.Value is true)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor,
+                    operation.Syntax.GetLocation(),
+                    additionalLocations: new[] { rightOperand.Syntax.GetLocation() }));
             }
         }
     }
