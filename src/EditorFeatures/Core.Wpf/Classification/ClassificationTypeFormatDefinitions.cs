@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#define dark_theme
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -73,15 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
 
-        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
-        // can be removed.  Right now it serves as an easy way to recompile while flipping
-        // between different themes.
-#if dark_theme
-        private static readonly Color s_stringEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
-#else
-        private static readonly Color s_stringEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
-#endif
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StringEscapeCharacter)]
         [Name(ClassificationTypeNames.StringEscapeCharacter)]
@@ -96,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public StringEscapeCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
-                this.ForegroundColor = s_stringEscapeColor;
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
 
