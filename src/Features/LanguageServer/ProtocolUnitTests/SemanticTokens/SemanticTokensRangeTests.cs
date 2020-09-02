@@ -6,6 +6,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -35,8 +36,8 @@ static class C { }
                        1,     0,     6,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
                        0,     7,     5,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
                        0,     6,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                       0,     2,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                       0,     2,     1,    SemanticTokensCache.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     1,    SemanticTokensCache.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
                 },
                 ResultId = "1"
             };
