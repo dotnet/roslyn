@@ -167,8 +167,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var callerSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var allArgumentOperations = invocationOperation.Arguments;
+            var calleeDocument = document.Project.Solution.GetRequiredDocument(calleeMethodNode.SyntaxTree);
 
             // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
             // For params array, it should be included here if it is accept an array identifier as argument.
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // code becomes strange so it is by design.
             var operationsAreReadOnlyOnce =
                 await GetArgumentsReadOnlyOnceAsync(
-                    document,
+                    calleeDocument,
                     operationsToGenerateFreshVariablesFor,
                     calleeMethodNode,
                     cancellationToken).ConfigureAwait(false);
@@ -357,13 +358,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var parametersWithVariableDeclarationArgument = operationsWithVariableDeclarationArgument
                 .Select(argument => (
                     argument.Parameter,
-                    semanticModel.GetSymbolInfo(argument.Value.Syntax, cancellationToken).GetAnySymbol()?.Name))
+                    callerSemanticModel.GetSymbolInfo(argument.Value.Syntax, cancellationToken).GetAnySymbol()?.Name))
                 .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
                 .ToImmutableArray();
 
             var mergeInlineContentAndVariableDeclarationArgument = await MergeInlineContentAndVariableDeclarationArgumentAsync(
-                calleeInvocationNode,
-                document,
+                calleeDocument,
                 parametersWithVariableDeclarationArgument!,
                 rawInlineExpression,
                 cancellationToken).ConfigureAwait(false);
@@ -461,15 +461,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// void Callee(out int i) => i = 100;
         /// </summary>
         private async Task<bool> MergeInlineContentAndVariableDeclarationArgumentAsync(
-            TInvocationSyntax calleeInvocationNode,
             Document document,
             ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
             TExpressionSyntax inlineExpressionNode,
             CancellationToken cancellationToken)
         {
-            // Note: callee could lives in another document if this is a partial class
-            var calleeDocument = document.Project.Solution.GetRequiredDocument(calleeInvocationNode.SyntaxTree);
-            var semanticModel = await calleeDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (parametersWithVariableDeclarationArgument.Length == 1
                 && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
                 && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation

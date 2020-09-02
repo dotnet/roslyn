@@ -59,7 +59,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             var inlineExpression = rawInlineExpression;
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var callerSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var calleeDocument = document.Project.Solution.GetDocument(calleeMethodNode.SyntaxTree);
+            var calleeSemanticModel = await calleeDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Generate a map which the key is the symbol need renaming, value is the new name.
             // After inlining, there might be naming conflict because
@@ -112,7 +114,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var renameTable = ComputeRenameTable(
                 _semanticFactsService,
                 calleeMethodNode,
-                semanticModel,
+                callerSemanticModel,
+                calleeSemanticModel,
                 calleeInvocationNode,
                 methodParametersInfo.ParametersToGenerateFreshVariablesFor
                     .SelectAsArray(parameterAndArgument => parameterAndArgument.parameterSymbol),
@@ -239,7 +242,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             // Do the replacement work within the callee's body so that it can be inserted to the caller later.
             inlineExpression = await ReplaceAllSyntaxNodesForSymbolAsync(
-               document,
+               calleeDocument,
                inlineExpression,
                syntaxGenerator,
                replacementTable,
@@ -367,19 +370,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private static ImmutableDictionary<ISymbol, string> ComputeRenameTable(
             ISemanticFactsService semanticFacts,
             TMethodDeclarationSyntax calleeMethodNode,
-            SemanticModel semanticModel,
+            SemanticModel callerSemanticModel,
+            SemanticModel calleeSemanticModel,
             SyntaxNode calleeInvocationNode,
             ImmutableArray<IParameterSymbol> parametersNeedGenerateFreshVariableFor,
             CancellationToken cancellationToken)
         {
             var renameTable = new Dictionary<ISymbol, string>();
-            var localSymbolsInCallee = LocalVariableDeclarationVisitor.GetAllSymbols(semanticModel, calleeMethodNode, cancellationToken);
+            var localSymbolsInCallee = LocalVariableDeclarationVisitor.GetAllSymbols(calleeSemanticModel, calleeMethodNode, cancellationToken);
             foreach (var symbol in parametersNeedGenerateFreshVariableFor.Concat(localSymbolsInCallee))
             {
                 var usedNames = renameTable.Values;
                 renameTable[symbol] = semanticFacts
                     .GenerateUniqueLocalName(
-                        semanticModel,
+                        callerSemanticModel,
                         calleeInvocationNode,
                         containerOpt: null,
                         symbol.Name,

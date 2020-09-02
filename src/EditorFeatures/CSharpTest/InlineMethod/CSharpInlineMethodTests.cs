@@ -150,48 +150,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
         }
 
         [Fact]
-        public Task Test2()
-            => TestVerifier.TestInRegularScriptsInDifferentFilesAsync(
-                @"
-using System.Collections.Generic;
-public partial class TestClass
-{
-    private void Caller(int i)
-    {
-        var h = new HashSet<int>();
-        Ca[||]llee(i, h);
-    }
-}",
-                @"
-using System.Collections.Generic;
-public partial class TestClass
-{
-    private bool Callee(int i, HashSet<int> set)
-    {
-        return set.Add(i);
-    }
-}",
-                @"
-using System.Collections.Generic;
-public partial class TestClass
-{
-    private void Caller(int i)
-    {
-        var h = new HashSet<int>();
-        h.Add(i);
-    }
-}",
-                @"
-using System.Collections.Generic;
-public partial class TestClass
-{
-    private bool Callee(int i, HashSet<int> set)
-    {
-        return set.Add(i);
-    }
-}");
-
-        [Fact]
         public Task TestInlineInvocationExpressionForExpressionStatement()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
@@ -256,6 +214,42 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestInlineMethodWithSingleStatementAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        Ca[||]llee(i, j);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(int i, int j)
+    {
+        System.Console.WriteLine(i + j);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        System.Console.WriteLine(i + j);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(int i, int j)
+    {
+        System.Console.WriteLine(i + j);
+    }##
+}");
+
+        [Fact]
         public Task TestExtractArrowExpressionBody()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
@@ -279,6 +273,38 @@ public class TestClass
     private void Callee(int i, int j)
         => System.Console.WriteLine(i + j);
 ##}");
+
+        [Fact]
+        public Task TestExtractArrowExpressionBodyAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        Ca[||]llee(i, j);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(int i, int j)
+        => System.Console.WriteLine(i + j);
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        System.Console.WriteLine(i + j);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(int i, int j)
+        => System.Console.WriteLine(i + j);##
+}");
 
         [Fact]
         public Task TestExtractExpressionBody()
@@ -337,9 +363,50 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestDefaultValueReplacementForExpressionStatementAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee();
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(int i = 1, string c = null, bool y = false)
+    {
+        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine(false ? 1 : (null ?? ""Hello"").Length);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(int i = 1, string c = null, bool y = false)
+    {
+        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+    }##
+}");
+
+        [Fact]
         public Task TestDefaultValueReplacementForArrowExpression()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
+public enum A
+{
+    Value1,
+    Value2
+}
 public class TestClass
 {
     private void Caller()
@@ -347,46 +414,93 @@ public class TestClass
         Cal[||]lee();
     }
 
-    private void Callee(int i = default, string c = default, bool y = false) =>
-        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+    private void Callee(int i = default, string c = default, bool y = false, A a = default) =>
+        System.Console.WriteLine((y ? i : (c ?? ""Hello"").Length) + (int)a);
 }",
                 @"
+public enum A
+{
+    Value1,
+    Value2
+}
 public class TestClass
 {
     private void Caller()
     {
-        System.Console.WriteLine(false ? 0 : (null ?? ""Hello"").Length);
+        System.Console.WriteLine((false ? 0 : (null ?? ""Hello"").Length) + (int)A.Value1);
     }
 ##
-    private void Callee(int i = default, string c = default, bool y = false) =>
-        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+    private void Callee(int i = default, string c = default, bool y = false, A a = default) =>
+        System.Console.WriteLine((y ? i : (c ?? ""Hello"").Length) + (int)a);
 ##}");
 
         [Fact]
         public Task TestInlineMethodWithLiteralValue()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
+public enum A
+{
+    Value1,
+    Value2
+}
 public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(1, 'y', true, ""Hello"", A.Value2);
+    }
+
+    private void Callee(int i, char c, bool x, string y, A a) =>
+        System.Console.WriteLine(i + (int)c + (int)a + (x ? 1 : y.Length));
+}",
+                @"
+public enum A
+{
+    Value1,
+    Value2
+}
+public class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine(1 + (int)'y' + (int)A.Value2 + (true ? 1 : ""Hello"".Length));
+    }
+##
+    private void Callee(int i, char c, bool x, string y, A a) =>
+        System.Console.WriteLine(i + (int)c + (int)a + (x ? 1 : y.Length));
+##}");
+
+        [Fact]
+        public Task TestInlineMethodWithLiteralValueAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
 {
     private void Caller()
     {
         Cal[||]lee(1, 'y', true, ""Hello"");
     }
-
+}",
+                @"
+public partial class TestClass
+{
     private void Callee(int i, char c, bool x, string y) =>
         System.Console.WriteLine(i + (int)c + (x ? 1 : y.Length));
 }",
                 @"
-public class TestClass
+public partial class TestClass
 {
     private void Caller()
     {
         System.Console.WriteLine(1 + (int)'y' + (true ? 1 : ""Hello"".Length));
     }
-##
+}",
+                @"
+public partial class TestClass
+{##
     private void Callee(int i, char c, bool x, string y) =>
-        System.Console.WriteLine(i + (int)c + (x ? 1 : y.Length));
-##}");
+        System.Console.WriteLine(i + (int)c + (x ? 1 : y.Length));##
+}");
 
         [Fact]
         public Task TestInlineMethodWithIdentifierReplacement()
@@ -419,7 +533,42 @@ public class TestClass
 ##}");
 
         [Fact]
-        public Task TestInlineMethodWithMethodExtraction()
+        public Task TestInlineMethodWithIdentifierReplacementAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller(int m)
+    {
+        Cal[||]lee(10, m, k: ""Hello"");
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(int i, int j = 100, string k = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? """"));
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller(int m)
+    {
+        System.Console.WriteLine(10 + m + (""Hello"" ?? """"));
+    }
+}",@"
+public partial class TestClass
+{##
+    private void Callee(int i, int j = 100, string k = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? """"));
+    }##
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithNoMethodExtraction()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 public class TestClass
@@ -459,6 +608,52 @@ public class TestClass
 }");
 
         [Fact]
+        public Task TestInlineMethodWithNoMethodExtractionAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    public void Caller(float r1, float r2)
+    {
+        Cal[||]lee(SomeCaculation(r1), SomeCaculation(r2));
+    }
+
+    public float SomeCaculation(float r)
+    {
+        return r * r * 3.14f;
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(float s1, float s2)
+    {
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    public void Caller(float r1, float r2)
+    {
+        System.Console.WriteLine(""This is s1"" + SomeCaculation(r1) + ""This is S2"" + SomeCaculation(r2));
+    }
+
+    public float SomeCaculation(float r)
+    {
+        return r * r * 3.14f;
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(float s1, float s2)
+    {
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
+    }##
+}");
+
+        [Fact]
         public Task TestInlineParamsArrayWithArrayImplicitInitializerExpression()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
@@ -487,6 +682,42 @@ public class TestClass
         System.Console.WriteLine(x.Length);
     }
 ##}");
+
+        [Fact]
+        public Task TestInlineParamsArrayWithArrayImplicitInitializerExpressionAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(new int[] {1, 2, 3, 4, 5, 6});
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine((new int[] {1, 2, 3, 4, 5, 6}).Length);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }##
+}");
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayInitializerExpression()
@@ -519,6 +750,42 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestInlineParamsArrayWithArrayInitializerExpressionAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(new int[6] {1, 2, 3, 4, 5, 6});
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine((new int[6] {1, 2, 3, 4, 5, 6}).Length);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }##
+}");
+
+        [Fact]
         public Task TestInlineParamsArrayWithOneElement()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
@@ -547,6 +814,42 @@ public class TestClass
         System.Console.WriteLine(x.Length);
     }
 ##}");
+
+        [Fact]
+        public Task TestInlineParamsArrayWithOneElementAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(1);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine((new int[] { 1 }).Length);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }##
+}");
 
         [Fact]
         public Task TestInlineParamsArrayMethodWithIdentifier()
@@ -669,6 +972,42 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestInlineMethodWithVariableDeclaration1AcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(out var x);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(out int z)
+    {
+        z = 10;
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        int x = 10;
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(out int z)
+    {
+        z = 10;
+    }##
+}");
+
+        [Fact]
         public Task TestInlineMethodWithVariableDeclaration2()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
@@ -700,6 +1039,45 @@ public class TestClass
         z = x = y = 10;
     }
 ##}");
+
+        [Fact]
+        public Task TestInlineMethodWithVariableDeclaration2AcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(out var x, out var y, out var z);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(out int z, out int x, out int y)
+    {
+        z = x = y = 10;
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        int x;
+        int y;
+        int z;
+        x = y = z = 10;
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(out int z, out int x, out int y)
+    {
+        z = x = y = 10;
+    }##
+}");
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration3()
@@ -740,6 +1118,53 @@ public class TestClass
     {
         z = 100;
     }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithVariableDeclaration3AcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(out var x);
+    }
+
+    private void DoSometing(out int z)
+    {
+        z = 100;
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee(out int z)
+    {
+        DoSometing(out z);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller()
+    {
+        int x;
+        DoSometing(out x);
+    }
+
+    private void DoSometing(out int z)
+    {
+        z = 100;
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee(out int z)
+    {
+        DoSometing(out z);
+    }##
 }");
 
         [Fact]
@@ -830,6 +1255,42 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestInlineExpressionWithoutAssignedToVariableAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    public void Caller(int j)
+    {
+        Cal[||]lee(j);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}",
+                @"
+public partial class TestClass
+{
+    public void Caller(int j)
+    {
+        int temp = j + 1;
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private int Callee(int i)
+    {
+        return i + 1;
+    }##
+}");
+
+        [Fact]
         public Task TestInlineMethodWithNullCoalescingExpression()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
@@ -880,6 +1341,36 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestInlineSimpleLambdaExpressionAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    public System.Func<int, int, int> Caller()
+    {
+        return Ca[||]llee();
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private System.Func<int, int, int> Callee() => (i, j) => i + j;
+}",
+                @"
+public partial class TestClass
+{
+    public System.Func<int, int, int> Caller()
+    {
+        return (i, j) => i + j;
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private System.Func<int, int, int> Callee() => (i, j) => i + j;##
+}");
+
+        [Fact]
         public Task TestInlineMethodWithGenericsArguments()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
@@ -912,10 +1403,47 @@ public class TestClass
 ##}");
 
         [Fact]
+        public Task TestInlineMethodWithGenericsArgumentsAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+public partial class TestClass
+{
+    private void Caller<U>()
+    {
+        Ca[||]llee<int, U>(1, 2, 3);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Callee<T, U>(params T[] i)
+    {
+        System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
+    }
+}",
+                @"
+public partial class TestClass
+{
+    private void Caller<U>()
+    {
+        System.Console.WriteLine(typeof(int).Name.Length + (new int[] { 1, 2, 3 }).Length + typeof(U).Name.Length);
+    }
+}",
+                @"
+public partial class TestClass
+{##
+    private void Callee<T, U>(params T[] i)
+    {
+        System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
+    }##
+}");
+
+        [Fact]
         public Task TestAwaitExpressionInMethod()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
+using System;
 public class TestClass
 {
     public Task<int> Caller(bool x)
@@ -931,6 +1459,7 @@ public class TestClass
 }",
                 @"
 using System.Threading.Tasks;
+using System;
 public class TestClass
 {
     public Task<int> Caller(bool x)
@@ -944,6 +1473,48 @@ public class TestClass
         return await Task.FromResult(i + j);
     }
 ##}");
+
+        [Fact]
+        public Task TestAwaitExpressionInMethodAcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{
+    public Task<int> Caller(bool x)
+    {
+        System.Console.WriteLine("""");
+        return Call[||]ee(10, x ? 1 : 2);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{
+    private async Task<int> Callee(int i, int j)
+    {
+        return await Task.FromResult(i + j);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{
+    public Task<int> Caller(bool x)
+    {
+        System.Console.WriteLine("""");
+        return Task.FromResult(10 + (x ? 1 : 2));
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{##
+    private async Task<int> Callee(int i, int j)
+    {
+        return await Task.FromResult(i + j);
+    }##
+}");
 
         [Fact]
         public Task TestAwaitExpressionInMethod2()
@@ -980,6 +1551,52 @@ public class TestClass
         return async () => await Task.Delay(100);
     }
 ##}");
+
+        [Fact]
+        public Task TestAwaitExpressionInMethod2AcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+using System.Threading.Tasks;
+using System;
+public partial class TestClass
+{
+    public void Caller(bool x)
+    {
+        System.Console.WriteLine("""");
+        var f = C[||]allee();
+    }
+}",
+                @"
+using System.Threading.Tasks;
+using System;
+public partial class TestClass
+{
+    private Func<Task> Callee()
+    {
+        return async () => await Task.Delay(100);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+using System;
+public partial class TestClass
+{
+    public void Caller(bool x)
+    {
+        System.Console.WriteLine("""");
+        var f = (Func<Task>)(async () => await Task.Delay(100));
+    }
+}",
+                @"
+using System.Threading.Tasks;
+using System;
+public partial class TestClass
+{##
+    private Func<Task> Callee()
+    {
+        return async () => await Task.Delay(100);
+    }##
+}");
 
         [Fact]
         public Task TestAwaitExpresssion1()
@@ -1099,6 +1716,50 @@ public class TestClass
     }
 ##
     private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}");
+
+        [Fact]
+        public Task TestAwaitExpressionInMethod4AcrossFile()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee();
+    }
+
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}",
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{
+    public async void Caller()
+    {
+        var x = Task.FromResult(await SomeCalculation());
+    }
+
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}",
+                @"
+using System.Threading.Tasks;
+public partial class TestClass
+{##
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }##
 }");
 
         [Fact]
