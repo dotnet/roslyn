@@ -498,9 +498,12 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
-            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
-               operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
+        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
+        {
+            containingLambdaOrLocalFunctionOperation = (IOperation?)operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction)
+                ?? operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction);
+            return containingLambdaOrLocalFunctionOperation != null;
+        }
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
         {

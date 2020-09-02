@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
                     OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(),
                     OperationVisitor.InterproceduralResultsMap, OperationVisitor.StandaloneLocalFunctionAnalysisResultsMap,
-                    OperationVisitor.EscapedLocalFunctions, OperationVisitor.EscapedLambdas,
+                    OperationVisitor.LambdaAndLocalFunctionAnalysisInfo,
                     resultBuilder.EntryBlockOutputData!, normalPathsExitBlockData!, exceptionPathsExitBlockData,
                     mergedDataForUnhandledThrowOperations, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
                     OperationVisitor.TaskWrappedValuesMap, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);

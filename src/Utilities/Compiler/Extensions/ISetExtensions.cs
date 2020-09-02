@@ -2,9 +2,9 @@
 
 namespace System.Collections.Generic
 {
-    internal static class HashSetExtensions
+    internal static class ISetExtensions
     {
-        public static void AddRange<T>(this HashSet<T> set, IEnumerable<T> values)
+        public static void AddRange<T>(this ISet<T> set, IEnumerable<T> values)
         {
             foreach (var value in values)
             {
