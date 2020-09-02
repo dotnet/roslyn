@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        Task<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        async ValueTask<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() =>
+            return await RunServiceAsync(() =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_GetAssetsAsync, (serviceId, checksums) => $"{serviceId} - {Checksum.GetChecksumsLogInfo(checksums)}", scopeId, checksums, cancellationToken))
                 {
@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.Remote
                         (stream, cancellationToken) => Task.FromResult(RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken)),
                         cancellationToken);
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        Task<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        async ValueTask<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() =>
+            return await RunServiceAsync(() =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_IsExperimentEnabledAsync, experimentName, cancellationToken))
                 {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         new object[] { experimentName },
                         cancellationToken);
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal sealed class Factory : FactoryBase<IRemoteSemanticClassificationCacheService>
         {
-            protected override IRemoteSemanticClassificationCacheService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
-                => new RemoteSemanticClassificationCacheService(serviceProvider, serviceBroker);
+            protected override IRemoteSemanticClassificationCacheService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteSemanticClassificationCacheService(arguments);
         }
 
-        public RemoteSemanticClassificationCacheService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
-            : base(serviceProvider, serviceBroker, clientDisconnectedSource: null)
+        public RemoteSemanticClassificationCacheService(in ServiceConstructionArguments arguments)
+            : base(arguments)
         {
         }
 

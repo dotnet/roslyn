@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public Task GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             // Complete RPC right away so the client can start reading from the stream.
             _ = Task.Run(() =>
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 return RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken);
             }, cancellationToken);
 
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+            => new ValueTask<bool>(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

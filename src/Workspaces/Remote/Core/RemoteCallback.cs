@@ -14,6 +14,13 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Wraps calls from a remote brokered service back to the client or to an in-proc brokered service.
+    /// The purpose of this type is to handle exceptions thrown by the underlying remoting infrastructure
+    /// in manner that's compatible with our exception handling policies.
+    /// 
+    /// TODO: This wrapper might not be needed once https://github.com/microsoft/vs-streamjsonrpc/issues/246 is fixed.
+    /// </summary>
     internal readonly struct RemoteCallback<T>
         where T : class
     {
@@ -21,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public readonly CancellationTokenSource ClientDisconnectedSource;
 
-        public RemoteCallback(T callback)
+        public RemoteCallback(T callback, CancellationTokenSource clientDisconnectedSource)
         {
             _callback = callback;
-            ClientDisconnectedSource = new CancellationTokenSource();
+            ClientDisconnectedSource = clientDisconnectedSource;
         }
 
         public async ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)

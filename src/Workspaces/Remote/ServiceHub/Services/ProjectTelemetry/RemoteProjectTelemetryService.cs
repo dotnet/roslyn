@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal sealed class Factory : FactoryBase<IRemoteProjectTelemetryService, IProjectTelemetryListener>
         {
-            protected override IRemoteProjectTelemetryService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IProjectTelemetryListener> callback)
-                => new RemoteProjectTelemetryService(serviceProvider, serviceBroker, callback);
+            protected override IRemoteProjectTelemetryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IProjectTelemetryListener> callback)
+                => new RemoteProjectTelemetryService(arguments, callback);
         }
 
         private readonly RemoteCallback<IProjectTelemetryListener> _callback;
 
-        public RemoteProjectTelemetryService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IProjectTelemetryListener> callback)
-            : base(serviceProvider, serviceBroker, callback.ClientDisconnectedSource)
+        public RemoteProjectTelemetryService(in ServiceConstructionArguments arguments, RemoteCallback<IProjectTelemetryListener> callback)
+            : base(arguments)
         {
             _callback = callback;
         }

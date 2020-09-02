@@ -4,13 +4,10 @@
 
 #nullable enable
 
-using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeService, IDesignerAttributeListener>
         {
-            protected override IRemoteDesignerAttributeService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IDesignerAttributeListener> callback)
-                => new RemoteDesignerAttributeService(serviceProvider, serviceBroker, callback);
+            protected override IRemoteDesignerAttributeService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
+                => new RemoteDesignerAttributeService(arguments, callback);
         }
 
         private readonly RemoteCallback<IDesignerAttributeListener> _callback;
 
-        public RemoteDesignerAttributeService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IDesignerAttributeListener> callback)
-            : base(serviceProvider, serviceBroker, callback.ClientDisconnectedSource)
+        public RemoteDesignerAttributeService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
+            : base(arguments)
         {
             _callback = callback;
         }

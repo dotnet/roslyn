@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
-using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -20,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal sealed class Factory : FactoryBase<IRemoteDiagnosticAnalyzerService>
         {
-            protected override IRemoteDiagnosticAnalyzerService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
-                => new RemoteDiagnosticAnalyzerService(serviceProvider, serviceBroker);
+            protected override IRemoteDiagnosticAnalyzerService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteDiagnosticAnalyzerService(arguments);
         }
 
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
 
-        public RemoteDiagnosticAnalyzerService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
-            : base(serviceProvider, serviceBroker, clientDisconnectedSource: null)
+        public RemoteDiagnosticAnalyzerService(in ServiceConstructionArguments arguments)
+            : base(arguments)
         {
         }
 

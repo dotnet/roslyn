@@ -28,18 +28,31 @@ namespace Microsoft.CodeAnalysis.Remote
             public Type ServiceType { get; }
         }
 
+        internal readonly struct ServiceConstructionArguments
+        {
+            public readonly IServiceProvider ServiceProvider;
+            public readonly IServiceBroker ServiceBroker;
+            public readonly CancellationTokenSource ClientDisconnectedSource;
+
+            public ServiceConstructionArguments(IServiceProvider serviceProvider, IServiceBroker serviceBroker, CancellationTokenSource clientDisconnectedSource)
+            {
+                ServiceProvider = serviceProvider;
+                ServiceBroker = serviceBroker;
+                ClientDisconnectedSource = clientDisconnectedSource;
+            }
+        }
+
         internal abstract class FactoryBase<TService> : IServiceHubServiceFactory, IFactory
             where TService : class
         {
-            protected abstract TService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker);
+            protected abstract TService CreateService(in ServiceConstructionArguments arguments);
 
             protected virtual TService CreateService(
-                IServiceProvider serviceProvider,
-                IServiceBroker serviceBroker,
+                in ServiceConstructionArguments arguments,
                 ServiceRpcDescriptor descriptor,
                 ServiceRpcDescriptor.RpcConnection serverConnection,
                 object? clientRpcTarget)
-                => CreateService(serviceProvider, serviceBroker);
+                => CreateService(arguments);
 
             public Task<object> CreateAsync(
                Stream stream,
@@ -72,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8);
                 var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
-                var service = CreateService(hostProvidedServices, serviceBroker, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);
+                var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker, new CancellationTokenSource());
+                var service = CreateService(args, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);
 
                 serverConnection.AddLocalRpcTarget(service);
                 serverConnection.StartListening();
@@ -85,21 +99,20 @@ namespace Microsoft.CodeAnalysis.Remote
             where TService : class
             where TCallback : class
         {
-            protected abstract TService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<TCallback> callback);
+            protected abstract TService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<TCallback> callback);
 
-            protected sealed override TService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
+            protected sealed override TService CreateService(in ServiceConstructionArguments arguments)
                 => throw ExceptionUtilities.Unreachable;
 
             protected sealed override TService CreateService(
-                IServiceProvider serviceProvider,
-                IServiceBroker serviceBroker,
+                in ServiceConstructionArguments arguments,
                 ServiceRpcDescriptor descriptor,
                 ServiceRpcDescriptor.RpcConnection serverConnection,
                 object? clientRpcTarget)
             {
                 Contract.ThrowIfNull(descriptor.ClientInterface);
                 var callback = (TCallback)(clientRpcTarget ?? serverConnection.ConstructRpcClient(descriptor.ClientInterface));
-                return CreateService(serviceProvider, serviceBroker, new RemoteCallback<TCallback>(callback));
+                return CreateService(arguments, new RemoteCallback<TCallback>(callback, arguments.ClientDisconnectedSource));
             }
         }
 
@@ -118,17 +131,17 @@ namespace Microsoft.CodeAnalysis.Remote
             WatsonTraceListener.Install();
         }
 
-        protected BrokeredServiceBase(IServiceProvider serviceProvider, IServiceBroker serviceBroker, CancellationTokenSource? clientDisconnectedSource)
+        protected BrokeredServiceBase(in ServiceConstructionArguments arguments)
         {
-            TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
+            TestData = (RemoteHostTestData?)arguments.ServiceProvider.GetService(typeof(RemoteHostTestData));
             WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
 
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-            ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
+            ServiceBrokerClient = new ServiceBrokerClient(arguments.ServiceBroker);
 #pragma warning restore
 
-            SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient);
-            ClientDisconnectedSource = clientDisconnectedSource;
+            SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient, arguments.ClientDisconnectedSource);
+            ClientDisconnectedSource = arguments.ClientDisconnectedSource;
         }
 
         public void Dispose()

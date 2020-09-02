@@ -4,13 +4,10 @@
 
 #nullable enable
 
-using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal sealed class Factory : FactoryBase<IRemoteTodoCommentsService, ITodoCommentsListener>
         {
-            protected override IRemoteTodoCommentsService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<ITodoCommentsListener> callback)
-                => new RemoteTodoCommentsService(serviceProvider, serviceBroker, callback);
+            protected override IRemoteTodoCommentsService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
+                => new RemoteTodoCommentsService(arguments, callback);
         }
 
         private readonly RemoteCallback<ITodoCommentsListener> _callback;
 
-        public RemoteTodoCommentsService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<ITodoCommentsListener> callback)
-            : base(serviceProvider, serviceBroker, callback.ClientDisconnectedSource)
+        public RemoteTodoCommentsService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
+            : base(arguments)
         {
             _callback = callback;
         }

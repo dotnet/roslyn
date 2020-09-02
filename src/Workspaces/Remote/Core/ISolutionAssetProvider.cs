@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Streams serialized assets into the given stream.
         /// </summary>
-        Task GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken);
+        ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken);
 
         // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
+        ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
     }
 }
