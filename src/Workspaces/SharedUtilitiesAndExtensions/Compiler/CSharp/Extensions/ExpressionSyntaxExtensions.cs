@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // note: the above list is not intended to be exhaustive.  If more cases
-            // are discovered that should be considered 'constant' contexts in the 
+            // are discovered that should be considered 'constant' contexts in the
             // language, then this should be updated accordingly.
             return false;
         }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
         /// If found, returns either an assignment expression or a foreach variable statement.
         /// Returns null otherwise.
-        /// 
+        ///
         /// copied from SyntaxExtensions.GetContainingDeconstruction
         /// </summary>
         private static bool IsExpressionOfArgumentInDeconstruction(ExpressionSyntax expr)
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool CanReplaceWithRValue(
             this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // An RValue can't be written into. 
+            // An RValue can't be written into.
             // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // case (2) : obj?.GetAnotherObj()?.Length, obj?.AnotherObj?.Length
             // in case (1), the entire expression forms the conditional access expression, which can be replaced with an LValue.
             // in case (2), the nested conditional access expression is ".GetAnotherObj()?.Length" or ".AnotherObj()?.Length"
-            // essentially, the first expression (before the operator) in a nested conditional access expression 
+            // essentially, the first expression (before the operator) in a nested conditional access expression
             // is some form of member binding expression and they cannot be replaced with an LValue.
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // for the given expression, unless it is itself a MemberBindingExpression or starts with one.
                 // Case (1) : The WhenNotNull clause always starts with a MemberBindingExpression.
                 //              expression '.Method()' in a?.Method()
-                // Case (2) : The Expression clause always starts with a MemberBindingExpression if 
+                // Case (2) : The Expression clause always starts with a MemberBindingExpression if
                 // the grandparent is a conditional access expression.
                 //              expression '.Method' in a?.Method()?.Length
                 // Case (3) : The child Conditional access expression always starts with a MemberBindingExpression if
@@ -823,11 +823,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var semicolonToken = semicolonTokenOpt ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
-            statement = ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
+            statement = expression.ConvertToStatement(semicolonToken, createReturnStatementForExpression);
             return true;
         }
 
-        private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
+        public static StatementSyntax ConvertToStatement(this ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
         {
             if (expression.IsKind(SyntaxKind.ThrowExpression, out ThrowExpressionSyntax throwExpression))
             {

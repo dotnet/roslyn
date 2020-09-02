@@ -120,20 +120,50 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// </summary>
             public ImmutableDictionary<IParameterSymbol, TExpressionSyntax> ParametersToReplace { get; }
 
+            /// <summary>
+            /// Indicate should inline expression and variable declaration be merged into one line.
+            /// Example:
+            /// Before:
+            /// void Caller()
+            /// {
+            ///     Callee(out var x);
+            /// }
+            /// void Callee(out int i) => i = 100;
+            /// After:
+            /// (Correct version)
+            /// void Caller()
+            /// {
+            ///     int x = 100;
+            /// }
+            /// void Callee(out int i) => i = 100;
+            /// (Wrong version)
+            /// void Caller()
+            /// {
+            ///     int x;
+            ///     x = 100;
+            /// }
+            /// void Callee(out int i) => i = 100;
+            /// </summary>
+            public bool MergeInlineContentAndVariableDeclarationArgument { get; }
+
             public MethodParametersInfo(
                 ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
                 ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax expression)> parametersToGenerateFreshVariablesFor,
-                ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace)
+                ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace,
+                bool mergeInlineContentAndVariableDeclarationArgument)
             {
                 ParametersWithVariableDeclarationArgument = parametersWithVariableDeclarationArgument;
                 ParametersToGenerateFreshVariablesFor = parametersToGenerateFreshVariablesFor;
                 ParametersToReplace = parametersToReplace;
+                MergeInlineContentAndVariableDeclarationArgument = mergeInlineContentAndVariableDeclarationArgument;
             }
         }
 
         private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(
             Document document,
+            TInvocationSyntax calleeInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
+            TExpressionSyntax rawInlineExpression,
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {
@@ -324,10 +354,18 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
                 .ToImmutableArray();
 
+            var mergeInlineContentAndVariableDeclarationArgument = await MergeInlineContentAndVariableDeclarationArgumentAsync(
+                calleeInvocationNode,
+                document,
+                parametersWithVariableDeclarationArgument!,
+                rawInlineExpression,
+                cancellationToken).ConfigureAwait(false);
+
             return new MethodParametersInfo(
-                parametersWithVariableDeclarationArgument,
+                parametersWithVariableDeclarationArgument!,
                 parametersToGenerateFreshVariablesFor,
-                parameterToReplaceMap);
+                parameterToReplaceMap,
+                mergeInlineContentAndVariableDeclarationArgument);
         }
 
         /// <summary>
@@ -395,6 +433,45 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Check if there is only one variable declaration argument and it is used for assignment
+        /// in the method body. In this case, the method body and argument will be merged into one statement.
+        /// For example:
+        /// Before:
+        /// void Caller()
+        /// {
+        ///     Callee(out var x);
+        /// }
+        /// void Callee(out int i) => i = 100;
+        ///
+        /// After:
+        /// void Caller()
+        /// {
+        ///     int x = 100;
+        /// }
+        /// void Callee(out int i) => i = 100;
+        /// </summary>
+        private async Task<bool> MergeInlineContentAndVariableDeclarationArgumentAsync(
+            TInvocationSyntax calleeInvocationNode,
+            Document document,
+            ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
+            TExpressionSyntax inlineExpressionNode,
+            CancellationToken cancellationToken)
+        {
+            // Note: callee could lives in another document if this is a partial class
+            var calleeDocument = document.Project.Solution.GetRequiredDocument(calleeInvocationNode.SyntaxTree);
+            var semanticModel = await calleeDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (parametersWithVariableDeclarationArgument.Length == 1
+                && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
+                && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation
+                && parameterOperation.Parameter.Equals(parametersWithVariableDeclarationArgument[0].parameterSymbol))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private TExpressionSyntax GenerateArgumentExpression(

@@ -500,9 +500,9 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="new">Inline '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_0_and_keep_1">
-        <source>Inline '{0}' and keep '{1}'</source>
-        <target state="new">Inline '{0}' and keep '{1}'</target>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="new">Inline and keep '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">

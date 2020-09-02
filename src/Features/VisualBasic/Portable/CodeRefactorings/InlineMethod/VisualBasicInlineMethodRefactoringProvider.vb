@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             MyBase.New(VisualBasicSyntaxFacts.Instance, VisualBasicSemanticFactsService.Instance)
         End Sub
 
-        Protected Overrides Function GetInlineExpression(methodBlock As MethodBlockSyntax) As ExpressionSyntax
+        Protected Overrides Function GetRawInlineExpression(methodBlock As MethodBlockSyntax) As ExpressionSyntax
             Dim statements = methodBlock.Statements
             If statements.Count = 1 Then
                 Dim singleStatement = statements(0)
@@ -59,7 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return symbol.GenerateTypeSyntax()
         End Function
 
-        Protected Overrides Function IsValidExpressionUnderStatementExpression(expressionNode As ExpressionSyntax) As Boolean
+        Protected Overrides Function ConvertToStatement(expression As ExpressionSyntax, createReturnStatement As Boolean) As StatementSyntax
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function IsValidExpressionUnderExpressionStatement(expressionNode As ExpressionSyntax) As Boolean
             Return expressionNode.IsKind(SyntaxKind.AwaitExpression) OrElse expressionNode.IsKind(SyntaxKind.InvocationExpression)
         End Function
 

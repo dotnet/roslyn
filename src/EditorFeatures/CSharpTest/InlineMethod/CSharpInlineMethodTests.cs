@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                 diagnosticResults ??= new List<DiagnosticResult>();
                 var test = new TestVerifier
                 {
-                    CodeActionIndex = keepInlinedMethod ? 0 : 1,
+                    CodeActionIndex = keepInlinedMethod ? 1 : 0,
                     TestState =
                     {
                         Sources =
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                 diagnosticResults ??= new List<DiagnosticResult>();
                 var test = new TestVerifier
                 {
-                    CodeActionIndex = keepInlinedMethod ? 0 : 1,
+                    CodeActionIndex = keepInlinedMethod ? 1 : 0,
                     TestState =
                     {
                         Sources = { initialMarkUp }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     initialMarkUpForCallee,
                     expectedMarkUpForCaller,
                     string.Concat(firstPartitionBeforeMarkUp, lastPartitionAfterMarkup),
-                    diagnosticResultsWhenKeepInlinedMethod,
+                    diagnosticResultsWhenRemoveInlinedMethod,
                     keepInlinedMethod: false).ConfigureAwait(false);
             }
 
@@ -149,47 +149,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             }
         }
 
-//         [Fact]
-//         public Task Test2()
-//             => TestVerifier.TestInRegularScriptsInDifferentFilesAsync(
-//                 @"
-// using System.Collections.Generic;
-// public partial class TestClass
-// {
-//     private void Caller(int i)
-//     {
-//         var h = new HashSet<int>();
-//         Ca[||]llee(i, h);
-//     }
-// }",
-//                 @"
-// using System.Collections.Generic;
-// public partial class TestClass
-// {
-//     private bool Callee(int i, HashSet<int> set)
-//     {
-//         return set.Add(i);
-//     }
-// }",
-//                 @"
-// using System.Collections.Generic;
-// public partial class TestClass
-// {
-//     private void Caller(int i)
-//     {
-//         var h = new HashSet<int>();
-//         h.Add(i);
-//     }
-// }",
-//                 @"
-// using System.Collections.Generic;
-// public partial class TestClass
-// {
-//     private bool Callee(int i, HashSet<int> set)
-//     {
-//         return set.Add(i);
-//     }
-// }");
+        [Fact]
+        public Task Test2()
+            => TestVerifier.TestInRegularScriptsInDifferentFilesAsync(
+                @"
+using System.Collections.Generic;
+public partial class TestClass
+{
+    private void Caller(int i)
+    {
+        var h = new HashSet<int>();
+        Ca[||]llee(i, h);
+    }
+}",
+                @"
+using System.Collections.Generic;
+public partial class TestClass
+{
+    private bool Callee(int i, HashSet<int> set)
+    {
+        return set.Add(i);
+    }
+}",
+                @"
+using System.Collections.Generic;
+public partial class TestClass
+{
+    private void Caller(int i)
+    {
+        var h = new HashSet<int>();
+        h.Add(i);
+    }
+}",
+                @"
+using System.Collections.Generic;
+public partial class TestClass
+{
+    private bool Callee(int i, HashSet<int> set)
+    {
+        return set.Add(i);
+    }
+}");
 
         [Fact]
         public Task TestInlineInvocationExpressionForExpressionStatement()
@@ -2518,7 +2518,7 @@ public class TestClass
 ");
 
         [Fact]
-        public Task TestNestedConditionalInvocationExpression()
+        public Task TestNestedConditionalInvocationExpression1()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class LinkedList
 {
@@ -2555,6 +2555,90 @@ public class TestClass
     private string Callee(LinkedList l)
     {
         return l?.Next?.Next?.Next?.Next?.ToString();
+    }
+##}
+");
+
+        [Fact]
+        public Task TestNestedConditionalInvocationExpression2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class LinkedList
+{
+    public LinkedList Next { get; }
+}
+
+public class TestClass
+{
+    public void Caller()
+    {
+        var l = new LinkedList();
+        Cal[||]lee(l);
+    }
+
+    private string Callee(LinkedList l)
+    {
+        return l?.ToString();
+    }
+}
+", @"
+public class LinkedList
+{
+    public LinkedList Next { get; }
+}
+
+public class TestClass
+{
+    public void Caller()
+    {
+        var l = new LinkedList();
+        l?.ToString();
+    }
+##
+    private string Callee(LinkedList l)
+    {
+        return l?.ToString();
+    }
+##}
+");
+
+        [Fact]
+        public Task TestNestedConditionalInvocationExpression3()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class LinkedList
+{
+    public LinkedList Next { get; }
+}
+
+public class TestClass
+{
+    public void Caller()
+    {
+        var l = new LinkedList();
+        Cal[||]lee(l);
+    }
+
+    private string Callee(LinkedList l)
+    {
+        return l?.Next.ToString();
+    }
+}
+", @"
+public class LinkedList
+{
+    public LinkedList Next { get; }
+}
+
+public class TestClass
+{
+    public void Caller()
+    {
+        var l = new LinkedList();
+        l?.Next.ToString();
+    }
+##
+    private string Callee(LinkedList l)
+    {
+        return l?.Next.ToString();
     }
 ##}
 ");
@@ -2618,7 +2702,7 @@ public class TestClass
 ");
 
         [Fact]
-        public Task TestThrowExpression()
+        public Task TestThrowExpression1()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
@@ -2638,6 +2722,26 @@ public class TestClass
     {
         var x = a ? throw new Exception() : ""Hello"";
     }
+##
+    private string Callee() => throw new Exception();
+##}
+");
+
+        [Fact]
+        public Task TestThrowExpression2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller(bool a) => Ca[||]llee();
+
+    private string Callee() => throw new Exception();
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller(bool a) => throw new Exception();
 ##
     private string Callee() => throw new Exception();
 ##}
@@ -2734,6 +2838,80 @@ public class TestClass
     {
         return a ? c + 1000 : c + 10000;
     }
+##}
+");
+
+        [Fact]
+        public Task TestChangeToMethodBlock1()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class TestClass
+{
+    public int Caller(bool a) => Ca[||]llee(SomeInt(), a);
+
+    private int SomeInt() => 1;
+
+    private int Callee(int c, bool a)
+    {
+        return a ? c + 1000 : c + 10000;
+    }
+}
+", @"
+public class TestClass
+{
+    public int Caller(bool a)
+    {
+        int c = SomeInt();
+        return a ? c + 1000 : c + 10000;
+    }
+
+    private int SomeInt() => 1;
+##
+    private int Callee(int c, bool a)
+    {
+        return a ? c + 1000 : c + 10000;
+    }
+##}
+");
+
+        [Fact]
+        public Task TestChangeToMethodBlock2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class TestClass
+{
+    public void Caller(bool a) => Ca[||]llee();
+
+    private int Callee() => 1;
+}
+", @"
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        int temp = 1;
+    }
+##
+    private int Callee() => 1;
+##}
+");
+
+        [Fact]
+        public Task TestChangeToMethodBlock3()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class TestClass
+{
+    public void Caller() => Ca[||]llee(out var j);
+
+    private void Callee(out int i) => i = 1;
+}
+", @"
+public class TestClass
+{
+    public void Caller()
+    {
+        int j = 1;
+    }
+##
+    private void Callee(out int i) => i = 1;
 ##}
 ");
     }

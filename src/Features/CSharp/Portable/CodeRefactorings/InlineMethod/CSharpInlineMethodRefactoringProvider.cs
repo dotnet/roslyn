@@ -6,12 +6,14 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 {
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         {
         }
 
-        protected override ExpressionSyntax? GetInlineExpression(MethodDeclarationSyntax methodDeclarationSyntax)
+        protected override ExpressionSyntax? GetRawInlineExpression(MethodDeclarationSyntax methodDeclarationSyntax)
         {
             var blockSyntaxNode = methodDeclarationSyntax.Body;
             if (blockSyntaxNode != null)
@@ -62,13 +64,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode)
         {
-            for (var node = syntaxNode; node != null; node = node.Parent)
+            for (var calleeNode = syntaxNode; calleeNode != null; calleeNode = calleeNode.Parent)
             {
-                if (node is BaseMethodDeclarationSyntax
-                    || node.IsKind(SyntaxKind.LocalFunctionStatement)
-                    || node is LambdaExpressionSyntax)
+                // 1. Common method
+                // 2. Local function
+                // 3. Simple lambda & Parenthesized Lambda
+                // 4. Anonymous Method ExpressionSyntax
+                if (calleeNode is BaseMethodDeclarationSyntax
+                    || calleeNode.IsKind(SyntaxKind.LocalFunctionStatement)
+                    || calleeNode is AnonymousFunctionExpressionSyntax)
                 {
-                    return node;
+                    return calleeNode;
                 }
             }
 
@@ -78,7 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar)
             => symbol.GenerateTypeSyntax(allowVar);
 
-        protected override bool IsValidExpressionUnderStatementExpression(ExpressionSyntax expressionNode)
+        protected override StatementSyntax ConvertToStatement(ExpressionSyntax expression, bool createReturnStatement)
+            => expression.ConvertToStatement(SyntaxFactory.Token(SyntaxKind.SemicolonToken), createReturnStatement);
+
+        protected override bool IsValidExpressionUnderExpressionStatement(ExpressionSyntax expressionNode)
         {
             // C# Expression Statements defined in the language reference
             // expression_statement
@@ -111,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode)
         {
-            // C# Throw Expression definition from language reference:
+            // C# Throw Expression definition in language reference:
             // 'A throw expression is permitted in only the following syntactic contexts:
             // As the second or third operand of a ternary conditional operator ?:
             // As the second operand of a null coalescing operator ??
@@ -128,19 +137,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 return syntaxNode.Equals(binaryExpressionSyntax.Right);
             }
 
-            if (parent is ArrowExpressionClauseSyntax)
+            if (parent is LambdaExpressionSyntax lambdaExpressionSyntax)
             {
-                return true;
+                return lambdaExpressionSyntax.ExpressionBody != null;
             }
 
-            return false;
+            return parent.IsKind(SyntaxKind.ArrowExpressionClause);
         }
 
         private static bool IsNullConditionalInvocationExpression(ExpressionSyntax expressionSyntax)
         {
+            // Check if the expression syntax is like an invocation expression nested inside ConditionalAccessExpressionSyntax.
+            // For example: a?.b.c()
             if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccessExpressionSyntax)
             {
                 var whenNotNull = conditionalAccessExpressionSyntax.WhenNotNull;
+                // If the expression is ended with an invocation
+                // (if the expressions in the middle are not ConditionalAccessExpressionSyntax),
+                // like a?.b.e.c(), the syntax tree would be
+                // ConditionalAccessExpressionSyntax -> InvocationExpression.
+                // And in case of example like a?.b?.d?.c();
+                // This is case it would be
+                // ConditionalAccessExpressionSyntax -> ConditionalAccessExpressionSyntax -> ... -> InvocationExpression.
                 return whenNotNull.IsKind(SyntaxKind.InvocationExpression) || IsNullConditionalInvocationExpression(whenNotNull);
             }
 

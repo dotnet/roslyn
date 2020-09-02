@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
                  expectedMarkUp As String,
                  Optional diagnnoticResults As List(Of DiagnosticResult) = Nothing,
                  Optional keepInlinedMethod As Boolean = True) As Task
-                Dim test As New TestVerifier() With {.CodeActionIndex = If(keepInlinedMethod, 0, 1), .CodeActionValidationMode = CodeActionValidationMode.None}
+                Dim test As New TestVerifier() With {.CodeActionIndex = If(keepInlinedMethod, 1, 0), .CodeActionValidationMode = CodeActionValidationMode.None}
                 test.TestState.Sources.Add(initialMarkUp)
                 test.FixedState.Sources.Add(expectedMarkUp)
                 If diagnnoticResults IsNot Nothing Then

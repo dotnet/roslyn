@@ -2373,12 +2373,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetExpressionOfThrowExpression(throwExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
-            ' ThrowExprssion doesn't exist in VB
+            ' ThrowExpression doesn't exist in VB
             Throw New NotImplementedException()
         End Function
 
         Public Function IsThrowStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsThrowStatement
-            Return If(node IsNot Nothing, node.IsKind(SyntaxKind.ThrowStatement), False)
+            Return node.IsKind(SyntaxKind.ThrowStatement)
+        End Function
+
+        Public Function IsArrowExpressionClause(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsArrowExpressionClause
+            Return False
+        End Function
+
+        Public Function GetExpressionOfArrowExpressionClause(arrowExpressionClause As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfArrowExpressionClause
+            Throw New NotImplementedException
         End Function
     End Class
 End Namespace

@@ -2144,6 +2144,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression)
             => ((ThrowExpressionSyntax)throwExpression).Expression;
 
-        public bool IsThrowStatement(SyntaxNode node) => node?.IsKind(SyntaxKind.ThrowStatement) == true;
+        public bool IsThrowStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ThrowStatement);
+
+        public bool IsArrowExpressionClause(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ArrowExpressionClause);
+
+        public SyntaxNode GetExpressionOfArrowExpressionClause(SyntaxNode arrowExpressionClause)
+            => ((ArrowExpressionClauseSyntax)arrowExpressionClause).Expression;
     }
 }

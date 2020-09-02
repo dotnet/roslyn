@@ -23,49 +23,27 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private readonly struct InlineMethodContext
         {
             /// <summary>
-            /// Statements that should be inserted before the <see cref="StatementContainingCallee"/>.
+            /// Statements that should be inserted to before the invocation location of callee.
             /// </summary>
-            public ImmutableArray<TStatementSyntax> StatementsToInsertBeforeCallee { get; }
+            public ImmutableArray<TStatementSyntax> StatementsToInsertBeforeInvocationOfCallee { get; }
 
             /// <summary>
-            /// Statement containing the callee. All the generated declarations should be put before this node.
-            /// Example:
-            /// void Caller()
-            /// {
-            ///     var x = Callee(Foo());
-            /// }
-            /// void Callee(int i) { DoSomething(); }
-            /// LocalDeclarationSyntaxNode of x will the <see cref="StatementContainingCallee"/>.
-            /// And if there is any statements needs inserted, it needs to be inserted before this node.
+            /// Inline content for the callee method.
             /// </summary>
-            public TStatementSyntax StatementContainingCallee { get; }
+            public TExpressionSyntax InlineExpression { get; }
 
             /// <summary>
-            /// Inline content for the callee method. It should replace <see cref="SyntaxNodeToReplace"/>.
-            /// </summary>
-            public SyntaxNode InlineSyntaxNode { get; }
-
-            /// <summary>
-            /// SyntaxNode needs to be replaced by <see cref="InlineSyntaxNode"/>
-            /// </summary>
-            public SyntaxNode SyntaxNodeToReplace { get; }
-
-            /// <summary>
-            /// Indicate if <see cref="InlineSyntaxNode"/> has AwaitExpression in it.
+            /// Indicate if <see cref="InlineExpression"/> has AwaitExpression in it.
             /// </summary>
             public bool ContainsAwaitExpression { get; }
 
             public InlineMethodContext(
-                ImmutableArray<TStatementSyntax> statementsToInsertBeforeCallee,
-                TStatementSyntax statementContainingCallee,
-                SyntaxNode inlineSyntaxNode,
-                SyntaxNode syntaxNodeToReplace,
+                ImmutableArray<TStatementSyntax> statementsToInsertBeforeInvocationOfCallee,
+                TExpressionSyntax inlineExpression,
                 bool containsAwaitExpression)
             {
-                StatementsToInsertBeforeCallee = statementsToInsertBeforeCallee;
-                StatementContainingCallee = statementContainingCallee;
-                InlineSyntaxNode = inlineSyntaxNode;
-                SyntaxNodeToReplace = syntaxNodeToReplace;
+                StatementsToInsertBeforeInvocationOfCallee = statementsToInsertBeforeInvocationOfCallee;
+                InlineExpression = inlineExpression;
                 ContainsAwaitExpression = containsAwaitExpression;
             }
         }
@@ -76,7 +54,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
             TExpressionSyntax rawInlineExpression,
-            TStatementSyntax statementContainsCallee,
             MethodParametersInfo methodParametersInfo,
             CancellationToken cancellationToken)
         {
@@ -141,28 +118,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .SelectAsArray(parameterAndArgument => parameterAndArgument.parameterSymbol),
                 cancellationToken);
 
-            // For this case, merge the inline content and the variable declaration
-            // Before:
-            // void Caller()
-            // {
-            //     Callee(out var x);
-            // }
-            // void Callee(out int i) => i = 100;
-            //
-            // After:
-            // void Caller()
-            // {
-            //     int x = 100;
-            // }
-            // void Callee(out int i) => i = 100;
-            var mergeInlineContentAndVariableDeclarationArgument = MergeInlineContentAndVariableDeclarationArgument(
-                calleeInvocationNode,
-                semanticModel,
-                methodParametersInfo.ParametersWithVariableDeclarationArgument
-                    .SelectAsArray(paramAndName => paramAndName.parameterSymbol),
-                rawInlineExpression,
-                cancellationToken);
-
             // Generate all the statements need to be put in the caller.
             // Use the parameter's name to generate declarations in caller might cause conflict in the caller,
             // so the rename table is needed to provide with a valid name.
@@ -207,10 +162,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // {
             //     DoSomething(out j, out int i);
             // }
-            var localDeclarationStatementsNeedInsert = AbstractInlineMethodRefactoringProvider<TMethodDeclarationSyntax, TStatementSyntax, TExpressionSyntax, TInvocationSyntax>.GetLocalDeclarationStatementsNeedInsert(
+            var localDeclarationStatementsNeedInsert = GetLocalDeclarationStatementsNeedInsert(
                 syntaxGenerator,
                 methodParametersInfo.ParametersToGenerateFreshVariablesFor,
-                mergeInlineContentAndVariableDeclarationArgument
+                methodParametersInfo.MergeInlineContentAndVariableDeclarationArgument
                     ? ImmutableArray<(IParameterSymbol, string)>.Empty
                     : methodParametersInfo.ParametersWithVariableDeclarationArgument,
                 renameTable);
@@ -290,158 +245,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                replacementTable,
                cancellationToken).ConfigureAwait(false);
 
-            if (mergeInlineContentAndVariableDeclarationArgument)
-            {
-                var (parameterSymbol, name) = methodParametersInfo.ParametersWithVariableDeclarationArgument.Single();
-                var rightHandSideValue = _syntaxFacts.GetRightHandSideOfAssignment(inlineExpression);
-                return new InlineMethodContext(
-                    localDeclarationStatementsNeedInsert,
-                    statementContainsCallee,
-                    syntaxGenerator
-                        .LocalDeclarationStatement(parameterSymbol.Type, name, rightHandSideValue)
-                        .WithTriviaFrom(statementContainsCallee),
-                    statementContainsCallee,
-                    containsAwaitExpression);
-            }
-
-            if (_syntaxFacts.IsThrowStatement(rawInlineExpression.Parent))
-            {
-                if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
-                {
-                    return new InlineMethodContext(
-                        localDeclarationStatementsNeedInsert,
-                        statementContainsCallee,
-                        syntaxGenerator.ThrowStatement(inlineExpression).WithTriviaFrom(statementContainsCallee),
-                        statementContainsCallee,
-                        containsAwaitExpression);
-                }
-
-                // Example:
-                // Before:
-                // void Caller() => Callee()
-                // void Callee() { throw new Exception(); }
-                // After:
-                // void Caller() => throw new Exception();
-                // void Callee() { throw new Exception(); }
-                // Throw expression is converted to throw statement
-                if (CanBeReplacedByThrowExpression(calleeInvocationNode))
-                {
-                    return new InlineMethodContext(
-                        localDeclarationStatementsNeedInsert,
-                        statementContainsCallee,
-                        syntaxGenerator.ThrowExpression(inlineExpression).WithTriviaFrom(calleeInvocationNode),
-                        calleeInvocationNode,
-                        containsAwaitExpression);
-                }
-            }
-
-            var isThrowExpression = _syntaxFacts.IsThrowExpression(inlineExpression);
-            if (isThrowExpression)
-            {
-                // Example:
-                // Before:
-                // void Caller() { Callee(); }
-                // void Callee() => throw new Exception();
-                // After:
-                // void Caller() { throw new Exception(); }
-                // void Callee() => throw new Exception();
-                // Throw expression is converted to throw statement
-                if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
-                {
-                    return new InlineMethodContext(
-                        localDeclarationStatementsNeedInsert,
-                        statementContainsCallee,
-                        syntaxGenerator.ThrowStatement(
-                            _syntaxFacts.GetExpressionOfThrowExpression(inlineExpression))
-                            .WithTriviaFrom(statementContainsCallee),
-                        statementContainsCallee,
-                        containsAwaitExpression);
-                }
-            }
-
-            if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
-                && !calleeMethodSymbol.ReturnsVoid
-                && !IsValidExpressionUnderStatementExpression(inlineExpression))
-            {
-                // If the callee is invoked as ExpressionStatement, but the inlined expression in the callee can't be
-                // placed under ExpressionStatement
-                // Example:
-                // void Caller()
-                // {
-                //     Callee();
-                // }
-                // int Callee()
-                // {
-                //     return 1;
-                // };
-                // After it should be:
-                // void Caller()
-                // {
-                //     int temp = 1;
-                // }
-                // int Callee()
-                // {
-                //     return 1;
-                // };
-                // One variable declaration needs to be generated.
-                var unusedLocalName =
-                    _semanticFactsService.GenerateUniqueLocalName(
-                        semanticModel,
-                        calleeInvocationNode,
-                        containerOpt: null,
-                        TemporaryName,
-                        renameTable.Values,
-                        cancellationToken);
-
-                return new InlineMethodContext(
-                    localDeclarationStatementsNeedInsert,
-                    statementContainsCallee,
-                    syntaxGenerator
-                        .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedLocalName.Text, inlineExpression),
-                    statementContainsCallee,
-                    containsAwaitExpression);
-            }
-
-            // Add type cast and parenthesis to the inline expression.
-            // It is required to cover cases like:
-            // Case 1 (parenthesis added):
-            // Before:
-            // void Caller() { var x = 3 * Callee(); }
-            // int Callee() { return 1 + 2; }
-            //
-            // After
-            // void Caller() { var x = 3 * (1 + 2); }
-            // int Callee() { return 1 + 2; }
-            //
-            // Case 2 (type cast)
-            // Before:
-            // void Caller() { var x = Callee(); }
-            // long Callee() { return 1 }
-            //
-            // After
-            // void Caller() { var x = (long)1; }
-            // int Callee() { return 1; }
-            //
-            // Case 3 (type cast & additional parenthesis)
-            // // Before:
-            // // void Caller() { var x = Callee()(); }
-            // // Func<int> Callee() { return () => 1; }
-            // // After:
-            // // void Caller() { var x = ((Func<int>)(() => 1))(); }
-            // // Func<int> Callee() { return () => 1; }
-            if (!calleeMethodSymbol.ReturnsVoid && !isThrowExpression)
-            {
-                inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
-                    syntaxGenerator.CastExpression(
-                        GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
-                        syntaxGenerator.AddParentheses(inlineExpression)));
-            }
-
             return new InlineMethodContext(
                 localDeclarationStatementsNeedInsert,
-                statementContainsCallee,
-                inlineExpression.WithTriviaFrom(calleeInvocationNode),
-                calleeInvocationNode,
+                inlineExpression,
                 containsAwaitExpression);
         }
 
@@ -582,24 +388,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return renameTable.ToImmutableDictionary();
         }
 
-        private bool MergeInlineContentAndVariableDeclarationArgument(
-            TInvocationSyntax calleeInvocationNode,
-            SemanticModel semanticModel,
-            ImmutableArray<IParameterSymbol> parametersWithVariableDeclarationArgument,
-            TExpressionSyntax inlineExpressionNode,
-            CancellationToken cancellationToken)
-        {
-            if (parametersWithVariableDeclarationArgument.Length == 1
-                && _syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
-                && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
-                && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation
-                && parameterOperation.Parameter.Equals(parametersWithVariableDeclarationArgument[0]))
-            {
-                return true;
-            }
-
-            return false;
-        }
 
         private class LocalVariableDeclarationVisitor : OperationWalker
         {
