@@ -4,6 +4,10 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
+using System.Text;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -28,5 +32,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// Get size of the temporary storage
         /// </summary>
         long Size { get; }
+
+        SourceHashAlgorithm ChecksumAlgorithm { get; }
+
+        Encoding? Encoding { get; }
+
+        ImmutableArray<byte> GetChecksum();
     }
 }

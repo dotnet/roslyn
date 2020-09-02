@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface ITextFactoryService : IWorkspaceService
     {
+        SourceHashAlgorithm ChecksumAlgorithm { get; }
+
         /// <summary>
         /// Creates <see cref="SourceText"/> from a stream.
         /// </summary>

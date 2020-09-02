@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+        /// <summary>
+        /// The default algorithm used by <see cref="SourceText"/> is <see cref="SourceHashAlgorithm.Sha1"/>.
+        /// </summary>
+        public SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithm.Sha1;
+
         public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user wants us to figure out encoding from the given stream.

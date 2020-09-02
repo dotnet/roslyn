@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Threading;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -34,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SolutionAsset(object? value, Checksum checksum, WellKnownSynchronizationKind kind)
         {
+            Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText
+                && value is not SerializableSourceText);
+
             Checksum = checksum;
             Kind = kind;
             Value = value;

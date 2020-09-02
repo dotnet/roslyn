@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -181,7 +182,9 @@ namespace Microsoft.CodeAnalysis.Host
             private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
+                private SourceHashAlgorithm _checksumAlgorithm;
                 private Encoding? _encoding;
+                private ImmutableArray<byte> _checksum;
                 private MemoryMappedInfo? _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
@@ -190,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Host
                 public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding? encoding)
                 {
                     _service = service;
+                    _checksumAlgorithm = service._textFactory.ChecksumAlgorithm;
                     _encoding = encoding;
                     _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
@@ -199,6 +203,18 @@ namespace Microsoft.CodeAnalysis.Host
                 public string? Name => _memoryMappedInfo?.Name;
                 public long Offset => _memoryMappedInfo!.Offset;
                 public long Size => _memoryMappedInfo!.Size;
+                public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
+                public Encoding? Encoding => _encoding;
+
+                public ImmutableArray<byte> GetChecksum()
+                {
+                    if (_checksum.IsDefault)
+                    {
+                        _checksum = ReadText(CancellationToken.None).GetChecksum();
+                    }
+
+                    return _checksum;
+                }
 
                 public void Dispose()
                 {
@@ -252,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
                     {
+                        _checksumAlgorithm = text.ChecksumAlgorithm;
                         _encoding = text.Encoding;
 
                         // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
@@ -303,6 +320,10 @@ namespace Microsoft.CodeAnalysis.Host
                 public string? Name => _memoryMappedInfo?.Name;
                 public long Offset => _memoryMappedInfo!.Offset;
                 public long Size => _memoryMappedInfo!.Size;
+
+                SourceHashAlgorithm ITemporaryStorageWithName.ChecksumAlgorithm => throw new NotSupportedException();
+                Encoding? ITemporaryStorageWithName.Encoding => throw new NotSupportedException();
+                ImmutableArray<byte> ITemporaryStorageWithName.GetChecksum() => throw new NotSupportedException();
 
                 public void Dispose()
                 {
