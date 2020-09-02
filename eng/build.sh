@@ -285,7 +285,7 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$run_analyzers \
+    /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
