@@ -2533,19 +2533,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(copyAnalysisResult?.ControlFlowGraph == null || cfg == copyAnalysisResult?.ControlFlowGraph);
             Debug.Assert(valueContentAnalysisResult?.ControlFlowGraph == null || cfg == valueContentAnalysisResult?.ControlFlowGraph);
 
-            var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, localFunction);
+            // Push a dummy operation for standalone local function analysis.
+            _interproceduralCallStack.Push(DataFlowAnalysisContext.ControlFlowGraph.OriginalOperation);
 
-            // Create analysis context for interprocedural analysis.
-            var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
-                localFunction, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
-
-            // Execute interprocedural analysis and get result.
-            var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
-            if (analysisResult != null)
+            try
             {
-                // Save the interprocedural result for the local function.
-                // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
-                _standaloneLocalFunctionAnalysisResultsBuilder[localFunction] = analysisResult;
+                var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, localFunction);
+
+                // Create analysis context for interprocedural analysis.
+                var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
+                    localFunction, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
+
+                // Execute interprocedural analysis and get result.
+                var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                if (analysisResult != null)
+                {
+                    // Save the interprocedural result for the local function.
+                    // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
+                    _standaloneLocalFunctionAnalysisResultsBuilder[localFunction] = analysisResult;
+                }
+            }
+            finally
+            {
+                _interproceduralCallStack.Pop();
             }
         }
 
@@ -2573,19 +2583,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(copyAnalysisResult?.ControlFlowGraph == null || cfg == copyAnalysisResult?.ControlFlowGraph);
             Debug.Assert(valueContentAnalysisResult?.ControlFlowGraph == null || cfg == valueContentAnalysisResult?.ControlFlowGraph);
 
-            var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, lambda.Symbol);
+            _interproceduralCallStack.Push(lambda);
 
-            // Create analysis context for interprocedural analysis.
-            var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
-                lambda.Symbol, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
-
-            // Execute interprocedural analysis and get result.
-            var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
-            if (analysisResult != null)
+            try
             {
-                // Save the interprocedural result for the lambda operation.
-                // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
-                _interproceduralResultsBuilder[lambda] = analysisResult;
+                var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, lambda.Symbol);
+
+                // Create analysis context for interprocedural analysis.
+                var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
+                    lambda.Symbol, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
+
+                // Execute interprocedural analysis and get result.
+                var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                if (analysisResult != null)
+                {
+                    // Save the interprocedural result for the lambda operation.
+                    // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
+                    _interproceduralResultsBuilder[lambda] = analysisResult;
+                }
+            }
+            finally
+            {
+                _interproceduralCallStack.Pop();
             }
         }
 
