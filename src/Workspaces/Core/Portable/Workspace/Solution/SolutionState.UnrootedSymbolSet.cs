@@ -19,17 +19,17 @@ namespace Microsoft.CodeAnalysis
         /// contained a <see cref="Compilation"/> that could have produced that symbol.  This is especially needed with
         /// OOP scenarios where we have to communicate to OOP from VS (And vice versa) what symbol we are referring to.
         /// To do this, we pass along a project where this symbol could be found, and enough information (a <see
-        /// cref="SymbolKey"/>) to resolve that symbol back in that that <see cref="Project"/>.</para>
-        ///
-        /// <para>This is challenging
-        /// however as symbols do not necessarily have back-pointers to <see cref="Compilation"/>s, and as such, we
-        /// can't just see which Project produced the <see cref="Compilation"/> that produced that <see
+        /// cref="SymbolKey"/>) to resolve that symbol back in that that <see cref="Project"/>.
+        /// <para>
+        /// This is challenging however as symbols do not necessarily have back-pointers to <see cref="Compilation"/>s,
+        /// and as such, we can't just see which Project produced the <see cref="Compilation"/> that produced that <see
         /// cref="ISymbol"/>.  In other words, the <see cref="ISymbol"/> doesn't <c>root</c> the compilation.  Because
-        /// of that we keep track of those symbols per project in a <c>weak</c> fashion.  Then, we can later see if a
+        /// of that we keep track of those symbols per project in a <em>weak</em> fashion.  Then, we can later see if a
         /// symbol came from a particular project by checking if it is one of those weak symbols.  We use weakly held
         /// symbols to that a <see cref="ProjectState"/> instance doesn't hold symbols alive.  But, we know if we are
         /// holding the symbol itself, then the weak-ref will stay alive such that we can do this containment check.
-        /// </summary>
+        /// </para>
+        /// </remarks>
         private readonly struct UnrootedSymbolSet
         {
             /// <summary>
