@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <devdoc>
         /// TODO: This should probably be reimplemented with <see cref="ChildThatContainsPosition"/>
-        /// </devdoc> 
+        /// </devdoc>
         /// <exception cref="ArgumentOutOfRangeException">This exception is thrown if <see cref="FullSpan"/> doesn't contain the given span.</exception>
         public SyntaxNode FindNode(TextSpan span, bool findInsideTrivia = false, bool getInnermostNodeForTie = false)
         {
