@@ -1,4 +1,4 @@
-Imports System.Composition
+﻿Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
