@@ -842,5 +842,33 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        public async Task TestExpressionWithNullConditionalAccess()
+        {
+            var source =
+@"
+#nullable enable
+public class Test
+{
+    public string? M(string? arg)
+        => arg?.Substring([|42|]);
+}";
+            var fixedSource =
+@"
+#nullable enable
+public class Test
+{
+    public string? M(string? arg)
+        => arg?[42..];
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }
