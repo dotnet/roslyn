@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var comment in todoComments)
                 converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
