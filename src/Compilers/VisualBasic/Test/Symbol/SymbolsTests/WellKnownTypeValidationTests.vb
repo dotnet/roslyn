@@ -455,7 +455,7 @@ End Namespace
                 Assert.NotNull(symbol)
 
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
-                    special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
+                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)

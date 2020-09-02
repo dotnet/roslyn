@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                              // DeclaringTypeId
+                (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
