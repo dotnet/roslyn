@@ -7637,6 +7637,9 @@ record B([AllowNull] string X)
             // https://github.com/dotnet/roslyn/issues/44691
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
             comp.VerifyDiagnostics(
+                // (5,10): warning CS8601: Possible null reference assignment.
+                // record B([AllowNull] string X)
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "[AllowNull] string X").WithLocation(5, 10),
                 // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         b = b with { X = null }; // ok
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
