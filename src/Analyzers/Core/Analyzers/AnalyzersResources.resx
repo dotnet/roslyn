@@ -325,4 +325,7 @@
   <data name="Remove_unnecessary_suppression" xml:space="preserve">
     <value>Remove unnecessary suppression</value>
   </data>
+  <data name="Remove_redundant_equality_with_true" xml:space="preserve">
+    <value>Remove redundant equality with true</value>
+  </data>
 </root>

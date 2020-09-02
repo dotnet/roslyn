@@ -227,6 +227,11 @@
         <target state="translated">Rimuovi cast non necessario</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_equality_with_true">
+        <source>Remove redundant equality with true</source>
+        <target state="new">Remove redundant equality with true</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
         <target state="translated">Rimuovi le parentesi non necessarie</target>
