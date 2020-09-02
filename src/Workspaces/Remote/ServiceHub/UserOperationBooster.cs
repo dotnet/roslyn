@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -33,8 +34,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (s_count == 1)
                 {
-                    // boost to normal priority
-                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
+                    try
+                    {
+                        // boost to normal priority
+                        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
+                    }
+                    catch (Exception e) when (e is PlatformNotSupportedException || e is Win32Exception)
+                    {
+                        // The runtime does not support changing process priority, so just return a NOP booster.
+                        return new UserOperationBooster();
+                    }
                 }
 
                 return new UserOperationBooster(isBoosted: true);
