@@ -85,7 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
                                                     touchedFilesLogger As TouchedFileLogger,
                                                     errorLogger As ErrorLogger,
-                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
+                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult),
+                                                    globalAnalyzerConfigOptions As AnalyzerConfigOptionsResult) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
             Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
-            Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions)
+            Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalAnalyzerConfigOptions)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,

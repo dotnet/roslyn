@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(CustomServiceName, (int)WellKnownService);
 
-        public bool Equals([AllowNull] RemoteServiceName other)
+        public bool Equals(RemoteServiceName other)
             => CustomServiceName == other.CustomServiceName && WellKnownService == other.WellKnownService;
 
         public static bool operator ==(RemoteServiceName left, RemoteServiceName right)

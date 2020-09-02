@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ImmutableArray<AnalyzerConfig> _analyzerConfigs;
 
-        private readonly GlobalAnalyzerConfig? _globalConfig;
+        private readonly GlobalAnalyzerConfig _globalConfig;
 
         /// <summary>
         /// <see cref="SectionNameMatcher"/>s for each section. The entries in the outer array correspond to entries in <see cref="_analyzerConfigs"/>, and each inner array
@@ -56,11 +58,13 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
 
+        private StrongBox<AnalyzerConfigOptionsResult>? _lazyConfigOptions;
+
         private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
         {
             public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
 
-            public bool Equals([AllowNull] List<Section> x, [AllowNull] List<Section> y)
+            public bool Equals(List<Section>? x, List<Section>? y)
             {
                 if (x is null || y is null)
                 {
@@ -119,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig);
         }
 
-        private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs, GlobalAnalyzerConfig? globalConfig)
+        private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs, GlobalAnalyzerConfig globalConfig)
         {
             _analyzerConfigs = analyzerConfigs;
             _globalConfig = globalConfig;
@@ -145,6 +149,26 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(allMatchers.Count == _analyzerConfigs.Length);
 
             _analyzerMatchers = allMatchers.ToImmutableAndFree();
+
+        }
+
+        /// <summary>
+        /// Gets an <see cref="AnalyzerConfigOptionsResult"/> that contain the options that apply globally
+        /// </summary>
+        public AnalyzerConfigOptionsResult GlobalConfigOptions
+        {
+            get
+            {
+                if (_lazyConfigOptions is null)
+                {
+                    Interlocked.CompareExchange(
+                        ref _lazyConfigOptions,
+                        new StrongBox<AnalyzerConfigOptionsResult>(ParseGlobalConfigOptions()),
+                        null);
+                }
+
+                return _lazyConfigOptions.Value;
+            }
         }
 
         /// <summary>
@@ -165,14 +189,11 @@ namespace Microsoft.CodeAnalysis
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
             // If we have a global config, add any sections that match the full path 
-            if (_globalConfig is object)
+            foreach (var section in _globalConfig.NamedSections)
             {
-                foreach (var section in _globalConfig.NamedSections)
+                if (normalizedPath.Equals(section.Name, Section.NameComparer))
                 {
-                    if (normalizedPath.Equals(section.Name, Section.NameComparer))
-                    {
-                        sectionKey.Add(section);
-                    }
+                    sectionKey.Add(section);
                 }
             }
             int globalConfigOptionsCount = sectionKey.Count;
@@ -224,31 +245,22 @@ namespace Microsoft.CodeAnalysis
 
                 int sectionKeyIndex = 0;
 
-                if (_globalConfig is object)
+                analyzerOptionsBuilder.AddRange(GlobalConfigOptions.AnalyzerOptions);
+                foreach (var configSection in _globalConfig.NamedSections)
                 {
-                    addOptions(_globalConfig.GlobalSection,
-                                treeOptionsBuilder,
-                                analyzerOptionsBuilder,
-                                diagnosticBuilder,
-                                GlobalAnalyzerConfigBuilder.GlobalConfigPath,
-                                _diagnosticIdCache);
-
-                    foreach (var configSection in _globalConfig.NamedSections)
+                    if (sectionKey.Count > 0 && configSection == sectionKey[sectionKeyIndex])
                     {
-                        if (sectionKey.Count > 0 && configSection == sectionKey[sectionKeyIndex])
+                        ParseSectionOptions(
+                            sectionKey[sectionKeyIndex],
+                            treeOptionsBuilder,
+                            analyzerOptionsBuilder,
+                            diagnosticBuilder,
+                            GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                            _diagnosticIdCache);
+                        sectionKeyIndex++;
+                        if (sectionKeyIndex == sectionKey.Count)
                         {
-                            addOptions(
-                                sectionKey[sectionKeyIndex],
-                                treeOptionsBuilder,
-                                analyzerOptionsBuilder,
-                                diagnosticBuilder,
-                                GlobalAnalyzerConfigBuilder.GlobalConfigPath,
-                                _diagnosticIdCache);
-                            sectionKeyIndex++;
-                            if (sectionKeyIndex == sectionKey.Count)
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -263,7 +275,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (sectionKey[sectionKeyIndex] == config.NamedSections[matcherIndex])
                         {
-                            addOptions(
+                            ParseSectionOptions(
                                 sectionKey[sectionKeyIndex],
                                 treeOptionsBuilder,
                                 analyzerOptionsBuilder,
@@ -313,64 +325,6 @@ namespace Microsoft.CodeAnalysis
                 sectionKey.Clear();
                 pool.Free(sectionKey);
             }
-
-            static void addOptions(
-                AnalyzerConfig.Section section,
-                TreeOptions.Builder treeBuilder,
-                AnalyzerOptions.Builder analyzerBuilder,
-                ArrayBuilder<Diagnostic> diagnosticBuilder,
-                string analyzerConfigPath,
-                ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
-            {
-                const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
-                const string DiagnosticOptionSuffix = ".severity";
-
-                foreach (var (key, value) in section.Properties)
-                {
-                    // Keys are lowercased in editorconfig parsing
-                    int diagIdLength = -1;
-                    if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
-                        key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
-                    {
-                        diagIdLength = key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length);
-                    }
-
-                    if (diagIdLength >= 0)
-                    {
-                        ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(DiagnosticOptionPrefix.Length, diagIdLength);
-                        // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
-                        // lets us avoid an allocation if the id has already been added
-                        if (!diagIdCache.TryGetValue(idSlice, out var diagId))
-                        {
-                            // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
-                            // dictionary, but the actual keys stored in the dictionary are trimmed
-                            // to avoid holding GC references to larger strings than necessary. The
-                            // GetOrAdd APIs do not allow the key to be manipulated between lookup
-                            // and insertion, so we separate the operations here in code.
-                            diagId = idSlice.ToString();
-                            diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
-                        }
-
-                        if (TryParseSeverity(value, out ReportDiagnostic severity))
-                        {
-                            treeBuilder[diagId] = severity;
-                        }
-                        else
-                        {
-                            diagnosticBuilder.Add(Diagnostic.Create(
-                                InvalidAnalyzerConfigSeverityDescriptor,
-                                Location.None,
-                                diagId,
-                                value,
-                                analyzerConfigPath));
-                        }
-                    }
-                    else
-                    {
-                        analyzerBuilder[key] = value;
-                    }
-                }
-            }
         }
 
         internal static bool TryParseSeverity(string value, out ReportDiagnostic severity)
@@ -411,13 +365,91 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        private AnalyzerConfigOptionsResult ParseGlobalConfigOptions()
+        {
+            var treeOptionsBuilder = _treeOptionsPool.Allocate();
+            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
+            var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+
+            ParseSectionOptions(_globalConfig.GlobalSection,
+                        treeOptionsBuilder,
+                        analyzerOptionsBuilder,
+                        diagnosticBuilder,
+                        GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                        _diagnosticIdCache);
+
+            var options = new AnalyzerConfigOptionsResult(
+                treeOptionsBuilder.ToImmutable(),
+                analyzerOptionsBuilder.ToImmutable(),
+                diagnosticBuilder.ToImmutableAndFree());
+
+            treeOptionsBuilder.Clear();
+            analyzerOptionsBuilder.Clear();
+            _treeOptionsPool.Free(treeOptionsBuilder);
+            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
+
+            return options;
+        }
+
+        private static void ParseSectionOptions(Section section, TreeOptions.Builder treeBuilder, AnalyzerOptions.Builder analyzerBuilder, ArrayBuilder<Diagnostic> diagnosticBuilder, string analyzerConfigPath, ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
+        {
+            const string diagnosticOptionPrefix = "dotnet_diagnostic.";
+            const string diagnosticOptionSuffix = ".severity";
+
+            foreach (var (key, value) in section.Properties)
+            {
+                // Keys are lowercased in editorconfig parsing
+                int diagIdLength = -1;
+                if (key.StartsWith(diagnosticOptionPrefix, StringComparison.Ordinal) &&
+                    key.EndsWith(diagnosticOptionSuffix, StringComparison.Ordinal))
+                {
+                    diagIdLength = key.Length - (diagnosticOptionPrefix.Length + diagnosticOptionSuffix.Length);
+                }
+
+                if (diagIdLength >= 0)
+                {
+                    ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(diagnosticOptionPrefix.Length, diagIdLength);
+                    // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
+                    // lets us avoid an allocation if the id has already been added
+                    if (!diagIdCache.TryGetValue(idSlice, out var diagId))
+                    {
+                        // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
+                        // dictionary, but the actual keys stored in the dictionary are trimmed
+                        // to avoid holding GC references to larger strings than necessary. The
+                        // GetOrAdd APIs do not allow the key to be manipulated between lookup
+                        // and insertion, so we separate the operations here in code.
+                        diagId = idSlice.ToString();
+                        diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
+                    }
+
+                    if (TryParseSeverity(value, out ReportDiagnostic severity))
+                    {
+                        treeBuilder[diagId] = severity;
+                    }
+                    else
+                    {
+                        diagnosticBuilder.Add(Diagnostic.Create(
+                            InvalidAnalyzerConfigSeverityDescriptor,
+                            Location.None,
+                            diagId,
+                            value,
+                            analyzerConfigPath));
+                    }
+                }
+                else
+                {
+                    analyzerBuilder[key] = value;
+                }
+            }
+        }
+
         /// <summary>
         /// Merge any partial global configs into a single global config, and remove the partial configs
         /// </summary>
         /// <param name="analyzerConfigs">An <see cref="ArrayBuilder{T}"/> of <see cref="AnalyzerConfig"/> containing a mix of regular and unmerged partial global configs</param>
         /// <param name="diagnostics">Diagnostics produced during merge will be added to this bag</param>
         /// <returns>A <see cref="GlobalAnalyzerConfig" /> that contains the merged partial configs, or <c>null</c> if there were no partial configs</returns>
-        internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics)
+        internal static GlobalAnalyzerConfig MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics)
         {
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
             for (int i = 0; i < analyzerConfigs.Count; i++)
@@ -462,11 +494,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal GlobalAnalyzerConfig? Build(DiagnosticBag diagnostics)
+            internal GlobalAnalyzerConfig Build(DiagnosticBag diagnostics)
             {
                 if (_values is null || _duplicates is null)
                 {
-                    return null;
+                    return new GlobalAnalyzerConfig(new Section(GlobalSectionName, AnalyzerOptions.Empty), ImmutableArray<Section>.Empty);
                 }
 
                 // issue diagnostics for any duplicate keys

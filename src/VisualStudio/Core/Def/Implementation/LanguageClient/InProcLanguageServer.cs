@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal class InProcLanguageServer
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
@@ -47,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             AbstractRequestHandlerProvider requestHandlerProvider,
             CodeAnalysis.Workspace workspace,
             IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider,
             string? clientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
@@ -61,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
+            _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
@@ -163,13 +167,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
         public async Task<SumType<CompletionList, CompletionItem[]>> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
             // Convert to sumtype before reporting to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107698
-            => await _requestHandlerProvider.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
+            => await _requestHandlerProvider.ExecuteRequestAsync<CompletionParams, CompletionList>(Methods.TextDocumentCompletionName,
                 completionParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
         public Task<CompletionItem> ResolveCompletionItemAsync(CompletionItem completionItem, CancellationToken cancellationToken)
             => _requestHandlerProvider.ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName,
                 completionItem, _clientCapabilities, _clientName, cancellationToken);
+
+        [JsonRpcMethod(Methods.TextDocumentFoldingRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<FoldingRange[]> GetTextDocumentFoldingRangeAsync(FoldingRangeParams textDocumentFoldingRangeParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(Methods.TextDocumentFoldingRangeName,
+                textDocumentFoldingRangeParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
         public Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
@@ -249,7 +258,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
 
                 // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
-                Task.Run(() => PublishDiagnosticsAsync(document));
+                var asyncToken = _listener.BeginAsyncOperation(nameof(PublishDiagnosticsAsync));
+                Task.Run(() => PublishDiagnosticsAsync(document))
+                    .CompletesAsyncOperation(asyncToken);
             }
         }
 

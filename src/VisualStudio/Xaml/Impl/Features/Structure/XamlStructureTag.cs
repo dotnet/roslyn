@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure
 {
-    internal interface IActiveStatementSpanTracker
+    internal class XamlStructureTag
     {
-        bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span);
+        public string Type { get; set; }
+        public TextSpan TextSpan { get; set; }
     }
 }

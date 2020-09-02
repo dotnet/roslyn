@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
-        public override string Title => FeaturesResources.Pull_members_up_to_new_base_class;
+        public override string Title => FeaturesResources.Extract_base_class;
 
         public ExtractClassWithDialogCodeAction(
             Document document,
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationNode = root.GetAnnotatedNodes(typeAnnotation).Single();
 
-            return (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(declarationNode, cancellationToken);
+            return (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(declarationNode, cancellationToken);
         }
 
         private static async Task<Solution> GetSolutionWithBaseAddedAsync(

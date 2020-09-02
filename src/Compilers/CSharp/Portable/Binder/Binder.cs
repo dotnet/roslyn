@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax.NullableContextState.State.Disabled => false,
                 Syntax.NullableContextState.State.ExplicitlyRestored => GetGlobalAnnotationState(),
                 Syntax.NullableContextState.State.Unknown =>
-                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider)
+                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
                     && AreNullableAnnotationsGloballyEnabled(),
                 _ => throw ExceptionUtilities.UnexpectedValue(context.AnnotationsState)
             };
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsGeneratedCode(SyntaxToken token)
         {
             var tree = (CSharpSyntaxTree)token.SyntaxTree!;
-            return tree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider);
+            return tree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None);
         }
 
         internal virtual bool AreNullableAnnotationsGloballyEnabled()
