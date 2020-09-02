@@ -345,6 +345,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Примеры:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="new">Extract base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Извлечение интерфейса…</target>
@@ -658,11 +663,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Извлечь элементы до базового типа...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
