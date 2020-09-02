@@ -16,12 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDesignerAttributeService : BrokeredServiceBase, IRemoteDesignerAttributeService
     {
-        internal sealed class Factory : FactoryBase<IDesignerAttributeListener>
+        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeService, IDesignerAttributeListener>
         {
-            protected override WellKnownServiceHubService ServiceId
-                => WellKnownServiceHubService.RemoteTodoCommentsService;
-
-            protected override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IDesignerAttributeListener> callback)
+            protected override IRemoteDesignerAttributeService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IDesignerAttributeListener> callback)
                 => new RemoteDesignerAttributeService(serviceProvider, serviceBroker, callback);
         }
 
@@ -47,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return Task.CompletedTask;
+                return default;
             }, cancellationToken);
         }
     }

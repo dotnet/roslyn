@@ -115,10 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(
-                WellKnownServiceHubService.RemoteTodoCommentsService,
-                callbackTarget: this,
-                cancellationToken).ConfigureAwait(false);
+            var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);

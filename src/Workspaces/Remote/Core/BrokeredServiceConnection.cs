@@ -15,16 +15,20 @@ namespace Microsoft.CodeAnalysis.Remote
         where T : class
     {
         private readonly IErrorReportingService _errorReportingService;
+        private readonly SolutionAssetStorage _solutionAssetStorage;
         private readonly T _service;
 
-        public BrokeredServiceConnection(T service, IErrorReportingService errorReportingService)
+        public BrokeredServiceConnection(T service, SolutionAssetStorage solutionAssetStorage, IErrorReportingService errorReportingService)
         {
             _errorReportingService = errorReportingService;
+            _solutionAssetStorage = solutionAssetStorage;
             _service = service;
         }
 
         public override void Dispose()
             => (_service as IDisposable)?.Dispose();
+
+        // without solution
 
         public override async ValueTask<bool> TryInvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
@@ -58,6 +62,51 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 return await invocation(_service, args, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return default;
+            }
+        }
+
+        // with solution
+
+        public override async ValueTask<bool> TryInvokeAsync(Solution solution, Func<T, PinnedSolutionInfo, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
+                await invocation(_service, scope.SolutionInfo, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return false;
+            }
+        }
+
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<T, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
+                return await invocation(_service, scope.SolutionInfo, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return default;
+            }
+        }
+
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Solution solution, Func<T, PinnedSolutionInfo, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
+                return await invocation(_service, scope.SolutionInfo, args, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
             {

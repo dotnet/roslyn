@@ -29,13 +29,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
-
-            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var serializer = _services.GetRequiredService<ISerializerService>();
-
             // Complete RPC right away so the client can start reading from the stream.
-            _ = Task.Run(() => RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken), cancellationToken);
+            _ = Task.Run(() =>
+            {
+                using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
+
+                var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+                var serializer = _services.GetRequiredService<ISerializerService>();
+
+                return RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken);
+            }, cancellationToken);
 
             return Task.CompletedTask;
         }

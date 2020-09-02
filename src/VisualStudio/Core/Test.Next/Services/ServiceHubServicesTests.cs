@@ -138,10 +138,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(
-                WellKnownServiceHubService.RemoteTodoCommentsService,
-                callbackTarget: callback,
-                cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callback, cancellationTokenSource.Token);
 
             var invokeTask = connection.TryInvokeAsync(
                 (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
@@ -219,10 +216,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(
-                WellKnownServiceHubService.RemoteDesignerAttributeService,
-                callback,
-                cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callback, cancellationTokenSource.Token);
 
             var invokeTask = connection.TryInvokeAsync(
                 (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),

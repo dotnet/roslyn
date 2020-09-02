@@ -30,10 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(WellKnownServiceHubService service, Type? clientInterface, bool isRemoteHost64Bit)
-            => new ServiceDescriptor(
-                new ServiceMoniker(new RemoteServiceName(service).ToString(isRemoteHost64Bit)),
-                clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface)
+            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface);
 
         public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName)
             => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null);

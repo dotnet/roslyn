@@ -58,10 +58,56 @@ namespace Microsoft.CodeAnalysis.Remote
             return service.TryGetRemoteHostClientAsync(cancellationToken);
         }
 
-        public abstract ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+        public abstract ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
             where T : class;
 
         public abstract Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);
+
+        // brokered services:
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            object? callbackTarget,
+            Func<TService, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            object? callbackTarget,
+            Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Solution solution,
+            object? callbackTarget,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Solution solution,
+            object? callbackTarget,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        // legacy services:
 
         public async Task RunRemoteAsync(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {

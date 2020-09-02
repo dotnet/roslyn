@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
         {
             var options = default(ServiceActivationOptions);
 
@@ -112,12 +112,15 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 options.ClientRpcTarget = callbackTarget;
             }
 
+            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
+
 #pragma warning disable ISB001 // Dispose of proxies - caller disposes
-            var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(service.GetServiceDescriptor(isRemoteHost64Bit: IntPtr.Size == 8), options, cancellationToken).ConfigureAwait(false);
+            var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
 
             Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, errorReportingService: null);
+            return new BrokeredServiceConnection<T>(proxy, assetStorage, errorReportingService: null);
         }
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
@@ -207,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private sealed class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
-            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.FactoryBase> _brokeredFactoryMap = new();
+            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _brokeredFactoryMap = new();
             private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase>> _factoryMap = new();
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
@@ -224,9 +227,10 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p, o) => new RemoteSymbolSearchUpdateEngine(s, p));
-                RegisterBrokeredService(WellKnownServiceHubService.RemoteDesignerAttributeService, new RemoteDesignerAttributeService.Factory());
-                RegisterBrokeredService(WellKnownServiceHubService.RemoteProjectTelemetryService, new RemoteProjectTelemetryService.Factory());
-                RegisterBrokeredService(WellKnownServiceHubService.RemoteTodoCommentsService, new RemoteTodoCommentsService.Factory());
+                RegisterService(new RemoteDesignerAttributeService.Factory());
+                RegisterService(new RemoteProjectTelemetryService.Factory());
+                RegisterService(new RemoteTodoCommentsService.Factory());
+                RegisterService(new RemoteDiagnosticAnalyzerService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
@@ -245,9 +249,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 return Task.FromResult<Stream>(new WrappedStream(factory(streams.Item1, _serviceProvider, default), streams.Item2));
             }
 
-            public void RegisterBrokeredService(RemoteServiceName service, BrokeredServiceBase.FactoryBase serviceFactory)
+            public void RegisterService(BrokeredServiceBase.IFactory serviceFactory)
             {
-                var moniker = new ServiceMoniker(service.ToString(isRemoteHost64Bit: IntPtr.Size == 8));
+                var moniker = ServiceDescriptors.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8).Moniker;
                 _brokeredFactoryMap.Add(moniker, serviceFactory);
             }
 

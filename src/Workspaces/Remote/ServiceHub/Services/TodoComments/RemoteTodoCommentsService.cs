@@ -16,12 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class RemoteTodoCommentsService : BrokeredServiceBase, IRemoteTodoCommentsService
     {
-        internal sealed class Factory : FactoryBase<ITodoCommentsListener>
+        internal sealed class Factory : FactoryBase<IRemoteTodoCommentsService, ITodoCommentsListener>
         {
-            protected override WellKnownServiceHubService ServiceId
-                => WellKnownServiceHubService.RemoteTodoCommentsService;
-
-            protected override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<ITodoCommentsListener> callback)
+            protected override IRemoteTodoCommentsService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<ITodoCommentsListener> callback)
                 => new RemoteTodoCommentsService(serviceProvider, serviceBroker, callback);
         }
 
@@ -48,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return Task.CompletedTask;
+                return default;
             }, cancellationToken);
         }
     }

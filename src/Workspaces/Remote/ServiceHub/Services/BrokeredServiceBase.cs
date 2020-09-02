@@ -5,8 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -15,32 +13,27 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Base type with servicehub helper methods. this is not tied to how Roslyn OOP works. 
-    /// 
-    /// any type that derived from this type is supposed to be an entry point for servicehub services.
-    /// name of the type should match one appears in GenerateServiceHubConfigurationFiles.targets 
-    /// and signature of either its constructor or static CreateAsync must follow the convension
-    /// ctor(Stream stream, IServiceProvider serviceProvider).
-    /// 
-    /// see servicehub detail from VSIDE onenote
-    /// https://microsoft.sharepoint.com/teams/DD_VSIDE
+    /// Base type for Roslyn brokered services hosted in ServiceHub.
     /// </summary>
     internal abstract class BrokeredServiceBase : IDisposable
     {
-        internal abstract class FactoryBase : IServiceHubServiceFactory
+        internal interface IFactory
         {
-            protected abstract WellKnownServiceHubService ServiceId { get; }
-            protected abstract object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker);
+            public object Create(IDuplexPipe pipe, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker);
+            public Type ServiceType { get; }
+        }
 
-            protected virtual object CreateService(
+        internal abstract class FactoryBase<TService> : IServiceHubServiceFactory, IFactory
+            where TService : class
+        {
+            protected abstract TService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker);
+
+            protected virtual TService CreateService(
                 IServiceProvider serviceProvider,
                 IServiceBroker serviceBroker,
                 ServiceRpcDescriptor descriptor,
@@ -58,20 +51,25 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Dispose the AuthorizationServiceClient since we won't be using it
                 authorizationServiceClient?.Dispose();
 
-                return Task.FromResult(Create(
+                return Task.FromResult((object)Create(
                     stream.UsePipe(),
                     hostProvidedServices,
                     serviceActivationOptions,
                     serviceBroker));
             }
 
-            internal object Create(
+            object IFactory.Create(IDuplexPipe pipe, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker)
+                => Create(pipe, hostProvidedServices, serviceActivationOptions, serviceBroker);
+
+            Type IFactory.ServiceType => typeof(TService);
+
+            internal TService Create(
                IDuplexPipe pipe,
                IServiceProvider hostProvidedServices,
                ServiceActivationOptions serviceActivationOptions,
                IServiceBroker serviceBroker)
             {
-                var descriptor = ServiceId.GetServiceDescriptor(isRemoteHost64Bit: IntPtr.Size == 8);
+                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8);
                 var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
                 var service = CreateService(hostProvidedServices, serviceBroker, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);
@@ -83,15 +81,16 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        internal abstract class FactoryBase<TCallback> : FactoryBase
+        internal abstract class FactoryBase<TService, TCallback> : FactoryBase<TService>
+            where TService : class
             where TCallback : class
         {
-            protected abstract object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<TCallback> callback);
+            protected abstract TService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<TCallback> callback);
 
-            protected sealed override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
+            protected sealed override TService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
                 => throw ExceptionUtilities.Unreachable;
 
-            protected sealed override object CreateService(
+            protected sealed override TService CreateService(
                 IServiceProvider serviceProvider,
                 IServiceBroker serviceBroker,
                 ServiceRpcDescriptor descriptor,
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 
-        protected async ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, Task<T>> implementation, CancellationToken cancellationToken)
+        protected async ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
             using var _ = LinkToken(ref cancellationToken);
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        protected async ValueTask RunServiceAsync(Func<CancellationToken, Task> implementation, CancellationToken cancellationToken)
+        protected async ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
             using var _ = LinkToken(ref cancellationToken);

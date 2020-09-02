@@ -16,12 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class RemoteProjectTelemetryService : BrokeredServiceBase, IRemoteProjectTelemetryService
     {
-        internal sealed class Factory : FactoryBase<IProjectTelemetryListener>
+        internal sealed class Factory : FactoryBase<IRemoteProjectTelemetryService, IProjectTelemetryListener>
         {
-            protected override WellKnownServiceHubService ServiceId
-                => WellKnownServiceHubService.RemoteProjectTelemetryService;
-
-            protected override object CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IProjectTelemetryListener> callback)
+            protected override IRemoteProjectTelemetryService CreateService(IServiceProvider serviceProvider, IServiceBroker serviceBroker, RemoteCallback<IProjectTelemetryListener> callback)
                 => new RemoteProjectTelemetryService(serviceProvider, serviceBroker, callback);
         }
 
@@ -48,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return Task.CompletedTask;
+                return default;
             }, cancellationToken);
         }
     }

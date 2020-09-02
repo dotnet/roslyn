@@ -118,10 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(
-                WellKnownServiceHubService.RemoteDesignerAttributeService,
-                callbackTarget: this,
-                cancellationToken).ConfigureAwait(false);
+            var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.

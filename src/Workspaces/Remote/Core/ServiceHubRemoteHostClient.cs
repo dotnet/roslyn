@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
         {
             try
             {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     options.ClientRpcTarget = callbackTarget;
                 }
 
-                var descriptor = service.GetServiceDescriptor(RemoteHostOptions.IsServiceHubProcess64Bit(_services));
+                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
 #pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
                 var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
 
-                return new BrokeredServiceConnection<T>(proxy, _errorReportingService);
+                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {

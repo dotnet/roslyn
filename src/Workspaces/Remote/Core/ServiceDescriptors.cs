@@ -4,7 +4,12 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DesignerAttribute;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -16,34 +21,31 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal static class ServiceDescriptors
     {
-        public static ServiceDescriptor RemoteTodoCommentsService64 { get; } = ServiceDescriptor.CreateRemoteServiceDescriptor(
-            WellKnownServiceHubService.RemoteTodoCommentsService,
-            clientInterface: typeof(ITodoCommentsListener),
-            isRemoteHost64Bit: true);
+        private static readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)> s_descriptors = ImmutableDictionary.CreateRange(new[]
+        {
+            CreateDescriptors(typeof(IRemoteTodoCommentsService), callbackInterface: typeof(ITodoCommentsListener)),
+            CreateDescriptors(typeof(IRemoteDesignerAttributeService), callbackInterface: typeof(IDesignerAttributeListener)),
+            CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IProjectTelemetryListener)),
+            CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
+        });
 
-        public static ServiceDescriptor RemoteTodoCommentsService32 { get; } = ServiceDescriptor.CreateRemoteServiceDescriptor(
-            WellKnownServiceHubService.RemoteTodoCommentsService,
-            clientInterface: typeof(ITodoCommentsListener),
-            isRemoteHost64Bit: false);
+        private static KeyValuePair<Type, (ServiceDescriptor, ServiceDescriptor)> CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
+        {
+            Contract.ThrowIfFalse(serviceInterface.IsInterface);
+            Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
+            Contract.ThrowIfFalse(serviceInterface.Name[0] == 'I');
 
-        public static ServiceDescriptor RemoteDesignerAttributeService64 { get; } = ServiceDescriptor.CreateRemoteServiceDescriptor(
-            WellKnownServiceHubService.RemoteDesignerAttributeService,
-            clientInterface: typeof(IDesignerAttributeListener),
-            isRemoteHost64Bit: true);
+            var serviceName = RemoteServiceName.Prefix + serviceInterface.Name.Substring(1);
 
-        public static ServiceDescriptor RemoteDesignerAttributeService32 { get; } = ServiceDescriptor.CreateRemoteServiceDescriptor(
-            WellKnownServiceHubService.RemoteDesignerAttributeService,
-            clientInterface: typeof(IDesignerAttributeListener),
-            isRemoteHost64Bit: false);
+            var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName, callbackInterface);
+            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName + RemoteServiceName.Suffix64, callbackInterface);
+            return new(serviceInterface, (descriptor32, descriptor64));
+        }
 
-        public static ServiceRpcDescriptor GetServiceDescriptor(this WellKnownServiceHubService service, bool isRemoteHost64Bit)
-            => (service, isRemoteHost64Bit) switch
-            {
-                (WellKnownServiceHubService.RemoteTodoCommentsService, true) => RemoteTodoCommentsService64,
-                (WellKnownServiceHubService.RemoteTodoCommentsService, false) => RemoteTodoCommentsService32,
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, true) => RemoteDesignerAttributeService64,
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, false) => RemoteDesignerAttributeService32,
-                _ => throw ExceptionUtilities.UnexpectedValue(service)
-            };
+        public static ServiceRpcDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
+        {
+            var (descriptor32, descriptor64) = s_descriptors[serviceType];
+            return isRemoteHost64Bit ? descriptor64 : descriptor32;
+        }
     }
 }
