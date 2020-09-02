@@ -14,8 +14,7 @@ public partial class RoslynSDKRootTemplateWizard
   <packageSources>
     <clear />
     <add key=""nuget.org"" value=""https://api.nuget.org/v3/index.json"" />
-    <add key=""roslyn"" value=""https://dotnet.myget.org/F/roslyn/api/v3/index.json"" />
-    <add key=""roslyn-analyzers"" value=""https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json"" />
+    <add key=""dotnet-tools"" value=""https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json"" />
   </packageSources>
   <disabledPackageSources>
     <clear />
