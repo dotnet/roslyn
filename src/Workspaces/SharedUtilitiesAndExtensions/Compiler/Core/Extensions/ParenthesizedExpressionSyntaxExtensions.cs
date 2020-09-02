@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Extensions
                 }
             }
 
-            // See https://github.com/dotnet/roslyn/issues/47365
+            // It's not safe to change associativity for dynamic variables as the actual type isn't known. See https://github.com/dotnet/roslyn/issues/47365
             if (innerTypeInfo.Type is IDynamicTypeSymbol)
             {
                 return false;
