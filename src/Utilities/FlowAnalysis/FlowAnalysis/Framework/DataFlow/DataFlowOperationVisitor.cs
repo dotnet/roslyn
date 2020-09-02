@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private int _recursionDepth;
 
         /// <summary>
-        /// Local functions that escaped analysis scope via conversion to delegates passed to non-analyzed calls.
+        /// Local functions that escaped from this method.
         /// </summary>
         private readonly HashSet<IMethodSymbol> _escapedLocalFunctions;
 
         /// <summary>
-        /// Lambda methods that escaped analysis scope via conversion to delegates passed to non-analyzed calls.
+        /// Lambda methods that escaped from this method.
         /// </summary>
         private readonly HashSet<IFlowAnonymousFunctionOperation> _escapedLambdas;
 
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 _escapedLambdas.AddRange(pointsToAnalysisResult.EscapedLambdas);
             }
 
-            // Perform standalone analysis for local functions that escaped via conversion to delegates.
+            // Perform standalone analysis for local functions that escaped.
             if (_escapedLocalFunctions.Count > 0)
             {
                 foreach (var localFunction in DataFlowAnalysisContext.ControlFlowGraph.LocalFunctions)
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            // Perform standalone analysis for lambdas that escaped via conversion to delegates.
+            // Perform standalone analysis for lambdas that escaped.
             if (_escapedLambdas.Count > 0)
             {
                 foreach (var lambda in _visitedLambdas)
