@@ -99,12 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
         {
             var invocation = result.Invocation;
-            var expression = invocation switch
-            {
-                { Expression: MemberAccessExpressionSyntax memberAccess } _ => memberAccess.Expression,
-                { Parent: ConditionalAccessExpressionSyntax _ } => null,
-                _ => invocation.Expression
-            };
 
             var rangeExpression = CreateRangeExpression(result, generator);
             var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
@@ -112,11 +106,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             if (result.MemberInfo.OverloadedMethodOpt == null)
             {
+                var expression = invocation switch
+                {
+                    { Expression: MemberAccessExpressionSyntax memberAccess } _ => memberAccess.Expression,
+                    { Parent: ConditionalAccessExpressionSyntax _ } => null,
+                    _ => invocation.Expression
+                };
+
                 var argList = invocation.ArgumentList;
                 var argumentList = BracketedArgumentList(
-                                        Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
-                                        arguments,
-                                        Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
+                        Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
+                        arguments,
+                        Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
                 return expression == null
                     ? (ExpressionSyntax)ElementBindingExpression(argumentList)
                     : ElementAccessExpression(expression, argumentList);
