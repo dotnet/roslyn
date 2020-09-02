@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             CopyAnalysisResult? copyAnalysisResult,
             PointsToAnalysisResult? pointsToAnalysisResult,
             Func<ValueContentAnalysisContext, ValueContentAnalysisResult?> tryGetOrComputeAnalysisResult,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes,
+            Func<IOperation, ValueContentAbstractValue>? getValueForAdditionalSupportedValueTypeOperation,
             ControlFlowGraph? parentControlFlowGraph,
             InterproceduralValueContentAnalysisData? interproceduralAnalysisData,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
@@ -37,7 +40,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                   pointsToAnalysisResult, valueContentAnalysisResult: null, tryGetOrComputeAnalysisResult, parentControlFlowGraph,
                   interproceduralAnalysisData, interproceduralAnalysisPredicate)
         {
+            AdditionalSupportedValueTypes = additionalSupportedValueTypes.IsDefault ? ImmutableArray<INamedTypeSymbol>.Empty : additionalSupportedValueTypes;
+            GetValueForAdditionalSupportedValueTypeOperation = getValueForAdditionalSupportedValueTypeOperation;
         }
+
+        public ImmutableArray<INamedTypeSymbol> AdditionalSupportedValueTypes { get; }
+        public Func<IOperation, ValueContentAbstractValue>? GetValueForAdditionalSupportedValueTypeOperation { get; }
 
         internal static ValueContentAnalysisContext Create(
             AbstractValueDomain<ValueContentAbstractValue> valueDomain,
@@ -50,12 +58,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             CopyAnalysisResult? copyAnalysisResult,
             PointsToAnalysisResult? pointsToAnalysisResult,
             Func<ValueContentAnalysisContext, ValueContentAnalysisResult?> tryGetOrComputeAnalysisResult,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
         {
             return new ValueContentAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult,
-                tryGetOrComputeAnalysisResult, parentControlFlowGraph: null, interproceduralAnalysisData: null, interproceduralAnalysisPredicate);
+                tryGetOrComputeAnalysisResult, additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation,
+                parentControlFlowGraph: null, interproceduralAnalysisData: null, interproceduralAnalysisPredicate);
         }
 
         public override ValueContentAnalysisContext ForkForInterproceduralAnalysis(
@@ -69,12 +80,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             Debug.Assert(valueContentAnalysisResult == null);
 
             return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
+                PessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult, TryGetOrComputeAnalysisResult,
+                AdditionalSupportedValueTypes, GetValueForAdditionalSupportedValueTypeOperation, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicate);
         }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
+            addPart(HashUtilities.Combine(AdditionalSupportedValueTypes));
         }
     }
 }
