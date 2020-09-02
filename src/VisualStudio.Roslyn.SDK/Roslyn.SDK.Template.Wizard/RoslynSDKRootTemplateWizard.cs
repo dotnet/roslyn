@@ -44,7 +44,7 @@ public partial class RoslynSDKRootTemplateWizard
         if (Directory.Exists(solutionFolder))
         {
             File.WriteAllText(
-                Path.Combine(solutionFolder, "NuGet.Config"),
+                Path.Combine(solutionFolder, "NuGet.config"),
                 NuGetConfig,
                 Encoding.UTF8);
         }
