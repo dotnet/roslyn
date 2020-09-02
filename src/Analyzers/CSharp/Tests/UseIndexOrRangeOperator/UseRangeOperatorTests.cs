@@ -662,7 +662,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestIntWritableType()
         {
