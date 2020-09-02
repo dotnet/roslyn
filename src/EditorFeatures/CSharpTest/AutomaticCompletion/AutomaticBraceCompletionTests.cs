@@ -44,7 +44,35 @@ class C
             CheckStart(session.Session);
             CheckText(session.Session, expected);
         }
+        
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
+        public void TypelessNewExpressionBracesSameLine()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = new() $$
+    }
+}";
 
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = new() { }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+        
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void WithExpressionBracesSameLine_Enter()
         {
