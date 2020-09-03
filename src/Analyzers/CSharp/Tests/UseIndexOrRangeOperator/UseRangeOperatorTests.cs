@@ -879,15 +879,15 @@ public class Test
 @"
 public class Test
 {
-    public int M(string arg)
-        => arg.Substring([|42|]).Length;
+    public int? M(string arg)
+        => arg?.Substring([|42|]).Length;
 }";
             var fixedSource =
 @"
 public class Test
 {
-    public int M(string arg)
-        => arg[42..].Length;
+    public int? M(string arg)
+        => arg?[42..].Length;
 }";
             await new VerifyCS.Test
             {
@@ -903,8 +903,8 @@ public class Test
             "c.Prop.Substring([|42|])",
             "c.Prop[42..]")]
         [InlineData(
-            "c.Prop.Substring([|42, c.Prop.Length - 1|])",
-            "c.Prop[42..^(-41)]")]
+            "c.Prop.Substring([|1, c.Prop.Length - 2|])",
+            "c.Prop[1..^1]")]
         [InlineData(
             "c?.Prop.Substring([|42|])",
             "c?.Prop[42..]")]
