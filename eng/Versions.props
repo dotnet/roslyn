@@ -28,7 +28,7 @@
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.3.0-beta1.20352.4</RoslynDiagnosticsNugetPackageVersion>
-    <MicrosoftCodeAnalysisNetAnalyzersVersion>5.0.0-rc2.20451.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
+    <MicrosoftCodeAnalysisNetAnalyzersVersion>5.0.0-rc2.20453.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <CodeStyleLayerCodeAnalysisVersion>3.7.0</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20407.3</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.7.0-3.20271.4</CodeStyleAnalyzerVersion>
