@@ -870,5 +870,80 @@ public class Test
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
+        {
+            var source =
+@"
+public class Test
+{
+    public int M(string arg)
+        => arg.Substring([|42|]).Length;
+}";
+            var fixedSource =
+@"
+public class Test
+{
+    public int M(string arg)
+        => arg[42..].Length;
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [InlineData(
+            "c.Prop.Substring([|42|])",
+            "c.Prop[42..]")]
+        [InlineData(
+            "c.Prop.Substring([|42, c.Prop.Length - 1|])",
+            "c.Prop[42..^(-41)]")]
+        [InlineData(
+            "c?.Prop.Substring([|42|])",
+            "c?.Prop[42..]")]
+        [InlineData(
+            "c.Prop?.Substring([|42|])",
+            "c.Prop?[42..]")]
+        [InlineData(
+            "c?.Prop?.Substring([|42|])",
+            "c?.Prop?[42..]")]
+        public async Task TestExpressionWithNullConditionalAccessVariations(string subStringCode, string rangeCode)
+        {
+            var source =
+@$"
+public class C
+{{
+    public string Prop {{ get; set; }}
+}}
+public class Test
+{{
+    public object M(C c)
+        => { subStringCode };
+}}";
+            var fixedSource =
+@$"
+public class C
+{{
+    public string Prop {{ get; set; }}
+}}
+public class Test
+{{
+    public object M(C c)
+        => { rangeCode };
+}}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }
