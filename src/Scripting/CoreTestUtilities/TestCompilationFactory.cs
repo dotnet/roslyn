@@ -24,11 +24,12 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal static Compilation CreateVisualBasicCompilationWithCorlib(string source, string assemblyName = null)
         {
-            return VisualBasicCompilation.Create(
-                assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetStandard13.SystemRuntime },
-                new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            throw new Exception($"Testing: {TestReferences.NetStandard13.SystemRuntime.Display");
+            //return VisualBasicCompilation.Create(
+            //    assemblyName ?? Guid.NewGuid().ToString(),
+            //    new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
+            //    new[] { TestReferences.NetStandard13.SystemRuntime },
+            //    new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
         internal static Compilation CreateCSharpCompilation(string source, IEnumerable<MetadataReference> references, string assemblyName = null, CSharpCompilationOptions options = null)
