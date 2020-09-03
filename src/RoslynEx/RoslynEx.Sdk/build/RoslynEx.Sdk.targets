@@ -2,12 +2,23 @@
 <Project>
   <PropertyGroup>
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
-    <RoslynExToolsetVersion>3.8.0-poc.20452.3</RoslynExToolsetVersion>
+    <RoslynExToolsetVersion>3.8.0-poc.20453.1</RoslynExToolsetVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
+  
+  <!-- based on https://stackoverflow.com/a/56018426/41071 -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);AdjustAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="AdjustAssembliesInPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+    </ItemGroup>
+  </Target>
 
   <UsingTask TaskName="RewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

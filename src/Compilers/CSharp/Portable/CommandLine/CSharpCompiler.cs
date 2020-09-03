@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        RoslynExMessageProvider.Instance, RoslynExMessageProvider.ERR_TransformerFailed, transformer.GetType().Name, ex));
+                        RoslynExMessageProvider.Instance, RoslynExMessageProvider.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
                     diagnostics.Add(diagnostic);
                 }
             }
