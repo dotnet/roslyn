@@ -43,10 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ParenthesesForMethodInvocations
             If includeParenthesesPreference Then
                 ' User wants to include parentheses. Return True indicating violation if parentheses doesn't exist.
                 Return invocation.ArgumentList Is Nothing
+            Else
+                ' User doesn't want to include parentheses. Return True indicating violation of parentheses exist for a method taking 0 arguments.
+                Return invocation.ArgumentList IsNot Nothing AndAlso Not invocation.ArgumentList.Arguments.Any()
             End If
-
-            ' User doesn't want to include parentheses. Return True indicating violation of parentheses exist for a method taking 0 arguments.
-            Return invocation.ArgumentList IsNot Nothing AndAlso Not invocation.ArgumentList.Arguments.Any()
         End Function
     End Class
 End Namespace
