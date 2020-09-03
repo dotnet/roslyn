@@ -77,18 +77,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             return new GlobalFlowStateAnalysisValueSet(AnalysisValues, parentsBuilder.ToImmutable(), newHeight, GlobalFlowStateAnalysisValueSetKind.Known);
         }
 
-        private static GlobalFlowStateAnalysisValueSet WithNegatedAnalysisValues(GlobalFlowStateAnalysisValueSet newAnalysisValueSet)
-        {
-            return new GlobalFlowStateAnalysisValueSet(
-                    GetNegatedAnalysisValues(newAnalysisValueSet.AnalysisValues),
-                    newAnalysisValueSet.Parents,
-                    newAnalysisValueSet.Height,
-                    newAnalysisValueSet.Kind);
-        }
-
-        private static ImmutableHashSet<IAbstractAnalysisValue> GetNegatedAnalysisValues(ImmutableHashSet<IAbstractAnalysisValue> values)
-            => values.Select(f => f.GetNegatedValue()).ToImmutableHashSet();
-
         internal GlobalFlowStateAnalysisValueSet WithAdditionalAnalysisValues(GlobalFlowStateAnalysisValueSet newAnalysisValuesSet, bool negate)
         {
             return WithAdditionalAnalysisValuesCore(negate ? newAnalysisValuesSet.GetNegatedValue() : newAnalysisValuesSet);
