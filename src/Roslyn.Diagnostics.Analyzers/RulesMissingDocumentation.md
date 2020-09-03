@@ -16,8 +16,6 @@ RS0038 |  | Prefer null literal |
 RS0040 |  | Defaultable types should have defaultable fields |
 RS0042 |  | Do not copy value |
 RS0043 |  | Do not call 'GetTestAccessor()' |
-RS0044 |  | Create test accessor |
-RS0045 |  | Expose member for testing |
 RS0046 |  | Avoid the 'Opt' suffix |
 RS0100 |  | Statements must be placed on their own line |
 RS0101 |  | Avoid multiple blank lines |

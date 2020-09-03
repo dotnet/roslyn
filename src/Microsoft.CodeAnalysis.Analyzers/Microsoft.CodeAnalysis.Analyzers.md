@@ -401,7 +401,7 @@ DiagnosticId for analyzers should not use reserved IDs.
 
 ### Rule description
 
-The diagnostic title should not contain a period or any line return character
+The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces
 
 ## RS1032: Define diagnostic message correctly
 
@@ -414,7 +414,7 @@ The diagnostic title should not contain a period or any line return character
 
 ### Rule description
 
-The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period
+The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period
 
 ## RS1033: Define diagnostic description correctly
 
@@ -427,7 +427,7 @@ The diagnostic message should not contain any line return character and should e
 
 ### Rule description
 
-The diagnostic description should be one or multiple sentences ending with a punctuation sign
+The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces
 
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release.
 
