@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override ExpressionSyntax GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value)
             => ExpressionGenerator.GenerateExpression(typeSymbol, value, canUseFieldReference: true);
 
+        protected override bool IsFieldDeclarationSyntax(SyntaxNode node)
+            => node.IsKind(SyntaxKind.FieldDeclaration);
+
         protected override bool IsValidExpressionUnderExpressionStatement(ExpressionSyntax expressionNode)
         {
             // C# Expression Statements defined in the language reference

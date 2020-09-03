@@ -158,11 +158,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
-        private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(Document document,
-            TInvocationSyntax calleInvocationNode,
+        private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(
+            Document document,
+            TInvocationSyntax calleeInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
-            ISymbol callerSymbol,
-            SyntaxNode syntaxNodeContainingInvocation,
+            TStatementSyntax? statementContainingInvocation,
             TExpressionSyntax rawInlineExpression,
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var allArgumentOperations = invocationOperation.Arguments;
             var calleeDocument = document.Project.Solution.GetRequiredDocument(calleeMethodNode.SyntaxTree);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            if (!callerSymbol.IsKind(SymbolKind.Field) && syntaxNodeContainingInvocation is TStatementSyntax)
+            if (statementContainingInvocation != null)
             {
                 // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
                 // For params array, it should be included here if it is accept an array identifier as argument.
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 var mergeInlineContentAndVariableDeclarationArgument = await ShouldMergeInlineContentAndVariableDeclarationArgumentAsync(
                     calleeDocument,
-                    calleInvocationNode,
+                    calleeInvocationNode,
                     parametersWithVariableDeclarationArgument!,
                     rawInlineExpression,
                     cancellationToken).ConfigureAwait(false);
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
             else
             {
-                // If the caller is a field, or this is invoked in an arrow function, we can't generate declaration
+                // If the caller is this is invoked in an arrow function, we can't generate declaration
                 // because there is nowhere to insert that.
                 // This such case, just use the argument expression to parameter.
                 // Note: this might also cause semantics changes but is acceptable for a refactoring

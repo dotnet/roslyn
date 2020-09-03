@@ -1145,7 +1145,7 @@ Public Class TestClass
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
 Public Class TestClass
     Public Sub Caller(i As Boolean)
-        Do 
+        Do
         Loop While Ca[||]llee(GetFlag())
     End Sub
 
@@ -1161,7 +1161,7 @@ Public Class TestClass
     Public Sub Caller(i As Boolean)
         Dim a As Boolean = GetFlag()
 
-        Do 
+        Do
         Loop While a OrElse a
     End Sub
 
@@ -1362,6 +1362,69 @@ Module TestModule
         Return i + 1
     End Function
 ##End Module")
+        End Function
+
+        <Fact>
+        Public Function TestInlineInField() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Class TestClass
+    Private TestField As Integer = Cal[||]lee(GetInt())
+
+    Private Shared Function GetInt() As Integer
+        Return 10
+    End Function
+
+    Private Shared Function Callee(i As Integer) As Integer
+        Return i + i
+    End Function
+End Class", "
+Public Class TestClass
+    Private TestField As Integer = GetInt() + GetInt()
+
+    Private Shared Function GetInt() As Integer
+        Return 10
+    End Function
+##
+    Private Shared Function Callee(i As Integer) As Integer
+        Return i + i
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineInProperty() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Class TestClass
+    Readonly Property Caller() As Integer
+        Get
+            Return Call[||]ee(GetInt())
+        End Get
+    End Property
+
+    Private Shared Function GetInt() As Integer
+        Return 10
+    End Function
+
+    Private Shared Function Callee(i As Integer) As Integer
+        Return i + i
+    End Function
+End Class", "
+Public Class TestClass
+    Readonly Property Caller() As Integer
+        Get
+            Dim i As Integer = GetInt()
+            Return i + i
+        End Get
+    End Property
+
+    Private Shared Function GetInt() As Integer
+        Return 10
+    End Function
+##
+    Private Shared Function Callee(i As Integer) As Integer
+        Return i + i
+    End Function
+##End Class")
         End Function
     End Class
 End Namespace

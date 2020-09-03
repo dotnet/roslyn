@@ -64,6 +64,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return GenerateExpression(typeSymbol, value, canUseFieldReference:=True)
         End Function
 
+        Protected Overrides Function IsFieldDeclarationSyntax(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.FieldDeclaration)
+        End Function
+
         Protected Overrides Function IsValidExpressionUnderExpressionStatement(expressionNode As ExpressionSyntax) As Boolean
             Return expressionNode.IsKind(SyntaxKind.AwaitExpression) OrElse expressionNode.IsKind(SyntaxKind.InvocationExpression)
         End Function

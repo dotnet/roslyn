@@ -3310,6 +3310,26 @@ public class TestClass
 ");
 
         [Fact]
+        public Task TestInlineInArrowProperty2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class TestClass
+{
+    private const int i = 10;
+    public int Caller { get => Cal[||]lee(); }
+
+    private int Callee() => i + 1;
+}
+", @"
+public class TestClass
+{
+    private const int i = 10;
+    public int Caller { get => i + 1; }
+##
+    private int Callee() => i + 1;
+##}
+");
+
+        [Fact]
         public Task TestInlineInArrowLambda1()
         {
             var diagnostic = new List<DiagnosticResult>()
