@@ -74,18 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
             // NOTE: ref is irrelevant here since we are just encoding/decoding the type out of the signature context
             ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
-            TypeSymbol typeWithDynamic = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
+            TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
-            TypeSymbol resultType;
+            var builder = ArrayBuilder<bool>.GetInstance();
+            CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, destinationType);
+            resultType = NativeIntegerTypeDecoder.TransformType(resultType, builder.ToImmutableAndFree());
+
             if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {
                 // We also preserve tuple names, if present and different
                 ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, names);
-            }
-            else
-            {
-                resultType = typeWithDynamic;
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(resultType, names);
             }
 
             // Preserve nullable modifiers as well.
@@ -100,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool transformResult = resultType.ApplyNullableTransforms(defaultTransformFlag: 0, flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
             Debug.Assert(transformResult && position == length);
 
-            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same custom modifiers as source type.
+            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers)); // Same custom modifiers as source type.
 
-            // Same object/dynamic, nullability and tuple names as destination type.
+            // Same object/dynamic, nullability, native integers, and tuple names as destination type.
             Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
 
             return resultType;
