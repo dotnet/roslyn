@@ -44,17 +44,22 @@ Friend Class MockVisualBasicCompiler
     Protected Overrides Sub ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),
         messageProvider As CommonMessageProvider,
+        skipAnalyzers As Boolean,
         ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
         ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, analyzers, generators)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, analyzers, generators)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
     End Sub
 
-    Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
-        Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt)
+    Public Overloads Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
+        Return Me.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, Nothing)
+    End Function
+
+    Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger, syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult), globalConfigOptions As AnalyzerConfigOptionsResult) As Compilation
+        Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, globalConfigOptions)
         Return Compilation
     End Function
 

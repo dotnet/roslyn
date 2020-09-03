@@ -965,18 +965,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // However, if there was a duplicate definition for the runtime signature of the overridden
             // method where it was originally declared, that would have been an error.  In that case we suppress
             // the warning as a cascaded diagnostic.
-            bool originalOverriddenMethodWasAmbiguious =
+            bool originalOverriddenMethodWasAmbiguous =
                 csharpOverriddenMethod.IsDefinition || csharpOverriddenMethod.OriginalDefinition.MethodHasRuntimeCollision();
-            warnAmbiguous = !originalOverriddenMethodWasAmbiguious;
+            warnAmbiguous = !originalOverriddenMethodWasAmbiguous;
 
-            bool overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod =
+            bool overriddenMethodContainedInSameTypeAsRuntimeOverriddenMethod =
                 csharpOverriddenMethod.ContainingType.Equals(runtimeOverriddenMethod.ContainingType, TypeCompareKind.CLRSignatureCompareOptions);
 
             // If the overridden method is on a different (e.g. base) type compared to the runtime overridden
             // method, then the runtime overridden method could not possibly resolve correctly to the overridden method.
             // In this case we might as well produce a methodimpl. At least it has a chance of being correctly resolved
             // by the runtime, where the runtime resolution without the methodimpl would definitely be wrong.
-            if (!overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod)
+            if (!overriddenMethodContainedInSameTypeAsRuntimeOverriddenMethod)
                 return true;
 
             // This is the historical test, preserved since the days of the native compiler in case it turns out to affect compatibility.

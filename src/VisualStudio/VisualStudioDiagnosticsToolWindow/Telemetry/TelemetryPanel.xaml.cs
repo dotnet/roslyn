@@ -9,11 +9,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.Telemetry
 {
@@ -27,20 +27,24 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Telemetry
             InitializeComponent();
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void OnDump(object sender, RoutedEventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void OnDump(object sender, RoutedEventArgs e)
         {
-            using (Disable(DumpButton))
-            using (Disable(CopyButton))
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
-                GenerationProgresBar.IsIndeterminate = true;
+                using (Disable(DumpButton))
+                using (Disable(CopyButton))
+                {
+                    GenerationProgresBar.IsIndeterminate = true;
 
-                var text = await Task.Run(() => GetTelemetryString()).ConfigureAwait(true);
-                this.Result.Text = text;
+                    await TaskScheduler.Default;
+                    var text = GetTelemetryString();
 
-                GenerationProgresBar.IsIndeterminate = false;
-            }
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    this.Result.Text = text;
+
+                    GenerationProgresBar.IsIndeterminate = false;
+                }
+            });
         }
 
         private void OnCopy(object sender, RoutedEventArgs e)

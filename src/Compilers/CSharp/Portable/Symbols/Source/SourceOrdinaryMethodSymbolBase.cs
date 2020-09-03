@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int ParameterCount
+        internal sealed override int ParameterCount
         {
             get
             {

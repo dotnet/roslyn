@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             if (fileExtension == ".cs")
             {
-                return StringConstants.CSharpLspLanguageName;
+                return LanguageNames.CSharp;
             }
             else if (fileExtension == ".ts" || fileExtension == ".js")
             {
@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
             else if (fileExtension == ".vb")
             {
-                return StringConstants.VBLspLanguageName;
+                return LanguageNames.VisualBasic;
             }
 
             return null;

@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -24,19 +28,19 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </summary>
     internal sealed class SerializableClassifiedSpans
     {
-        public List<string> ClassificationTypes;
-        public List<int> ClassificationTriples;
+        public List<string>? ClassificationTypes;
+        public List<int>? ClassificationTriples;
 
-        internal static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
         {
             using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
             return Dehydrate(classifiedSpans, classificationTypeToId);
         }
 
-        private static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
+        private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
         {
             var classificationTypes = new List<string>();
-            var classificationTriples = new List<int>(capacity: classifiedSpans.Count * 3);
+            var classificationTriples = new List<int>(capacity: classifiedSpans.Length * 3);
 
             foreach (var classifiedSpan in classifiedSpans)
             {
@@ -63,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Classification
 
         internal void Rehydrate(List<ClassifiedSpan> classifiedSpans)
         {
+            Contract.ThrowIfNull(ClassificationTypes);
+            Contract.ThrowIfNull(ClassificationTriples);
+
             for (var i = 0; i < ClassificationTriples.Count; i += 3)
             {
                 classifiedSpans.Add(new ClassifiedSpan(

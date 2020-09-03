@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public virtual Task OnReferenceFoundAsync(SourceReferenceItem reference) => Task.CompletedTask;
 
-        public virtual Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference) => Task.CompletedTask;
-
         protected virtual Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
 
         Task IFindUsagesContext.ReportProgressAsync(int current, int maximum)

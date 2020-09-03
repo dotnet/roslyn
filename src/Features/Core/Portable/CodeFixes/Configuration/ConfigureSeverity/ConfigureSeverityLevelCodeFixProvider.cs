@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
-            {
-                return ImmutableArray<CodeFix>.Empty;
-            }
-
             var result = ArrayBuilder<CodeFix>.GetInstance();
             var analyzerDiagnosticsByCategory = new SortedDictionary<string, ArrayBuilder<Diagnostic>>();
             using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var analyzerDiagnostics);

@@ -21,7 +21,7 @@ Visual Studio 2019 already installed.
 
 To install the latest release without Visual Studio, download the [.NET SDK nightlies](https://github.com/dotnet/installer/blob/master/README.md#installers-and-binaries).
 
-See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/wiki/Changelog-for-C%23-and-VB-compilers).
+See [what's new with the C# and VB compilers](docs/wiki/Changelog-for-C%23-and-VB-compilers.md).
 
 **Pre-release builds** are available from the following public NuGet feeds: 
 - [Compiler](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json`
@@ -32,30 +32,29 @@ See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/w
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
 * [Enhanced source view](http://sourceroslyn.io/), powered by Roslyn 
-* [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
+* [Building, testing and debugging the sources](docs/wiki/Building-Testing-and-Debugging.md)
 
 ### Get started
 
 * Tutorial articles by Alex Turner in MSDN Magazine
-  - [Use Roslyn to Write a Live Code Analyzer for Your API](https://msdn.microsoft.com/en-us/magazine/dn879356)
-  - [Adding a Code Fix to your Roslyn Analyzer](https://msdn.microsoft.com/en-us/magazine/dn904670.aspx)
-* [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview) 
-* [API Changes between CTP 6 and RC](https://github.com/dotnet/roslyn/wiki/VS-2015-RC-API-Changes)
-* [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
+  - [Use Roslyn to Write a Live Code Analyzer for Your API](https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/special-issue/csharp-and-visual-basic-use-roslyn-to-write-a-live-code-analyzer-for-your-api)
+  - [Adding a Code Fix to your Roslyn Analyzer](https://docs.microsoft.com/en-us/archive/msdn-magazine/2015/february/csharp-adding-a-code-fix-to-your-roslyn-analyzer)
+* [Roslyn Overview](docs/wiki/Roslyn-Overview.md) 
+* [API Changes between CTP 6 and RC](docs/wiki/VS-2015-RC-API-Changes.md)
+* [Samples and Walkthroughs](docs/wiki/Samples-and-Walkthroughs.md)
 * [Documentation](https://github.com/dotnet/roslyn/tree/master/docs)
 * [Analyzer documentation](https://github.com/dotnet/roslyn/tree/master/docs/analyzers)
-* [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
+* [Syntax Visualizer Tool](docs/wiki/Syntax-Visualizer.md)
 * [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
-* [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
+* [Roadmap](docs/wiki/Roadmap.md) 
 * [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
-* [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
-* Also take a look at our [Wiki](https://github.com/dotnet/roslyn/wiki) for more information on how to contribute, what the labels on issue mean, etc.
+* [FAQ](docs/wiki/FAQ.md)
 
 ### Contribute!
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
 
-* [How to Contribute](https://github.com/dotnet/roslyn/wiki/Contributing-Code)
+* [How to Contribute](docs/wiki/Contributing-Code.md)
 * [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/labels/help%20wanted) is a great place to start.

@@ -3334,18 +3334,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            verifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,37): error CS8370: Feature 'lambda discard parameters' is not available in C# 7.3. Please use language version 9.0 or greater.
+                //         Func<int, int, int> f = (_, _) => 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(8, 37));
 
             comp = CreateCompilation(source);
-            verifyDiagnostics();
-
-            void verifyDiagnostics()
-            {
-                comp.VerifyDiagnostics(
-                    // (8,37): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         Func<int, int, int> f = (_, _) => 0;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 37));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

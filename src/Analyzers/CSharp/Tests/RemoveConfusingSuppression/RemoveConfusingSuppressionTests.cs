@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -132,8 +131,6 @@ class C
             }.RunAsync();
         }
 
-#if !CODE_STYLE
-
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsExpression_CSharp9()
         {
@@ -165,8 +162,6 @@ class C
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
-
-#endif
 
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPattern_CSharp9()

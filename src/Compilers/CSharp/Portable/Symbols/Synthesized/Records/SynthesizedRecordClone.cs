@@ -4,12 +4,9 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
-using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -118,30 +115,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            if (ReturnType.IsErrorType())
+            try
             {
-                F.CloseMethod(F.ThrowNull());
-                return;
-            }
-
-            var members = ContainingType.InstanceConstructors;
-            foreach (var member in members)
-            {
-                var ctor = (MethodSymbol)member;
-                if (ctor.ParameterCount == 1 && ctor.Parameters[0].RefKind == RefKind.None &&
-                    ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.AllIgnoreOptions))
+                if (ReturnType.IsErrorType())
                 {
-                    F.CloseMethod(F.Return(F.New(ctor, F.This())));
+                    F.CloseMethod(F.ThrowNull());
                     return;
                 }
-            }
 
-            throw ExceptionUtilities.Unreachable;
+                var members = ContainingType.InstanceConstructors;
+                foreach (var member in members)
+                {
+                    var ctor = (MethodSymbol)member;
+                    if (ctor.ParameterCount == 1 && ctor.Parameters[0].RefKind == RefKind.None &&
+                        ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        F.CloseMethod(F.Return(F.New(ctor, F.This())));
+                        return;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
         }
 
         // Note: this method was replicated in SymbolDisplayVisitor.FindValidCloneMethod
         internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
+            if (containingType.IsObjectType())
+            {
+                return null;
+            }
+
             MethodSymbol? candidate = null;
 
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))

@@ -711,6 +711,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
         {
+            if (containingType.SpecialType == SpecialType.System_Object)
+            {
+                return null;
+            }
+
             IMethodSymbol candidate = null;
 
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))

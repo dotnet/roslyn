@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
         public const string EncapsulateField = "Encapsulate Field";
+        public const string ExtractClass = "Extract Class Code Action Provider";
         public const string ExtractInterface = "Extract Interface Code Action Provider";
         public const string ExtractMethod = "Extract Method Code Action Provider";
         public const string GenerateConstructorFromMembers = "Generate Constructor From Members Code Action Provider";
