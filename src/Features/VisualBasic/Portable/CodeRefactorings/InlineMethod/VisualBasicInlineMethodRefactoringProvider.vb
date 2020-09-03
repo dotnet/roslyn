@@ -45,17 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return Nothing
         End Function
 
-        Protected Overrides Function GetEnclosingMethodLikeNode(syntaxNode As SyntaxNode) As SyntaxNode
-            While syntaxNode IsNot Nothing
-                If TypeOf syntaxNode Is MethodBlockBaseSyntax OrElse TypeOf syntaxNode Is LambdaExpressionSyntax Then
-                    Return syntaxNode
-                End If
-                syntaxNode = syntaxNode.Parent
-            End While
-
-            Return Nothing
-        End Function
-
         Protected Overrides Function GenerateTypeSyntax(symbol As ITypeSymbol, allowVar As Boolean) As SyntaxNode
             Return symbol.GenerateTypeSyntax()
         End Function

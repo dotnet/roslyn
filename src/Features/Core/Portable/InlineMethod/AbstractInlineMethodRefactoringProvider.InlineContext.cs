@@ -278,16 +278,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunction(node))
                 .Where(_syntaxFacts.IsAwaitExpression)
                 .ToImmutableArray();
-            foreach (var awaitExpression in awaitExpressions)
-            {
-                var enclosingMethodLikeNode = GetEnclosingMethodLikeNode(awaitExpression);
-                if (calleeMethodDeclarationNode.Equals(enclosingMethodLikeNode))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return !awaitExpressions.IsEmpty;
         }
 
         private static TStatementSyntax CreateLocalDeclarationStatement(

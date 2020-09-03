@@ -61,25 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return null;
         }
 
-        protected override SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode)
-        {
-            for (var calleeNode = syntaxNode; calleeNode != null; calleeNode = calleeNode.Parent)
-            {
-                // 1. Common method
-                // 2. Local function
-                // 3. Simple lambda & Parenthesized Lambda
-                // 4. Anonymous Method ExpressionSyntax
-                if (calleeNode is BaseMethodDeclarationSyntax
-                    || calleeNode.IsKind(SyntaxKind.LocalFunctionStatement)
-                    || calleeNode is AnonymousFunctionExpressionSyntax)
-                {
-                    return calleeNode;
-                }
-            }
-
-            return null;
-        }
-
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar)
             => symbol.GenerateTypeSyntax(allowVar);
 

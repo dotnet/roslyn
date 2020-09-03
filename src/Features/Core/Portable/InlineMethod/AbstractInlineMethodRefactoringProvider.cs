@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private readonly ISemanticFactsService _semanticFactsService;
 
         protected abstract TExpressionSyntax? GetRawInlineExpression(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
-        protected abstract SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
         protected abstract TExpressionSyntax GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value);
         protected abstract bool IsFieldDeclarationSyntax(SyntaxNode node);
