@@ -969,8 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var (key, value) in attribute.CommonNamedArguments)
                 {
-                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value)
-                        || value.Values.IsDefaultOrEmpty)
+                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
                     {
                         continue;
                     }
@@ -978,6 +977,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (callingConventionTypes != null)
                     {
                         isValid = false;
+                    }
+
+                    if (value.Values.IsDefaultOrEmpty)
+                    {
+                        callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                        continue;
                     }
 
                     var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
@@ -1000,9 +1005,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return callingConventionTypes == null
-                ? UnmanagedCallersOnlyAttributeData.PlatformDefault
-                : new UnmanagedCallersOnlyAttributeData(callingConventionTypes, isValid);
+            return callingConventionTypes?.IsEmpty == false
+                ? new UnmanagedCallersOnlyAttributeData(callingConventionTypes, isValid)
+                : UnmanagedCallersOnlyAttributeData.PlatformDefault;
         }
 #nullable restore
 

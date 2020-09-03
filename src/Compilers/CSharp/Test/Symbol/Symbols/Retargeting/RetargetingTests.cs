@@ -1051,9 +1051,6 @@ namespace System
         }
     }
 }
-namespace System.Runtime.InteropServices
-{
-}
 ";
             var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);
             beforeRetargeting.VerifyDiagnostics();
@@ -1131,9 +1128,6 @@ namespace System
             public sealed class CallConvCdecl {}
         }
     }
-}
-namespace System.Runtime.InteropServices
-{
 }
 ";
             var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);

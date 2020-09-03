@@ -858,8 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var (key, value) in namedArgs)
                 {
-                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value)
-                        || value.Values.IsDefaultOrEmpty)
+                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
                     {
                         continue;
                     }
@@ -1000,7 +999,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (boundAttributes[i].IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
                         {
                             UnmanagedCallersOnlyAttributeErrors(boundAttributes[i], allAttributeSyntaxNodes[i], diagnostics);
-                            break;
                         }
                     }
                 }

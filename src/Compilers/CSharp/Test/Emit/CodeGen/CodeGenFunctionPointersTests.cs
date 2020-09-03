@@ -8417,7 +8417,7 @@ class C
         }
 
         [Fact]
-        public void UnmanagedCallersOnlyCannotDirectCallMethod()
+        public void UnmanagedCallersOnlyCannotCallMethodDirectly()
         {
             var comp = CreateCompilation(new[] { @"
 using System.Runtime.InteropServices;
@@ -8437,6 +8437,62 @@ public class C
                 // (10,9): error CS8897: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         M1();
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1()").WithArguments("C.M1()").WithLocation(10, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCallMethodDirectlyWithAlias()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+using E = D;
+public class C
+{
+    public static void M2()
+    {
+        E.M1();
+    }
+}
+public class D
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8897: 'D.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         E.M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "E.M1()").WithArguments("D.M1()").WithLocation(8, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCallMethodDirectlyWithUsingStatic()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+using static D;
+public class C
+{
+    public static void M2()
+    {
+        M1();
+    }
+}
+public class D
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8897: 'D.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1()").WithArguments("D.M1()").WithLocation(8, 9)
             );
         }
 
@@ -9514,6 +9570,32 @@ public class C
                 // (12,6): error CS8900: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
                 //     [ModuleInitializer, UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "ModuleInitializer").WithLocation(12, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyMultipleApplications()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })]
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
+    public static void M1() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: 'string' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })").WithArguments("string").WithLocation(5, 6),
+                // (6,6): error CS0579: Duplicate 'UnmanagedCallersOnly' attribute
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "UnmanagedCallersOnly").WithArguments("UnmanagedCallersOnly").WithLocation(6, 6),
+                // (6,6): error CS8893: 'object' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })").WithArguments("object").WithLocation(6, 6)
             );
         }
 
