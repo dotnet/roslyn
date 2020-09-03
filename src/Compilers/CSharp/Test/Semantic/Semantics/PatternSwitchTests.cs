@@ -3037,6 +3037,37 @@ static class Ex
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
 
+        [Fact]
+        [WorkItem(46593, "https://github.com/dotnet/roslyn/issues/46593")]
+        public void NameofInWhenClause()
+        {
+            var source =
+@"struct Outer
+{
+    struct S
+    {
+        static void M(string q)
+        {
+            S s = new S();
+            System.Console.Write(s switch
+            {
+                { P: 1 } when nameof(Q) == q => 1,
+                { P: 2 } => 2,
+                _ => 3,
+            });
+        }
+
+        int P => 1;
+    }
+
+    public int Q => 1;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
+        }
+
         [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
         public void SwitchOnNull_20210()
         {
