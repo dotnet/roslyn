@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal static Compilation CreateVisualBasicCompilationWithCorlib(string source, string assemblyName = null)
         {
-            throw new Exception($"Testing: {TestReferences.NetStandard13.SystemRuntime.Display");
+            throw new Exception($"Testing: {TestReferences.NetStandard13.SystemRuntime.Display}");
             //return VisualBasicCompilation.Create(
             //    assemblyName ?? Guid.NewGuid().ToString(),
             //    new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
