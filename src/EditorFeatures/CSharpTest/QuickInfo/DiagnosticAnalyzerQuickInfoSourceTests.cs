@@ -175,10 +175,6 @@ namespace T
                 new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var analyzer = (diagnosticAnalyzerService as IIncrementalAnalyzerProvider).CreateIncrementalAnalyzer(workspace);
-            await analyzer.AnalyzeProjectAsync(workspace.CurrentSolution.Projects.Single(), semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
