@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, syntax.Location, callConvTypedConstant.ValueInternal ?? "null");
                         }
                     }
-               }
+                }
             }
 
             var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
