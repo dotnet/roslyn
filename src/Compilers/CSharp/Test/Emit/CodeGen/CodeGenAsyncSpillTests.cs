@@ -6349,5 +6349,36 @@ public class C
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
+        public void AssignInstanceStructField()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public struct S1
+{
+    public int Field;
+}
+
+public class C
+{
+    public S1 s1;
+    async Task M(Task<int> t)
+    {
+        s1.Field = await t;
+    }
+
+    static async Task Main()
+    {
+        var c = new C();
+        await c.M(Task.FromResult(1));
+        Console.Write(c.s1.Field);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
     }
 }
