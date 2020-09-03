@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace RoslynEx
 {
@@ -10,9 +11,10 @@ namespace RoslynEx
 #if !ROSLYNEX_INTERFACE
         private readonly DiagnosticBag _diagnostics;
 
-        internal TransformerContext(Compilation compilation, DiagnosticBag diagnostics)
+        internal TransformerContext(Compilation compilation, AnalyzerConfigOptions globalOptions, DiagnosticBag diagnostics)
         {
             Compilation = compilation;
+            GlobalOptions = globalOptions;
             _diagnostics = diagnostics;
         }
 #endif
@@ -21,6 +23,11 @@ namespace RoslynEx
         /// Get the current <see cref="Compilation"/> at the time of execution.
         /// </summary>
         public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Allows access to global options provided by an analyzer config
+        /// </summary>
+        public AnalyzerConfigOptions GlobalOptions { get; }
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the user's compilation.

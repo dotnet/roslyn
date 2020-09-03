@@ -13,6 +13,13 @@ namespace RoslynEx.UnitTests
 {
     public class SourceTransformersTests : CommandLineTestBase
     {
+        private static Assembly LoadCompiledAssembly(string path)
+        {
+            var resolver = new PathAssemblyResolver(new string[] { typeof(object).Assembly.Location });
+            var mlc = new MetadataLoadContext(resolver, typeof(object).Assembly.GetName().Name);
+            return mlc.LoadFromAssemblyPath(path);
+        }
+
         [Fact]
         public void TransformerWorks()
         {
@@ -32,9 +39,7 @@ namespace RoslynEx.UnitTests
             Assert.Equal(0, exitCode);
             Assert.Contains("warning TEST001: Test warning", output);
 
-            var resolver = new PathAssemblyResolver(new string[] { typeof(object).Assembly.Location });
-            var mlc = new MetadataLoadContext(resolver, typeof(object).Assembly.GetName().Name);
-            var assembly = mlc.LoadFromAssemblyPath(Path.Combine(dir.Path, "temp.dll"));
+            var assembly = LoadCompiledAssembly(Path.Combine(dir.Path, "temp.dll"));
 
             Assert.NotNull(assembly.GetType("Generated"));
             Assert.Null(assembly.GetType("C"));
@@ -49,6 +54,43 @@ namespace RoslynEx.UnitTests
                 context.ReportDiagnostic(Diagnostic.Create("TEST001", "Test", "Test warning", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1));
 
                 return context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree("class Generated {}"));
+            }
+        }
+
+        [Fact]
+        public void Config()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+            var editorconfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+is_global = true
+config_transformer_class_name = ConfigTestClass
+");
+
+            var transformer = new ConfigTransformer();
+
+            var args = new[] { "/t:library", $"/analyzerconfig:{editorconfig.Path}", src.Path };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: new ISourceTransformer[] { transformer }.ToImmutableArray());
+
+            var exitCode = csc.Run(TextWriter.Null);
+
+            Assert.Equal(0, exitCode);
+
+            var assembly = LoadCompiledAssembly(Path.Combine(dir.Path, "temp.dll"));
+
+            Assert.NotNull(assembly.GetType("ConfigTestClass"));
+
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        class ConfigTransformer : ISourceTransformer
+        {
+            public Compilation Execute(TransformerContext context)
+            {
+                context.GlobalOptions.TryGetValue("config_transformer_class_name", out var className);
+
+                return context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
             }
         }
     }

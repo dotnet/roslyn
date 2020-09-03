@@ -389,14 +389,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilationOut;
         }
 
-        private protected override Compilation RunTransformers(Compilation input, ImmutableArray<ISourceTransformer> transformers, DiagnosticBag diagnostics)
+        private protected override Compilation RunTransformers(
+            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
         {
             var compilation = input;
             foreach (var transformer in transformers)
             {
                 try
                 {
-                    var context = new TransformerContext(compilation, diagnostics);
+                    var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics);
                     compilation = transformer.Execute(context);
                 }
                 catch (Exception ex)
