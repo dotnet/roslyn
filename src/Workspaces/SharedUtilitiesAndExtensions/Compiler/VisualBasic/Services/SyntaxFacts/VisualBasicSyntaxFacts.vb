@@ -2380,5 +2380,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsThrowStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsThrowStatement
             Return node.IsKind(SyntaxKind.ThrowStatement)
         End Function
+
+        Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
+            Return False
+        End Function
     End Class
 End Namespace

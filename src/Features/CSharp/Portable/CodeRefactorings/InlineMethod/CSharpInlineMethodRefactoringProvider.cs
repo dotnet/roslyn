@@ -83,26 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar)
             => symbol.GenerateTypeSyntax(allowVar);
 
-        protected override StatementSyntax ConvertToStatement(ExpressionSyntax expression, bool createReturnStatement)
-            => expression.ConvertToStatement(SyntaxFactory.Token(SyntaxKind.SemicolonToken), createReturnStatement);
-
         protected override ExpressionSyntax GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value)
             => ExpressionGenerator.GenerateExpression(typeSymbol, value, canUseFieldReference: true);
-
-        protected override bool IsMethodWithExpressionBody(SyntaxNode callerNode)
-        {
-            if (callerNode is BaseMethodDeclarationSyntax methodDeclarationNode)
-            {
-                return methodDeclarationNode.ExpressionBody != null;
-            }
-
-            if (callerNode is LambdaExpressionSyntax lambdaExpressionNode)
-            {
-                return lambdaExpressionNode.ExpressionBody != null;
-            }
-
-            return false;
-        }
 
         protected override bool IsValidExpressionUnderExpressionStatement(ExpressionSyntax expressionNode)
         {

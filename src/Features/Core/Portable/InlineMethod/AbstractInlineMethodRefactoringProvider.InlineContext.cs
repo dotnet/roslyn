@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             var renameTable = ComputeRenameTable(
                 _semanticFactsService,
-                calleeMethodNode,
+                rawInlineExpression,
                 callerSemanticModel,
                 calleeSemanticModel,
                 calleeInvocationNode,
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private static ImmutableDictionary<ISymbol, string> ComputeRenameTable(
             ISemanticFactsService semanticFacts,
-            TMethodDeclarationSyntax calleeMethodNode,
+            TExpressionSyntax rawInlineExpression,
             SemanticModel callerSemanticModel,
             SemanticModel calleeSemanticModel,
             SyntaxNode calleeInvocationNode,
@@ -377,7 +377,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             CancellationToken cancellationToken)
         {
             var renameTable = new Dictionary<ISymbol, string>();
-            var localSymbolsInCallee = LocalVariableDeclarationVisitor.GetAllSymbols(calleeSemanticModel, calleeMethodNode, cancellationToken);
+            var localSymbolsInCallee = LocalVariableDeclarationVisitor
+                .GetAllSymbols(calleeSemanticModel, rawInlineExpression, cancellationToken);
             foreach (var symbol in parametersNeedGenerateFreshVariableFor.Concat(localSymbolsInCallee))
             {
                 var usedNames = renameTable.Values;
@@ -394,7 +395,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return renameTable.ToImmutableDictionary();
         }
 
-
         private class LocalVariableDeclarationVisitor : OperationWalker
         {
             private readonly CancellationToken _cancellationToken;
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             public static ImmutableHashSet<ISymbol> GetAllSymbols(
                 SemanticModel semanticModel,
-                TMethodDeclarationSyntax methodDeclarationSyntax,
+                TExpressionSyntax methodDeclarationSyntax,
                 CancellationToken cancellationToken)
             {
                 var visitor = new LocalVariableDeclarationVisitor(cancellationToken);

@@ -499,6 +499,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsImplicitObjectCreation(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
         bool IsThrowStatement(SyntaxNode node);
+        bool IsLocalFunction(SyntaxNode node);
     }
 
     [Flags]

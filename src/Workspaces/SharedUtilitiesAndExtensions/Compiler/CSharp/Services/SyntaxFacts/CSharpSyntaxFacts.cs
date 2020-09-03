@@ -2146,5 +2146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsThrowStatement(SyntaxNode node)
             => node.IsKind(SyntaxKind.ThrowStatement);
+
+        public bool IsLocalFunction(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement);
     }
 }

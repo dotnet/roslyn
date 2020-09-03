@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
@@ -161,218 +160,241 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(
             Document document,
-            TInvocationSyntax calleeInvocationNode,
+            TInvocationSyntax calleInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax rawInlineExpression,
+            ISymbol callerSymbol,
+            SyntaxNode syntaxNodeContainingInvocation,
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {
             var callerSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var allArgumentOperations = invocationOperation.Arguments;
             var calleeDocument = document.Project.Solution.GetRequiredDocument(calleeMethodNode.SyntaxTree);
-
-            // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
-            // For params array, it should be included here if it is accept an array identifier as argument.
-            // Note: this might change the order of evaluation if the identifiers are property, this is by design because strictly
-            // follow the semantics will cause strange code and this is a refactoring.
-            // Example:
-            // Before:
-            // void Caller(int i, int j, bool[] k)
-            // {
-            //     Callee(i, j, k);
-            // }
-            // void Callee(int a, int b, params bool[] c)
-            // {
-            //     DoSomething(a, b, c);
-            // }
-            // After:
-            // void Caller(int i, int j, bool[] k)
-            // {
-            //     DoSomething(i, j, k);
-            // }
-            // void Callee(int a, int b, params bool[] c)
-            // {
-            //     DoSomething(a, b, c);
-            // }
-            var operationsWithIdentifierArgument = allArgumentOperations
-                .WhereAsArray(argument =>
-                    _syntaxFacts.IsIdentifierName(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
-
-            // 2. Find all the declaration arguments (e.g. out var declaration in C#).
-            // After inlining, an declaration needs to be put before the invocation. And also use the declared identifier to replace the mapping parameter in callee.
-            // Example:
-            // Before:
-            // void Caller()
-            // {
-            //     Callee(out var x);
-            // }
-            // void Callee(out int i) => i = 100;
-            //
-            // After:
-            // void Caller()
-            // {
-            //     int x;
-            //     x = 100;
-            // }
-            // void Callee(out int i) => i = 100;
-            var operationsWithVariableDeclarationArgument = allArgumentOperations
-                .WhereAsArray(argument =>
-                    _syntaxFacts.IsDeclarationExpression(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
-
-            // 3. Find the literal arguments, and the mapping parameter will be replaced by that literal expression
-            // Example:
-            // Before:
-            // void Caller(int k)
-            // {
-            //     Callee(1, k);
-            // }
-            // void Callee(int i, int j)
-            // {
-            //     DoSomething(i, k);
-            // }
-            // After:
-            // void Caller(int k)
-            // {
-            //     DoSomething(1, k);
-            // }
-            // void Callee(int i, int j)
-            // {
-            //     DoSomething(i, j);
-            // }
-            var operationsWithLiteralArgument = allArgumentOperations
-                .WhereAsArray(argument =>
-                    _syntaxFacts.IsLiteralExpression(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
-
-            // 4. Find the default value parameters. Similarly to 3, they should be replaced by the default value.
-            // Example:
-            // Before:
-            // void Caller(int k)
-            // {
-            //     Callee();
-            // }
-            // void Callee(int i = 1, int j = 2)
-            // {
-            //     DoSomething(i, k);
-            // }
-            // After:
-            // void Caller(int k)
-            // {
-            //     DoSomething(1, 2);
-            // }
-            // void Callee(int i = 1, int j = 2)
-            // {
-            //     DoSomething(i, j);
-            // }
-            var operationsWithDefaultValue = allArgumentOperations
-                .WhereAsArray(argument => argument.ArgumentKind == ArgumentKind.DefaultValue);
-
-            // 5. All the remaining arguments, which might includes method call and a lot of other expressions.
-            // Generate a declaration in the caller.
-            // Example:
-            // Before:
-            // void Caller(bool x)
-            // {
-            //     Callee(Foo(), x ? Foo() : Bar())
-            // }
-            // void Callee(int a, int b)
-            // {
-            //     DoSomething(a, b);
-            // }
-            // After:
-            // void Caller(bool x)
-            // {
-            //     int a = Foo();
-            //     int b = x ? Foo() : Bar();
-            //     DoSomething(a, b);
-            // }
-            // void Callee(int a, int b)
-            // {
-            //     DoSomething(a, b);
-            // }
-            var operationsToGenerateFreshVariablesFor = allArgumentOperations
-                .RemoveRange(operationsWithIdentifierArgument)
-                .RemoveRange(operationsWithVariableDeclarationArgument)
-                .RemoveRange(operationsWithLiteralArgument)
-                .RemoveRange(operationsWithDefaultValue)
-                .WhereAsArray(argument => argument.Value.Syntax is TExpressionSyntax);
-
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            // There is a special case that should be treated differently. If the parameter is only read once in the method body.
-            // Then use the argument expression to directly replace it.
-            // void Caller(bool x)
-            // {
-            //     Callee(Foo(), Bar())
-            // }
-            // void Callee(int a, int b)
-            // {
-            //     DoSomething(a, b);
-            // }
-            // After:
-            // void Caller(bool x)
-            // {
-            //     DoSomething(Foo(), Bar());
-            // }
-            // void Callee(int a, int b)
-            // {
-            //     DoSomething(a, b);
-            // }
-            // Note: this change might change the order of evaluation. Strictly keep the semantics will make the
-            // code becomes strange so it is by design.
-            var operationsAreReadOnlyOnce =
-                await GetArgumentsReadOnlyOnceAsync(
+            if (!callerSymbol.IsKind(SymbolKind.Field) && syntaxNodeContainingInvocation is TStatementSyntax)
+            {
+                // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
+                // For params array, it should be included here if it is accept an array identifier as argument.
+                // Note: this might change the order of evaluation if the identifiers are property, this is by design because strictly
+                // follow the semantics will cause strange code and this is a refactoring.
+                // Example:
+                // Before:
+                // void Caller(int i, int j, bool[] k)
+                // {
+                //     Callee(i, j, k);
+                // }
+                // void Callee(int a, int b, params bool[] c)
+                // {
+                //     DoSomething(a, b, c);
+                // }
+                // After:
+                // void Caller(int i, int j, bool[] k)
+                // {
+                //     DoSomething(i, j, k);
+                // }
+                // void Callee(int a, int b, params bool[] c)
+                // {
+                //     DoSomething(a, b, c);
+                // }
+                var operationsWithIdentifierArgument = allArgumentOperations
+                    .WhereAsArray(argument =>
+                        _syntaxFacts.IsIdentifierName(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
+
+                // 2. Find all the declaration arguments (e.g. out var declaration in C#).
+                // After inlining, an declaration needs to be put before the invocation. And also use the declared identifier to replace the mapping parameter in callee.
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee(out var x);
+                // }
+                // void Callee(out int i) => i = 100;
+                //
+                // After:
+                // void Caller()
+                // {
+                //     int x;
+                //     x = 100;
+                // }
+                // void Callee(out int i) => i = 100;
+                var operationsWithVariableDeclarationArgument = allArgumentOperations
+                    .WhereAsArray(argument =>
+                        _syntaxFacts.IsDeclarationExpression(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
+
+                // 3. Find the literal arguments, and the mapping parameter will be replaced by that literal expression
+                // Example:
+                // Before:
+                // void Caller(int k)
+                // {
+                //     Callee(1, k);
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     DoSomething(i, k);
+                // }
+                // After:
+                // void Caller(int k)
+                // {
+                //     DoSomething(1, k);
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     DoSomething(i, j);
+                // }
+                var operationsWithLiteralArgument = allArgumentOperations
+                    .WhereAsArray(argument =>
+                        _syntaxFacts.IsLiteralExpression(argument.Value.Syntax) && argument.ArgumentKind == ArgumentKind.Explicit);
+
+                // 4. Find the default value parameters. Similarly to 3, they should be replaced by the default value.
+                // Example:
+                // Before:
+                // void Caller(int k)
+                // {
+                //     Callee();
+                // }
+                // void Callee(int i = 1, int j = 2)
+                // {
+                //     DoSomething(i, k);
+                // }
+                // After:
+                // void Caller(int k)
+                // {
+                //     DoSomething(1, 2);
+                // }
+                // void Callee(int i = 1, int j = 2)
+                // {
+                //     DoSomething(i, j);
+                // }
+                var operationsWithDefaultValue = allArgumentOperations
+                    .WhereAsArray(argument => argument.ArgumentKind == ArgumentKind.DefaultValue);
+
+                // 5. All the remaining arguments, which might includes method call and a lot of other expressions.
+                // Generate a declaration in the caller.
+                // Example:
+                // Before:
+                // void Caller(bool x)
+                // {
+                //     Callee(Foo(), x ? Foo() : Bar())
+                // }
+                // void Callee(int a, int b)
+                // {
+                //     DoSomething(a, b);
+                // }
+                // After:
+                // void Caller(bool x)
+                // {
+                //     int a = Foo();
+                //     int b = x ? Foo() : Bar();
+                //     DoSomething(a, b);
+                // }
+                // void Callee(int a, int b)
+                // {
+                //     DoSomething(a, b);
+                // }
+                var operationsToGenerateFreshVariablesFor = allArgumentOperations
+                    .RemoveRange(operationsWithIdentifierArgument)
+                    .RemoveRange(operationsWithVariableDeclarationArgument)
+                    .RemoveRange(operationsWithLiteralArgument)
+                    .RemoveRange(operationsWithDefaultValue)
+                    .WhereAsArray(argument => argument.Value.Syntax is TExpressionSyntax);
+
+                // There is a special case that should be treated differently. If the parameter is only read once in the method body.
+                // Then use the argument expression to directly replace it.
+                // void Caller(bool x)
+                // {
+                //     Callee(Foo(), Bar())
+                // }
+                // void Callee(int a, int b)
+                // {
+                //     DoSomething(a, b);
+                // }
+                // After:
+                // void Caller(bool x)
+                // {
+                //     DoSomething(Foo(), Bar());
+                // }
+                // void Callee(int a, int b)
+                // {
+                //     DoSomething(a, b);
+                // }
+                // Note: this change might change the order of evaluation. Strictly keep the semantics will make the
+                // code becomes strange so it is by design.
+                var operationsAreReadOnlyOnce =
+                    await GetArgumentsReadOnlyOnceAsync(
+                        calleeDocument,
+                        operationsToGenerateFreshVariablesFor,
+                        calleeMethodNode,
+                        cancellationToken).ConfigureAwait(false);
+                operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsAreReadOnlyOnce);
+                var parametersToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor
+                    .SelectAsArray(argument => (argument.Parameter, GenerateArgumentExpression(syntaxGenerator, argument)));
+
+                var parameterToReplaceMap =
+                    operationsWithLiteralArgument
+                    .Concat(operationsWithIdentifierArgument)
+                    .Concat(operationsAreReadOnlyOnce)
+                    .Concat(operationsWithDefaultValue)
+                    .ToImmutableDictionary(
+                        keySelector: argument => argument.Parameter,
+                        elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
+
+                // Use array instead of dictionary because using dictionary will make the parameter becomes unordered.
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee(out var x, out var y);
+                // }
+                // void Callee(out int i, out int j) => DoSomething(out i, out j);
+                //
+                // After:
+                // void Caller()
+                // {
+                //     int y;
+                //     int x;
+                //     DoSomething(out x, out y);
+                // }
+                // void Callee(out int i, out int j) => DoSomething(out i, out j);
+                // 'y' might becomes the first declaration if using dictionary instead of array.
+                var parametersWithVariableDeclarationArgument = operationsWithVariableDeclarationArgument
+                    .Select(argument => (
+                        argument.Parameter,
+                        callerSemanticModel.GetSymbolInfo(argument.Value.Syntax, cancellationToken).GetAnySymbol()?.Name))
+                    .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
+                    .ToImmutableArray();
+
+                var mergeInlineContentAndVariableDeclarationArgument = await MergeInlineContentAndVariableDeclarationArgumentAsync(
                     calleeDocument,
-                    operationsToGenerateFreshVariablesFor,
-                    calleeMethodNode,
+                    calleInvocationNode,
+                    parametersWithVariableDeclarationArgument!,
+                    rawInlineExpression,
                     cancellationToken).ConfigureAwait(false);
-            operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsAreReadOnlyOnce);
-            var parametersToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor
-                .SelectAsArray(argument => (argument.Parameter, GenerateArgumentExpression(syntaxGenerator, argument)));
 
-            var parameterToReplaceMap =
-                operationsWithLiteralArgument
-                .Concat(operationsWithIdentifierArgument)
-                .Concat(operationsAreReadOnlyOnce)
-                .Concat(operationsWithDefaultValue)
-                .ToImmutableDictionary(
-                    keySelector: argument => argument.Parameter,
-                    elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
-
-            // Use array instead of dictionary because using dictionary will make the parameter becomes unordered.
-            // Example:
-            // Before:
-            // void Caller()
-            // {
-            //     Callee(out var x, out var y);
-            // }
-            // void Callee(out int i, out int j) => DoSomething(out i, out j);
-            //
-            // After:
-            // void Caller()
-            // {
-            //     int y;
-            //     int x;
-            //     DoSomething(out x, out y);
-            // }
-            // void Callee(out int i, out int j) => DoSomething(out i, out j);
-            // 'y' might becomes the first declaration if using dictionary instead of array.
-            var parametersWithVariableDeclarationArgument = operationsWithVariableDeclarationArgument
-                .Select(argument => (
-                    argument.Parameter,
-                    callerSemanticModel.GetSymbolInfo(argument.Value.Syntax, cancellationToken).GetAnySymbol()?.Name))
-                .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
-                .ToImmutableArray();
-
-            var mergeInlineContentAndVariableDeclarationArgument = await MergeInlineContentAndVariableDeclarationArgumentAsync(
-                calleeDocument,
-                parametersWithVariableDeclarationArgument!,
-                rawInlineExpression,
-                cancellationToken).ConfigureAwait(false);
-
-            return new MethodParametersInfo(
-                parametersWithVariableDeclarationArgument!,
-                parametersToGenerateFreshVariablesFor,
-                parameterToReplaceMap,
-                mergeInlineContentAndVariableDeclarationArgument);
+                return new MethodParametersInfo(
+                    parametersWithVariableDeclarationArgument!,
+                    parametersToGenerateFreshVariablesFor,
+                    parameterToReplaceMap,
+                    mergeInlineContentAndVariableDeclarationArgument);
+            }
+            else
+            {
+                // If the caller is a field, or this is invoked in an arrow function, we can't generate declaration
+                // because there is nowhere to insert that.
+                // This such case, just use the argument expression to parameter.
+                // Note: this might also cause semantics changes but is acceptable for a refactoring
+                var parameterToReplaceMap = allArgumentOperations
+                    .Where(argument => argument.Value.Syntax is TExpressionSyntax
+                       && !_syntaxFacts.IsDeclarationExpression(argument.Value.Syntax))
+                    .ToImmutableDictionary(
+                        keySelector: argument => argument.Parameter,
+                        elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
+                return new MethodParametersInfo(
+                    ImmutableArray<(IParameterSymbol parameterSymbol, string name)>.Empty,
+                    ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)>.Empty,
+                    parameterToReplaceMap,
+                    false);
+            }
         }
 
         /// <summary>
@@ -409,7 +431,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// {
         ///     DoSomething(b, a);
         /// }
-        /// Then this operation will change the order of evaluation.
+        /// Then this operation will change the order of evaluation but is acceptable for a refactoring
         /// </summary>
         private static async Task<ImmutableArray<IArgumentOperation>> GetArgumentsReadOnlyOnceAsync(
             Document document,
@@ -461,13 +483,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// void Callee(out int i) => i = 100;
         /// </summary>
         private async Task<bool> MergeInlineContentAndVariableDeclarationArgumentAsync(
-            Document document,
+            Document calleeDocument,
+            TInvocationSyntax calleInvocationNode,
             ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
             TExpressionSyntax inlineExpressionNode,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await calleeDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (parametersWithVariableDeclarationArgument.Length == 1
+                && _syntaxFacts.IsExpressionStatement(calleInvocationNode.Parent)
                 && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
                 && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation
                 && parameterOperation.Parameter.Equals(parametersWithVariableDeclarationArgument[0].parameterSymbol))

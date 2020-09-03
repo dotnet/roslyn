@@ -823,11 +823,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var semicolonToken = semicolonTokenOpt ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
-            statement = expression.ConvertToStatement(semicolonToken, createReturnStatementForExpression);
+            statement = ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
             return true;
         }
 
-        public static StatementSyntax ConvertToStatement(this ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
+        private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
         {
             if (expression.IsKind(SyntaxKind.ThrowExpression, out ThrowExpressionSyntax throwExpression))
             {

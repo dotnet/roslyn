@@ -60,14 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return symbol.GenerateTypeSyntax()
         End Function
 
-        Protected Overrides Function ConvertToStatement(expression As ExpressionSyntax, createReturnStatement As Boolean) As StatementSyntax
-            If createReturnStatement Then
-                Return SyntaxFactory.ReturnStatement(expression)
-            Else
-                Return SyntaxFactory.ExpressionStatement(expression)
-            End If
-        End Function
-
         Protected Overrides Function GenerateLiteralExpression(typeSymbol As ITypeSymbol, value As Object) As ExpressionSyntax
             Return GenerateExpression(typeSymbol, value, canUseFieldReference:=True)
         End Function
@@ -79,10 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Protected Overrides Function CanBeReplacedByThrowExpression(syntaxNode As SyntaxNode) As Boolean
             ' Throw Expression doesn't exist in VB
             Return False
-        End Function
-
-        Protected Overrides Function IsMethodWithExpressionBody(callerNode As SyntaxNode) As Boolean
-            Return callerNode.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse callerNode.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
         End Function
     End Class
 End Namespace

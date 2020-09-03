@@ -558,7 +558,7 @@ public partial class TestClass
     {
         System.Console.WriteLine(10 + m + (""Hello"" ?? """"));
     }
-}",@"
+}", @"
 public partial class TestClass
 {##
     private void Callee(int i, int j = 100, string k = null)
@@ -1439,7 +1439,7 @@ public partial class TestClass
 }");
 
         [Fact]
-        public Task TestAwaitExpressionInMethod()
+        public Task TestAwaitExpressionInMethod1()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System.Threading.Tasks;
@@ -2401,114 +2401,6 @@ static class Program
 ##}");
 
         [Fact]
-        public Task TestInlineExpressionAsLeftValueInLeftAssociativeExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return Ca[||]llee(1, 2) - 1;
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return 1 + 2 - 1;
-        }
-    }
-##
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-##}");
-
-        [Fact]
-        public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return 1 - Ca[||]llee(1, 2);
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return 1 - (1 + 2);
-        }
-    }
-##
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-##}");
-
-        [Fact]
-        public Task TestAddExpressionWithMultiply()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return Ca[||]llee(1, 2) * 2;
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return (1 + 2) * 2;
-        }
-    }
-##
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-##}");
-
-        [Fact]
         public Task TestIsExpression()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
@@ -2599,36 +2491,6 @@ public class TestClass
 ##}");
 
         [Fact]
-        public Task TestBitWiseNotExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public int Caller(int i, int j)
-    {
-        return ~Call[||]ee(i, j);
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i | j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller(int i, int j)
-    {
-        return ~(i | j);
-    }
-##
-    private int Callee(int i, int j)
-    {
-        return i | j;
-    }
-##}");
-
-        [Fact]
         public Task TestCastExpression()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
@@ -2689,36 +2551,6 @@ public class TestClass
     private int Callee()
     {
         return 1 | 2;
-    }
-##}");
-
-        [Fact]
-        public Task TestAsExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public void Calller(bool f)
-    {
-        var x = Cal[||]lee(f) as string;
-    }
-
-    private object Callee(bool f)
-    {
-        return f ? ""Hello"" : ""World"";
-    }
-}",
-                @"
-public class TestClass
-{
-    public void Calller(bool f)
-    {
-        var x = (f ? ""Hello"" : ""World"") as string;
-    }
-##
-    private object Callee(bool f)
-    {
-        return f ? ""Hello"" : ""World"";
     }
 ##}");
 
@@ -2807,30 +2639,6 @@ public class TestClass
 ##}");
 
         [Fact]
-        public Task TestElementAccessExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public void Caller()
-    {
-        var x = C[||]allee()[0];
-    }
-
-    private string Callee() => ""H"" + ""L"";
-}",
-                @"
-public class TestClass
-{
-    public void Caller()
-    {
-        var x = (""H"" + ""L"")[0];
-    }
-##
-    private string Callee() => ""H"" + ""L"";
-##}");
-
-        [Fact]
         public Task TestSwitchExpression()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
@@ -2861,33 +2669,6 @@ public class TestClass
     }
 ##
     private int Callee() => 1 + 2;
-##}");
-
-        [Fact]
-        public Task TestConditionalExpressionSyntax()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
-public class TestClass
-{
-    private void Calller(int x)
-    {
-        var z = true;
-        var z1 = false;
-        var y = z ? 3 : z1 ? 1 : Ca[||]llee(x);
-    }
-
-    private int Callee(int x) => x = 1;
-}",
-                @"
-public class TestClass
-{
-    private void Calller(int x)
-    {
-        var z = true;
-        var z1 = false;
-        var y = z ? 3 : z1 ? 1 : (x = 1);
-    }
-##
-    private int Callee(int x) => x = 1;
 ##}");
 
         [Fact]
@@ -3058,40 +2839,6 @@ public class TestClass
 ##
     private char[] Callee() => (""Hello"" + ""World"")?.ToCharArray();
 ##}");
-
-        [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("")]
-        [InlineData(">>")]
-        [InlineData("<<")]
-        public Task TestAssignmentExpression(string op)
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
-public class TestClass
-{
-    private void Calller(int x)
-    {
-        Ca[||]llee(x);
-    }
-
-    private int Callee(int x) => x (op)= 1;
-}".Replace("(op)", op),
-                @"
-public class TestClass
-{
-    private void Calller(int x)
-    {
-        x (op)= 1;
-    }
-##
-    private int Callee(int x) => x (op)= 1;
-##}".Replace("(op)", op));
 
         [Fact]
         public Task TestInlineLambdaInsideInvocation()
@@ -3480,7 +3227,7 @@ public class TestClass
 ");
 
         [Fact]
-        public Task TestChangeToMethodBlock1()
+        public Task TestInlineInArrowFunction1()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
@@ -3496,11 +3243,7 @@ public class TestClass
 ", @"
 public class TestClass
 {
-    public int Caller(bool a)
-    {
-        int c = SomeInt();
-        return a ? c + 1000 : c + 10000;
-    }
+    public int Caller(bool a) => a ? SomeInt() + 1000 : SomeInt() + 10000;
 
     private int SomeInt() => 1;
 ##
@@ -3512,8 +3255,14 @@ public class TestClass
 ");
 
         [Fact]
-        public Task TestChangeToMethodBlock2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+        public Task TestInlineInArrowFunction2()
+        {
+            var diagnostic = new List<DiagnosticResult>()
+            {
+                // User is inlining method in arrow function, there is no place to put the declaration of 'i'
+                DiagnosticResult.CompilerError("CS0103").WithSpan(4, 29, 4, 30).WithArguments("i")
+            };
+            return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
 {
     public void Caller() => Ca[||]llee(out var j);
@@ -3523,18 +3272,22 @@ public class TestClass
 ", @"
 public class TestClass
 {
-    public void Caller()
-    {
-        int j = 1;
-    }
+    public void Caller() => i = 1;
 ##
     private void Callee(out int i) => i = 1;
 ##}
-");
+", diagnostic, diagnostic);
+        }
 
         [Fact]
-        public Task TestChangeToMethodBlock3()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+        public Task TestInlineInArrowLambda1()
+        {
+            var diagnostic = new List<DiagnosticResult>()
+            {
+                // User is inlining method in arrow function, there is no place to put the declaration of 'i'
+                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 26, 7, 27).WithArguments("i")
+            };
+            return TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 using System;
 public class TestClass
 {
@@ -3546,11 +3299,65 @@ public class TestClass
     private void Callee(out int i) => i = 1;
 }
 ", @"
+using System;
 public class TestClass
 {
     public void Caller()
     {
-        int j = 1;
+        Action f = () => i = 1;
+    }
+##
+    private void Callee(out int i) => i = 1;
+##}
+", diagnostic, diagnostic);
+        }
+
+        [Fact]
+        public Task TestInlineInArrowLambda2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        Action f = () => { Cal[||]lee(out var j); };
+    }
+
+    private void Callee(out int i) => i = 1;
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        Action f = () => { int j = 1; };
+    }
+##
+    private void Callee(out int i) => i = 1;
+##}
+");
+
+        [Fact]
+        public Task TestInlineInLocalFunction()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        void Helper() { Cal[||]lee(out var j); }
+    }
+
+    private void Callee(out int i) => i = 1;
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        void Helper() { int j = 1; }
     }
 ##
     private void Callee(out int i) => i = 1;
