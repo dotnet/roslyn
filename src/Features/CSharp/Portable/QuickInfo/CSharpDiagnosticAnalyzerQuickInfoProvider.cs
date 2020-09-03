@@ -149,44 +149,4 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 }.ToImmutableArray(), relatedSpans: relatedSpans.ToImmutableArray());
         }
     }
-
-    internal static class HelperExtensions
-    {
-        public static string? ToStringOrNull(this LocalizableString @this)
-        {
-            var result = @this.ToString();
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                return null;
-            }
-
-            return result;
-        }
-
-        public static bool IsSuppressMessageAttribute(this NameSyntax? name)
-        {
-            if (name == null)
-            {
-                return false;
-            }
-
-            var nameValue = name.GetNameToken().ValueText;
-            var stringComparer = StringComparer.Ordinal;
-            return
-                stringComparer.Equals(nameValue, nameof(SuppressMessageAttribute)) ||
-                stringComparer.Equals(nameValue, "SuppressMessage");
-        }
-
-        public static string ExtractErrorCodeFromCheckId(this string checkId)
-        {
-            // checkId short and long name rules:
-            // https://docs.microsoft.com/en-us/visualstudio/code-quality/in-source-suppression-overview?view=vs-2019#suppressmessage-attribute
-            var position = checkId.IndexOf(':');
-            var errorCode = position == -1
-                ? checkId
-                : checkId.Substring(0, position);
-            errorCode = errorCode.Trim();
-            return errorCode;
-        }
-    }
 }
