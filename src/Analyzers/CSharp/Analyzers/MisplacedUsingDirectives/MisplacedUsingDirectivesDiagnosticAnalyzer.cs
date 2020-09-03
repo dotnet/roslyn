@@ -66,9 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(
-                CSharpCodeStyleOptions.PreferredUsingDirectivePlacement,
-                context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
 
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
