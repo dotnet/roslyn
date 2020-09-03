@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
                 editor.ReplaceNode(
                     namespaceDecl,
                     (oldNode, generator) => generator.WithName(oldNode, targetNamespace));
+
+                //TODO:Change usings in referenced locations 
             }
         }
 
