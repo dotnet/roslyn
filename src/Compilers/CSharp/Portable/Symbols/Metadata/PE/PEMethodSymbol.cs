@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
                         ? null
-                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
+                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute);
 
                     var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
                                                                   data,

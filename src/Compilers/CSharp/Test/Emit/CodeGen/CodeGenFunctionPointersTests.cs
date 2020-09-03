@@ -7957,6 +7957,51 @@ class C
         }
 
         [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustNotBeNestedType()
+        {
+            var comp = CreateEmptyCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime.CompilerServices
+    {
+        public class CallConvTestA
+        {
+            public class CallConvTestB { }
+        }
+    }
+}
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTestA.CallConvTestB) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (31,6): error CS8893: 'CallConvTestA.CallConvTestB' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTestA.CallConvTestB) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTestA.CallConvTestB) })").WithArguments("System.Runtime.CompilerServices.CallConvTestA.CallConvTestB").WithLocation(31, 6)
+            );
+        }
+
+        [Fact]
         public void UnmanagedCallersOnlyCallConvsMustComeFromCorelib()
         {
             var comp = CreateCompilation(new[] { @"
@@ -9329,7 +9374,7 @@ class C
 ", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (6,24): error CS8898: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                // (6,24): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
                 //     public static void Main() {}
                 Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(6, 24)
             );
@@ -9355,7 +9400,7 @@ class D
                 // (5,24): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 //     public static void Main() {}
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(5, 24),
-                // (10,24): error CS8898: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                // (10,24): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
                 //     public static void Main() {}
                 Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(10, 24)
             );
@@ -9407,7 +9452,7 @@ class D
                 // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
-                // (11,30): error CS8898: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                // (11,30): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30),
                 // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -9463,12 +9508,12 @@ public class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (9,28): error CS8899: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
+                // (9,28): error CS8900: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
                 //     [UnmanagedCallersOnly, ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "ModuleInitializer").WithLocation(9, 28),
-                // (12,25): error CS8899: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
+                // (12,6): error CS8900: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
                 //     [ModuleInitializer, UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "UnmanagedCallersOnly").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "ModuleInitializer").WithLocation(12, 6)
             );
         }
 

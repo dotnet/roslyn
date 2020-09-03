@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         #region ObsoleteAttribute
         private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-        public ObsoleteAttributeData ObsoleteAttributeData
+        public ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
@@ -52,5 +54,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
+
+        private UnmanagedCallersOnlyAttributeData? _unmanagedCallersOnlyAttributeData;
+        public UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _unmanagedCallersOnlyAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _unmanagedCallersOnlyAttributeData = value;
+                SetDataStored();
+            }
+        }
     }
 }

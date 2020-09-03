@@ -333,20 +333,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return null;
                 }
-                else
+                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData boundAttribute, out ObsoleteAttributeData obsoleteData))
                 {
-                    CSharpAttributeData boundAttribute;
-                    ObsoleteAttributeData obsoleteData;
-
-                    if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+                    if (obsoleteData != null)
                     {
-                        if (obsoleteData != null)
-                        {
-                            arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                        }
-
-                        return boundAttribute;
+                        arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                     }
+
+                    return boundAttribute;
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
+                {
+                    boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                    arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
+                        DecodeUnmanagedCallersOnlyAttributeData(boundAttribute);
+
+                    return hasAnyDiagnostics || boundAttribute.HasErrors ? null : boundAttribute;
                 }
             }
 
@@ -398,9 +400,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var lazyCustomAttributesBag = _lazyCustomAttributesBag;
-                if (lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+                if (lazyCustomAttributesBag?.IsEarlyDecodedWellKnownAttributeDataComputed == true)
                 {
-                    var data = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+                    var data = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data?.UnmanagedCallersOnlyAttributeData;
                 }
 
@@ -515,10 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 DecodeModuleInitializerAttribute(arguments);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
-            {
-                DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
             else
             {
@@ -831,11 +829,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasError = true;
             }
 
-            // In DecodeUnmanagedCallersOnlyAttribute, we check to see if this is a module initializer. In
-            // DecodeModuleInitializerAttribute, we check to see if this method is attributed with UnmanagedCallersOnly.
-            // When decoding a method we could have either order, so the first check will not find the presence of the
-            // other. The second check will find the presence and appropriately report an error.
-            if (arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData is { } methodData)
+            // If this is an UnmanagedCallersOnly method, it means that this cannot be called by managed code, including the attempt by the CLR
+            // to run the module initializer.
+            if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is CommonMethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributeData: { } methodData })
             {
                 Debug.Assert(!ReferenceEquals(methodData, UnmanagedCallersOnlyAttributeData.Uninitialized));
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
@@ -848,17 +844,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void UnmanagedCallersOnlyAttributeErrors(CSharpAttributeData attributeData, AttributeSyntax syntax, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
             if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, syntax.Location);
             }
 
-            arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
-                DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
+            // Early decoding cannot issue errors on invalid types being used for calling convention types, so we'll
+            // check them now.
+            if (attributeData.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+            {
+                foreach (var (key, value) in namedArgs)
+                {
+                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value)
+                        || value.Values.IsDefaultOrEmpty)
+                    {
+                        continue;
+                    }
+
+                    foreach (var callConvTypedConstant in value.Values)
+                    {
+                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                        {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            diagnostics.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, syntax.Location, callConvTypedConstant.ValueInternal ?? "null");
+                        }
+                    }
+               }
+            }
 
             var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
             {
@@ -877,22 +894,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isGenericMethod(this) || ContainingType.IsGenericType)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, syntax.Name.Location);
             }
 
-            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
+            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, diagnostics);
             foreach (var param in Parameters)
             {
-                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
-            }
-
-            // In DecodeUnmanagedCallersOnlyAttribute, we check to see if this is a module initializer. In
-            // DecodeModuleInitializerAttribute, we check to see if this method is attributed with UnmanagedCallersOnly.
-            // When decoding a method we could have either order, so the first check will not find the presence of the
-            // other. The second check will find the presence and appropriately report an error.
-            if (DeclaringCompilation.IsMethodSymbolModuleInitializer(this))
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
+                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, diagnostics);
             }
 
             static bool isGenericMethod([DisallowNull] MethodSymbol? method)
@@ -983,6 +991,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ErrorCode.WRN_ExternCtorNoImplementation :
                         ErrorCode.WRN_ExternMethodNoImplementation;
                     diagnostics.Add(errorCode, this.Locations[0], this);
+                }
+
+                if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is CommonMethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributeData: not null })
+                {
+                    for (int i = 0; i < boundAttributes.Length; i++)
+                    {
+                        if (boundAttributes[i].IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
+                        {
+                            UnmanagedCallersOnlyAttributeErrors(boundAttributes[i], allAttributeSyntaxNodes[i], diagnostics);
+                            break;
+                        }
+                    }
                 }
             }
 

@@ -1898,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnmanagedCallersOnlyRequiresStatic = 8896,
         ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8897,
         ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8898,
-        ERR_EntryPointCannotBeUnmanagedCallersOnly = 8890,
+        ERR_EntryPointCannotBeUnmanagedCallersOnly = 8899,
         ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
 
         #endregion diagnostics introduced for C# 9.0

@@ -2128,16 +2128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
-        internal bool IsMethodSymbolModuleInitializer(MethodSymbol method)
-        {
-            if (_moduleInitializerMethods is not null)
-            {
-                return _moduleInitializerMethods.Contains(method);
-            }
-
-            return false;
-        }
-
         #endregion
 
         #region Binding

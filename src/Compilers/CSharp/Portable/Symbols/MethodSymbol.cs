@@ -961,18 +961,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location? location, DiagnosticBag? diagnostics)
+        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute)
         {
-            Debug.Assert((location == null) == (diagnostics == null));
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
             bool isValid = true;
-            if (!attribute.CommonNamedArguments.IsDefaultOrEmpty)
+            if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
             {
                 foreach (var (key, value) in attribute.CommonNamedArguments)
                 {
-                    if (key != "CallConvs"
-                        || value.Kind != TypedConstantKind.Array
-                        || value.Values.Any(v => v.Kind != TypedConstantKind.Type))
+                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value)
+                        || value.Values.IsDefaultOrEmpty)
                     {
                         continue;
                     }
@@ -982,15 +980,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         isValid = false;
                     }
 
+                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
                     foreach (var callConvTypedConstant in value.Values)
                     {
-                        var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
                         Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
                         if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
                             || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
                         {
-                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
-                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
                             isValid = false;
                         }
                         else
@@ -998,17 +994,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             _ = builder.Add(callConvType);
                         }
 
-                        callingConventionTypes = builder.ToImmutableHashSet();
-                        builder.Free();
                     }
+                    callingConventionTypes = builder.ToImmutableHashSet();
+                    builder.Free();
                 }
             }
 
-            return new UnmanagedCallersOnlyAttributeData(
-                callingConventionTypes == null
-                    ? ImmutableHashSet<INamedTypeSymbolInternal>.Empty
-                    : callingConventionTypes,
-                isValid);
+            return callingConventionTypes == null
+                ? UnmanagedCallersOnlyAttributeData.PlatformDefault
+                : new UnmanagedCallersOnlyAttributeData(callingConventionTypes, isValid);
         }
 #nullable restore
 

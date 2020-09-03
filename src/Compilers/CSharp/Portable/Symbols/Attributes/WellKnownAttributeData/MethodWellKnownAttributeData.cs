@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 #nullable enable
 
 using System.Collections.Immutable;
@@ -116,24 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifySealed(expected: true);
                 return _memberNotNullWhenFalseAttributeData;
-            }
-        }
-
-        private UnmanagedCallersOnlyAttributeData? _unmanagedCallersOnlyAttributeData;
-        public UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
-        {
-            get
-            {
-                // We do not verify sealed here because we need to check to see whether
-                // an UnmanagedCallersOnly was decoded during decode of ModuleInitializerAttribute
-                // in order to issue an error
-                return _unmanagedCallersOnlyAttributeData;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _unmanagedCallersOnlyAttributeData = value;
-                SetDataStored();
             }
         }
     }
