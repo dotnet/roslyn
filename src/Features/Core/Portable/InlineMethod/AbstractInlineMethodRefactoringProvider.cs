@@ -401,7 +401,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             {
                 foreach (var statement in inlineMethodContext.StatementsToInsertBeforeInvocationOfCallee)
                 {
-                    callerNodeEditor.InsertAfter(statementContainingInvocation, statement);
+                    // Add a CarriageReturn to make sure for VB the statement would be in different line.
+                    callerNodeEditor.InsertBefore(statementContainingInvocation,
+                        statement.WithAppendedTrailingTrivia(_syntaxFacts.ElasticCarriageReturnLineFeed));
                 }
             }
 

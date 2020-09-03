@@ -1110,7 +1110,6 @@ Public Class TestClass
     Private Function GetInt() As Integer
         Return 10
     End Function
-
 ##
     Private Function Callee(i As Integer) As Integer
         Return i + i
@@ -1160,8 +1159,10 @@ Public Class TestClass
 End Class", "
 Public Class TestClass
     Public Sub Caller(i As Boolean)
+        Dim a As Boolean = GetFlag()
+
         Do 
-        Loop While Ca[||]llee(GetFlag())
+        Loop While a OrElse a
     End Sub
 
     Private Function GetFlag() As Boolean
@@ -1169,7 +1170,7 @@ Public Class TestClass
     End Function
 ##
     Private Function Callee(a As Boolean) As Boolean
-        Return a OrElse False
+        Return a OrElse a
     End Function
 ##End Class")
         End Function
@@ -1192,9 +1193,11 @@ Public Class TestClass
     End Function
 End Class", "
 Public Class TestClass
-    Public Sub Caller(i As Integer)
-        If (i OrElse False) OrElse True Then
-        End If
+    Public Sub Caller(i As Boolean)
+        Dim a As Boolean = GetFlag()
+
+        While a OrElse a
+        End While
     End Sub
 
     Private Function GetFlag() As Boolean
@@ -1202,7 +1205,7 @@ Public Class TestClass
     End Function
 ##
     Private Function Callee(a As Boolean) As Boolean
-        Return a OrElse False
+        Return a OrElse a
     End Function
 ##End Class")
         End Function
@@ -1227,7 +1230,8 @@ End Class", "
 Public Class TestClass
     Public Sub Caller(i As Boolean)
         Dim a As Boolean = GetFlag()
-        If i OrElse False OrElse True Then
+
+        If a OrElse a OrElse True Then
         End If
     End Sub
 
@@ -1237,43 +1241,6 @@ Public Class TestClass
 ##
     Private Function Callee(a As Boolean) As Boolean
         Return a OrElse a
-    End Function
-##End Class")
-        End Function
-
-        <Fact>
-        Public Function TestInlineInCaseStatement() As Task
-            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
-Public Class TestClass
-    Public Sub Caller(i As Boolean)
-        Select Case Cal[||]lee((GetFlag))
-            Case True
-                System.Console.WriteLine("""")
-            Case False
-                System.Console.WriteLine("""")
-        End Select
-    End Sub
-
-    Private Function GetFlag() As Boolean
-        Return True
-    End Function
-
-    Private Function Callee(a As Boolean) As Boolean
-        Return a OrElse a
-    End Function
-End Class", "
-Public Class TestClass
-    Public Sub Caller(i As Integer)
-        If (i OrElse False) OrElse True Then
-        End If
-    End Sub
-
-    Private Function GetFlag() As Boolean
-        Return True
-    End Function
-##
-    Private Function Callee(a As Boolean) As Boolean
-        Return a OrElse False
     End Function
 ##End Class")
         End Function
@@ -1297,7 +1264,9 @@ Public Class TestClass
 End Class", "
 Public Class TestClass
     Public Sub Caller()
-        SyncLock Callee(GetFlag())
+        Dim a As Integer = GetFlag()
+
+        SyncLock (a + a).ToString()
         End SyncLock
     End Sub
 
