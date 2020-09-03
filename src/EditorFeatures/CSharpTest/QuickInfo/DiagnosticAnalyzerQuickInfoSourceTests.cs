@@ -155,8 +155,8 @@ namespace T
         private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
         {
             var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var sut = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
-            var info = await sut.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
             return info;
         }
 
