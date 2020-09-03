@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "3.3.0",
+        "version": "3.3.1",
         "language": "en-US"
       },
       "rules": {
@@ -369,7 +369,7 @@
         "RS1031": {
           "id": "RS1031",
           "shortDescription": "Define diagnostic title correctly",
-          "fullDescription": "The diagnostic title should not contain a period or any line return character",
+          "fullDescription": "The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
@@ -387,7 +387,7 @@
         "RS1032": {
           "id": "RS1032",
           "shortDescription": "Define diagnostic message correctly",
-          "fullDescription": "The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period",
+          "fullDescription": "The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
@@ -405,7 +405,7 @@
         "RS1033": {
           "id": "RS1033",
           "shortDescription": "Define diagnostic description correctly",
-          "fullDescription": "The diagnostic description should be one or multiple sentences ending with a punctuation sign",
+          "fullDescription": "The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
@@ -596,7 +596,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "3.3.0",
+        "version": "3.3.1",
         "language": "en-US"
       },
       "rules": {
@@ -776,7 +776,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "3.3.0",
+        "version": "3.3.1",
         "language": "en-US"
       },
       "rules": {
