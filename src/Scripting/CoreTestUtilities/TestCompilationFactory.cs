@@ -18,18 +18,17 @@ namespace Microsoft.CodeAnalysis.Scripting
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetStandard13.SystemRuntime },
+                new[] { TestReferences.NetStandard20.SystemRuntimeRef },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
         internal static Compilation CreateVisualBasicCompilationWithCorlib(string source, string assemblyName = null)
         {
-            throw new Exception($"Testing: {TestReferences.NetStandard13.SystemRuntime.Display}");
-            //return VisualBasicCompilation.Create(
-            //    assemblyName ?? Guid.NewGuid().ToString(),
-            //    new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
-            //    new[] { TestReferences.NetStandard13.SystemRuntime },
-            //    new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            return VisualBasicCompilation.Create(
+                assemblyName ?? Guid.NewGuid().ToString(),
+                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
+                new[] { TestReferences.NetStandard13.SystemRuntime },
+                new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
         internal static Compilation CreateCSharpCompilation(string source, IEnumerable<MetadataReference> references, string assemblyName = null, CSharpCompilationOptions options = null)
