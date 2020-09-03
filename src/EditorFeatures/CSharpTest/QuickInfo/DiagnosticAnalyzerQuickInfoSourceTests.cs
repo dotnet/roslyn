@@ -138,6 +138,7 @@ namespace T
 }}
 ", description, ImmutableArray<TextSpan>.Empty);
         }
+
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
