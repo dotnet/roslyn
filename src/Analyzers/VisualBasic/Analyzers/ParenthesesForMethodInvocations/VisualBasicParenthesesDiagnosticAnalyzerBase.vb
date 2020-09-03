@@ -35,7 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ParenthesesForMethodInvocations
             Dim descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat)
 
             If IsViolatingPreference([option].Value, invocationExpression) Then
-                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, node.GetLocation(), [option].Notification.Severity))
+                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, node.GetLocation(), [option].Notification.Severity,
+                    additionalLocations:=Nothing, properties:=Nothing))
             End If
         End Sub
 
