@@ -27,13 +27,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ParenthesesForMethodInvocations
 
         Private Sub AnalyzeInvocation(context As OperationAnalysisContext)
             Dim node = context.Operation.Syntax
-            Dim invocationExpression = DirectCast(node, InvocationExpressionSyntax)
+            Dim invocationExpression = TryCast(node, InvocationExpressionSyntax)
+            If invocationExpression Is Nothing Then
+                Return
+            End If
             Dim [option] = context.Options.GetOption(VisualBasicCodeStyleOptions.IncludeParenthesesForMethodInvocations, node.SyntaxTree, context.CancellationToken)
             Dim descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat)
 
             If IsViolatingPreference([option].Value, invocationExpression) Then
-                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, node.GetLocation(), [option].Notification.Severity,
-                    additionalLocations:={node.GetLocation()}, properties:=Nothing))
+                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, node.GetLocation(), [option].Notification.Severity))
             End If
         End Sub
 
