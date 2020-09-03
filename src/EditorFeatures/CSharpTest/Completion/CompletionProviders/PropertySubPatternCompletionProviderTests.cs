@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(PropertySubpatternCompletionProvider);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern()
         {
             var markup =
