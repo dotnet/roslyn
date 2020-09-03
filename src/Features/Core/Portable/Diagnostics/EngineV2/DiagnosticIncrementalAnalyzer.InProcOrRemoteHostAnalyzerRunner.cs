@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // handling of cancellation and exception
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken);
 
             // We only get a reader for data transmitted between live processes.
             // This data should always be correct as we're never persisting the data between sessions.

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -38,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
                 await proxy.GetAssetsAsync(serverStream, scopeId, checksums.ToArray(), cancellationToken).ConfigureAwait(false);
-                return RemoteHostAssetSerialization.ReadData(clientStream, scopeId, checksums, serializerService, cancellationToken);
+                var result = RemoteHostAssetSerialization.ReadData(clientStream, scopeId, checksums, serializerService, cancellationToken);
+                clientStream.Close();
+                return result;
             }, cancellationToken).ConfigureAwait(false);
         }
 

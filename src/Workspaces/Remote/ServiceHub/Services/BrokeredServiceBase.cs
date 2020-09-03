@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -116,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        private readonly TraceSource _logger;
         protected readonly RemoteWorkspaceManager WorkspaceManager;
 
         protected readonly SolutionAssetSource SolutionAssetSource;
@@ -133,6 +135,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected BrokeredServiceBase(in ServiceConstructionArguments arguments)
         {
+            _logger = (TraceSource)arguments.ServiceProvider.GetService(typeof(TraceSource));
+
             TestData = (RemoteHostTestData?)arguments.ServiceProvider.GetService(typeof(RemoteHostTestData));
             WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
 
@@ -145,12 +149,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void Dispose()
-        {
-            ServiceBrokerClient.Dispose();
-        }
+            => ServiceBrokerClient.Dispose();
 
         public RemoteWorkspace GetWorkspace()
             => WorkspaceManager.GetWorkspace();
+
+        protected void Log(TraceEventType errorType, string message)
+            => _logger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {

@@ -4,7 +4,9 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
@@ -30,14 +32,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             // Complete RPC right away so the client can start reading from the stream.
-            _ = Task.Run(() =>
+            _ = Task.Run(async () =>
             {
-                using var writer = new ObjectWriter(outputStream, leaveOpen: true, cancellationToken);
+                using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
 
                 var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
                 var serializer = _services.GetRequiredService<ISerializerService>();
-
-                return RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken);
+                await RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
 
             return default;

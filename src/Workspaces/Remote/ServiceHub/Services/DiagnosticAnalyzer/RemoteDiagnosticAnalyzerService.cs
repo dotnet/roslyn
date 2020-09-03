@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,12 +59,11 @@ namespace Microsoft.CodeAnalysis.Remote
                         getTelemetryInfo: arguments.GetTelemetryInfo,
                         cancellationToken).ConfigureAwait(false);
 
-                    using var writer = new ObjectWriter(outputStream, leaveOpen: true, cancellationToken);
+                    using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
                     var (diagnostics, telemetry) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, documentAnalysisKind, result, cancellationToken);
 
-                    // TODO:
-                    //// save log for debugging
-                    //Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}");
+                    // save log for debugging
+                    Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}");
                 }
             }, cancellationToken);
 
