@@ -133,28 +133,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
+            var type = GetInitializedType(token, document, semanticModel, cancellationToken);
+            if (type is null)
+            {
+                return null;
+            }
+
+            if (type is ITypeParameterSymbol typeParameterSymbol)
+            {
+                type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
+            }
+
+            return Tuple.Create(type, token.GetLocation());
+        }
+
+        private static ITypeSymbol GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
             // new Goo { bar = $$
             if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
             {
-                var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
-                if (type is ITypeParameterSymbol typeParameterSymbol)
-                {
-                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
-                }
-
-                return Tuple.Create(type, token.GetLocation());
+                return semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
             }
 
             // new() { bar = $$
             if (token.Parent.Parent.IsKind(SyntaxKind.ImplicitObjectCreationExpression, out ImplicitObjectCreationExpressionSyntax implicitObjectCreation))
             {
-                var type = semanticModel.GetTypeInfo(implicitObjectCreation, cancellationToken).ConvertedType;
-                if (type is ITypeParameterSymbol typeParameterSymbol)
-                {
-                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
-                }
-
-                return Tuple.Create(type, token.GetLocation());
+                return semanticModel.GetTypeInfo(implicitObjectCreation, cancellationToken).ConvertedType;
             }
 
             // Nested: new Goo { bar = { $$
@@ -163,17 +167,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Use the type inferrer to get the type being initialized.
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
-                var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
-                return Tuple.Create(expectedType, token.GetLocation());
+                return typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
             }
 
             // expr with { $$
             if (token.Parent.Parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
             {
-                var type = semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
-                // Note: no special handling for type parameters since they can't be used in 'with' expressions ('with' is restricted to records at the moment)
-
-                return Tuple.Create(type, token.GetLocation());
+                return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }
 
             return null;
