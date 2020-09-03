@@ -61,11 +61,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         End Function
 
         Protected Overrides Function ConvertToStatement(expression As ExpressionSyntax, createReturnStatement As Boolean) As StatementSyntax
-            Throw New NotImplementedException
+            If createReturnStatement Then
+                Return SyntaxFactory.ReturnStatement(expression)
+            Else
+                Return SyntaxFactory.ExpressionStatement(expression)
+            End If
         End Function
 
         Protected Overrides Function GenerateLiteralExpression(typeSymbol As ITypeSymbol, value As Object) As ExpressionSyntax
-            Return GenerateExpression(typeSymbol, value, canUseFieldReference := True)
+            Return GenerateExpression(typeSymbol, value, canUseFieldReference:=True)
         End Function
 
         Protected Overrides Function IsValidExpressionUnderExpressionStatement(expressionNode As ExpressionSyntax) As Boolean

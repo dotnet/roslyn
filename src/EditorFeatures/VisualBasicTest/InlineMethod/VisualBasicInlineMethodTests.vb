@@ -14,11 +14,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
             Inherits VisualBasicCodeRefactoringVerifier(Of VisualBasicInlineMethodRefactoringProvider).Test
             Private Const Marker As String = "##"
 
-            Public Shared Async Function TestInRegularAndScript1Async(
-                 initialMarkUp As String,
-                 expectedMarkUp As String,
-                 Optional diagnnoticResults As List(Of DiagnosticResult) = Nothing,
-                 Optional keepInlinedMethod As Boolean = True) As Task
+            Public Shared Async Function TestInRegularAndScriptInDifferentFilesAsync(
+                initialMarkUpForFile1 As String,
+                initialMarkUpForFile2 As String,
+                expectedMarkUpForFile1 As String,
+                expectedMarkUpForFile2 As String,
+                diagnosticResults As List(Of DiagnosticResult),
+                Optional keepInlinedMethod As Boolean = True) As Task
+                Dim test = New TestVerifier() With
+                    {
+                        .CodeActionIndex = If(keepInlinedMethod, 1, 0),
+                        .CodeActionValidationMode = CodeActionValidationMode.None
+                    }
+                test.TestState.Sources.Add(("File1", initialMarkUpForFile1))
+                test.TestState.Sources.Add(("File2", initialMarkUpForFile2))
+                test.FixedState.Sources.Add(("File1", expectedMarkUpForFile1))
+                test.FixedState.Sources.Add(("File2", expectedMarkUpForFile2))
+                If diagnosticResults IsNot Nothing Then
+                    test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults)
+                End If
+                Await test.RunAsync().ConfigureAwait(False)
+            End Function
+
+            Public Shared Async Function TestInRegularAndScriptAsync(
+                initialMarkUp As String,
+                expectedMarkUp As String,
+                Optional diagnnoticResults As List(Of DiagnosticResult) = Nothing,
+                Optional keepInlinedMethod As Boolean = True) As Task
                 Dim test As New TestVerifier() With {.CodeActionIndex = If(keepInlinedMethod, 1, 0), .CodeActionValidationMode = CodeActionValidationMode.None}
                 test.TestState.Sources.Add(initialMarkUp)
                 test.FixedState.Sources.Add(expectedMarkUp)
@@ -43,14 +65,48 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
                 Dim inlinedMethod = expectedMarkUp.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2)
                 Dim lastPartitionAfterMarkup = expectedMarkUp.Substring(secondMarkerIndex + 2)
 
-                Await TestInRegularAndScript1Async(initialMarkUp,
+                Await TestInRegularAndScriptAsync(initialMarkUp,
                     String.Concat(firstPartitionBeforeMarkUp, inlinedMethod, lastPartitionAfterMarkup),
                     diagnnoticResultsWhenKeepInlinedMethod,
                     keepInlinedMethod:=True).ConfigureAwait(False)
 
-                Await TestInRegularAndScript1Async(initialMarkUp,
+                Await TestInRegularAndScriptAsync(initialMarkUp,
                     String.Concat(firstPartitionBeforeMarkUp, lastPartitionAfterMarkup),
                     diagnnoticResultsWhenRemoveInlinedMethod,
+                    keepInlinedMethod:=False).ConfigureAwait(False)
+            End Function
+
+            Public Shared Async Function TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+                initialMarkUpForCaller As String,
+                initialMarkUpForCallee As String,
+                expectedMarkUpForCaller As String,
+                expectedMarkUpForCallee As String,
+                Optional diagnosticResultsWhenKeepInlinedMethod As List(Of DiagnosticResult) = Nothing,
+                Optional diagnosticResultsWhenRemoveInlinedMethod As List(Of DiagnosticResult) = Nothing) As Task
+                Dim firstMarkerIndex = expectedMarkUpForCallee.IndexOf(Marker)
+                Dim secondMarkerIndex = expectedMarkUpForCallee.LastIndexOf(Marker)
+                If firstMarkerIndex = -1 OrElse secondMarkerIndex = -1 OrElse firstMarkerIndex = secondMarkerIndex Then
+                    Assert.True(False, "Can't find proper marks that contains inlined method.")
+                End If
+
+                Dim firstPartitionBeforeMarkUp = expectedMarkUpForCallee.Substring(0, firstMarkerIndex)
+                Dim inlinedMethod = expectedMarkUpForCallee.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2)
+                Dim lastPartitionAfterMarkup = expectedMarkUpForCallee.Substring(secondMarkerIndex + 2)
+
+                Await TestInRegularAndScriptInDifferentFilesAsync(
+                    initialMarkUpForCaller,
+                    initialMarkUpForCallee,
+                    expectedMarkUpForCaller,
+                    String.Concat(firstPartitionBeforeMarkUp, inlinedMethod, lastPartitionAfterMarkup),
+                    diagnosticResultsWhenKeepInlinedMethod,
+                    keepInlinedMethod:=True).ConfigureAwait(False)
+
+                Await TestInRegularAndScriptInDifferentFilesAsync(
+                    initialMarkUpForCaller,
+                    initialMarkUpForCallee,
+                    expectedMarkUpForCaller,
+                    String.Concat(firstPartitionBeforeMarkUp, lastPartitionAfterMarkup),
+                    diagnosticResultsWhenRemoveInlinedMethod,
                     keepInlinedMethod:=False).ConfigureAwait(False)
             End Function
         End Class
@@ -71,6 +127,33 @@ Public Class TestClass
     Public Sub Caller(i As Integer)
         System.Console.WriteLine(i)
     End Sub
+##
+    Private Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineExpressionStatementInDifferentFiles() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
+Partial Public Class TestClass
+    Public Sub Caller(i As Integer)
+        Me.Ca[||]llee(i)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+
+    Private Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+    Public Sub Caller(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+End Class", "
+Partial Public Class TestClass
 ##
     Private Sub Callee(i As Integer)
         System.Console.WriteLine(i)
@@ -102,31 +185,364 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineReturnExpressionWithoutVariableDeclaration() As Task
+        Public Function TestInlineDefaltValue() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Enum A
+    Value1
+    Value2
+End Enum
 Public Class TestClass
-    Public Sub Caller(i As Integer)
-        Me.Ca[||]llee(i)
+    Public Sub Caller()
+        Ca[||]llee()
     End Sub
 
-    Private Function Callee(i As Integer) As Integer
-        Return i + 10
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
     End Function
-End Class", "
+End Class",
+"
+Public Enum A
+    Value1
+    Value2
+End Enum
 Public Class TestClass
-    Public Sub Caller(i As Integer)
-        Dim temp As Integer = i + 10
+    Public Sub Caller()
+        Dim temp As Integer = 20 + If(False, 10, 100) + CType(A.Value1, Integer)
     End Sub
 ##
-    Private Function Callee(i As Integer) As Integer
-        Return i + 10
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
     End Function
 ##End Class")
         End Function
 
         <Fact>
+        Public Function TestInlineDefaltValueInDifferentFile() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
+Public Enum A
+    Value1
+    Value2
+End Enum
+Partial Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee()
+    End Sub
+End Class", "
+Partial Public Class TestClass
+
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+End Class", "
+Public Enum A
+    Value1
+    Value2
+End Enum
+Partial Public Class TestClass
+    Public Sub Caller()
+        Dim temp As Integer = 20 + If(False, 10, 100) + CType(A.Value1, Integer)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+##
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineWithLiteralValue() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Enum A
+    Value1
+    Value2
+End Enum
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(1, True, A.Value2)
+    End Sub
+
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+End Class",
+"
+Public Enum A
+    Value1
+    Value2
+End Enum
+Public Class TestClass
+    Public Sub Caller()
+        Dim temp As Integer = 1 + If(True, 10, 100) + CType(A.Value2, Integer)
+    End Sub
+##
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineWithLiteralValueInDifferentFile() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
+Public Enum A
+    Value1
+    Value2
+End Enum
+Partial Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(1, True, A.Value2)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+End Class", "
+Public Enum A
+    Value1
+    Value2
+End Enum
+Partial Public Class TestClass
+    Public Sub Caller()
+        Dim temp As Integer = 1 + If(True, 10, 100) + CType(A.Value2, Integer)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+##
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineWithIdentifierReplacement() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Enum A
+    Value1
+    Value2
+End Enum
+Public Class TestClass
+    Public Sub Caller(c As A)
+        Dim a = 10
+        Dim b = True
+        Ca[||]llee(a, b, c)
+    End Sub
+
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+End Class",
+"
+Public Enum A
+    Value1
+    Value2
+End Enum
+Public Class TestClass
+    Public Sub Caller(c As A)
+        Dim a = 10
+        Dim b = True
+        Dim temp As Integer = a + If(b, 10, 100) + CType(c, Integer)
+    End Sub
+##
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineWithIdentifierReplacementInDifferentFile() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
+Public Enum A
+    Value1
+    Value2
+End Enum
+Partial Public Class TestClass
+    Public Sub Caller(c As A)
+        Dim a = 10
+        Dim b = True
+        Ca[||]llee(a, b, c)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+End Class", "
+Public Enum A
+    Value1
+    Value2
+End Enum
+Partial Public Class TestClass
+    Public Sub Caller(c As A)
+        Dim a = 10
+        Dim b = True
+        Dim temp As Integer = a + If(b, 10, 100) + CType(c, Integer)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+##
+    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False, Optional c As A = Nothing) As Integer
+        Return i + If(b, 10, 100) + CType(c, Integer)
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineParamArray1() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(1, 2, 3, 4)
+    End Sub
+
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub Caller()
+        System.Console.WriteLine((New Integer() {1, 2, 3, 4}).Length)
+    End Sub
+##
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineParamArray1InDifferentFile() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
+Partial Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(1, 2, 3, 4)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+    Public Sub Caller()
+        System.Console.WriteLine((New Integer() {1, 2, 3, 4}).Length)
+    End Sub
+End Class", "
+Partial Public Class TestClass
+##
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineParamArray2() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(New Integer() {1, 2, 3, 4})
+    End Sub
+
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub Caller()
+        System.Console.WriteLine((New Integer() {1, 2, 3, 4}).Length)
+    End Sub
+##
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineParamArray3() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(1)
+    End Sub
+
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub Caller()
+        System.Console.WriteLine((New Integer() {1}).Length)
+    End Sub
+##
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineParamArray4() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee()
+    End Sub
+
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub Caller()
+        System.Console.WriteLine((New Integer() {}).Length)
+    End Sub
+##
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineParamArray5() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(1)
+    End Sub
+
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub Caller()
+        System.Console.WriteLine((New Integer() {1}).Length)
+    End Sub
+##
+    Private Sub Callee(ParamArray args() as Integer)
+        System.Console.WriteLine(args.Length)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
         Public Function TestInlineSelf() As Task
-            Return TestVerifier.TestInRegularAndScript1Async("
+            Return TestVerifier.TestInRegularAndScriptAsync("
 Public Class TestClass
     Public Sub Caller(i As Integer)
         Callee(Callee(Ca[||]llee(i)))
@@ -200,59 +616,27 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineDefaltValue() As Task
+        Public Function TestInlineInOperator() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
 Public Class TestClass
-    Public Sub Caller()
-        Ca[||]llee()
-    End Sub
+    Public Shared Operator +(i As TestClass, j As TestClass)
+        Ca[||]llee(10)
+        Return Nothing
+    End Operator
 
-    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False) As Integer
-        Return i + If(b, 10, 100)
-    End Function
-End Class",
-"
-Public Class TestClass
-    Public Sub Caller()
-        Dim temp As Integer = 20 + If(False, 10, 100)
+    Private Shared Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
     End Sub
+End Class", "
+Public Class TestClass
+    Public Shared Operator +(i As TestClass, j As TestClass)
+        System.Console.WriteLine(10)
+        Return Nothing
+    End Operator
 ##
-    Private Function Callee(Optional i As Integer = 20, Optional b As Boolean = False) As Integer
-        Return i + If(b, 10, 100)
-    End Function
-##End Class")
-        End Function
-
-        <Fact>
-        Public Function TestInlineLambda() As Task
-            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
-                "
-Imports System
-Public Class TestClass
-    Public Sub Caller(i As Integer, j As Integer)
-        Dim x = Call[||]ee(i, j)()
+    Private Shared Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
     End Sub
-
-    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
-        return Function()
-                   Return i * j
-               End Function
-    End Function
-End Class",
-                "
-Imports System
-Public Class TestClass
-    Public Sub Caller(i As Integer, j As Integer)
-        Dim x = Function()
-                   Return i * j
-               End Function()
-    End Sub
-##
-    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
-        return Function()
-                   Return i * j
-               End Function
-    End Function
 ##End Class")
         End Function
 
@@ -287,6 +671,66 @@ Public Class TestClass
         Return i + j
     End Function
 End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineLambda1() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller(i As Integer, j As Integer)
+        Dim x = Call[||]ee(i, j)()
+    End Sub
+
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
+        return Function()
+                   Return i * j
+               End Function
+    End Function
+End Class",
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller(i As Integer, j As Integer)
+        Dim x = Function()
+                   Return i * j
+               End Function()
+    End Sub
+##
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
+        return Function()
+                   Return i * j
+               End Function
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineLambda2() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller(i As Integer, j As Integer)
+        Dim x = Call[||]ee(i, j)()
+    End Sub
+
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
+        return Function() i * j
+    End Function
+End Class",
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller(i As Integer, j As Integer)
+        Dim x = (Function() i * j)()
+    End Sub
+##
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
+        return Function() i * j
+    End Function
+##End Class")
         End Function
 
         <Fact>
@@ -488,29 +932,26 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineInOperator() As Task
+        Public Function TestInlineReturnExpressionWithoutVariableDeclaration() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
 Public Class TestClass
-    Public Shared Operator +(i As TestClass, j As TestClass)
-        Ca[||]llee(10)
-        Return Nothing
-    End Operator
-
-    Private Shared Sub Callee(i As Integer)
-        System.Console.WriteLine(i)
+    Public Sub Caller(i As Integer)
+        Me.Ca[||]llee(i)
     End Sub
+
+    Private Function Callee(i As Integer) As Integer
+        Return i + 10
+    End Function
 End Class", "
 Public Class TestClass
-    Public Shared Operator +(i As TestClass, j As TestClass)
-        System.Console.WriteLine(10)
-        Return Nothing
-    End Operator
-##
-    Private Shared Sub Callee(i As Integer)
-        System.Console.WriteLine(i)
+    Public Sub Caller(i As Integer)
+        Dim temp As Integer = i + 10
     End Sub
+##
+    Private Function Callee(i As Integer) As Integer
+        Return i + 10
+    End Function
 ##End Class")
         End Function
-
     End Class
 End Namespace

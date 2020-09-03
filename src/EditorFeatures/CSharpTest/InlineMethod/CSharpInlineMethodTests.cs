@@ -1921,7 +1921,7 @@ public class TestClass
     }
 ##}");
         [Fact]
-        public Task TestInlineMethodForLambda()
+        public Task TestInlineMethodForLambda1()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
 using System;
@@ -1946,6 +1946,36 @@ public class TestClass
 ##
     private Func<int, int> Callee()
         => i => 1;
+##}");
+
+        [Fact]
+        public Task TestInlineMethodForLambda2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+                @"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Call[||]ee();
+    }
+
+    private Func<Task> Callee()
+        => async () => await Task.CompletedTask;
+}",
+                @"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (Func<Task>)(async () => await Task.CompletedTask);
+    }
+##
+    private Func<Task> Callee()
+        => async () => await Task.CompletedTask;
 ##}");
 
         [Fact]
@@ -3006,59 +3036,6 @@ public class TestClass
 ##}".Replace("(op)", op));
 
         [Fact]
-        public Task TestObjectCreationExpression()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public void Caller()
-    {
-        Call[||]ee();
-    }
-
-    private object Callee()
-    {
-        return new object();
-    }
-}",
-                @"
-public class TestClass
-{
-    public void Caller()
-    {
-        new object();
-    }
-##
-    private object Callee()
-    {
-        return new object();
-    }
-##}");
-        [Fact]
-        public Task TestConditionalInvocationExpression2()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-                @"
-public class TestClass
-{
-    public void Caller()
-    {
-        Cal[||]lee()?.ToCharArray();
-    }
-
-    private string Callee() => ""Hello"" + ""World"";
-}",
-                @"
-public class TestClass
-{
-    public void Caller()
-    {
-        (""Hello"" + ""World"")?.ToCharArray();
-    }
-##
-    private string Callee() => ""Hello"" + ""World"";
-##}");
-
-        [Fact]
         public Task TestConditionalInvocationExpression1()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
@@ -3540,6 +3517,31 @@ public class TestClass
 public class TestClass
 {
     public void Caller() => Ca[||]llee(out var j);
+
+    private void Callee(out int i) => i = 1;
+}
+", @"
+public class TestClass
+{
+    public void Caller()
+    {
+        int j = 1;
+    }
+##
+    private void Callee(out int i) => i = 1;
+##}
+");
+
+        [Fact]
+        public Task TestChangeToMethodBlock3()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        Action f = () => Cal[||]lee(out var j);
+    }
 
     private void Callee(out int i) => i = 1;
 }

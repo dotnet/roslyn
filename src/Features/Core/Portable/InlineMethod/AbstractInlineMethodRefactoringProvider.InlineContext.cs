@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var inlineExpression = rawInlineExpression;
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             var callerSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var calleeDocument = document.Project.Solution.GetDocument(calleeMethodNode.SyntaxTree);
+            var calleeDocument = document.Project.Solution.GetRequiredDocument(calleeMethodNode.SyntaxTree);
             var calleeSemanticModel = await calleeDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Generate a map which the key is the symbol need renaming, value is the new name.
@@ -432,6 +432,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     && localReferenceOperation.IsDeclaration)
                 {
                     _allSymbols.Add(localReferenceOperation.Local);
+                }
+
+                // Stop when meet lambda or local function
+                if (operation.Kind == OperationKind.AnonymousFunction || operation.Kind == OperationKind.LocalFunction)
+                {
+                    return;
                 }
 
                 base.Visit(operation);
