@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Analyzer.Utilities;
@@ -51,7 +53,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysisIfNotUserConfigured = false,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
             Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, wellKnownTypeProvider.Compilation, cancellationToken));
 
@@ -62,7 +66,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 interproceduralAnalysisConfig, out copyAnalysisResult,
                 out pointsToAnalysisResult, pessimisticAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
-                interproceduralAnalysisPredicate: interproceduralAnalysisPredicate);
+                interproceduralAnalysisPredicate,
+                additionalSupportedValueTypes,
+                getValueContentValueForAdditionalSupportedValueTypeOperation);
         }
 
         internal static ValueContentAnalysisResult? TryGetOrComputeResult(
@@ -76,7 +82,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             out PointsToAnalysisResult? pointsToAnalysisResult,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
             copyAnalysisResult = null;
             pointsToAnalysisResult = pointsToAnalysisKind != PointsToAnalysisKind.None ?
@@ -93,7 +101,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             var analysisContext = ValueContentAnalysisContext.Create(
                 ValueContentAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResult,
-                pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
+                pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext,
+                additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation,
+                interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 

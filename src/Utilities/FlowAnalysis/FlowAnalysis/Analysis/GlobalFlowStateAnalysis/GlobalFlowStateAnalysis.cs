@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -38,7 +39,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             out ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
@@ -46,7 +49,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pointsToAnalysisKind, pessimisticAnalysis,
-                performValueContentAnalysis, out valueContentAnalysisResult);
+                performValueContentAnalysis, out valueContentAnalysisResult,
+                additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation);
         }
 
         private static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
@@ -60,7 +64,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             PointsToAnalysisKind pointsToAnalysisKind,
             bool pessimisticAnalysis,
             bool performValueContentAnalysis,
-            out ValueContentAnalysisResult? valueContentAnalysisResult)
+            out ValueContentAnalysisResult? valueContentAnalysisResult,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
             RoslynDebug.Assert(cfg != null);
             RoslynDebug.Assert(owningSymbol != null);
@@ -71,7 +77,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                     pointsToAnalysisKind, interproceduralAnalysisConfig, out _,
                     out pointsToAnalysisResult, pessimisticAnalysis,
-                    performCopyAnalysis: false, interproceduralAnalysisPredicate) :
+                    performCopyAnalysis: false, interproceduralAnalysisPredicate,
+                    additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation) :
                 null;
 
             pointsToAnalysisResult ??= PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
