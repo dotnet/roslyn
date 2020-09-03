@@ -39,8 +39,8 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1:");
-            await VerifyItemExistsAsync(markup, "P2:");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
