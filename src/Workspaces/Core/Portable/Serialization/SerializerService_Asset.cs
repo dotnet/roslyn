@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var size = reader.ReadInt64();
 
                 var storage = storage2.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
-                if (storage is ITemporaryStorageWithName storageWithName)
+                if (storage is ITemporaryTextStorageWithName storageWithName)
                 {
                     return new SerializableSourceText(storageWithName);
                 }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
             var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
-            return serializableSourceText.Text ?? ((ITemporaryTextStorage)serializableSourceText.Storage!).ReadText(cancellationToken);
+            return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

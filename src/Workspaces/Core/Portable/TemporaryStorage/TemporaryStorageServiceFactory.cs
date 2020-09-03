@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Host
             public static string CreateUniqueName(long size)
                 => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-            private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
+            private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryTextStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private SourceHashAlgorithm _checksumAlgorithm;
@@ -320,10 +320,6 @@ namespace Microsoft.CodeAnalysis.Host
                 public string? Name => _memoryMappedInfo?.Name;
                 public long Offset => _memoryMappedInfo!.Offset;
                 public long Size => _memoryMappedInfo!.Size;
-
-                SourceHashAlgorithm ITemporaryStorageWithName.ChecksumAlgorithm => throw new NotSupportedException();
-                Encoding? ITemporaryStorageWithName.Encoding => throw new NotSupportedException();
-                ImmutableArray<byte> ITemporaryStorageWithName.GetChecksum() => throw new NotSupportedException();
 
                 public void Dispose()
                 {

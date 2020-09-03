@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SerializableSourceText
     {
-        public ITemporaryStorageWithName? Storage { get; }
+        public ITemporaryTextStorageWithName? Storage { get; }
         public SourceText? Text { get; }
 
-        public SerializableSourceText(ITemporaryStorageWithName storage)
+        public SerializableSourceText(ITemporaryTextStorageWithName storage)
             : this(storage, text: null)
         {
         }
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        private SerializableSourceText(ITemporaryStorageWithName? storage, SourceText? text)
+        private SerializableSourceText(ITemporaryTextStorageWithName? storage, SourceText? text)
         {
             Debug.Assert(storage is not null || text is not null);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (Text is not null)
                 return Text;
 
-            if (Storage is not ITemporaryTextStorage textStorage)
+            if (Storage is not { } textStorage)
                 throw new NotSupportedException();
 
             return await textStorage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public static async ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
         {
-            if (state.Storage is ITemporaryStorageWithName storage)
+            if (state.Storage is ITemporaryTextStorageWithName storage)
             {
                 return new SerializableSourceText(storage);
             }
