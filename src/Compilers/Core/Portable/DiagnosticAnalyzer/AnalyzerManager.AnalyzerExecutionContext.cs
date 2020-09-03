@@ -212,18 +212,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [Conditional("DEBUG")]
             private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol>? dependentSymbols)
             {
-                Debug.Assert(_lazyPendingMemberSymbolsMap != null);
+                Debug.Assert(_lazyPendingMemberSymbolsMap != null, $"{nameof(_lazyPendingMemberSymbolsMap)} was expected to be a non-null value.");
 
                 if (_lazyPendingMemberSymbolsMap.TryGetValue(symbol, out var existingDependentSymbols))
                 {
                     if (existingDependentSymbols == null)
                     {
-                        Debug.Assert(dependentSymbols == null);
+                        Debug.Assert(dependentSymbols == null, $"{nameof(dependentSymbols)} was expected to be null.");
                     }
                     else
                     {
-                        Debug.Assert(dependentSymbols != null);
-                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols));
+                        Debug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
+                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols), $"{nameof(dependentSymbols)} was expected to contain the same elements in {nameof(existingDependentSymbols)}.");
                     }
                 }
             }
