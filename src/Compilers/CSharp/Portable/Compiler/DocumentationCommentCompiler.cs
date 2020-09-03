@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int trimStart = GetIndexOfFirstNonWhitespaceChar(text, start, end) + substringStart;
 
                 // this happens when text ends with new line followed by whitespace
-                if (trimStart >= end)
+                if (trimStart > end)
                 {
                     break;
                 }
