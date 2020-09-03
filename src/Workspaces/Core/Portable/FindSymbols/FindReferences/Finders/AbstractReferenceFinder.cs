@@ -242,11 +242,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
         }
 
+        protected static Func<SyntaxToken, SyntaxNode>? GetNamedTypeOrConstructorFindParentNodeFunction(Document document, ISymbol searchSymbol)
+        {
+            // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
+            // reference to a type (as we don't have any real constructor symbols that can actually cascade to).  So
+            // don't do any special finding in that case.
+            if (searchSymbol.IsDelegateType())
+                return null;
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            return t => syntaxFacts.TryGetBindableParent(t) ?? t.Parent!;
+        }
+
         protected static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
             ISymbol symbol, Func<SyntaxToken, SyntaxNode>? findParentNode, Solution solution, CancellationToken cancellationToken)
         {
             var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
-            findParentNode ??= (t => t.Parent!);
+            findParentNode ??= t => t.Parent!;
             return (token, model) => nodeMatchAsync(findParentNode(token), model);
         }
 

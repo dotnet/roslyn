@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (returnType.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, returnTypeParameter.Location, returnType);
+                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(useWarning: false), returnTypeParameter.Location, returnType);
                 }
                 else if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
