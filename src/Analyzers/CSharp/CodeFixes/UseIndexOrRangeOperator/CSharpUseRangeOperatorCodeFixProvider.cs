@@ -111,19 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                         Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
                         arguments,
                         Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
-                // The method invocation will be replaced by a range operator. We need to find the right replacement.
-                var expression = invocation.Expression switch
+                if (invocation.Expression is MemberBindingExpressionSyntax)
                 {
-                    // a.b() -> a[..] element access with expression "a"
-                    MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
-                    // a?.b() -> a?[..] the invocation b() is referenced to WhenNotNull 
-                    // of a ConditionalAccessExpression. b() is replaced by the ElementAccessExpression [..]
-                    MemberBindingExpressionSyntax _ => null,
-                    _ => invocation.Expression
-                };
-                return expression == null
-                    ? (ExpressionSyntax)ElementBindingExpression(argumentList)
-                    : ElementAccessExpression(expression, argumentList);
+                    return ElementBindingExpression(argumentList);
+                }
+
+                var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                    ? memberAccess.Expression
+                    : invocation.Expression;
+                return ElementAccessExpression(expression, argumentList);
             }
             else
             {
