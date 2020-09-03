@@ -17,6 +17,58 @@ namespace Microsoft.CodeAnalysis
         /// <inheritdoc cref="Solution.GetOriginatingProjectId"/>
         public ProjectId? GetOriginatingProjectId(ISymbol? symbol)
         {
+            if (symbol == null)
+                return null;
+
+            var projectId = GetOriginatingProjectIdWorker(symbol);
+
+            // Validate some invariants we think should hold.  We want to know if this breaks, which indicates some part
+            // of our system not working as we might expect.  If they break, create NFWs so we can find out and
+            // investigate.
+
+            if (SymbolKey.IsBodyLevelSymbol(symbol))
+            {
+                // If this is a method-body-level symbol, then we will have it's syntax tree.  Since  we already have a
+                // mapping from syntax-trees to docs, so we can immediately map this back to it's originating project.
+                //
+                // Note: we don't do this for all source symbols, only method-body-level ones.  That's because other
+                // source symbols may be *retargetted*.  So you can have the same symbol retargetted into multiple
+                // projects, but which have the same syntax-tree (which is only in one project).  We need to actually
+                // check it's assembly symbol so that we get the actual project it is from (the original project, or the
+                // retargetted project).
+                var syntaxTree = symbol.Locations[0].SourceTree;
+                Contract.ThrowIfNull(syntaxTree);
+
+                var documentId = this.GetDocumentState(syntaxTree, projectId: null)?.Id;
+                if (documentId == null)
+                {
+                    try
+                    {
+                        throw new InvalidOperationException(
+                            $"We should always be able to map a body symbol back to a document:\r\n{symbol.Kind}\r\n{symbol.Name}\r\n{syntaxTree.FilePath}\r\n{projectId}");
+                    }
+                    catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                    {
+                    }
+                }
+                else if (documentId.ProjectId != projectId)
+                {
+                    try
+                    {
+                        throw new InvalidOperationException(
+                            $"Syntax tree for a body symbol should map to the same project as the body symbol's assembly:\r\n{symbol.Kind}\r\n{symbol.Name}\r\n{syntaxTree.FilePath}\r\n{projectId}\r\n{documentId.ProjectId}");
+                    }
+                    catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                    {
+                    }
+                }
+            }
+
+            return projectId;
+        }
+
+        private ProjectId? GetOriginatingProjectIdWorker(ISymbol symbol)
+        {
             LazyInitialization.EnsureInitialized(ref _unrootedSymbolToProjectId, s_createTable);
 
             // Walk up the symbol so we can get to the containing namespace/assembly that will be used to map
@@ -87,35 +139,6 @@ namespace Microsoft.CodeAnalysis
                 var tree = typeParameter.Locations[0].SourceTree;
                 var doc = this.GetDocumentState(tree, projectId: null);
                 return doc?.Id.ProjectId;
-            }
-            else if (SymbolKey.IsBodyLevelSymbol(symbol))
-            {
-                // If this is a method-body-level symbol, then we will have it's syntax tree.  Since  we already have a
-                // mapping from syntax-trees to docs, so we can immediately map this back to it's originating project.
-                //
-                // Note: we don't do this for all source symbols, only method-body-level ones.  That's because other
-                // source symbols may be *retargetted*.  So you can have the same symbol retargetted into multiple
-                // projects, but which have the same syntax-tree (which is only in one project).  We need to actually
-                // check it's assembly symbol so that we get the actual project it is from (the original project, or the
-                // retargetted project).
-                var syntaxTree = symbol.Locations[0].SourceTree;
-                Contract.ThrowIfNull(syntaxTree);
-
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId == null)
-                {
-                    try
-                    {
-                        throw new InvalidOperationException(
-                            $"We should always be able to map a source symbol back to a document:\r\n{symbol.Kind}\r\n{symbol.Name}\r\n{syntaxTree.FilePath}");
-                    }
-                    catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
-                    {
-                        return null;
-                    }
-                }
-
-                return documentId.ProjectId;
             }
 
             return null;
