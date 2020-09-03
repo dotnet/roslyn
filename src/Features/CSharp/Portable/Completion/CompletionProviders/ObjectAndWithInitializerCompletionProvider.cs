@@ -9,7 +9,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -137,11 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (type is null)
             {
                 return null;
-            }
-
-            if (type is ITypeParameterSymbol typeParameterSymbol)
-            {
-                type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
             }
 
             return Tuple.Create(type, token.GetLocation());
