@@ -2,20 +2,38 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ParenthesesForMethodInvocations
-    Friend MustInherit Class VisualBasicParenthesesDiagnosticAnalyzerBase
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    Friend NotInheritable Class VisualBasicParenthesesStyleDiagnosticAnalyzer
         Inherits AbstractBuiltInCodeStyleDiagnosticAnalyzer
 
-        Protected Sub New(diagnosticId As String, title As LocalizableString, message As LocalizableString)
-            MyBase.New(
-                diagnosticId, VisualBasicCodeStyleOptions.IncludeParenthesesForMethodInvocations,
-                LanguageNames.VisualBasic, title, message)
+        Private Shared ReadOnly s_titleForAddParentheses As New LocalizableResourceString(
+            NameOf(VisualBasicAnalyzersResources.Add_parentheses_to_method_invocation),
+            VisualBasicAnalyzersResources.ResourceManager,
+            GetType(VisualBasicAnalyzersResources))
+
+        Private Shared ReadOnly s_titleForRemoveParentheses As New LocalizableResourceString(
+            NameOf(VisualBasicAnalyzersResources.Remove_parentheses_from_method_invocation),
+            VisualBasicAnalyzersResources.ResourceManager,
+            GetType(VisualBasicAnalyzersResources))
+
+        Protected Sub New()
+            MyBase.New(GetSupportedDescriptorsWithOptions(), LanguageNames.VisualBasic)
         End Sub
+
+        Private Shared Function GetSupportedDescriptorsWithOptions() As ImmutableDictionary(Of DiagnosticDescriptor, Options.ILanguageSpecificOption)
+            Dim builder = ImmutableDictionary.CreateBuilder(Of DiagnosticDescriptor, Options.ILanguageSpecificOption)()
+            ' TODO: Rename the DiagnosticId const to something like "ParenthesesStyleForMethodInvocationsDiagnosticId".
+            builder.Add(CreateDescriptorWithId(IDEDiagnosticIds.RemoveParenthesesFromMethodInvocationsDiagnosticId, s_titleForAddParentheses, s_titleForAddParentheses), VisualBasicCodeStyleOptions.IncludeParenthesesForMethodInvocations)
+            builder.Add(CreateDescriptorWithId(IDEDiagnosticIds.RemoveParenthesesFromMethodInvocationsDiagnosticId, s_titleForRemoveParentheses, s_titleForRemoveParentheses), VisualBasicCodeStyleOptions.IncludeParenthesesForMethodInvocations)
+            Return builder.ToImmutable()
+        End Function
 
         Public Overrides Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory
             Return DiagnosticAnalyzerCategory.SemanticSpanAnalysis
