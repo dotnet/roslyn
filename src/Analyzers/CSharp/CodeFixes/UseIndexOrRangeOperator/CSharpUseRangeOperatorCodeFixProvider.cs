@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             if (result.MemberInfo.OverloadedMethodOpt == null)
             {
-                var expression = invocation switch
+                var expression = invocation.Expression switch
                 {
-                    { Expression: MemberAccessExpressionSyntax memberAccess } _ => memberAccess.Expression,
-                    { Parent: ConditionalAccessExpressionSyntax _ } => null,
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
+                    MemberBindingExpressionSyntax _ => null,
                     _ => invocation.Expression
                 };
 
