@@ -590,6 +590,26 @@ public interface Test : short { }
         }
 
         [Fact]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        public void RetargetFixedSizeField()
+        {
+            var source = @"
+public unsafe struct Test
+{
+    public fixed byte buffer[12];
+}
+";
+
+            var comp = CreateCompilation(source);
+            var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
+            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
+            retargetingAssembly.SetCorLibrary(MissingCorLibrarySymbol.Instance); // Need to do this explicitly since our retargeting assembly wasn't constructed using the real mechanism.
+            var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            var retargetingField = retargetingType.GetMember<RetargetingFieldSymbol>("buffer");
+            Assert.True(retargetingField.IsFixedSizeBuffer);
+        }
+
+        [Fact]
         [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         [WorkItem(609519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")]
         public void RetargetInvalidConstraint()
