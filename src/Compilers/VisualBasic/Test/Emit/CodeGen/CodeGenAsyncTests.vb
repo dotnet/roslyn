@@ -11440,6 +11440,63 @@ After Invoke").VerifyIL("Program.VB$StateMachine_0_Invoke.MoveNext", "
   IL_00d1:  ret
 }")
         End Sub
+
+        <Fact>
+        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        Public Sub AssignModuleStructureField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Public Structure S1
+    Public Field As Integer
+End Structure
+
+Module Program
+    Dim s1 As S1
+
+    Async Function M1(t As Task(Of Integer)) As Task
+        s1.Field = Await t
+    End Function
+
+    Sub Main()
+        M1(Task.FromResult(1)).Wait()
+        Console.Write(s1.Field)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
+        End Sub
+
+        <Fact>
+        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        Public Sub AssignInstanceStructureField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Public Structure S1
+    Public Field As Integer
+End Structure
+
+Class C
+    Dim s1 As S1
+
+    Async Function M1(t As Task(Of Integer)) As Task
+        s1.Field = Await t
+    End Function
+
+    Shared Sub Main()
+        Dim c = New C()
+        c.M1(Task.FromResult(1)).Wait()
+        Console.Write(c.s1.Field)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
+        End Sub
     End Class
 End Namespace
 

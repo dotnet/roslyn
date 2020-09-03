@@ -6351,6 +6351,42 @@ public class C
         }
 
         [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
+        public void AssignStaticStructField_ViaUsingStatic()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using static C;
+
+public struct S1
+{
+    public int Field;
+}
+
+public class C
+{
+    public static S1 s1;
+}
+
+public class Program
+{
+    static async Task M(Task<int> t)
+    {
+        s1.Field = await t;
+    }
+
+    static async Task Main()
+    {
+        await M(Task.FromResult(1));
+        Console.Write(s1.Field);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
         public void AssignInstanceStructField()
         {
             var source = @"
