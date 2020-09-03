@@ -102,11 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 var checkIdObject = semanticModel.GetConstantValue(suppressMessageCheckIdArgument.Expression, cancellationToken);
                 if (checkIdObject.HasValue && checkIdObject.Value is string checkId)
                 {
-                    var position = checkId.IndexOf(':');
-                    var errorCode = position == -1
-                        ? checkId
-                        : checkId.Substring(0, position);
-                    errorCode = errorCode.Trim();
+                    var errorCode = checkId.ExtractErrorCodeFromCheckId();
                     return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, suppressMessageCheckIdArgument.Span);
                 }
             }
@@ -179,6 +175,18 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return
                 stringComparer.Equals(nameValue, nameof(SuppressMessageAttribute)) ||
                 stringComparer.Equals(nameValue, "SuppressMessage");
+        }
+
+        public static string ExtractErrorCodeFromCheckId(this string checkId)
+        {
+            // checkId short and long name rules:
+            // https://docs.microsoft.com/en-us/visualstudio/code-quality/in-source-suppression-overview?view=vs-2019#suppressmessage-attribute
+            var position = checkId.IndexOf(':');
+            var errorCode = position == -1
+                ? checkId
+                : checkId.Substring(0, position);
+            errorCode = errorCode.Trim();
+            return errorCode;
         }
     }
 }
