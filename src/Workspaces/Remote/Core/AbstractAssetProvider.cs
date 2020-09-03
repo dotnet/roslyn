@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var textLoader = TextLoader.From(
                 TextAndVersion.Create(
-                    await GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false),
+                    await (await GetAssetAsync<SerializableSourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)).GetTextAsync(cancellationToken).ConfigureAwait(false),
                     VersionStamp.Create(),
                     documentInfo.FilePath));
 

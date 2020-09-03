@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SolutionAsset(object? value, Checksum checksum, WellKnownSynchronizationKind kind)
         {
-            Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText
-                && value is not SerializableSourceText);
+            Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText);
 
             Checksum = checksum;
             Kind = kind;

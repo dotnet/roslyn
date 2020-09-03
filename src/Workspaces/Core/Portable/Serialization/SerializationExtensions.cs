@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 MetadataReference _ => WellKnownSynchronizationKind.MetadataReference,
                 AnalyzerReference _ => WellKnownSynchronizationKind.AnalyzerReference,
                 TextDocumentState _ => WellKnownSynchronizationKind.RecoverableSourceText,
-                SerializableSourceText _ => WellKnownSynchronizationKind.SourceText,
+                SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
                 SourceText _ => WellKnownSynchronizationKind.SourceText,
                 OptionSet _ => WellKnownSynchronizationKind.OptionSet,
                 _ => throw ExceptionUtilities.UnexpectedValue(value),

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -44,6 +45,17 @@ namespace Microsoft.CodeAnalysis.Serialization
                 return Text.GetChecksum();
             else
                 return ImmutableArray<byte>.Empty;
+        }
+
+        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        {
+            if (Text is not null)
+                return Text;
+
+            if (Storage is not ITemporaryTextStorage textStorage)
+                throw new NotSupportedException();
+
+            return await textStorage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)

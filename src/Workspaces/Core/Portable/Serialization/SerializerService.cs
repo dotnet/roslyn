@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return Checksum.Create(kind, CreateChecksum((AnalyzerReference)value, cancellationToken));
 
-                    case WellKnownSynchronizationKind.SourceText when value is SerializableSourceText sourceText:
-                        return Checksum.Create(kind, sourceText.GetChecksum());
+                    case WellKnownSynchronizationKind.SerializableSourceText:
+                        return Checksum.Create(kind, ((SerializableSourceText)value).GetChecksum());
 
-                    case WellKnownSynchronizationKind.SourceText when value is SourceText sourceText:
-                        return Checksum.Create(kind, sourceText.GetChecksum());
+                    case WellKnownSynchronizationKind.SourceText:
+                        return Checksum.Create(kind, ((SourceText)value).GetChecksum());
 
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
                         return;
 
-                    case WellKnownSynchronizationKind.SourceText when value is SerializableSourceText sourceText:
-                        SerializeSourceText(sourceText, writer, cancellationToken);
+                    case WellKnownSynchronizationKind.SerializableSourceText:
+                        SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
                         return;
 
-                    case WellKnownSynchronizationKind.SourceText when value is SourceText sourceText:
-                        SerializeSourceText(new SerializableSourceText(sourceText), writer, cancellationToken);
+                    case WellKnownSynchronizationKind.SourceText:
+                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.OptionSet:
@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
+                    case WellKnownSynchronizationKind.SerializableSourceText:
+                        return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
                     case WellKnownSynchronizationKind.OptionSet:
