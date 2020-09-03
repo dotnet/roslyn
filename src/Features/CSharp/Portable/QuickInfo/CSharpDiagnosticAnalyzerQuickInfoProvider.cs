@@ -24,6 +24,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
     [ExportQuickInfoProvider(QuickInfoProviderNames.DiagnosticAnalyzer, LanguageNames.CSharp), Shared]
+    // This provider needs to run before the semantic quick info provider, because of the SuppressMessage attribute handling
+    // If it runs after it, BuildQuickInfoAsync is not called. This is not covered by a test.
     [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
     internal class CSharpDiagnosticAnalyzerQuickInfoProvider : CommonQuickInfoProvider
     {
