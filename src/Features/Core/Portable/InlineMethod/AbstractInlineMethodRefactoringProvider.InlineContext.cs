@@ -113,13 +113,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             var renameTable = ComputeRenameTable(
                 _semanticFactsService,
-                rawInlineExpression,
                 callerSemanticModel,
                 calleeSemanticModel,
                 calleeInvocationNode,
+                rawInlineExpression,
                 methodParametersInfo.ParametersToGenerateFreshVariablesFor
-                    .SelectAsArray(parameterAndArgument => parameterAndArgument.parameterSymbol),
-                cancellationToken);
+                    .SelectAsArray(parameterAndArgument => parameterAndArgument.parameterSymbol), cancellationToken);
 
             // Generate all the statements need to be put in the caller.
             // Use the parameter's name to generate declarations in caller might cause conflict in the caller,
@@ -340,8 +339,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         private ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
             IMethodSymbol calleeMethodSymbol,
-            ImmutableArray<(IParameterSymbol parameter, string identifierName)>
-                parametersWithVariableDeclarationArgument,
+            ImmutableArray<(IParameterSymbol parameter, string identifierName)> parametersWithVariableDeclarationArgument,
             ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace,
             SyntaxGenerator syntaxGenerator,
             ImmutableDictionary<ISymbol, string> renameTable)
@@ -358,9 +356,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .Select(parameterAndName => (parameter: (ISymbol)parameterAndName.parameter,
                     syntaxNode: syntaxGenerator.IdentifierName(parameterAndName.identifierName)));
 
-            return renameTable
-                .Select(kvp => (parameter: kvp.Key,
-                    syntaxNode: syntaxGenerator.IdentifierName(kvp.Value)))
+            var parametersNeedRenameQuery = renameTable
+                .Select(kvp => (parameter: kvp.Key, syntaxNode: syntaxGenerator.IdentifierName(kvp.Value)));
+
+            return parametersNeedRenameQuery
                 .Concat(parametersWithVariableDeclarationArgumentQuery)
                 .Concat(typeParametersReplacementQuery)
                 .Concat(literalArgumentReplacementQuery)
@@ -369,10 +368,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private static ImmutableDictionary<ISymbol, string> ComputeRenameTable(
             ISemanticFactsService semanticFacts,
-            TExpressionSyntax rawInlineExpression,
             SemanticModel callerSemanticModel,
             SemanticModel calleeSemanticModel,
             SyntaxNode calleeInvocationNode,
+            TExpressionSyntax rawInlineExpression,
             ImmutableArray<IParameterSymbol> parametersNeedGenerateFreshVariableFor,
             CancellationToken cancellationToken)
         {

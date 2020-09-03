@@ -1159,9 +1159,9 @@ Public Class TestClass
     End Function
 End Class", "
 Public Class TestClass
-    Public Sub Caller(i As Integer)
-        If (i OrElse False) OrElse True Then
-        End If
+    Public Sub Caller(i As Boolean)
+        Do 
+        Loop While Ca[||]llee(GetFlag())
     End Sub
 
     Private Function GetFlag() As Boolean
@@ -1225,8 +1225,9 @@ Public Class TestClass
     End Function
 End Class", "
 Public Class TestClass
-    Public Sub Caller(i As Integer)
-        If (i OrElse False) OrElse True Then
+    Public Sub Caller(i As Boolean)
+        Dim a As Boolean = GetFlag()
+        If i OrElse False OrElse True Then
         End If
     End Sub
 
@@ -1235,7 +1236,7 @@ Public Class TestClass
     End Function
 ##
     Private Function Callee(a As Boolean) As Boolean
-        Return a OrElse False
+        Return a OrElse a
     End Function
 ##End Class")
         End Function
@@ -1278,36 +1279,6 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineWithinReturnStatement() As Task
-            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
-Public Class TestClass
-    Public Function Caller() As Integer
-        Return Callee(Get[||]Flag())
-    End Function
-
-    Private Function GetFlag() As Integer
-        Return 10
-    End Function
-
-    Private Function Callee(a As Integer) As Integer
-        Return a + a
-    End Function
-End Class", "
-Public Class TestClass
-    Public Function Caller() As Integer
-        Return Callee(GetFlag())
-
-    Private Function GetFlag() As Integer
-        Return 10
-    End Function
-##
-    Private Function Callee(a As Integer) As Integer
-        Return a + a
-    End Function
-##End Class")
-        End Function
-
-        <Fact>
         Public Function TestInlineWithinLockStatement() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
 Public Class TestClass
@@ -1336,39 +1307,6 @@ Public Class TestClass
 ##
     Private Function Callee(a As Integer) As String
         Return (a + a).ToString()
-    End Function
-##End Class")
-        End Function
-
-        <Fact>
-        Public Function TestInlineWithinForStatement() As Task
-            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
-Public Class TestClass
-    Public Sub Caller()
-        For i = Callee(Ge[||]tFlag()) To 100
-        End For
-    End Sub
-
-    Private Function GetFlag() As Integer
-        Return 10
-    End Function
-
-    Private Function Callee(a As Integer) As Integer
-        Return a + a
-    End Function
-End Class", "
-Public Class TestClass
-    Public Sub Caller()
-        For i = Callee(GetFlag()) To 100
-        End For
-    End Sub
-
-    Private Function GetFlag() As Integer
-        Return 10
-    End Function
-##
-    Private Function Callee(a As Integer) As Integer
-        Return a + a
     End Function
 ##End Class")
         End Function

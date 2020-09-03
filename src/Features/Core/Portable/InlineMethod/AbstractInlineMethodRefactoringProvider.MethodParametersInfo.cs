@@ -158,13 +158,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
-        private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(
-            Document document,
+        private async Task<MethodParametersInfo> GetMethodParametersInfoAsync(Document document,
             TInvocationSyntax calleInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
-            TExpressionSyntax rawInlineExpression,
             ISymbol callerSymbol,
             SyntaxNode syntaxNodeContainingInvocation,
+            TExpressionSyntax rawInlineExpression,
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {
@@ -320,20 +319,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // }
                 // Note: this change might change the order of evaluation. Strictly keep the semantics will make the
                 // code becomes strange so it is by design.
-                var operationsAreReadOnlyOnce =
+                var operationsReadOnlyOnce =
                     await GetArgumentsReadOnlyOnceAsync(
                         calleeDocument,
                         operationsToGenerateFreshVariablesFor,
                         calleeMethodNode,
                         cancellationToken).ConfigureAwait(false);
-                operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsAreReadOnlyOnce);
+                operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsReadOnlyOnce);
                 var parametersToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor
                     .SelectAsArray(argument => (argument.Parameter, GenerateArgumentExpression(syntaxGenerator, argument)));
 
                 var parameterToReplaceMap =
                     operationsWithLiteralArgument
                     .Concat(operationsWithIdentifierArgument)
-                    .Concat(operationsAreReadOnlyOnce)
+                    .Concat(operationsReadOnlyOnce )
                     .Concat(operationsWithDefaultValue)
                     .ToImmutableDictionary(
                         keySelector: argument => argument.Parameter,
@@ -364,7 +363,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
                     .ToImmutableArray();
 
-                var mergeInlineContentAndVariableDeclarationArgument = await MergeInlineContentAndVariableDeclarationArgumentAsync(
+                var mergeInlineContentAndVariableDeclarationArgument = await ShouldMergeInlineContentAndVariableDeclarationArgumentAsync(
                     calleeDocument,
                     calleInvocationNode,
                     parametersWithVariableDeclarationArgument!,
@@ -482,7 +481,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// }
         /// void Callee(out int i) => i = 100;
         /// </summary>
-        private async Task<bool> MergeInlineContentAndVariableDeclarationArgumentAsync(
+        private async Task<bool> ShouldMergeInlineContentAndVariableDeclarationArgumentAsync(
             Document calleeDocument,
             TInvocationSyntax calleInvocationNode,
             ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
@@ -490,16 +489,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             CancellationToken cancellationToken)
         {
             var semanticModel = await calleeDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (parametersWithVariableDeclarationArgument.Length == 1
-                && _syntaxFacts.IsExpressionStatement(calleInvocationNode.Parent)
-                && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
-                && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation
-                && parameterOperation.Parameter.Equals(parametersWithVariableDeclarationArgument[0].parameterSymbol))
-            {
-                return true;
-            }
-
-            return false;
+            return parametersWithVariableDeclarationArgument.Length == 1
+               && _syntaxFacts.IsExpressionStatement(calleInvocationNode.Parent)
+               && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
+               && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation
+               && parameterOperation.Parameter.Equals(parametersWithVariableDeclarationArgument[0].parameterSymbol);
         }
 
         private TExpressionSyntax GenerateArgumentExpression(

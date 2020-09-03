@@ -312,23 +312,21 @@ public partial class TestClass
                 @"
 public class TestClass
 {
-    private void Caller(int i, int j)
-    {
-        var x = Ca[||]llee(i, j);
-    }
+    private const int i = 10;
+    private const int j = 20;
+    private int X = Cal[||]lee(i, j);
 
-    private int Callee(int i, int j)
+    private static int Callee(int i, int j)
         => i + j;
 }",
                 @"
 public class TestClass
 {
-    private void Caller(int i, int j)
-    {
-        var x = i + j;
-    }
+    private const int i = 10;
+    private const int j = 20;
+    private int X = i + j;
 ##
-    private int Callee(int i, int j)
+    private static int Callee(int i, int j)
         => i + j;
 ##}");
 
@@ -338,7 +336,7 @@ public class TestClass
                 @"
 public class TestClass
 {
-    private void Caller()
+    private TestClass()
     {
         Cal[||]lee();
     }
@@ -351,7 +349,7 @@ public class TestClass
                 @"
 public class TestClass
 {
-    private void Caller()
+    private TestClass()
     {
         System.Console.WriteLine(false ? 1 : (null ?? ""Hello"").Length);
     }
@@ -438,6 +436,7 @@ public class TestClass
         public Task TestInlineMethodWithLiteralValue()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
                 @"
+using System;
 public enum A
 {
     Value1,
@@ -445,15 +444,21 @@ public enum A
 }
 public class TestClass
 {
-    private void Caller()
+    event EventHandler E
     {
-        Cal[||]lee(1, 'y', true, ""Hello"", A.Value2);
+        add
+        {
+            Cal[||]lee(1, 'y', true, ""Hello"", A.Value2);
+        }
+        remove
+        {}
     }
 
     private void Callee(int i, char c, bool x, string y, A a) =>
         System.Console.WriteLine(i + (int)c + (int)a + (x ? 1 : y.Length));
 }",
                 @"
+using System;
 public enum A
 {
     Value1,
@@ -461,9 +466,14 @@ public enum A
 }
 public class TestClass
 {
-    private void Caller()
+    event EventHandler E
     {
-        System.Console.WriteLine(1 + (int)'y' + (int)A.Value2 + (true ? 1 : ""Hello"".Length));
+        add
+        {
+            System.Console.WriteLine(1 + (int)'y' + (int)A.Value2 + (true ? 1 : ""Hello"".Length));
+        }
+        remove
+        {}
     }
 ##
     private void Callee(int i, char c, bool x, string y, A a) =>
@@ -3278,6 +3288,26 @@ public class TestClass
 ##}
 ", diagnostic, diagnostic);
         }
+
+        [Fact]
+        public Task TestInlineInArrowProperty1()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+public class TestClass
+{
+    private const int i = 10;
+    public int Caller => Ca[||]llee();
+
+    private int Callee() => i + 1;
+}
+", @"
+public class TestClass
+{
+    private const int i = 10;
+    public int Caller => i + 1;
+##
+    private int Callee() => i + 1;
+##}
+");
 
         [Fact]
         public Task TestInlineInArrowLambda1()

@@ -252,11 +252,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 calleeInvocationNode,
                 calleeMethodSymbol,
                 calleeMethodNode,
-                inlineExpression,
                 callerSymbol,
                 callerDeclarationNode,
                 syntaxNodeContainsInvocation,
-                invocationOperation);
+                inlineExpression, invocationOperation);
 
             var nestedCodeAction = new CodeAction.CodeActionWithNestedActions(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
@@ -266,15 +265,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             context.RegisterRefactoring(nestedCodeAction, calleeInvocationNode.Span);
         }
 
-        private ImmutableArray<CodeAction> GenerateCodeActions(
-            Document document,
+        private ImmutableArray<CodeAction> GenerateCodeActions(Document document,
             TInvocationSyntax calleeMethodInvocationNode,
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodNode,
-            TExpressionSyntax inlineExpression,
             ISymbol callerSymbol,
             SyntaxNode callerMethodNode,
             SyntaxNode syntaxNodeContainingInvocation,
+            TExpressionSyntax inlineExpression,
             IInvocationOperation invocationOperation)
         {
             var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
@@ -286,13 +284,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         calleeMethodInvocationNode,
                         calleeMethodSymbol,
                         calleeMethodNode,
-                        inlineExpression,
                         callerSymbol,
                         callerMethodNode,
                         syntaxNodeContainingInvocation,
+                        inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: true,
-                        cancellationToken));
+                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken));
 
             var codeActionKeepsCallee = new MySolutionChangeAction(
                 string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
@@ -302,13 +299,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         calleeMethodInvocationNode,
                         calleeMethodSymbol,
                         calleeMethodNode,
-                        inlineExpression,
                         callerSymbol,
                         callerMethodNode,
                         syntaxNodeContainingInvocation,
+                        inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: false,
-                        cancellationToken));
+                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken));
 
             return ImmutableArray.Create<CodeAction>(codeActionRemovesCallee, codeActionKeepsCallee);
         }
@@ -318,10 +314,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodNode,
-            TExpressionSyntax rawInlineExpression,
             ISymbol callerSymbol,
             SyntaxNode callerNode,
             SyntaxNode syntaxNodeContainingInvocation,
+            TExpressionSyntax rawInlineExpression,
             IInvocationOperation invocationOperation,
             bool removeCalleeDeclarationNode,
             CancellationToken cancellationToken)
@@ -330,11 +326,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeInvocationNode,
                 calleeMethodNode,
-                rawInlineExpression,
                 callerSymbol,
                 syntaxNodeContainingInvocation,
-                invocationOperation,
-                cancellationToken).ConfigureAwait(false);
+                rawInlineExpression,
+                invocationOperation, cancellationToken).ConfigureAwait(false);
 
             var inlineContext = await GetInlineMethodContextAsync(
                 document,
@@ -361,26 +356,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeInvocationNode,
                 calleeMethodSymbol,
-                rawInlineExpression,
                 callerSymbol,
                 callerNode,
                 syntaxNodeContainingInvocation,
-                methodParametersInfo,
-                inlineContext, cancellationToken).ConfigureAwait(false);
+                rawInlineExpression,
+                methodParametersInfo, inlineContext, cancellationToken).ConfigureAwait(false);
 
             var callerDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             callerDocumentEditor.ReplaceNode(callerNode, newCallerMethodNode);
             return solutionEditor.GetChangedSolution();
         }
 
-        private async Task<SyntaxNode> GetChangedCallerAsync(
-            Document document,
+        private async Task<SyntaxNode> GetChangedCallerAsync(Document document,
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TExpressionSyntax rawInlineExpression,
             ISymbol callerSymbol,
             SyntaxNode callerDeclarationNode,
             SyntaxNode syntaxNodeContainingInvocation,
+            TExpressionSyntax rawInlineExpression,
             MethodParametersInfo methodParametersInfo,
             InlineMethodContext inlineMethodContext,
             CancellationToken cancellationToken)
@@ -408,21 +401,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             {
                 foreach (var statement in inlineMethodContext.StatementsToInsertBeforeInvocationOfCallee)
                 {
-                    callerNodeEditor.InsertBefore(statementContainingInvocation, statement);
+                    callerNodeEditor.InsertAfter(statementContainingInvocation, statement);
                 }
             }
 
             var (nodeToReplace, inlineNode) = GetInlineNode(
                 calleeInvocationNode,
                 calleeMethodSymbol,
-                rawInlineExpression,
                 callerSymbol,
                 syntaxNodeContainingInvocation,
+                rawInlineExpression,
                 methodParametersInfo,
                 inlineMethodContext,
                 semanticModel,
-                syntaxGenerator,
-                cancellationToken);
+                syntaxGenerator, cancellationToken);
             callerNodeEditor.ReplaceNode(nodeToReplace, (node, generator) => inlineNode);
 
             return callerNodeEditor.GetChangedRoot();
@@ -431,9 +423,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private (SyntaxNode nodeToReplace, SyntaxNode inlineNode) GetInlineNode(
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TExpressionSyntax rawInlineExpression,
             ISymbol callerSymbol,
             SyntaxNode syntaxNodeContainingInvocation,
+            TExpressionSyntax rawInlineExpression,
             MethodParametersInfo methodParametersInfo,
             InlineMethodContext inlineMethodContext,
             SemanticModel semanticModel,

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(PredefinedCodeRefactoringProviderNames.InlineMethod)), [Shared]>
     <Export(GetType(VisualBasicInlineMethodRefactoringProvider))>
     Friend Class VisualBasicInlineMethodRefactoringProvider
-        Inherits AbstractInlineMethodRefactoringProvider(Of MethodBlockSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax)
+        Inherits AbstractInlineMethodRefactoringProvider(Of MethodBlockSyntax, ExecutableStatementSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
