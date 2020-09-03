@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             for (var i = 0; i < razorSpans.Length; i++)
             {
                 var razorSpan = razorSpans[i];
-                if (razorSpan.FilePath == null)
+                if (razorSpan.IsDefault)
                 {
                     // Unmapped location
                     roslynSpans[i] = default;
