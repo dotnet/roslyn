@@ -2883,6 +2883,74 @@ public class TestClass
 ");
 
         [Fact]
+        public Task TestInlineLambda1()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee();
+    }
+
+    private Func<Task> Callee()
+    {
+        return async () => await Task.CompletedTask;
+    }
+}
+", @"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (Func<Task>)(async () => await Task.CompletedTask);
+    }
+##
+    private Func<Task> Callee()
+    {
+        return async () => await Task.CompletedTask;
+    }
+##}
+");
+
+        [Fact]
+        public Task TestInlineLambda2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee();
+    }
+
+    private Func<Task<int>> Callee()
+    {
+        return async () => { return await Task.FromResult(100); };
+    }
+}
+", @"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (Func<Task<int>>)(async () => { return await Task.FromResult(100); });
+    }
+##
+    private Func<Task<int>> Callee()
+    {
+        return async () => { return await Task.FromResult(100); };
+    }
+##}
+");
+
+        [Fact]
         public Task TestInlineTypeCast()
             => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(@"
 public class TestClass
@@ -3413,5 +3481,84 @@ public class TestClass
     private void Callee(out int i) => i = 1;
 ##}
 ");
+
+        [Fact]
+        public Task TestForPartialMethod1()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
+            @"
+public partial class TestClass
+{
+    void Caller()
+    {
+        Call[||]ee();
+    }
+}",
+                @"
+public partial class TestClass
+{
+    partial void Callee();
+
+    partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}",
+                @"
+public partial class TestClass
+{
+    void Caller()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}", @"
+public partial class TestClass
+{
+    partial void Callee();
+##
+    partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+##}");
+
+        [Fact]
+        public Task TestForPartialMethod2()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
+            @"
+public partial class TestClass
+{
+    partial void Caller()
+    {
+        Call[||]ee();
+    }
+}
+public partial class TestClass
+{
+    partial void Caller();
+    partial void Callee();
+
+    partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}",
+                @"
+public partial class TestClass
+{
+    partial void Caller()
+    {
+        System.Console.WriteLine(""10"");
+    }
+}
+public partial class TestClass
+{
+    partial void Caller();
+    partial void Callee();
+##
+    partial void Callee()
+    {
+        System.Console.WriteLine(""10"");
+    }
+##}");
     }
 }

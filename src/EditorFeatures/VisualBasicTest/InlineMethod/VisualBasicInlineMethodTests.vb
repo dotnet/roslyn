@@ -185,7 +185,7 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineDefaltValue() As Task
+        Public Function TestInlineDefaultValue() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
 Public Enum A
     Value1
@@ -233,6 +233,33 @@ Public Class TestClass
     Public Sub Caller()
         GetType(Integer).ToString()
     End Sub
+##
+    Private Function Callee(Of T)() As String
+        Return GetType(T).ToString()
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineGenerics1InDifferenceFiles() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
+Partial Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee(Of Integer)()
+    End Sub
+End Class", "
+Partial Public Class TestClass
+
+    Private Function Callee(Of T)() As String
+        Return GetType(T).ToString()
+    End Function
+End Class", "
+Partial Public Class TestClass
+    Public Sub Caller()
+        GetType(Integer).ToString()
+    End Sub
+End Class", "
+Partial Public Class TestClass
 ##
     Private Function Callee(Of T)() As String
         Return GetType(T).ToString()
@@ -289,7 +316,7 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineDefaltValueInDifferentFile() As Task
+        Public Function TestInlineDefaultValueInDifferentFile() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync("
 Public Enum A
     Value1
@@ -1388,6 +1415,29 @@ Public Class TestClass
     Private Shared Function Callee(i As Integer) As Integer
         Return i + i
     End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineInDeconstructor() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Class TestClass
+    Public Sub Finalize()
+        Me.C[||]allee(10)
+    End Sub
+
+    Private Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub Finalize()
+        System.Console.WriteLine(10)
+    End Sub
+##
+    Private Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
 ##End Class")
         End Function
 

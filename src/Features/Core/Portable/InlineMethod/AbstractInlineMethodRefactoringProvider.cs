@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
+            if (calleeMethodSymbol.PartialImplementationPart != null)
+            {
+                calleeMethodSymbol = calleeMethodSymbol.PartialImplementationPart;
+            }
+
             if (!calleeMethodSymbol.IsOrdinaryMethod() && !calleeMethodSymbol.IsExtensionMethod)
             {
                 return;
