@@ -1709,7 +1709,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (value == null ||
-                value.WasCompilerGenerated ||
+                // This prevents us from giving undesired warnings for synthesized arguments for optional parameters,
+                // but allows us to give warnings for synthesized assignments to record properties and for parameter default values at the declaration site.
+                (value.WasCompilerGenerated && assignmentKind == AssignmentKind.Argument) ||
                 !ShouldReportNullableAssignment(targetType, valueType.State))
             {
                 return;
@@ -2150,9 +2152,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (methodSymbol is SynthesizedRecordConstructor)
+            {
+                if (_hasInitialState)
+                {
+                    // A record primary constructor's parameters are entered before analyzing initializers.
+                    // On the second pass, the correct parameter states (potentially modified by initializers)
+                    // are contained in the initial state.
+                    return;
+                }
+            }
+            else if (methodSymbol.IsConstructor())
+            {
+                if (!_hasInitialState)
+                {
+                    // For most constructors, we only enter parameters after analyzing initializers.
+                    return;
+                }
+            }
+
+            // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
+            methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
+
             var methodParameters = methodSymbol.Parameters;
             var signatureParameters = (_useDelegateInvokeParameterTypes ? _delegateInvokeMethod! : methodSymbol).Parameters;
 
+            // save a state representing the possibility that parameter default values were not assigned to the parameters.
+            var parameterDefaultsNotAssignedState = State.Clone();
             for (int i = 0; i < methodParameters.Length; i++)
             {
                 var parameter = methodParameters[i];
@@ -2161,6 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterType = i >= signatureParameters.Length ? parameter.TypeWithAnnotations : signatureParameters[i].TypeWithAnnotations;
                 EnterParameter(parameter, parameterType);
             }
+            Join(ref State, ref parameterDefaultsNotAssignedState);
         }
 
         private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType)
@@ -2180,6 +2207,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         slot,
                         valueSlot: -1,
                         isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
+                }
+
+                if (parameter.IsOptional)
+                {
+                    // When a parameter has a default value, we initialize its flow state by simulating an assignment of the default value to the parameter.
+                    var syntax = parameter.GetNonNullSyntaxNode();
+                    var rightSyntax = syntax is ParameterSyntax { Default: { Value: { } value } } ? value : syntax;
+                    var right = GetDefaultParameterValue(rightSyntax, parameter);
+
+                    var parameterAnnotations = GetParameterAnnotations(parameter);
+                    var parameterLValueType = ApplyLValueAnnotations(parameterType, parameterAnnotations);
+
+                    var previous = _disableNullabilityAnalysis;
+                    _disableNullabilityAnalysis = true;
+                    VisitOptionalImplicitConversion(right, parameterLValueType, useLegacyWarnings: true, trackMembers: true, assignmentKind: AssignmentKind.Assignment);
+                    _disableNullabilityAnalysis = previous;
+
+                    // If the LHS has annotations, we perform an additional check for nullable value types
+                    CheckDisallowedNullAssignment(ResultType, parameterAnnotations, right.Syntax.Location);
+                    TrackNullableStateForAssignment(right, parameterType, slot, ResultType, MakeSlot(right));
                 }
             }
         }
@@ -4997,11 +5044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var annotations = GetParameterAnnotations(parameter);
 
-                        _defaultValuesOpt ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
-                        if (!_defaultValuesOpt.TryGetValue((syntax, parameter), out var argument))
-                        {
-                            _defaultValuesOpt[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
-                        }
+                        BoundExpression argument = GetDefaultParameterValue(syntax, parameter);
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argumentsBuilder.Add(argument);
                         argsToParamsBuilder?.Add(i);
@@ -5026,6 +5069,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(arrayOpt);
                 return builder;
             }
+        }
+
+        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter)
+        {
+            _defaultValuesOpt ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
+            if (!_defaultValuesOpt.TryGetValue((syntax, parameter), out var argument))
+            {
+                _defaultValuesOpt[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
+            }
+
+            return argument;
         }
 
         private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
