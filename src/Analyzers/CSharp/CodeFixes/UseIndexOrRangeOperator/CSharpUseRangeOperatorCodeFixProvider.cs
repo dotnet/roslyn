@@ -113,11 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                         Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
                 if (invocation.Expression is MemberBindingExpressionSyntax)
                 {
+                    // x?.Substring(...) -> x?[...]
                     return ElementBindingExpression(argumentList);
                 }
 
                 var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
-                    ? memberAccess.Expression
+                    ? memberAccess.Expression // x.Substring(...) -> x[...]
                     : invocation.Expression;
                 return ElementAccessExpression(expression, argumentList);
             }
