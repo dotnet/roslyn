@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public InProcTodoCommentsIncrementalAnalyzer(ITodoCommentsListener listener)
             => _listener = listener;
 
-        protected override Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+        protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             => _listener.ReportTodoCommentDataAsync(documentId, data, cancellationToken);
     }
 }

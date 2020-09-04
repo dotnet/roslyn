@@ -4,20 +4,22 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Provides assets given their checksums.
+    /// Brokered service.
     /// </summary>
-    internal interface IAssetSource
+    internal interface ISolutionAssetProvider
     {
-        ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+        /// <summary>
+        /// Streams serialized assets into the given stream.
+        /// </summary>
+        ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken);
 
         // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
         ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);

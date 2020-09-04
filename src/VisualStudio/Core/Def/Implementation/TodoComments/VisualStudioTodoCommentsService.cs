@@ -36,7 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
           ITodoCommentsListener,
           ITodoListProvider,
           IVsTypeScriptTodoCommentService,
-          IEventListener<object>
+          IEventListener<object>,
+          IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -45,10 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
 
         /// <summary>
-        /// Our connections to the remote OOP server. Created on demand when we startup and then
+        /// Remote service connection. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection? _connection;
+        private RemoteServiceConnection<IRemoteTodoCommentsService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -114,18 +115,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteTodoCommentsService,
-                callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
-            await _connection.RunRemoteAsync(
-                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
+            // If the call fails an error has already been reported and there is nothing more to do.
+            _ = await _lazyConnection.TryInvokeAsync(
+                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -218,10 +216,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public async Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
-            var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-            workQueue.AddWork(new DocumentAndComments(documentId, infos));
+            try
+            {
+                var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
+                workQueue.AddWork(new DocumentAndComments(documentId, infos));
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            {
+                // report NFW before returning back to the remote process
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
@@ -236,6 +242,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            _lazyConnection?.Dispose();
         }
     }
 }

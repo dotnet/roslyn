@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// Our connection to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection? _connection;
+        private RemoteServiceConnection<IRemoteProjectTelemetryService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -105,16 +105,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            _connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteProjectTelemetryService,
-                callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            var connection = await client.CreateConnectionAsync<IRemoteProjectTelemetryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now kick off scanning in the OOP process.
-            await _connection.RunRemoteAsync(
-                nameof(IRemoteProjectTelemetryService.ComputeProjectTelemetryAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
+            // If the call fails an error has already been reported and there is nothing more to do.
+            _ = await connection.TryInvokeAsync(
+                (service, cancellationToken) => service.ComputeProjectTelemetryAsync(cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
+            _lazyConnection = connection;
         }
 
         private async Task NotifyTelemetryServiceAsync(
@@ -184,11 +183,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
+        public ValueTask ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
-            return Task.CompletedTask;
+            return new ValueTask();
         }
     }
 }

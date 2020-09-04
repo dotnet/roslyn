@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 results.Add((responseChecksum, result));
             }
 
-            return results.ToImmutable();
+            return new(results.ToImmutable());
         }
     }
 }

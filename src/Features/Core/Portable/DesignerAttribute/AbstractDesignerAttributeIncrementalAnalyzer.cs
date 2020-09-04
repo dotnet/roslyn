@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
-        protected abstract Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
 
-        protected abstract Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         public override async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
         {

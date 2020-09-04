@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </summary>
     internal interface IRemoteSemanticClassificationCacheService
     {
-        Task CacheSemanticClassificationsAsync(
+        ValueTask CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId, bool isFullyLoaded, CancellationToken cancellationToken);
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
-        Task<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+        ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
             SerializableDocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,
