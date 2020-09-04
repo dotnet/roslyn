@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>
+        : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>, IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -80,6 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 ThreadingContext.DisposalToken);
         }
 
+        public void Dispose()
+        {
+            _lazyConnection?.Dispose();
+        }
+
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -118,15 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await connection.TryInvokeAsync(
+            _ = await _lazyConnection.TryInvokeAsync(
                 (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-
-            _lazyConnection = connection;
         }
 
         public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)

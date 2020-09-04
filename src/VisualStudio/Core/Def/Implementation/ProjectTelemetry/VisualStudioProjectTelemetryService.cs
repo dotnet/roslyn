@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioProjectTelemetryService
-        : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>
+        : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>, IDisposable
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -70,6 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 threadingContext.DisposalToken);
         }
 
+        public void Dispose()
+        {
+            _lazyConnection?.Dispose();
+        }
+
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -105,15 +110,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            var connection = await client.CreateConnectionAsync<IRemoteProjectTelemetryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = await client.CreateConnectionAsync<IRemoteProjectTelemetryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await connection.TryInvokeAsync(
+            _ = await _lazyConnection.TryInvokeAsync(
                 (service, cancellationToken) => service.ComputeProjectTelemetryAsync(cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-
-            _lazyConnection = connection;
         }
 
         private async Task NotifyTelemetryServiceAsync(

@@ -71,6 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
+        public void Dispose()
+        {
+            _lazyConnection?.Dispose();
+        }
+
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -242,11 +247,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
-        }
-
-        public void Dispose()
-        {
-            _lazyConnection?.Dispose();
         }
     }
 }

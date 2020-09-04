@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
