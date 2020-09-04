@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             expression = null;
             return node switch
             {
-                AndSequence p => AsRecursivePatternSyntax(p.Nodes, out expression),
                 OrSequence p when CanSimplifyConsecutiveConstantTests(p, out var constants) => AsPatternSyntax(SimplifyConsecutiveConstantTests(constants)),
                 OrSequence p => p.Nodes.Select(p => AsPatternSyntax(p)).Aggregate((left, right) => BinaryPattern(SyntaxKind.OrPattern, left, right)),
                 True _ => DiscardPattern(),
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Constant p => ConstantPattern(((ExpressionSyntax)p.Value.Syntax).WithoutTrailingTrivia()),
                 Type p => TypePattern(p.TypeSymbol.GenerateTypeSyntax()),
                 Variable p => VarPattern(SingleVariableDesignation(Identifier(p.DeclaredSymbol.Name))),
-                var p when !recurse => AsRecursivePatternSyntax(ImmutableArray.Create(p), out expression),
+                var p when !recurse => AsRecursivePatternSyntax(p, out expression),
                 var p => throw UnexpectedNode(p)
             };
         }
@@ -89,9 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             };
         }
 
-        private static PatternSyntax AsRecursivePatternSyntax(ImmutableArray<AnalyzedNode> nodes, out ExpressionSyntax? expression)
+        private static PatternSyntax AsRecursivePatternSyntax(AnalyzedNode node, out ExpressionSyntax? expression)
         {
-            TypeSyntax? type = null;
+            Debug.Assert(!(node is OrSequence), "!(node is OrSequence)");
+
+            ITypeSymbol? type = null;
             VariableDesignationSyntax? designation = null;
 
             using var _0 = ArrayBuilder<PositionalPatternClauseSyntax>.GetInstance(out var positionalClauses);
@@ -103,105 +104,114 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             INamedTypeSymbol? tupleTypeOpt = null;
 
-            foreach (var item in nodes.Distinct())
+            Visit(node);
+            void Visit(AnalyzedNode node)
             {
-                switch (item)
+                switch (node)
                 {
-                    // UNDONE: Should we have a separate node for tuple fields?
-                    case FieldEvaluation field when field.Field.IsTupleField():
-                        AddTupleSubpattern(field.Field, AsConstantPattern(true));
-                        continue;
-                    case Not { Operand: FieldEvaluation field } when field.Field.IsTupleField():
-                        AddTupleSubpattern(field.Field, AsConstantPattern(false));
-                        continue;
-                    case Pair { Input: FieldEvaluation field } pair when field.Field.IsTupleField():
-                        AddTupleSubpattern(field.Field, AsPatternSyntax(pair.Pattern));
-                        continue;
+                    case AndSequence seq:
+                        foreach (var item in seq.Nodes)
+                            Visit(item);
+                        break;
 
-                    // UNDONE: Should we have a separate node for ITuple length?
-                    // UNDONE: This would be particularly useful for supporting list patterns
-                    case Pair { Input: PropertyEvaluation p, Pattern: Constant constant }
-                        when p.Property.Name == WellKnownMemberNames.LengthPropertyName &&
-                             p.Property.ContainingType.Name == "ITuple":
+                    case Pair { Input: Type t } p:
+                        if (type is null)
+                        {
+                            type = t.TypeSymbol;
+                            Visit(p.Pattern);
+                        }
+                        else
+                        {
+                            remainingPatterns.Add(AsRecursivePatternSyntax(p, out var remainingExpr));
+                            remainingExpressions.AddIfNotNull(remainingExpr);
+                        }
+                        break;
+
+                    case MemberEvaluation { IsTupleItemField: true } field:
+                        AddTupleSubpattern(field.Symbol, AsConstantPattern(true));
+                        break;
+                    case Not { Operand: MemberEvaluation { IsTupleItemField: true } field }:
+                        AddTupleSubpattern(field.Symbol, AsConstantPattern(false));
+                        break;
+                    case Pair { Input: MemberEvaluation { IsTupleItemField: true } field } pair:
+                        AddTupleSubpattern(field.Symbol, AsPatternSyntax(pair.Pattern));
+                        break;
+
+                    case Pair { Input: MemberEvaluation { IsITupleLengthProperty: true }, Pattern: Constant constant }:
                         indexedSubpatterns.SetItem((int)constant.Value.ConstantValue.Value - 1, null);
-                        continue;
+                        break;
 
                     case IndexEvaluation indexer:
                         indexedSubpatterns.SetItem(indexer.Index, AsConstantPattern(true));
-                        continue;
+                        type ??= indexer.Property.ContainingType;
+                        break;
                     case Not { Operand: IndexEvaluation indexer }:
                         indexedSubpatterns.SetItem(indexer.Index, AsConstantPattern(false));
-                        continue;
+                        type ??= indexer.Property.ContainingType;
+                        break;
                     case Pair { Input: IndexEvaluation indexer } pair:
                         indexedSubpatterns.SetItem(indexer.Index, AsPatternSyntax(pair.Pattern));
-                        continue;
+                        type ??= indexer.Property.ContainingType;
+                        break;
 
                     case MemberEvaluation member:
                         propertySubpatterns.Add(AsSubpatternSyntax(member, AsConstantPattern(true)));
-                        continue;
+                        break;
                     case Not { Operand: MemberEvaluation member }:
                         propertySubpatterns.Add(AsSubpatternSyntax(member, AsConstantPattern(false)));
-                        continue;
+                        break;
                     case Pair { Input: MemberEvaluation member } pair:
                         propertySubpatterns.Add(AsSubpatternSyntax(member, AsPatternSyntax(pair.Pattern)));
-                        continue;
+                        break;
 
                     case Pair { Input: DeconstructEvaluation input } pair:
                         positionalClauses.Add(AsPositionalPatternClauseSyntax(input, pair));
-                        continue;
+                        break;
 
                     case Variable v when designation is null:
                         designation = SingleVariableDesignation(Identifier(v.DeclaredSymbol.Name));
-                        continue;
+                        break;
                     case Type t when type is null:
-                        type = t.TypeSymbol.GenerateTypeSyntax();
-                        continue;
+                        type = t.TypeSymbol;
+                        break;
 
                     case NotNull _:
-                        continue;
+                        break;
+
                     case Pair { Input: OperationEvaluation _ } p:
                         remainingExpressions.Add(AsExpressionSyntax(p));
-                        continue;
+                        break;
                     case OperationEvaluation p:
                         remainingExpressions.Add(AsExpressionSyntax(p));
-                        continue;
+                        break;
                     case var v:
                         remainingPatterns.Add(AsPatternSyntax(v, recurse: true));
-                        continue;
+                        break;
                 }
             }
 
             if (!tupleSubpatterns.IsEmpty())
             {
-                if (positionalClauses.IsEmpty())
-                {
-                    // Not supported with tuples
-                    type = null;
-                }
-                Debug.Assert(tupleTypeOpt is { });
+                Debug.Assert(tupleTypeOpt != null);
                 var arity = tupleTypeOpt.Arity;
                 if (tupleSubpatterns.Count < arity)
                     tupleSubpatterns.SetItem(arity - 1, null);
                 var list = tupleSubpatterns.Select(p => Subpattern(p ?? DiscardPattern()));
-                positionalClauses.Add(PositionalPatternClause(SeparatedList(list)));
+                var patternClause = PositionalPatternClause(SeparatedList(list));
+                remainingPatterns.Add(RecursivePattern(null, patternClause, null, null));
             }
             else if (!indexedSubpatterns.IsEmpty())
             {
-                if (positionalClauses.IsEmpty())
-                {
-                    // Not supported with ITuple
-                    type = null;
-                    designation = null;
-                }
                 var list = indexedSubpatterns.Select(p => Subpattern(p ?? DiscardPattern()));
-                positionalClauses.Add(PositionalPatternClause(SeparatedList(list)));
+                var patternClause = PositionalPatternClause(SeparatedList(list));
+                remainingPatterns.Add(RecursivePattern(null, patternClause, null, null));
             }
 
             if (!positionalClauses.IsEmpty() ||
                 !propertySubpatterns.IsEmpty())
             {
                 var recursive = RecursivePattern(
-                    type,
+                    type?.GenerateTypeSyntax(),
                     positionalClauses.FirstOrDefault(),
                     PropertyPatternClause(SeparatedList(propertySubpatterns)),
                     designation);
@@ -211,15 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
             else
             {
-#pragma warning disable IDE0007 // Use implicit type
                 PatternSyntax? pattern = (type, designation) switch
-#pragma warning restore IDE0007 // Use implicit type
                 {
-#pragma warning disable CS8604 // Possible null reference argument.
-                    ({ }, { }) => DeclarationPattern(type, designation),
-                    ({ }, _) => TypePattern(type),
-#pragma warning restore CS8604 // Possible null reference argument.
-                    (_, { }) => RecursivePattern(null, null, PropertyPatternClause(SeparatedList<SubpatternSyntax>()), designation),
+                    ({ } t, { } d) => DeclarationPattern(t.GenerateTypeSyntax(), d),
+                    ({ } t, _) => TypePattern(t.GenerateTypeSyntax()),
+                    (_, { } d) => RecursivePattern(null, null, PropertyPatternClause(SeparatedList<SubpatternSyntax>()), d),
                     _ => null,
                 };
 
@@ -229,16 +235,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             expression = remainingExpressions.AggregateOrDefault(
                 (left, right) => BinaryExpression(SyntaxKind.LogicalAndExpression, left, right));
+
             return remainingPatterns.Aggregate(
                 (left, right) => BinaryPattern(SyntaxKind.AndPattern, left, right));
 
-            void AddTupleSubpattern(IFieldSymbol tupelField, PatternSyntax pattern)
+            void AddTupleSubpattern(ISymbol tupleField, PatternSyntax pattern)
             {
-                Debug.Assert(Regex.IsMatch(tupelField.Name, @"^Item\d+$"));
-                Debug.Assert(tupleTypeOpt is null || tupleTypeOpt.Equals(tupelField.ContainingSymbol));
-                var position = int.Parse(tupelField.Name.Substring(4));
+                Debug.Assert(Regex.IsMatch(tupleField.Name, @"^Item\d+$"));
+                Debug.Assert(tupleTypeOpt is null || tupleTypeOpt.Equals(tupleField.ContainingSymbol));
+                var position = int.Parse(tupleField.Name.Substring(4));
                 tupleSubpatterns.SetItem(position - 1, pattern);
-                tupleTypeOpt ??= (INamedTypeSymbol)tupelField.ContainingSymbol;
+                tupleTypeOpt ??= (INamedTypeSymbol)tupleField.ContainingSymbol;
             }
         }
 
@@ -332,6 +339,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             static IEnumerable<IReadOnlyCollection<Constant>> ConsecutiveGroups(ImmutableArray<Constant> source)
             {
+                // Finding consecutive groups. This works by grouping constants by the diffrence with their ordered index
+                // For instance:
+                //      
+                //      Constants:      8, 3, 5, 1, 6, 2
+                //      Ordered:        1, 2, 3, 5, 6, 8
+                //      Index:          0, 1, 2, 3, 4, 5
+                //      Difference:     1, 1, 1, 2, 2, 3
+                //      Groups:         {1, 2, 3}, {5, 6}, {8} 
+                //      Result:         >=1 and <=3, 5, 6, 8 
+                //
+                // We'll convert groups with more than two elements to a range check
+                //
                 return source
                     .Select(constant => (constant, value: (IConvertible)constant.Value.ConstantValue.Value))
                     .OrderBy(item => item.value)
@@ -352,20 +371,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             private Formatter() { }
 
-            private static SyntaxToken MakeToken(SyntaxKind token, bool newlineBefore = false, bool newlineAfter = false)
+            private static SyntaxToken MakeToken(SyntaxKind kind, bool newlineBefore = false, bool newlineAfter = false)
                 => Token(
-                    newlineBefore ? TriviaList(ElasticCarriageReturnLineFeed) : default,
-                    token,
-                    newlineAfter ? TriviaList(ElasticCarriageReturnLineFeed) : default);
+                    leading: newlineBefore ? TriviaList(ElasticCarriageReturnLineFeed) : default,
+                    kind,
+                    trailing: newlineAfter ? TriviaList(ElasticCarriageReturnLineFeed) : default);
 
             private static IEnumerable<SyntaxToken> MakeSeparators(int count, bool multiline)
                 => ArrayBuilder<SyntaxToken>.GetInstance(count,
                     MakeToken(SyntaxKind.CommaToken, newlineAfter: multiline)).ToArrayAndFree();
 
-            public override SyntaxNode? VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+            public override SyntaxNode VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
             {
                 var multiline = node.Width() > 50;
                 var subpatterns = node.Subpatterns;
+                // Add trailing comma if multiline
                 var separatorCount = subpatterns.Count - (multiline ? 0 : 1);
                 return node.Update(
                     MakeToken(SyntaxKind.OpenBraceToken, newlineAfter: multiline),

@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var node = root.FindNode(textSpan);
+
             var replacementFunc = GetReplacementFunc(node, semanticModel, document, cancellationToken);
             if (replacementFunc is null)
                 return;
@@ -68,8 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var analyzedNode = AnalyzeNode(node, semanticModel, cancellationToken);
                 if (analyzedNode is null)
                     return null;
+
                 return cancellationToken => document.ReplaceNodeAsync(node, node
-                    .WithPattern(analyzedNode.AsPatternSyntax(out var expression).ConvertToSingleLine())
+                    .WithPattern(analyzedNode
+                        .AsPatternSyntax(out var expression)
+                        .ConvertToSingleLine()
+                        .WithTriviaFrom(node.Pattern))
                     .WithWhenClause(expression is null ? null : WhenClause(expression))
                     .WithAdditionalAnnotations(Formatter.Annotation), cancellationToken);
             }
@@ -79,8 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var analyzedNode = AnalyzeNode(node, semanticModel, cancellationToken);
                 if (analyzedNode is null)
                     return null;
+
                 return cancellationToken => document.ReplaceNodeAsync(node, node
-                    .WithPattern(analyzedNode.AsPatternSyntax(out var expression).ConvertToSingleLine())
+                    .WithPattern(analyzedNode
+                        .AsPatternSyntax(out var expression)
+                        .ConvertToSingleLine()
+                        .WithTriviaFrom(node.Pattern))
                     .WithWhenClause(expression is null ? null : WhenClause(expression))
                     .WithAdditionalAnnotations(Formatter.Annotation), cancellationToken);
             }
@@ -90,9 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var expression = GetTopmostExpression(node);
                 if (expression is null)
                     return null;
+
                 var analyzedNode = AnalyzeNode(expression, semanticModel, cancellationToken);
                 if (analyzedNode is null)
                     return null;
+
                 return cancellationToken => document.ReplaceNodeAsync(expression, analyzedNode
                     .AsExpressionSyntax()
                     .WrapPropertyPatternClauses()
@@ -107,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 if (!(current is ExpressionSyntax expr))
                     break;
+
                 if (expr.IsTopmostExpression())
                     return expr;
             }
@@ -127,8 +140,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             if (analyzedNode is null)
                 return null;
 
-            var normalizedNode = AnalyzedNodeNormalizer.Normalize(analyzedNode);
-            var reducedNode = AnalyzedNodeReducer.Reduce(normalizedNode);
+            var expandedNode = AnalyzedNodeExpander.Expand(analyzedNode);
+            var reducedNode = AnalyzedNodeReducer.Reduce(expandedNode);
+
+            if (reducedNode.Equals(analyzedNode))
+                return null;
+
+            if (reducedNode is OperationEvaluation)
+                return null;
+
             if (HasIllegalPatternVariables(reducedNode))
                 return null;
 

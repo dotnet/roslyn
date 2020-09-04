@@ -146,25 +146,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         return
             a && type is
-        {
-            SomeProp1: true,
-            SomeProp2: false,
-            SomeProp3: false,
-            SomeProp4: false,
-            SomeProp5: false,
-            SomeProp6: false,
-            Name: >= 1 and <= 3,
-            Nullable1: not null,
-            Nullable2: null,
-            Nullable3: 5,
-            Kind: >= 4 and <= 6,
-            ContainingSymbol: C
             {
-                ContainingSymbol: var containingSymbol,
-                Kind: int and 0,
-                Name: 123,
-            } declContainer,
-        }; 
+                SomeProp1: true,
+                SomeProp2: false,
+                SomeProp3: false,
+                SomeProp4: false,
+                SomeProp5: false,
+                SomeProp6: false,
+                Name: >= 1 and <= 3,
+                Nullable1: not null,
+                Nullable2: null,
+                Nullable3: 5,
+                Kind: >= 4 and <= 6,
+                ContainingSymbol: C
+                {
+                    ContainingSymbol: var containingSymbol,
+                    Kind: int and 0,
+                    Name: 123,
+                } declContainer,
+            }; 
     }
     int Name;
     C ContainingSymbol;
@@ -292,9 +292,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
         {
             ContainingSymbol:
             {
-                ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true },
                 Kind: 0,
                 Name: ""System"",
+                ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true },
             } declContainer,
         };
     }
@@ -677,9 +677,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     bool M(object uncommonData)
     {
         if (uncommonData is C
-        {
-            DeconstructMethodInfo: { Invocation: BoundCall call },
-        } deconstruction)
+            {
+                DeconstructMethodInfo: { Invocation: BoundCall call },
+            } deconstruction)
         {
         }
     }
@@ -747,14 +747,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     bool M()
     {
         while (initializer is
-        {
-            Parent: AssignmentExpressionSyntax
             {
-                Kind: SyntaxKind.SimpleAssignmentExpression,
-                Right: initializer,
-                Parent: { Kind: SyntaxKind.ObjectInitializerExpression },
-            },
-        })
+                Parent: AssignmentExpressionSyntax
+                {
+                    Kind: SyntaxKind.SimpleAssignmentExpression,
+                    Right: initializer,
+                    Parent: { Kind: SyntaxKind.ObjectInitializerExpression },
+                },
+            })
         {
         }
     }
@@ -980,7 +980,7 @@ class C
 {
     bool M(object b)
     {
-        return b is (_, 1);
+        return b is ITuple t and (_, 1);
     }
 }" + iTupleSource);
         }
@@ -1004,16 +1004,18 @@ class C
 {
     bool M(object b)
     {
-        return b is ITuple t && t[1] == 1 [||]&& t.Length == 3;
+        return b is IMyTuple t && t[1] == 1 [||]&& t.Length == 3;
     }
+    interface IMyTuple : ITuple { }
 }" + iTupleSource,
 @"using System.Runtime.CompilerServices;
 class C
 {
     bool M(object b)
     {
-        return b is (_, 1, _);
+        return b is IMyTuple t and (_, 1, _);
     }
+    interface IMyTuple : ITuple { }
 }" + iTupleSource);
         }
 
