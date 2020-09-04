@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
+        <target state="translated">建立 CodeFixProvider 的執行個體時發生錯誤</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <target state="translated">建立 CodeFixProvider '{0}' 的執行個體時發生錯誤</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Inline_Parameter_Name_Hints">
         <source>Inline Parameter Name Hints</source>
-        <target state="new">Inline Parameter Name Hints</target>
+        <target state="translated">內嵌參數名稱提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">

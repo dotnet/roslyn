@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">&amp;Default</target>
+        <target state="translated">&amp;По умолчанию</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|CommandName">
@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|LocCanonicalName">
         <source>Default</source>
-        <target state="translated">Default</target>
+        <target state="translated">По умолчанию</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|ButtonText">
         <source>&amp;Error</source>
-        <target state="translated">&amp;Error</target>
+        <target state="translated">&amp;Ошибка</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|CommandName">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|LocCanonicalName">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Ошибка</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|ButtonText">
         <source>&amp;Silent</source>
-        <target state="translated">&amp;Silent</target>
+        <target state="translated">&amp;Автоматически</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|CommandName">
@@ -79,12 +79,12 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|LocCanonicalName">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="translated">Автоматически</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|ButtonText">
         <source>&amp;Suggestion</source>
-        <target state="translated">&amp;Suggestion</target>
+        <target state="translated">Рекоменд&amp;ация</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|CommandName">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|LocCanonicalName">
         <source>Suggestion</source>
-        <target state="translated">Suggestion</target>
+        <target state="translated">Рекомендация</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">&amp;None</target>
+        <target state="translated">&amp;Нет</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|CommandName">
@@ -109,27 +109,27 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">None</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|ButtonText">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="translated">Задать серьезность</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|CommandName">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="translated">Задать серьезность</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|LocCanonicalName">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="translated">Задать серьезность</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|ButtonText">
         <source>&amp;Warning</source>
-        <target state="translated">&amp;Warning</target>
+        <target state="translated">&amp;Предупреждение</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|CommandName">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|LocCanonicalName">
         <source>Warning</source>
-        <target state="translated">Warning</target>
+        <target state="translated">Предупреждение</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">

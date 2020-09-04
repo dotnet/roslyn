@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Xaml_Language_Server_Client">
         <source>XAML Language Server Client</source>
-        <target state="new">XAML Language Server Client</target>
+        <target state="translated">XAML 언어 서버 클라이언트</target>
         <note />
       </trans-unit>
     </body>

@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
-        <target state="new">32-bit</target>
+        <target state="translated">32 bits</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness64">
         <source>64-bit</source>
-        <target state="new">64-bit</target>
+        <target state="translated">64 bits</target>
         <note />
       </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints (experimental)</source>
-        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <target state="translated">Exi_bir dicas de nome de parâmetro embutidas (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
         <source>Extract Base Class</source>
-        <target state="new">Extract Base Class</target>
+        <target state="translated">Extrair a Classe Base</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -359,12 +359,12 @@
       </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
         <source>Name conflicts with an existing type name.</source>
-        <target state="new">Name conflicts with an existing type name.</target>
+        <target state="translated">O nome está em conflito com um nome de tipo existente.</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_is_not_a_valid_0_identifier">
         <source>Name is not a valid {0} identifier.</source>
-        <target state="new">Name is not a valid {0} identifier.</target>
+        <target state="translated">O nome não é um identificador de {0} válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -834,7 +834,7 @@
       </trans-unit>
       <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
         <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
+        <target state="translated">Usar o processo de 64 bits para análise de código (requer reinicialização)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -2283,15 +2283,15 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        <target state="translated">IMPORTANTE: o Visual Studio inclui a funcionalidade de descompilação (“Descompilador”) que permite a reprodução do código-fonte usando código binário. Ao acessar e usar o Descompilador, você concorda com os termos de licença do Visual Studio e com os termos do Descompilador abaixo. Se você não concorda com esses termos combinados, não acesse nem use o Descompilador.
+ 
+Você reconhece que o código binário e o código-fonte podem estar protegidos por leis de direitos autorais e de marca. Antes de usar o Descompilador em qualquer código binário, você deve primeiro:
+(i) confirmar que os termos da licença que regem o uso do código binário não contenham uma provisão que proíba você de descompilar o software; ou
+(ii) obter permissão do proprietário do software para descompilar o código binário.
+ 
+O uso que você faz do Descompilador é opcional. A Microsoft não é responsável e isenta-se de toda obrigação referente ao uso que você faz do Descompilador em violação a alguma lei ou termo de licença do software que proíba a descompilação do software.
 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</target>
+Eu concordo com todo o conteúdo citado acima:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
