@@ -4506,9 +4506,11 @@ class A
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void BuiltInConversions_NativeIntegers(bool useCompilationReference)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public void BuiltInConversions_NativeIntegers(bool useCompilationReference, bool useLatest)
         {
             var sourceA =
 @"public class A
@@ -4520,7 +4522,6 @@ class A
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            var refA = AsReference(comp, useCompilationReference);
 
             var sourceB =
 @"class B : A
@@ -4540,7 +4541,7 @@ class A
         F4 = w;
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -4615,33 +4616,6 @@ class A
   IL_0059:  stsfld     ""nuint? A.F4""
   IL_005e:  ret
 }");
-
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
-            comp.VerifyEmitDiagnostics(
-                // (5,18): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         long x = F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 18),
-                // (6,19): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         ulong y = F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 19),
-                // (7,19): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         long? z = F3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 19),
-                // (8,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         ulong? w = F4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 20),
-                // (12,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F1 = x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "x").WithArguments("native-sized integers", "9.0").WithLocation(12, 14),
-                // (13,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F2 = y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "y").WithArguments("native-sized integers", "9.0").WithLocation(13, 14),
-                // (14,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F3 = z;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "z").WithArguments("native-sized integers", "9.0").WithLocation(14, 14),
-                // (15,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F4 = w;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "w").WithArguments("native-sized integers", "9.0").WithLocation(15, 14));
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
