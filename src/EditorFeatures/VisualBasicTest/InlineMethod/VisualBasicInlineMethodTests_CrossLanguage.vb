@@ -22,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
             Assert.True(actions.Item1.IsEmpty())
         End Function
 
-
         ' Because this issue: https://github.com/dotnet/roslyn-sdk/issues/464
         ' it is hard to test cross language scenario.
         ' After it is resolved then this test should be merged to the other test class

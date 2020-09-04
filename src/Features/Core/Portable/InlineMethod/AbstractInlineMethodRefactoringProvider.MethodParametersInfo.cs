@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 var parameterToReplaceMap =
                     operationsWithLiteralArgument
                     .Concat(operationsWithIdentifierArgument)
-                    .Concat(operationsReadOnlyOnce )
+                    .Concat(operationsReadOnlyOnce)
                     .Concat(operationsWithDefaultValue)
                     .ToImmutableDictionary(
                         keySelector: argument => argument.Parameter,

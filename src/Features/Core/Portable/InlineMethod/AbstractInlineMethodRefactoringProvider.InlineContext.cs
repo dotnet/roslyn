@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 syntaxGenerator,
                 renameTable);
 
-            var containsAwaitExpression = ContainsAwaitExpression(rawInlineExpression, calleeMethodNode);
+            var containsAwaitExpression = ContainsAwaitExpression(rawInlineExpression);
 
             // Do the replacement work within the callee's body so that it can be inserted to the caller later.
             inlineExpression = await ReplaceAllSyntaxNodesForSymbolAsync(
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return declarationsQuery.Concat(declarationsForVariableDeclarationArgumentQuery).ToImmutableArray();
         }
 
-        private bool ContainsAwaitExpression(TExpressionSyntax inlineExpression, TMethodDeclarationSyntax calleeMethodDeclarationNode)
+        private bool ContainsAwaitExpression(TExpressionSyntax inlineExpression)
         {
             // Check if there is await expression. It is used later if the caller should be changed to async
             var awaitExpressions = inlineExpression
