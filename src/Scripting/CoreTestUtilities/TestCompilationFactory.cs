@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
                 new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetStandard20.SystemRuntimeRef },
+                new[] { TestReferences.NetStandard13.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
