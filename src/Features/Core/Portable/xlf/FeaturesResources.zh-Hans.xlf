@@ -500,6 +500,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">缩进包装参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_0">
+        <source>Inline '{0}'</source>
+        <target state="new">Inline '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="new">Inline and keep '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">无效的十六进制数字</target>
