@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private async Task<SyntaxNode> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            string equivalenceKey, CancellationToken cancellationToken)
+            string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
                 equivalenceKey == TakeTopEquivalenceKey ||

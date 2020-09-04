@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
         private readonly IEnumerable<Lazy<IErrorLoggerService>> _errorLoggers;
 
-        private ImmutableDictionary<object, FixAllProviderInfo> _fixAllProviderMap;
+        private ImmutableDictionary<object, FixAllProviderInfo?> _fixAllProviderMap;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _projectFixersMap = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<string, List<CodeFixProvider>>>();
             _analyzerReferenceToFixersMap = new ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>();
             _createProjectCodeFixProvider = new ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback(r => new ProjectCodeFixProvider(r));
-            _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo>.Empty;
+            _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo?>.Empty;
         }
 
         public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
