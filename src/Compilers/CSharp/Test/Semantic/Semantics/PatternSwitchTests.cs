@@ -3165,5 +3165,83 @@ static class Ex
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(49, 16)
                 );
         }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+            int i when i % 2 == 0 => 5,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_02()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_03()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 3 == 0 => 4,
+            int i when i % 3 == 1 => 5,
+            int i when i % 3 == 2 => 6,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
     }
 }
