@@ -3633,11 +3633,11 @@ public class Vec
     {
         if (null is 1) {}
         if (Main is 2) {}
-        if (delegate {} is 3) {}
+        if ((delegate {}) is 3) {}
         if ((1, null) is 4) {}
         if (null is var x1) {}
         if (Main is var x2) {}
-        if (delegate {} is var x3) {}
+        if ((delegate {}) is var x3) {}
         if ((1, null) is var x4) {}
     }
 }

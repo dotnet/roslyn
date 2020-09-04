@@ -795,7 +795,7 @@ class C
             d1 + M,
             ( ()=>{} ) - d1, 
             d1 >> ( ()=>{} ),
-            delegate {} << d1, // TODO: This is failing due to new warning ""WRN_PrecedenceInversion"". Unclear to me what I should do here.
+            (delegate {}) << d1,
             d1 << delegate {},
             (int*)null > d1,    
             d1 < (int*)null,

@@ -275,8 +275,8 @@ class C
         C p = new C();
         boo goo = null;
         goo += p.bar + far;// Invalid
-        goo += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far;// Invalid
-        goo += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far;// Invalid
+        goo += (x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far;// Invalid **TODO** 
+        goo += delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far;// Invalid **TODO**
     }
 }
 ";
@@ -12552,9 +12552,9 @@ namespace TestNamespace
         static int Main()
         {
             bool b1 = (() => { }) is Del;   // CS0837
-            bool b2 = delegate() { } is Del;// CS0837
-            Del d1 = () => { } as Del;      // CS0837
-            Del d2 = delegate() { } as Del; // CS0837
+            bool b2 = (delegate() { }) is Del;// CS0837
+            Del d1 = (() => { }) as Del;      // CS0837
+            Del d2 = (delegate() { }) as Del; // CS0837
             return 1;
         }
     }
@@ -20637,8 +20637,8 @@ ftftftft";
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
-            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(compatibleExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]

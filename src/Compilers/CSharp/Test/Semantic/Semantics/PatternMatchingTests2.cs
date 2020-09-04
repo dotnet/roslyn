@@ -2970,7 +2970,7 @@ class C
 {
     void F(object o)
     {
-        _ = switch { this.F(1) => 1 };
+        _ = switch { this.F(1) => 1 }; // TODO: This is reporting WRN_PrecedenceInversion
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
