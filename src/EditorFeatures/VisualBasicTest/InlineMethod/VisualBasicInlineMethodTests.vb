@@ -945,42 +945,6 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineAwaitExpression5() As Task
-            Dim diagnostic = New List(Of DiagnosticResult) From
-                {
-                    DiagnosticResult.CompilerError("BC32050").WithSpan(5, 22, 5, 32).WithArguments("TResult", "Public Shared Overloads Function FromResult(Of TResult)(result As TResult) As System.Threading.Tasks.Task(Of TResult)"),
-                    DiagnosticResult.CompilerError("BC37057").WithSpan(5, 33, 5, 38).WithArguments("Integer"),
-                    DiagnosticResult.CompilerError("BC32017").WithSpan(5, 39, 5, 58).WithMessage("Comma, ')', or a valid expression continuation expected.")
-                }
-
-            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
-                "
-Imports System.Threading.Tasks
-Public Class TestClass
-    Public Function Caller() As Integer
-        Dim x = Ca[||]llee()
-        Return 1
-    End Function
-
-    Private Async Function Callee() As Task(Of Integer)
-        Return Await Task.FromResult(Await Task.FromResult(100))
-    End Function
-End Class",
-                "
-Imports System.Threading.Tasks
-Public Class TestClass
-    Public Function Caller() As Integer
-        Dim x = Task.FromResult(Await Task.FromResult(100))
-        Return 1
-    End Function
-##
-    Private Async Function Callee() As Task(Of Integer)
-        Return Await Task.FromResult(Await Task.FromResult(100))
-    End Function
-##End Class", diagnnoticResultsWhenKeepInlinedMethod:=diagnostic, diagnnoticResultsWhenRemoveInlinedMethod:=diagnostic)
-        End Function
-
-        <Fact>
         Public Function TestThrowStatement() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 "
