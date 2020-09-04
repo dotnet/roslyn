@@ -3273,17 +3273,22 @@ public class Program
         [Fact]
         public void NormalizeWhitespace()
         {
-            var text = @"
-namespace Foo
+            var text = @"namespace Foo
 {
     /// <summary>
     /// This is Foo.Bar
     /// </summary>
-    class Bar { }
+    class Bar
+    {
+    }
 }";
 
             var tree = Parse(text);
+
             tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options);
+
+            // NormalizeWhitespace doesn't change the text here (though it might change the tree structure)
+            Assert.Equal(text, tree.ToString());
 
             var comp = CreateCompilation(tree);
 
