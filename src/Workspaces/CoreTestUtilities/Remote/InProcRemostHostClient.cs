@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     clientConnection.AddLocalRpcTarget(options.ClientRpcTarget);
                 }
 
+                // Creates service instance and connects it to the pipe. 
+                // We don't need to store the instance anywhere.
                 _ = _services.CreateBrokeredService(descriptor, pipePair.Item1, options);
 
                 clientConnection.StartListening();

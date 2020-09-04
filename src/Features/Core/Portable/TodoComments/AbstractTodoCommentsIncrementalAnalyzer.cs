@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
 
-        public override async Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             // Just report this back as there being no more comments for this document.
-            await ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).ConfigureAwait(false);
+            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
