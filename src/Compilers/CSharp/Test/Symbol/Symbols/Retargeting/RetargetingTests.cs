@@ -1071,7 +1071,7 @@ public class C
 
             var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
             finalComp.VerifyDiagnostics(
-                // (1,1): error CS8897: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (1,1): error CS8901: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 // C.M(1);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
             );
@@ -1148,7 +1148,7 @@ public class C
 
             var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
             finalComp.VerifyDiagnostics(
-                // (1,1): error CS8897: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (1,1): error CS8901: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 // C.M(1);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
             );

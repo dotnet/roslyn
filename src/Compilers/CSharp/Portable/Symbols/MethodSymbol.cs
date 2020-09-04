@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return callingConventionTypes?.IsEmpty == false
-                ? new UnmanagedCallersOnlyAttributeData(callingConventionTypes, isValid)
+                ? UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid)
                 : UnmanagedCallersOnlyAttributeData.PlatformDefault;
         }
 #nullable restore

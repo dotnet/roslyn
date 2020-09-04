@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                             builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
                         }
 
-                        data = new UnmanagedCallersOnlyAttributeData(builder.ToImmutableHashSet(), data.IsValid);
+                        data = UnmanagedCallersOnlyAttributeData.Create(builder.ToImmutableHashSet(), data.IsValid);
                         builder.Free();
                     }
 

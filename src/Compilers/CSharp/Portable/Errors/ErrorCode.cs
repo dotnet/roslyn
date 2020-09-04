@@ -1896,16 +1896,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
         ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric = 8895,
         ERR_UnmanagedCallersOnlyRequiresStatic = 8896,
-        ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8897,
-        ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8898,
-        ERR_EntryPointCannotBeUnmanagedCallersOnly = 8899,
-        ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
 
         // The following warnings correspond to errors of the same name, but are reported
         // as warnings on interface methods and properties due in warning level 5. They
         // were not reported at all prior to level 5.
         WRN_ParameterIsStaticClass = 8897,
         WRN_ReturnTypeIsStaticClass = 8898,
+
+        ERR_EntryPointCannotBeUnmanagedCallersOnly = 8899,
+        ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
+        ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8901,
+        ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8902,
 
         #endregion diagnostics introduced for C# 9.0
 
