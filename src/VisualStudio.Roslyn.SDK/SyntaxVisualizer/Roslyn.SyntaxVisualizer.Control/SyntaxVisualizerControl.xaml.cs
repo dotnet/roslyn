@@ -2,6 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.PlatformUI;
@@ -90,6 +94,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         /// unselected. This field is used to save and restore that foreground color.
         /// </remarks>
         private Brush _currentSelectionUnselectedForeground;
+        private ImmutableArray<ClassifiedSpan> classifiedSpans;
         #endregion
 
         #region Public Properties, Events
@@ -108,6 +113,51 @@ namespace Roslyn.SyntaxVisualizer.Control
         public delegate void SyntaxTriviaDelegate(SyntaxTrivia trivia);
         public event SyntaxTriviaDelegate SyntaxTriviaDirectedGraphRequested;
         public event SyntaxTriviaDelegate SyntaxTriviaNavigationToSourceRequested;
+
+        private ClassifiedSpan? _classifiedSpan;
+        public ClassifiedSpan? ClassifiedSpan
+        {
+            set
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                _classifiedSpan = value;
+
+                if (value.HasValue)
+                {
+                    var color = FontsAndColorsHelper.GetColorForClassification(value.Value);
+
+                    if (!color.HasValue)
+                    {
+                        _classifiedSpan = null;
+                    }
+
+                    if (_classifiedSpan is null)
+                    {
+                        colorLabel.Visibility = Visibility.Hidden;
+                        colorPickerGrid.Visibility = Visibility.Hidden;
+                    }
+                    else
+                    {
+                        colorLabel.Visibility = Visibility.Visible;
+                        colorPickerGrid.Visibility = Visibility.Visible;
+                        colorPickerButton.Background = new SolidColorBrush(color.Value);
+
+                        var textValue = _classifiedSpan?.ClassificationType;
+                        if (string.IsNullOrEmpty(textValue))
+                        {
+                            colorKindText.Visibility = Visibility.Hidden;
+                        }
+                        else
+                        {
+                            colorKindText.Visibility = Visibility.Visible;
+                            colorKindText.Content = CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(textValue);
+                        }
+                    }
+                }
+            }
+            get => _classifiedSpan;
+        }
         #endregion
 
         #region Public Methods
@@ -130,7 +180,48 @@ namespace Roslyn.SyntaxVisualizer.Control
                 Padding = System.Windows.Forms.Padding.Empty,
                 Margin = System.Windows.Forms.Padding.Empty
             };
+
+            _propertyGrid.SelectedObjectsChanged += (s, e) =>
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                switch (_propertyGrid.SelectedObject)
+                {
+                    case SyntaxNode node:
+                        ClassifiedSpan = classifiedSpans.FirstOrDefault(s => s.TextSpan.Contains(node.Span));
+                        break;
+
+                    case SyntaxToken token:
+                        ClassifiedSpan = classifiedSpans.FirstOrDefault(s => s.TextSpan.Contains(token.Span));
+                        break;
+
+                    case SyntaxTrivia trivia:
+                        ClassifiedSpan = classifiedSpans.FirstOrDefault(s => s.TextSpan.Contains(trivia.Span));
+                        break;
+
+                    default:
+                        ClassifiedSpan = null;
+                        break;
+                }
+            };
+
+            colorPickerButton.Click += ColorPickerButton_Click;
             windowsFormsHost.Child = tabStopPanel;
+        }
+
+        private void ColorPickerButton_Click(object sender, RoutedEventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var color = ((SolidColorBrush)colorPickerButton.Background).Color;
+            var popup = new ColorPickerWindow(color);
+
+            if (popup.ShowDialog() == true)
+            {
+                FontsAndColorsHelper.UpdateClassificationColor(_classifiedSpan.Value, popup.Color);
+                colorPickerButton.Background = new SolidColorBrush(popup.Color);
+            }
+
         }
 
         public void SetPropertyGridColors(IVsUIShell5 shell)
@@ -231,7 +322,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxTree(SyntaxTree tree, SemanticModel model = null, bool lazy = true)
+        public void DisplaySyntaxTree(SyntaxTree tree, SemanticModel model = null, bool lazy = true, Workspace workspace = null)
         {
             if (tree != null)
             {
@@ -239,6 +330,15 @@ namespace Roslyn.SyntaxVisualizer.Control
                 SyntaxTree = tree;
                 SemanticModel = model;
                 AddNode(null, SyntaxTree.GetRoot());
+
+                if (model != null && workspace != null)
+                {
+                    classifiedSpans = Classifier.GetClassifiedSpans(model, tree.GetRoot().FullSpan, workspace).ToImmutableArray();
+                }
+                else
+                {
+                    classifiedSpans = ImmutableArray<ClassifiedSpan>.Empty;
+                }
             }
         }
 
