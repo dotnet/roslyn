@@ -1268,7 +1268,7 @@ class C
             Assert.Equal(notNull, leftInfo.Nullability);
             Assert.Equal(notNull, leftInfo.ConvertedNullability);
             Assert.Equal(@null, rightInfo.Nullability);
-            Assert.Equal(notNull, rightInfo.ConvertedNullability);
+            Assert.Equal(@null, rightInfo.ConvertedNullability);
         }
 
         [Fact]

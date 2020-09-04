@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -14,11 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
+#if DEBUG
+            var example = types.Where(t => t.HasType).FirstOrDefault();
+#endif
+
             var result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                Debug.Assert(type.HasType);
-                Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
+#if DEBUG
+                Debug.Assert(!type.HasType || !example.HasType || type.Equals(example, TypeCompareKind.AllIgnoreOptions));
+#endif
+
                 // This uses the covariant merging rules.
                 result = result.Join(type.NullableAnnotation);
             }
