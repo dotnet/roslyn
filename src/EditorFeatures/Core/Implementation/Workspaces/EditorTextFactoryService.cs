@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -39,11 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         }
 
         private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
-        /// <summary>
-        /// The default algorithm used by <see cref="SourceText"/> is <see cref="SourceHashAlgorithm.Sha1"/>.
-        /// </summary>
-        public SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithm.Sha1;
 
         public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
         {

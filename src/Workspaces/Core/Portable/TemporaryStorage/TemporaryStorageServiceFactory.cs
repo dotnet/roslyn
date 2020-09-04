@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.Host
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
                 => new TemporaryTextStorage(this);
 
-            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding? encoding, CancellationToken cancellationToken)
-                => new TemporaryTextStorage(this, storageName, offset, size, encoding);
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken)
+                => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
                 => new TemporaryStreamStorage(this);
@@ -190,10 +190,10 @@ namespace Microsoft.CodeAnalysis.Host
                 public TemporaryTextStorage(TemporaryStorageService service)
                     => _service = service;
 
-                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding? encoding)
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
                 {
                     _service = service;
-                    _checksumAlgorithm = service._textFactory.ChecksumAlgorithm;
+                    _checksumAlgorithm = checksumAlgorithm;
                     _encoding = encoding;
                     _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }

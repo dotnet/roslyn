@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        /// <summary>
-        /// The default algorithm used by <see cref="SourceText"/> is <see cref="SourceHashAlgorithm.Sha1"/>.
-        /// </summary>
-        public SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithm.Sha1;
-
         public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

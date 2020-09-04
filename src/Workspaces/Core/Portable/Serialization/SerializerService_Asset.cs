@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // REVIEW: why IDE services doesnt care about checksumAlgorithm?
-            _ = (SourceHashAlgorithm)reader.ReadInt32();
+            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = (Encoding)reader.ReadValue();
 
             var kind = (SerializationKinds)reader.ReadInt32();
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
+                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, cancellationToken);
                 if (storage is ITemporaryTextStorageWithName storageWithName)
                 {
                     return new SerializableSourceText(storageWithName);
