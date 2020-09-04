@@ -3285,7 +3285,7 @@ public class Program
 
             var tree = Parse(text);
 
-            tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options);
+            tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(eol: Environment.NewLine), tree.Options);
 
             // NormalizeWhitespace doesn't change the text here (though it might change the tree structure)
             Assert.Equal(text, tree.ToString());
