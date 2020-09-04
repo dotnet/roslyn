@@ -217,11 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var toPredefTypeKind = toType.PrimitiveTypeCode;
             Debug.Assert(IsNumeric(toType));
 
-            // There should only be numeric conversions to/from native integers with -langversion:9
-            // or above. If this assert fails, binding should be updated to report an error instead.
-            Debug.Assert(!(fromType.IsNativeIntegerType || toType.IsNativeIntegerType) ||
-                _module.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNativeInt));
-
             _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
         }
 
