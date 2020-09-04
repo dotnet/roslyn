@@ -399,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics);
                     compilation = transformer.Execute(context);
+                    Arguments.ManifestResources = Arguments.ManifestResources.AddRange(context.ManifestResources);
                 }
                 catch (Exception ex)
                 {

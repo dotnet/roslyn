@@ -2,20 +2,28 @@
 <Project>
   <PropertyGroup>
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
-    <RoslynExToolsetVersion>3.8.0-poc.20453.1</RoslynExToolsetVersion>
+    <RoslynExToolsetVersion>3.8.0-poc.20454.2</RoslynExToolsetVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
+  <Target Name="SetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
+    <ItemGroup>
+      <!-- include assemblies from the current project -->
+      <None Include="@(BuiltProjectOutputGroupOutput)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <!-- include assemblies from references -->
+      <None Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+
+  </Target>
   
   <!-- based on https://stackoverflow.com/a/56018426/41071 -->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);AdjustAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);SetLibAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="AdjustAssembliesInPackage" DependsOnTargets="ResolveReferences">
+  <Target Name="SetLibAssembliesInPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>
+      <!-- include assemblies from references -->
       <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+      <!-- exclude assemblies from the current project -->
       <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
     </ItemGroup>
   </Target>
@@ -130,7 +138,7 @@
   </Target>
 
   <PropertyGroup>
-    <BeforePack>$(BeforePack); UpdateNuspec</BeforePack>
+    <BeforePack>$(BeforePack); SetAnalyzerAssembliesInPackage; UpdateNuspec</BeforePack>
   </PropertyGroup>
 
 </Project>

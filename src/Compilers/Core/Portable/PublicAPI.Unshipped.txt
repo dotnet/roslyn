@@ -45,6 +45,7 @@ Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> 
 RoslynEx.ISourceTransformer
 RoslynEx.ISourceTransformer.Execute(RoslynEx.TransformerContext context) -> Microsoft.CodeAnalysis.Compilation
 RoslynEx.TransformerContext
+RoslynEx.TransformerContext.AddManifestResource(Microsoft.CodeAnalysis.ResourceDescription resource) -> void
 RoslynEx.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 RoslynEx.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
 RoslynEx.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
