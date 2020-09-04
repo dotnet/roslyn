@@ -9361,7 +9361,6 @@ static class CExt
         public void UnmanagedCallersOnlyExtensionGetAwaiterCannotBeUsedDirectly()
         {
             var comp = CreateCompilation(new[] { @"
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 struct S
@@ -9371,17 +9370,23 @@ struct S
         await s;
     }
 }
+public struct Result : System.Runtime.CompilerServices.INotifyCompletion
+{
+    public int GetResult() => throw null;
+    public void OnCompleted(System.Action continuation) => throw null;
+    public bool IsCompleted => throw null;
+}
 static class CExt
 {
     [UnmanagedCallersOnly]
-    public static TaskAwaiter GetAwaiter(this S s) => throw null;
+    public static Result GetAwaiter(this S s) => throw null;
 }
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (9,9): error CS8901: 'CExt.GetAwaiter(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (8,9): error CS8901: 'CExt.GetAwaiter(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         await s;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "await s").WithArguments("CExt.GetAwaiter(S)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "await s").WithArguments("CExt.GetAwaiter(S)").WithLocation(8, 9)
             );
         }
 
