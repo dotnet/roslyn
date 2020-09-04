@@ -8576,7 +8576,8 @@ class D
             var c = comp.GetTypeByMetadataName("C");
             var m1 = c.GetMethod("M1");
             var unmanagedData = m1.UnmanagedCallersOnlyAttributeData;
-            Assert.NotEqual(unmanagedData, UnmanagedCallersOnlyAttributeData.Uninitialized);
+            Assert.NotSame(unmanagedData, UnmanagedCallersOnlyAttributeData.Uninitialized);
+            Assert.NotSame(unmanagedData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound);
             Assert.False(unmanagedData!.IsValid);
             Assert.Empty(unmanagedData.CallingConventionTypes);
         }
@@ -9592,10 +9593,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })").WithArguments("string").WithLocation(5, 6),
                 // (6,6): error CS0579: Duplicate 'UnmanagedCallersOnly' attribute
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "UnmanagedCallersOnly").WithArguments("UnmanagedCallersOnly").WithLocation(6, 6),
-                // (6,6): error CS8893: 'object' is not a valid calling convention type for 'UnmanagedCallersOnly'.
-                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
-                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })").WithArguments("object").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "UnmanagedCallersOnly").WithArguments("UnmanagedCallersOnly").WithLocation(6, 6)
             );
         }
 

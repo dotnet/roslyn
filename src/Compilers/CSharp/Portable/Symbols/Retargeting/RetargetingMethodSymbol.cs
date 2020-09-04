@@ -230,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
                 {
                     var data = _underlyingMethod.UnmanagedCallersOnlyAttributeData;
-                    if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized))
+                    if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                        || ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
                     {
                         // Underlying hasn't been found yet either, just return it. We'll check again the next
                         // time this is called

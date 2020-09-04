@@ -119,5 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _memberNotNullWhenFalseAttributeData;
             }
         }
+
+        private UnmanagedCallersOnlyAttributeData? _unmanagedCallersOnlyAttributeData;
+        public UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _unmanagedCallersOnlyAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _unmanagedCallersOnlyAttributeData = value;
+                SetDataStored();
+            }
+        }
     }
 }

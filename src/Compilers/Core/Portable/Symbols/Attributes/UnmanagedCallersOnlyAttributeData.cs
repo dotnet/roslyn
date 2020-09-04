@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis
     internal sealed class UnmanagedCallersOnlyAttributeData
     {
         internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
+        internal static readonly UnmanagedCallersOnlyAttributeData AttributePresentDataNotBound = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
+        private static readonly UnmanagedCallersOnlyAttributeData PlatformDefault = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: true);
 
         internal static UnmanagedCallersOnlyAttributeData Create(ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes, bool isValid)
             => (callingConventionTypes, isValid) switch
@@ -22,7 +24,6 @@ namespace Microsoft.CodeAnalysis
                 _ => new UnmanagedCallersOnlyAttributeData(callingConventionTypes ?? ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid)
             };
 
-        internal static readonly UnmanagedCallersOnlyAttributeData PlatformDefault = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: true);
 
         public readonly ImmutableHashSet<INamedTypeSymbolInternal> CallingConventionTypes;
         public readonly bool IsValid;

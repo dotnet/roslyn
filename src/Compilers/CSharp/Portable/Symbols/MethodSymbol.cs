@@ -107,12 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ForceCompleteUnmanagedCallersOnlyAttribute()
         {
-            if (ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
+            if (ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                || ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
             {
                 this.GetAttributes();
             }
 
-            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized),
+            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                         && !ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound),
                          "UnmanagedCallersOnlyAttribute should be initialized by now");
         }
 #nullable restore
@@ -961,8 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute)
+        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location? location, DiagnosticBag? diagnostics)
         {
+            Debug.Assert((location is null) == (diagnostics is null));
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
             bool isValid = true;
             if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
@@ -992,6 +995,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
                             || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
                         {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
                             isValid = false;
                         }
                         else
@@ -1005,9 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return callingConventionTypes?.IsEmpty == false
-                ? UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid)
-                : UnmanagedCallersOnlyAttributeData.PlatformDefault;
+            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid);
         }
 #nullable restore
 

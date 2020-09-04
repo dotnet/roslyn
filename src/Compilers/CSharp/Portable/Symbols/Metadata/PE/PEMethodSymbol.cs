@@ -1336,7 +1336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 EnsureTypeParametersAreLoaded(ref result);
                 if (result == null && UnmanagedCallersOnlyAttributeData is UnmanagedCallersOnlyAttributeData data)
                 {
-                    Debug.Assert(data != UnmanagedCallersOnlyAttributeData.Uninitialized);
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                                 && !ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
                     if (MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction)
                         || !IsStatic
                         || !data.IsValid)
@@ -1454,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
                         ? null
-                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute);
+                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
 
                     var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
                                                                   data,

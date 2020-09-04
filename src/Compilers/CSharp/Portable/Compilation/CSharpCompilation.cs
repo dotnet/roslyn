@@ -1826,7 +1826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (viableEntryPoint.UnmanagedCallersOnlyAttributeData is { } data)
                         {
-                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                                         && !ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
                             diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.Locations.First());
                         }
                     }

@@ -30,9 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyActualUnmanagedCallersOnlyDiagnostic is null)
             {
                 _method.ForceCompleteUnmanagedCallersOnlyAttribute();
-                Debug.Assert(_method.UnmanagedCallersOnlyAttributeData != UnmanagedCallersOnlyAttributeData.Uninitialized);
+                UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = _method.UnmanagedCallersOnlyAttributeData;
+                Debug.Assert(unmanagedCallersOnlyAttributeData != UnmanagedCallersOnlyAttributeData.Uninitialized
+                             && unmanagedCallersOnlyAttributeData != UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound);
 
-                var info = _method.UnmanagedCallersOnlyAttributeData is null
+                var info = unmanagedCallersOnlyAttributeData is null
                     ? CSDiagnosticInfo.VoidDiagnosticInfo
                     : new CSDiagnosticInfo(_isDelegateConversion
                                                ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
