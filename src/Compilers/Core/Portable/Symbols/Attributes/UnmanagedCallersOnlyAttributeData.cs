@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis
                 _ => new UnmanagedCallersOnlyAttributeData(callingConventionTypes ?? ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid)
             };
 
-
         public readonly ImmutableHashSet<INamedTypeSymbolInternal> CallingConventionTypes;
         public readonly bool IsValid;
 

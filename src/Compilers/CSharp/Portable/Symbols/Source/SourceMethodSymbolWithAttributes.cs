@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
                 {
-                    arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().UnmanagedCallersOnlyAttributeDataPresent = true;
+                    arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().UnmanagedCallersOnlyAttributePresent = true;
                     // We can't actually decode this attribute yet: CallConvs is an array, and it cannot be bound yet or we could hit a cycle
                     // in error cases. We only detect whether or not the attribute is present for use in ensuring that we create as few lazily-computed
                     // diagnostics that might later get thrown away as possible when binding method calls.
@@ -420,22 +420,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return data?.UnmanagedCallersOnlyAttributeData;
                 }
 
-                if (lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed == true)
+                if (lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data?.UnmanagedCallersOnlyAttributeDataPresent == true
+                    return data?.UnmanagedCallersOnlyAttributePresent == true
                         ? UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound
                         : null;
                 }
 
                 return UnmanagedCallersOnlyAttributeData.Uninitialized;
 
-
 #if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
                 static void verifyDataConsistent(CommonMethodEarlyWellKnownAttributeData? earlyData, MethodWellKnownAttributeData? lateData)
                 {
-                    Debug.Assert((earlyData, lateData) is ((null or { UnmanagedCallersOnlyAttributeDataPresent: false }), (null or { UnmanagedCallersOnlyAttributeData: null }))
-                                                          or ({ UnmanagedCallersOnlyAttributeDataPresent: true }, { UnmanagedCallersOnlyAttributeData: not null }));
+                    Debug.Assert((earlyData, lateData) is ((null or { UnmanagedCallersOnlyAttributePresent: false }), (null or { UnmanagedCallersOnlyAttributeData: null }))
+                                                          or ({ UnmanagedCallersOnlyAttributePresent: true }, { UnmanagedCallersOnlyAttributeData: not null }));
                 }
 #endif
             }
@@ -860,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If this is an UnmanagedCallersOnly method, it means that this cannot be called by managed code, including the attempt by the CLR
             // to run the module initializer.
-            if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is CommonMethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributeDataPresent: true })
+            if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is CommonMethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributePresent: true })
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
                 hasError = true;

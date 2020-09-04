@@ -9736,6 +9736,9 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
+                // (6,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     [UnmanagedCallersOnly(CallConvs = F())]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(6, 39),
                 // (6,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [UnmanagedCallersOnly(CallConvs = F())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(6, 39)

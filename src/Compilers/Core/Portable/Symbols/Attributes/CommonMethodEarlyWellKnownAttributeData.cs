@@ -55,18 +55,18 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        private bool _unmanagedCallersOnlyAttributeDataPresent;
-        public bool UnmanagedCallersOnlyAttributeDataPresent
+        private bool _unmanagedCallersOnlyAttributePresent;
+        public bool UnmanagedCallersOnlyAttributePresent
         {
             get
             {
                 VerifySealed(expected: true);
-                return _unmanagedCallersOnlyAttributeDataPresent;
+                return _unmanagedCallersOnlyAttributePresent;
             }
             set
             {
                 VerifySealed(expected: false);
-                _unmanagedCallersOnlyAttributeDataPresent = value;
+                _unmanagedCallersOnlyAttributePresent = value;
                 SetDataStored();
             }
         }
