@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return data?.UnmanagedCallersOnlyAttributeData;
                 }
 
-                if (lazyCustomAttributesBag?.IsEarlyDecodedWellKnownAttributeDataComputed == true)
+                if (lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed == true)
                 {
                     var data = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data?.UnmanagedCallersOnlyAttributeDataPresent == true
