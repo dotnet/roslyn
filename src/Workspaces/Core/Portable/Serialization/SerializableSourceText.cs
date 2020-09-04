@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         /// The storage location for <see cref="SourceText"/>.
         /// </summary>
         /// <remarks>
-        /// At least one of <see cref="Storage"/> or <see cref="Text"/> will be non-<see langword="null"/>. If both are
-        /// provided, they must reference the same source text.
+        /// Exactly one of <see cref="Storage"/> or <see cref="Text"/> will be non-<see langword="null"/>.
         /// </remarks>
         public ITemporaryTextStorageWithName? Storage { get; }
 
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private SerializableSourceText(ITemporaryTextStorageWithName? storage, SourceText? text)
         {
-            Debug.Assert(storage is not null || text is not null);
+            Debug.Assert(storage is null != text is null);
 
             Storage = storage;
             Text = text;
