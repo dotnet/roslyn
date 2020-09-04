@@ -414,7 +414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
                     verifyDataConsistent((CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, data);
+#endif
                     return data?.UnmanagedCallersOnlyAttributeData;
                 }
 
@@ -428,12 +430,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return UnmanagedCallersOnlyAttributeData.Uninitialized;
 
-                [Conditional("DEBUG")]
+
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
                 static void verifyDataConsistent(CommonMethodEarlyWellKnownAttributeData? earlyData, MethodWellKnownAttributeData? lateData)
                 {
                     Debug.Assert((earlyData, lateData) is ((null or { UnmanagedCallersOnlyAttributeDataPresent: false }), (null or { UnmanagedCallersOnlyAttributeData: null }))
                                                           or ({ UnmanagedCallersOnlyAttributeDataPresent: true }, { UnmanagedCallersOnlyAttributeData: not null }));
                 }
+#endif
             }
         }
 #nullable restore

@@ -113,9 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.GetAttributes();
             }
 
-            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized)
-                         && !ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound),
-                         "UnmanagedCallersOnlyAttribute should be initialized by now");
+            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized));
+            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
         }
 #nullable restore
 

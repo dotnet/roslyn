@@ -1336,8 +1336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 EnsureTypeParametersAreLoaded(ref result);
                 if (result == null && UnmanagedCallersOnlyAttributeData is UnmanagedCallersOnlyAttributeData data)
                 {
-                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
-                                 && !ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
                     if (MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction)
                         || !IsStatic
                         || !data.IsValid)
