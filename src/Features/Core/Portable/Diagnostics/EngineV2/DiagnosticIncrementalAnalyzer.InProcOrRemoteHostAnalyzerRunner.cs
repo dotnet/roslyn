@@ -195,19 +195,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>>(
                 solution,
-                async (service, solutionInfo, cancellationToken) =>
-                {
-                    var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                    await service.CalculateDiagnosticsAsync(solutionInfo, argument, serverStream, cancellationToken).ConfigureAwait(false);
-                    return await ReadCompilerAnalysisResultAsync(clientStream, analyzerMap, documentAnalysisScope, project, cancellationToken).ConfigureAwait(false);
-                },
+                invocation: (service, solutionInfo, stream, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, stream, cancellationToken),
+                reader: (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, documentAnalysisScope, project, cancellationToken),
                 callbackTarget: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
         }
 
-        private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
+        private static async ValueTask<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
             Stream stream,
             Dictionary<string, DiagnosticAnalyzer> analyzerMap,
             DocumentAnalysisScope? documentAnalysisScope,

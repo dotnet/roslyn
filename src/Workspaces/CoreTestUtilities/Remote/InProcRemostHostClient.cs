@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
         {
-            var options = default(ServiceActivationOptions);
+            var options = new ServiceActivationOptions();
 
             if (callbackTarget is not null)
             {
@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged { add { } remove { } }
 
+            // This method is currently not needed for our IServiceBroker usage patterns.
             public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
                 => throw ExceptionUtilities.Unreachable;
 

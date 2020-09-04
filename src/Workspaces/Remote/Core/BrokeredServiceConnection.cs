@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
+using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -56,11 +58,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Func<TService, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Func<TService, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken)
         {
             try
             {
-                return await invocation(_service, args, cancellationToken).ConfigureAwait(false);
+                return await InvokeStreamingServiceAsync(_service, invocation, reader, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
             {
@@ -100,18 +105,43 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TArgs, TResult>(Solution solution, Func<TService, PinnedSolutionInfo, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken)
         {
             try
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
-                return await invocation(_service, scope.SolutionInfo, args, cancellationToken).ConfigureAwait(false);
+                return await InvokeStreamingServiceAsync(
+                    _service,
+                    (service, stream, cancellationToken) => invocation(service, scope.SolutionInfo, stream, cancellationToken),
+                    reader,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken))
             {
                 OnUnexpectedException(exception, cancellationToken);
                 return default;
             }
+        }
+
+        internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
+            TService service,
+            Func<TService, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken)
+        {
+            // The reader should close the client stream, the writer will close the server stream.
+            // See https://github.com/microsoft/vs-streamjsonrpc/blob/master/doc/oob_streams.md
+            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+
+            var writerTask = invocation(service, serverStream, cancellationToken).AsTask();
+            var readerTask = reader(clientStream, cancellationToken).AsTask();
+            await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
+
+            return readerTask.Result;
         }
 
         private void OnUnexpectedException(Exception exception, CancellationToken cancellationToken)

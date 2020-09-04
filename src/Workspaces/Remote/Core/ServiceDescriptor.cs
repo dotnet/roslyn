@@ -7,7 +7,6 @@
 using System;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote

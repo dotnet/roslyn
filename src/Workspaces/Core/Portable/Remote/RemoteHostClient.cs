@@ -107,6 +107,21 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Invokes a remote API that streams results back to the caller.
+        /// </summary>
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            object? callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(solution, invocation, reader, cancellationToken).ConfigureAwait(false);
+        }
+
         // legacy services:
 
         public async Task RunRemoteAsync(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)

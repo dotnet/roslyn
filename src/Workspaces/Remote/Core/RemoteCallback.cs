@@ -5,9 +5,11 @@
 #nullable enable
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Nerdbank.Streams;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -58,11 +60,17 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask<TResult> InvokeAsync<TArgs, TResult>(Func<T, TArgs, CancellationToken, ValueTask<TResult>> invocation, TArgs args, CancellationToken cancellationToken)
+        /// <summary>
+        /// Invokes a remote API that streams results back to the caller.
+        /// </summary>
+        public async ValueTask<TResult> InvokeAsync<TResult>(
+            Func<T, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            CancellationToken cancellationToken)
         {
             try
             {
-                return await invocation(_callback, args, cancellationToken).ConfigureAwait(false);
+                return await BrokeredServiceConnection<T>.InvokeStreamingServiceAsync(_callback, invocation, reader, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {

@@ -4,17 +4,13 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
-using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -35,14 +31,10 @@ namespace Microsoft.CodeAnalysis.Remote
             using var provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(provider.Proxy);
 
-            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy, _clientDisconnectedSource).InvokeAsync(async (proxy, cancellationToken) =>
-            {
-                var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                await proxy.GetAssetsAsync(serverStream, scopeId, checksums.ToArray(), cancellationToken).ConfigureAwait(false);
-                var result = RemoteHostAssetSerialization.ReadData(clientStream, scopeId, checksums, serializerService, cancellationToken);
-                clientStream.Close();
-                return result;
-            }, cancellationToken).ConfigureAwait(false);
+            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy, _clientDisconnectedSource).InvokeAsync(
+                (proxy, stream, cancellationToken) => proxy.GetAssetsAsync(stream, scopeId, checksums.ToArray(), cancellationToken),
+                (stream, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(stream, scopeId, checksums, serializerService, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)

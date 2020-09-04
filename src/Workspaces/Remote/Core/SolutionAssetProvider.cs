@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             // Complete RPC right away so the client can start reading from the stream.
+            // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
             _ = Task.Run(async () =>
             {
                 using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);

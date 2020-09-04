@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
 
         /// <summary>
-        /// Remote service proxy. Created on demand when we startup and then
+        /// Remote service connection. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
         private RemoteServiceConnection<IRemoteTodoCommentsService>? _lazyConnection;
@@ -115,18 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await connection.TryInvokeAsync(
+            _ = await _lazyConnection.TryInvokeAsync(
                 (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-
-            _lazyConnection = connection;
         }
 
         private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)

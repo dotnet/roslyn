@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, Stream outputStream, CancellationToken cancellationToken)
         {
             // Complete RPC right away so the client can start reading from the stream.
+            // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
+
             _ = RunServiceAsync(async cancellationToken =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
