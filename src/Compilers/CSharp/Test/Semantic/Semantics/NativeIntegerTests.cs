@@ -5109,8 +5109,11 @@ $@"public class A
         [Theory]
         [CombinatorialData]
         [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
-        public void NativeIntegerConversionsCSharp8_02(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
+        public void NativeIntegerConversionsCSharp8_02(bool useCompilationReference, bool signed)
         {
+            string type = signed ? "nint" : "nuint";
+            string underlyingType = signed ? "System.IntPtr" : "System.UIntPtr";
+
             var sourceA =
 $@"public class A
 {{
@@ -5121,22 +5124,25 @@ $@"public class A
             var refA = AsReference(comp, useCompilationReference);
 
             var sourceB =
-@"class B : A
-{
+$@"class B : A
+{{
     static T F<T>() => throw null;
     static void Main()
-    {
+    {{
         F1 = F<byte>();
         F1 = F<char>();
         F1 = F<ushort>();
+        F1 = F<{underlyingType}>();
         F2 = F<byte>();
         F2 = F<char>();
         F2 = F<ushort>();
         F2 = F<byte?>();
         F2 = F<char?>();
         F2 = F<ushort?>();
-    }
-}";
+        F2 = F<{underlyingType}>();
+        F2 = F<{underlyingType}?>();
+    }}
+}}";
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics();
