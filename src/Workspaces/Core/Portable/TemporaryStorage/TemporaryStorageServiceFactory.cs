@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_checksum.IsDefault)
                     {
-                        _checksum = ReadText(CancellationToken.None).GetChecksum();
+                        ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetChecksum());
                     }
 
                     return _checksum;
