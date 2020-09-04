@@ -1197,6 +1197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                     return new SourceLocation(((ConstructorInitializerSyntax)syntax).ArgumentList.OpenParenToken);
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    return new SourceLocation(((PrimaryConstructorBaseTypeSyntax)syntax).ArgumentList.OpenParenToken);
                 case SyntaxKind.ElementAccessExpression:
                     return new SourceLocation(((ElementAccessExpressionSyntax)syntax).ArgumentList.OpenBracketToken);
                 case SyntaxKind.FromClause:
@@ -1451,6 +1453,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The parameter type might not match the constant type.                                                                                                                    
                 defaultValue = MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
             }
+
+            // CONSIDER: it feels like determining the exact value that will be emitted for a
+            // parameter default value is something that should be figured out at binding time, not in lowering.
+            defaultValue = defaultValue.WithSuppression(syntax.IsKind(SyntaxKind.SuppressNullableWarningExpression));
 
             return defaultValue;
 

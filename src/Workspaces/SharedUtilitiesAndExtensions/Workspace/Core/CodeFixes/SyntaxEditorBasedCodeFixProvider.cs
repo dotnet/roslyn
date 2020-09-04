@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
             => _supportsFixAll = supportsFixAll;
 
-        public sealed override FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider? GetFixAllProvider()
             => _supportsFixAll ? new SyntaxEditorBasedFixAllProvider(this) : null;
 
         protected Task<Document> FixAsync(
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Func<SyntaxEditor, Task> editAsync,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             await editAsync(editor).ConfigureAwait(false);
@@ -70,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Only one of these three overloads needs to be overridden if you want to customize
         /// behavior.
         /// </summary>
-        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string equivalenceKey, CancellationToken cancellationToken)
+        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string? equivalenceKey, CancellationToken cancellationToken)
             => IncludeDiagnosticDuringFixAll(diagnostic, document, equivalenceKey, cancellationToken);
 
-        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
+        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
             => IncludeDiagnosticDuringFixAll(diagnostic);
 
         /// <summary>

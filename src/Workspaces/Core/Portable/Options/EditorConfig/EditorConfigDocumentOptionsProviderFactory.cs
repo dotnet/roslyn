@@ -19,25 +19,10 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
         public static IDocumentOptionsProvider Create()
             => new EditorConfigDocumentOptionsProvider();
 
-        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
-
-        public static readonly Option2<bool> UseLegacyEditorConfigSupport =
-            new Option2<bool>(nameof(EditorConfigDocumentOptionsProviderFactory), nameof(UseLegacyEditorConfigSupport), defaultValue: false,
-                storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport16.7"));
-
-        public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
-            => !workspace.Options.GetOption(UseLegacyEditorConfigSupport);
-
         private sealed class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
         {
             public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
-                if (!ShouldUseNativeEditorConfigSupport(document.Project.Solution.Workspace))
-                {
-                    // Simply disable if the feature isn't on
-                    return null;
-                }
-
                 var options = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 return new DocumentOptions(options);

@@ -34,11 +34,11 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-    - types
-    - methods
-    - fields
-    - properties (including get/set accessors)
-    - events (including add/remove accessors)
+- type declarations (class, record with or without positional members, struct, interface, type parameter)
+- methods
+- fields
+- properties (including get/set/init accessors)
+- events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
@@ -64,6 +64,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref structs, Readonly structs
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
+- Method override or explicit implementation with `where T : { class, struct, default }`
  
 # Code
 - Operators (see Eric's list below)
@@ -93,6 +94,9 @@ This document provides guidance for thinking about language interactions and tes
 - Patterns (constant, declaration, `var`, positional, property, and discard forms)
 - Switch expressions
 - Nullability annotations (`?`, attributes) and analysis
+- If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
+- If you add a new expression form that requires spilling, test it in the catch filter.
+- extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 
 # Misc
 - reserved keywords (sometimes contextual)

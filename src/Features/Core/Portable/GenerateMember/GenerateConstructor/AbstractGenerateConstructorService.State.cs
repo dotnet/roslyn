@@ -556,7 +556,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     document.Project.Solution,
                     TypeToGenerateIn,
                     members.Concat(constructor),
-                    new CodeGenerationOptions(Token.GetLocation()),
+                    new CodeGenerationOptions(
+                        Token.GetLocation(),
+                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -605,7 +607,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         addNullChecks: false,
                         preferThrowExpression: false,
                         generateProperties: withProperties),
-                    new CodeGenerationOptions(Token.GetLocation()),
+                    new CodeGenerationOptions(
+                        Token.GetLocation(),
+                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
             }
         }

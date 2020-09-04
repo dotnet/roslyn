@@ -427,7 +427,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
@@ -591,7 +591,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
@@ -1511,7 +1511,7 @@ unsafe class A
 {
     internal delegate*<A> ptr1;
     internal delegate*<A, object> ptr2;
-}", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+}", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
             var ptr1 = comp.GetMember<FieldSymbol>("A.ptr1").Type.GetPublicSymbol();
             var ptr2 = comp.GetMember<FieldSymbol>("A.ptr2").Type.GetPublicSymbol();

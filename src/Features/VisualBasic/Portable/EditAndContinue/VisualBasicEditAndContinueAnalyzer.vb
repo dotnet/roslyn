@@ -4,23 +4,36 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-    <ExportLanguageService(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicEditAndContinueAnalyzer
         Inherits AbstractEditAndContinueAnalyzer
 
-        <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New()
+        <ExportLanguageServiceFactory(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
+        Private NotInheritable Class Factory
+            Implements ILanguageServiceFactory
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+                Return New VisualBasicEditAndContinueAnalyzer(testFaultInjector:=Nothing)
+            End Function
+        End Class
+
+        ' Public for testing purposes
+        Public Sub New(Optional testFaultInjector As Action(Of SyntaxNode) = Nothing)
+            MyBase.New(testFaultInjector)
         End Sub
 
 #Region "Syntax Analysis"
@@ -511,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Dim rightDeclaration = DirectCast(GetSymbolSyntax(rightProperty, cancellationToken), PropertyStatementSyntax)
 
                 rightInitializer = rightDeclaration.Initializer
-            ElseIf leftInitializer.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration)
+            ElseIf leftInitializer.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                 ' field initializer or AsNewClause
                 Dim leftDeclarator = DirectCast(leftInitializer.Parent, VariableDeclaratorSyntax)
 

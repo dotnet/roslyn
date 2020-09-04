@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AnonymousMethodExpressionSyntax anonymousMethod:
                     SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
                     return;
-                case ObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+                case BaseObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
                     return;
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
@@ -177,6 +177,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 case SwitchExpressionSyntax switchExpression:
                     SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case PropertyPatternClauseSyntax propertyPatternClause:
+                    if (propertyPatternClause.Parent is RecursivePatternSyntax { Parent: { } recursivePatternParent })
+                    {
+                        var baseTokenForAlignment = recursivePatternParent.GetFirstToken();
+                        if (baseTokenForAlignment == propertyPatternClause.OpenBraceToken)
+                        {
+                            // It only makes sense to set the alignment for the '{' when it's on a separate line from
+                            // the base token for alignment. This is never the case when they are the same token.
+                            return;
+                        }
+
+                        SetAlignmentBlockOperation(list, baseTokenForAlignment, propertyPatternClause.OpenBraceToken, propertyPatternClause.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine | IndentBlockOption.IndentIfConditionOfAnchorToken);
+                    }
+
                     return;
             }
         }

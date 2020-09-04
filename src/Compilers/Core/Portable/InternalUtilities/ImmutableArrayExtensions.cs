@@ -47,9 +47,12 @@ namespace Roslyn.Utilities
             return ~low;
         }
 
-        internal static ImmutableArray<TDerived> CastDown<TOriginal, TDerived>(this ImmutableArray<TOriginal> array) where TDerived : class?, TOriginal
+        internal static ImmutableArray<TDerived> CastDown<TOriginal, TDerived>(this ImmutableArray<TOriginal> array) where TDerived : class, TOriginal
         {
+            // Remove the pragma when we get a version with https://github.com/dotnet/runtime/issues/39799 fixed
+#pragma warning disable CS8634
             return array.CastArray<TDerived>();
+#pragma warning restore CS8634
         }
     }
 }

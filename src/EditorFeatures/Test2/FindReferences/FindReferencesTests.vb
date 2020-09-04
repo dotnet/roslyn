@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
@@ -18,6 +18,10 @@ Imports Xunit.Abstractions
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <[UseExportProvider]>
     Partial Public Class FindReferencesTests
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+            GetType(NoCompilationContentTypeDefinitions),
+            GetType(NoCompilationContentTypeLanguageService))
+
         Private Const DefinitionKey As String = "Definition"
         Private Const ValueUsageInfoKey As String = "ValueUsageInfo."
         Private Const TypeOrNamespaceUsageInfoKey As String = "TypeOrNamespaceUsageInfo."
@@ -34,11 +38,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             StreamingFeature
         End Enum
 
-        Public Enum TestHost
-            InProcess
-            OutOfProcess
-        End Enum
-
         Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             If kind = TestKind.API Then
                 Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
@@ -48,23 +47,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End If
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=host = TestHost.OutOfProcess)
+        Private Shared Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, host)
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement,
+        Private Shared Async Function TestStreamingFeature(element As XElement,
                                                     searchSingleFileOnly As Boolean,
                                                     uiVisibleOnly As Boolean,
-                                                    outOfProcess As Boolean) As Task
+                                                    host As TestHost) As Task
             ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
-
+            Using workspace = TestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -177,14 +173,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return additionalPropertiesMap
         End Function
 
-        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
+        Private Shared Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
             Return items.Where(Function(i) i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
                          Select(Function(g) GetFileNameAndSpans(g)).ToList()
         End Function
 
-        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
+        Private Shared Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
             Return New FileNameAndSpans(
                 g.Key.Name,
                 g.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).
@@ -256,18 +252,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional searchSingleFileOnly As Boolean = False,
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=host = TestHost.OutOfProcess)
-        End Function
 
-        Private Async Function TestAPI(definition As XElement,
-                                       searchSingleFileOnly As Boolean,
-                                       uiVisibleOnly As Boolean,
-                                       options As FindReferencesSearchOptions,
-                                       outOfProcess As Boolean) As Task
             options = If(options, FindReferencesSearchOptions.Default)
-            Using workspace = TestWorkspace.Create(definition)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -293,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         result.FilterToItemsToShow(options).
                                Where(Function(s) Not IsImplicitNamespace(s)).
                                SelectMany(Function(r) r.Definition.GetDefinitionLocationsToShow()).
-                               Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
+                               Where(Function(loc) IsInSource(loc, uiVisibleOnly)).
                                GroupBy(Function(loc) loc.SourceTree).
                                ToDictionary(
                                     Function(g) GetFilePathAndProjectLabel(document.Project.Solution, g.Key),
@@ -311,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         End If
                     Next
 
-                    Dim actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, workspace)
+                    Dim actualReferences = GetActualReferences(result, uiVisibleOnly, options, document)
 
                     Dim expectedDocuments = workspace.Documents.Where(Function(d) d.SelectedSpans.Any())
                     Assert.Equal(expectedDocuments.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualReferences.Keys.Order())
@@ -331,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                             Dim expectedSpans = doc.AnnotatedSpans(key).Order()
 
                             Dim valueUsageInfoField = key.Substring(ValueUsageInfoKey.Length)
-                            actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, workspace, Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField)
+                            actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, Function(r) r.SymbolUsageInfo.ValueUsageInfoOpt?.ToString() = valueUsageInfoField)
                             Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
                             If Not TextSpansMatch(expectedSpans, actualSpans) Then
@@ -347,10 +334,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                             Dim expectedSpans = doc.AnnotatedSpans(key).Order()
 
                             Dim typeOrNamespaceUsageInfoFieldNames = key.Substring(TypeOrNamespaceUsageInfoKey.Length).Split(","c).Select(Function(s) s.Trim)
-                            actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, workspace, Function(r)
-                                                                                                                            Return r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt IsNot Nothing AndAlso
+                            actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, Function(r)
+                                                                                                                 Return r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt IsNot Nothing AndAlso
                                                                                                                                    r.SymbolUsageInfo.TypeOrNamespaceUsageInfoOpt.ToString().Split(","c).Select(Function(s) s.Trim).SetEquals(typeOrNamespaceUsageInfoFieldNames)
-                                                                                                                        End Function)
+                                                                                                             End Function)
                             Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
                             If Not TextSpansMatch(expectedSpans, actualSpans) Then
@@ -368,14 +355,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                                 Dim expectedSpans = doc.AnnotatedSpans(annotationKey).Order()
 
-                                actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, workspace, Function(r)
-                                                                                                                                Dim actualValue As String = Nothing
-                                                                                                                                If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
-                                                                                                                                    Return actualValue = propertyValue
-                                                                                                                                End If
+                                actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, Function(r)
+                                                                                                                     Dim actualValue As String = Nothing
+                                                                                                                     If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
+                                                                                                                         Return actualValue = propertyValue
+                                                                                                                     End If
 
-                                                                                                                                Return propertyValue.Length = 0
-                                                                                                                            End Function)
+                                                                                                                     Return propertyValue.Length = 0
+                                                                                                                 End Function)
                                 Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
 
                                 If Not TextSpansMatch(expectedSpans, actualSpans) Then
@@ -392,7 +379,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                     uiVisibleOnly As Boolean,
                                                     options As FindReferencesSearchOptions,
                                                     document As Document,
-                                                    workspace As TestWorkspace,
                                                     Optional locationFilterOpt As Func(Of ReferenceLocation, Boolean) = Nothing) As Dictionary(Of String, List(Of TextSpan))
             Dim referenceLocations = result.FilterToItemsToShow(options).SelectMany(Function(r) r.Locations)
             If locationFilterOpt IsNot Nothing Then
@@ -401,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Return referenceLocations.
                        Select(Function(loc) loc.Location).
-                       Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
+                       Where(Function(loc) IsInSource(loc, uiVisibleOnly)).
                        Distinct().
                        GroupBy(Function(loc) loc.SourceTree).
                        ToDictionary(
@@ -476,12 +462,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return True
         End Function
 
-        Private Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean
+        Private Shared Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean
             Return referencedSymbol.Definition.IsImplicitlyDeclared AndAlso
                    referencedSymbol.Definition.Kind = SymbolKind.Namespace
         End Function
 
-        Private Shared Function IsInSource(workspace As Workspace, loc As Location, uiVisibleOnly As Boolean) As Boolean
+        Private Shared Function IsInSource(loc As Location, uiVisibleOnly As Boolean) As Boolean
             If uiVisibleOnly Then
                 Return loc.IsInSource AndAlso Not loc.SourceTree.IsHiddenPosition(loc.SourceSpan.Start)
             Else

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).Identifier;
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).Identifier;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).Arity;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).TypeParameterList;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.EnumMemberDeclaration:
                         return ((EnumMemberDeclarationSyntax)member).WithAttributeLists(attributeLists);
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).WithAttributeLists(attributeLists);

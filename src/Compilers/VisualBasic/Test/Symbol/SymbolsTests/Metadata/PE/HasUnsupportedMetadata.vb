@@ -516,7 +516,7 @@ End Class"
 unsafe public class C
 {
     public delegate*<void> field;
-}", parseOptions:=New CSharp.CSharpParseOptions().WithLanguageVersion(CSharp.LanguageVersion.Preview),
+}", parseOptions:=New CSharp.CSharpParseOptions().WithLanguageVersion(CSharp.LanguageVersion.CSharp9),
     compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(True))
 
             Dim vbComp = CreateVisualBasicCompilation(Nothing, "

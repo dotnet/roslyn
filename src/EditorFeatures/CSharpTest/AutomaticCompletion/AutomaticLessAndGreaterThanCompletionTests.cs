@@ -403,9 +403,11 @@ class C
             using var session = CreateSession(code);
             Assert.NotNull(session);
             CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
         }
 
-        internal Holder CreateSession(string code)
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

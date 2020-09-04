@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract class BaseNoneOperation : Operation
     {
-        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
             base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal class NoneOperation : BaseNoneOperation
     {
-        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
             base(semanticModel, syntax, constantValue, isImplicit, type)
         {
             Children = SetParentOperation(children, this);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyChildrenInterlocked;
 
-        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
             base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
         {
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class BaseArgumentOperation
     {
-        internal BaseArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal BaseArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InConversionConvertibleOpt = inConversion;
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class ArgumentOperation
     {
         public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class LazyArgumentOperation
     {
         public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
 
     internal sealed partial class ArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
     {
-        public ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+        public ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit) :
             this(elementValues, semanticModel, syntax, type: null, constantValue, isImplicit)
         { }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class VariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
     {
-        public VariableInitializerOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableInitializerOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(ImmutableArray<ILocalSymbol>.Empty, value, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public ForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable,
                                     IOperation collection, ImmutableArray<IOperation> nextVariables, bool isAsynchronous, IOperation body, ForEachLoopOperationInfo info,
-                                    SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                                    SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(loopControlVariable, collection, nextVariables, isAsynchronous, LoopKind.ForEach, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Info = info;
@@ -177,14 +177,14 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class ForLoopOperation : BaseForLoopOperation, IForLoopOperation
     {
         public ForLoopOperation(ImmutableArray<IOperation> before, IOperation condition, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals,
-            ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(before, conditionLocals, condition, atLoopBottom, LoopKind.For, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
 
     internal abstract partial class LazyForLoopOperation : BaseForLoopOperation, IForLoopOperation
     {
-        public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(conditionLocals, LoopKind.For, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
@@ -196,14 +196,14 @@ namespace Microsoft.CodeAnalysis.Operations
                                   ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable,
                                   IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body,
                                   ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax,
-                                  ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                                  ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(loopControlVariable, initialValue, limitValue, stepValue, isChecked, nextVariables, info, LoopKind.ForTo, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
 
     internal abstract partial class BaseInvalidOperation : Operation, IInvalidOperation
     {
-        protected BaseInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(OperationKind.Invalid, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class InvalidOperation : BaseInvalidOperation, IInvalidOperation
     {
-        public InvalidOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public InvalidOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             // we don't allow null children.
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyChildrenInterlocked;
 
-        public LazyInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class SingleValueCaseClauseOperation : BaseSingleValueCaseClauseOperation, ISingleValueCaseClauseOperation
     {
-        public SingleValueCaseClauseOperation(ILabelSymbol label, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public SingleValueCaseClauseOperation(ILabelSymbol label, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(value, CaseKind.SingleValue, label, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly IAnonymousFunctionOperation Original;
 
         public FlowAnonymousFunctionOperation(in ControlFlowGraphBuilder.Context context, IAnonymousFunctionOperation original, bool isImplicit) :
-            base(OperationKind.FlowAnonymousFunction, semanticModel: null, original.Syntax, original.Type, original.ConstantValue, isImplicit)
+            base(OperationKind.FlowAnonymousFunction, semanticModel: null, original.Syntax, original.Type, original.GetConstantValue(), isImplicit)
         {
             Context = context;
             Original = original;
@@ -309,21 +309,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class RangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
     {
-        public RangeCaseClauseOperation(IOperation minimumValue, IOperation maximumValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public RangeCaseClauseOperation(IOperation minimumValue, IOperation maximumValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(minimumValue, maximumValue, CaseKind.Range, label: null, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
 
     internal sealed partial class RelationalCaseClauseOperation : BaseRelationalCaseClauseOperation, IRelationalCaseClauseOperation
     {
-        public RelationalCaseClauseOperation(IOperation value, BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public RelationalCaseClauseOperation(IOperation value, BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(value, relation, CaseKind.Relational, label: null, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
 
     internal sealed partial class DefaultCaseClauseOperation : BaseCaseClauseOperation
     {
-        public DefaultCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DefaultCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(CaseKind.Default, label, semanticModel, syntax, type, constantValue, isImplicit)
         { }
     }
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class SwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
     {
-        public SwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, IOperation condition, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public SwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, IOperation condition, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(clauses, body, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Condition = SetParentOperation(condition, null);
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class HasDynamicArgumentsExpression : Operation
     {
-        protected HasDynamicArgumentsExpression(OperationKind operationKind, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected HasDynamicArgumentsExpression(OperationKind operationKind, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(operationKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ArgumentNames = argumentNames;
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class BaseDynamicObjectCreationOperation : HasDynamicArgumentsExpression, IDynamicObjectCreationOperation
     {
-        public BaseDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(OperationKind.DynamicObjectCreation, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicObjectCreationOperation : BaseDynamicObjectCreationOperation, IDynamicObjectCreationOperation
     {
-        public DynamicObjectCreationOperation(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DynamicObjectCreationOperation(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Arguments = SetParentOperation(arguments, this);
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-        public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class BaseDynamicInvocationOperation : HasDynamicArgumentsExpression, IDynamicInvocationOperation
     {
-        public BaseDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(OperationKind.DynamicInvocation, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicInvocationOperation : BaseDynamicInvocationOperation, IDynamicInvocationOperation
     {
-        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
-        public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class BaseDynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
     {
-        public BaseDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(OperationKind.DynamicIndexerAccess, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicIndexerAccessOperation : BaseDynamicIndexerAccessOperation, IDynamicIndexerAccessOperation
     {
-        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
-        public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class WhileLoopOperation : BaseWhileLoopOperation, IWhileLoopOperation
     {
-        public WhileLoopOperation(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public WhileLoopOperation(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             this(condition, conditionIsTop, conditionIsUntil, ignoredCondition, LoopKind.While, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
 
         { }
@@ -699,8 +699,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
-        public ConstantPatternOperation(ITypeSymbol inputType, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            this(value, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+        public ConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            this(value, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
 
@@ -708,13 +708,14 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public DeclarationPatternOperation(
             ITypeSymbol inputType,
+            ITypeSymbol narrowedType,
             ITypeSymbol matchedType,
             ISymbol declaredSymbol,
             bool matchesNull,
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
-            : this(matchedType, matchesNull, declaredSymbol, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+            : this(matchedType, matchesNull, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
 
@@ -722,6 +723,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public RecursivePatternOperation(
             ITypeSymbol inputType,
+            ITypeSymbol narrowedType,
             ITypeSymbol matchedType,
             ISymbol deconstructSymbol,
             ImmutableArray<IPatternOperation> deconstructionSubpatterns,
@@ -729,25 +731,25 @@ namespace Microsoft.CodeAnalysis.Operations
             ISymbol declaredSymbol, SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit) :
-            this(matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, declaredSymbol, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+            this(matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
 
     internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation
     {
         public PropertySubpatternOperation(
+            IOperation member,
+            IPatternOperation pattern,
             SemanticModel semanticModel,
             SyntaxNode syntax,
-            bool isImplicit,
-            IOperation member,
-            IPatternOperation pattern) :
-            this(member, pattern, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+            bool isImplicit) :
+            this(member, pattern, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
 
     internal abstract partial class BasePatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
     {
-        protected BasePatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BasePatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(CaseKind.Pattern, label, OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -780,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class PatternCaseClauseOperation : BasePatternCaseClauseOperation, IPatternCaseClauseOperation
     {
-        public PatternCaseClauseOperation(ILabelSymbol label, IPatternOperation pattern, IOperation guardExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public PatternCaseClauseOperation(ILabelSymbol label, IPatternOperation pattern, IOperation guardExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Pattern = SetParentOperation(pattern, this);
@@ -796,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
         private IOperation _lazyGuardExpressionInterlocked = s_unset;
 
-        public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
@@ -844,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit) :
-            this(value, arms, semanticModel, syntax, type, constantValue: default, isImplicit)
+            this(value, arms, semanticModel, syntax, type, constantValue: null, isImplicit)
         { }
     }
 
@@ -858,19 +860,19 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit) :
-            this(pattern, guard, value, locals, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+            this(pattern, guard, value, locals, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
 
     internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
     {
-        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :
             base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Id = new CaptureId(id);
         }
 
-        public FlowCaptureReferenceOperation(CaptureId id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public FlowCaptureReferenceOperation(CaptureId id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :
             base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Id = id;
@@ -880,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class FlowCaptureOperation : Operation, IFlowCaptureOperation
     {
         public FlowCaptureOperation(int id, SyntaxNode syntax, IOperation value) :
-            base(OperationKind.FlowCapture, semanticModel: null, syntax: syntax, type: null, constantValue: default, isImplicit: true)
+            base(OperationKind.FlowCapture, semanticModel: null, syntax: syntax, type: null, constantValue: null, isImplicit: true)
         {
             Debug.Assert(value != null);
             Id = new CaptureId(id);
@@ -910,7 +912,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class IsNullOperation : Operation, IIsNullOperation
     {
-        public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, Optional<object> constantValue) :
+        public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, ConstantValue constantValue) :
             base(OperationKind.IsNull, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Debug.Assert(operand != null);
@@ -940,7 +942,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
     {
         public CaughtExceptionOperation(SyntaxNode syntax, ITypeSymbol type) :
-            this(semanticModel: null, syntax: syntax, type: type, constantValue: default, isImplicit: true)
+            this(semanticModel: null, syntax: syntax, type: type, constantValue: null, isImplicit: true)
         {
         }
     }
@@ -948,7 +950,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
     {
         public StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SyntaxNode syntax, ITypeSymbol type) :
-            base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: default, isImplicit: true)
+            base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: null, isImplicit: true)
         {
             Local = local;
         }
@@ -957,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class MethodBodyOperation : BaseMethodBodyOperation
     {
         public MethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax, IBlockOperation blockBody, IBlockOperation expressionBody) :
-            this(blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: default, isImplicit: false)
+            this(blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: null, isImplicit: false)
         { }
     }
 
@@ -965,14 +967,14 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public ConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax,
                                         IOperation initializer, IBlockOperation blockBody, IBlockOperation expressionBody) :
-            this(locals, initializer, blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: default, isImplicit: false)
+            this(locals, initializer, blockBody, expressionBody, semanticModel, syntax, type: null, constantValue: null, isImplicit: false)
         { }
     }
 
     internal sealed partial class DiscardPatternOperation : BasePatternOperation, IDiscardPatternOperation
     {
-        public DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            this(inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+        public DiscardPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            this(inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
 
     }
@@ -980,7 +982,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class RangeOperation : BaseRangeOperation
     {
         public RangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol, bool isImplicit) :
-            this(leftOperand, rightOperand, isLifted, method: symbol, semanticModel, syntax, type, constantValue: default, isImplicit)
+            this(leftOperand, rightOperand, isLifted, method: symbol, semanticModel, syntax, type, constantValue: null, isImplicit)
         { }
     }
 }

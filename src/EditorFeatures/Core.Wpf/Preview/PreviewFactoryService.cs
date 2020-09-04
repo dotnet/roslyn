@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             double zoomLevel,
             Func<TDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
             Func<Solution, DocumentId, Solution> removeTextDocument,
-            Func<Solution, DocumentId, string, SourceText, Solution> addTextDocument,
+            Func<Solution, DocumentInfo, Solution> addTextDocument,
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
             where TDocument : TextDocument
@@ -384,7 +385,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
             var leftDocumentId = DocumentId.CreateNewId(document.Project.Id);
             var solutionWithRemovedDocument = removeTextDocument(document.Project.Solution, document.Id);
-            var leftSolution = addTextDocument(solutionWithRemovedDocument, leftDocumentId, document.Name, oldBuffer.AsTextContainer().CurrentText);
+            var leftDocumentInfo = DocumentInfo.Create(
+                leftDocumentId,
+                document.Name,
+                loader: TextLoader.From(TextAndVersion.Create(oldBuffer.AsTextContainer().CurrentText, VersionStamp.Create(), document.FilePath)),
+                filePath: document.FilePath,
+                folders: document.Folders);
+            var leftSolution = addTextDocument(solutionWithRemovedDocument, leftDocumentInfo);
             var leftDocument = leftSolution.GetTextDocument(leftDocumentId);
             var leftWorkspace = new PreviewWorkspace(leftSolution);
             openTextDocument(leftWorkspace, leftDocument.Id);
@@ -400,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document, zoomLevel,
                 createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
                 removeTextDocument: (solution, documentId) => solution.RemoveDocument(documentId),
-                addTextDocument: (solution, documentId, name, text) => solution.AddDocument(documentId, name, text),
+                addTextDocument: (solution, documentInfo) => solution.AddDocument(documentInfo),
                 openTextDocument: (workspace, documentId) => workspace.OpenDocument(documentId),
                 cancellationToken);
         }
@@ -411,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document, zoomLevel,
                 createBufferAsync: CreateNewPlainTextBufferAsync,
                 removeTextDocument: (solution, documentId) => solution.RemoveAdditionalDocument(documentId),
-                addTextDocument: (solution, documentId, name, text) => solution.AddAdditionalDocument(documentId, name, text),
+                addTextDocument: (solution, documentInfo) => solution.AddAdditionalDocument(documentInfo),
                 openTextDocument: (workspace, documentId) => workspace.OpenAdditionalDocument(documentId),
                 cancellationToken);
         }
@@ -422,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document, zoomLevel,
                 createBufferAsync: CreateNewPlainTextBufferAsync,
                 removeTextDocument: (solution, documentId) => solution.RemoveAnalyzerConfigDocument(documentId),
-                addTextDocument: (solution, documentId, name, text) => solution.AddAnalyzerConfigDocument(documentId, name, text),
+                addTextDocument: (solution, documentInfo) => solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)),
                 openTextDocument: (workspace, documentId) => workspace.OpenAnalyzerConfigDocument(documentId),
                 cancellationToken);
         }
@@ -528,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             TextDocument newDocument,
             double zoomLevel,
             Func<Solution, DocumentId, Solution> removeTextDocument,
-            Func<Solution, DocumentId, string, SourceText, Solution> addTextDocument,
+            Func<Solution, DocumentInfo, Solution> addTextDocument,
             Func<Solution, DocumentId, SourceText, PreservationMode, Solution> withDocumentText,
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
@@ -571,7 +578,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
             var leftDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id);
             var solutionWithRemovedDocument = removeTextDocument(oldDocument.Project.Solution, oldDocument.Id);
-            var leftSolution = addTextDocument(solutionWithRemovedDocument, leftDocumentId, oldDocument.Name, oldBuffer.AsTextContainer().CurrentText);
+            var leftDocumentInfo = DocumentInfo.Create(
+                leftDocumentId,
+                oldDocument.Name,
+                loader: TextLoader.From(TextAndVersion.Create(oldBuffer.AsTextContainer().CurrentText, VersionStamp.Create(), oldDocument.FilePath)),
+                filePath: oldDocument.FilePath,
+                folders: oldDocument.Folders);
+            var leftSolution = addTextDocument(solutionWithRemovedDocument, leftDocumentInfo);
             var leftWorkspace = new PreviewWorkspace(leftSolution);
             openTextDocument(leftWorkspace, leftDocumentId);
 
@@ -591,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
                 oldDocument, newDocument, zoomLevel,
                 removeTextDocument: (solution, documentId) => solution.RemoveAdditionalDocument(documentId),
-                addTextDocument: (solution, documentId, name, text) => solution.AddAdditionalDocument(documentId, name, text),
+                addTextDocument: (solution, documentInfo) => solution.AddAdditionalDocument(documentInfo),
                 withDocumentText: (solution, documentId, newText, mode) => solution.WithAdditionalDocumentText(documentId, newText, mode),
                 openTextDocument: (workspace, documentId) => workspace.OpenAdditionalDocument(documentId),
                 cancellationToken);
@@ -602,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
                 oldDocument, newDocument, zoomLevel,
                 removeTextDocument: (solution, documentId) => solution.RemoveAnalyzerConfigDocument(documentId),
-                addTextDocument: (solution, documentId, name, text) => solution.AddAnalyzerConfigDocument(documentId, name, text),
+                addTextDocument: (solution, documentInfo) => solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)),
                 withDocumentText: (solution, documentId, newText, mode) => solution.WithAnalyzerConfigDocumentText(documentId, newText, mode),
                 openTextDocument: (workspace, documentId) => workspace.OpenAnalyzerConfigDocument(documentId),
                 cancellationToken);
@@ -753,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new DifferenceViewerPreview(diffViewer);
         }
 
-        private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
+        private static List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -773,7 +786,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         // Find the lines that surround the span of the difference.  Try to expand the span to
         // include both the previous and next lines so that we can show more context to the
         // user.
-        private LineSpan GetLineSpan(
+        private static LineSpan GetLineSpan(
             ITextSnapshot snapshot,
             Span span)
         {
@@ -832,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             });
         }
 
-        private NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();
@@ -847,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new NormalizedSpanCollection(lineSpans);
         }
 
-        private NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();

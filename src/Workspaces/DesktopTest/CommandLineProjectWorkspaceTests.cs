@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tempFile = tempDirectory.CreateFile("CSharpClass.cs");
             tempFile.WriteAllText("class CSharpClass { }");
 
-            using var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
+            using var ws = new AdhocWorkspace();
             var commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, tempDirectory.Path, ws);
             ws.AddProject(info);

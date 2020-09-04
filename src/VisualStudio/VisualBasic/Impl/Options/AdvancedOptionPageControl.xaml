@@ -28,8 +28,8 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
-                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
+                    <CheckBox x:Name="Use_64bit_analysis_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
@@ -94,6 +94,8 @@
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
                     <CheckBox x:Name="EnableLineCommit"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
                     <CheckBox x:Name="EnableEndConstruct"

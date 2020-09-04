@@ -14,8 +14,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractUpdateProjectTest : AbstractIntegrationTest
     {
-        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

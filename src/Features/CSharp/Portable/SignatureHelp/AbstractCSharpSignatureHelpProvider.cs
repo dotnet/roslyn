@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected static SymbolDisplayPart Keyword(SyntaxKind kind)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
 
+        protected static SymbolDisplayPart Operator(SyntaxKind kind)
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
+
         protected static SymbolDisplayPart Punctuation(SyntaxKind kind)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
 

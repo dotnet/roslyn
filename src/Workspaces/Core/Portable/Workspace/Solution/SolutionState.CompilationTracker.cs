@@ -100,14 +100,44 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol)
+            /// <summary>
+            /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
+            /// given <paramref name="symbol"/>.  The symbol must be a <see cref="IAssemblySymbol"/>, <see
+            /// cref="IModuleSymbol"/> or <see cref="IDynamicTypeSymbol"/>.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="primary"/> is true, then <see cref="Compilation.References"/> will not be considered
+            /// when answering this question.  In other words, if <paramref name="symbol"/>  is an <see
+            /// cref="IAssemblySymbol"/> and <paramref name="primary"/> is <see langword="true"/> then this will only
+            /// return true if the symbol is <see cref="Compilation.Assembly"/>.  If <paramref name="primary"/> is
+            /// false, then it can return true if <paramref name="symbol"/> is <see cref="Compilation.Assembly"/> or any
+            /// of the symbols returned by <see cref="Compilation.GetAssemblyOrModuleSymbol(MetadataReference)"/> for
+            /// any of the references of the <see cref="Compilation.References"/>.
+            /// </remarks>
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
                              symbol.Kind == SymbolKind.NetModule ||
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
+
                 var unrootedSymbolSet = state.UnrootedSymbolSet;
-                return unrootedSymbolSet != null && unrootedSymbolSet.TryGetValue(symbol, out _);
+                if (unrootedSymbolSet == null)
+                {
+                    // this was not a tracker that hands out symbols (for example, it's a 'declaration table only'
+                    // tracker).  So we have nothing to check this symbol against.
+                    return false;
+                }
+
+                if (primary)
+                {
+                    return symbol.Equals(unrootedSymbolSet.Value.PrimaryAssemblySymbol.GetTarget()) ||
+                           symbol.Equals(unrootedSymbolSet.Value.PrimaryDynamicSymbol.GetTarget());
+                }
+                else
+                {
+                    return unrootedSymbolSet.Value.SecondaryReferencedSymbols.Contains(symbol);
+                }
             }
 
             /// <summary>
@@ -361,6 +391,13 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
+            public async Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return compilationInfo.GeneratorDriverRunResult;
+            }
+
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
@@ -433,7 +470,7 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value);
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult());
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -475,7 +512,7 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value));
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult()));
                 }
 
                 compilation = state.Compilation?.GetValueOrNull(cancellationToken);
@@ -617,11 +654,13 @@ namespace Microsoft.CodeAnalysis
             {
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
+                public GeneratorDriverRunResult? GeneratorDriverRunResult { get; }
 
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded)
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, GeneratorDriverRunResult? generatorDriverRunResult)
                 {
-                    this.Compilation = compilation;
-                    this.HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+                    Compilation = compilation;
+                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+                    GeneratorDriverRunResult = generatorDriverRunResult;
                 }
             }
 
@@ -705,13 +744,14 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    // PROTOTYPE: allow finalize compilation to incrementally update a prior version
+                    // TODO: allow finalize compilation to incrementally update a prior version
+                    // https://github.com/dotnet/roslyn/issues/46418
                     var compilationWithoutGeneratedFiles = compilation;
 
                     if (generatorDriver.GeneratorDriver != null)
                     {
                         // https://github.com/dotnet/roslyn/issues/44163: make an API to expose these diagnostics
-                        generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunFullGeneration(compilation, out compilation, out var diagnostics, cancellationToken));
+                        generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 
                     RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
@@ -726,7 +766,7 @@ namespace Microsoft.CodeAnalysis
                             State.GetUnrootedSymbols(compilation)),
                         solution.Services);
 
-                    return new CompilationInfo(compilation, hasSuccessfullyLoaded);
+                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

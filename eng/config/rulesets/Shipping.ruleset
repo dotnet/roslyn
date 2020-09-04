@@ -50,6 +50,8 @@
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
     <Rule Id="RS0040" Action="None" /> <!-- Defaultable types should have defaultable fields -->
+    <Rule Id="RS0046" Action="Info" /> <!-- Avoid the 'Opt' suffix in nullable-enabled code (too noisy right now) -->
+    <Rule Id="RS0047" Action="None" /> <!-- (Suppressor) The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName' -->
   </Rules>
   <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
     <Rule Id="xUnit1004" Action="Hidden" /> <!-- allow skipped tests, with a code fix to unskip them -->
