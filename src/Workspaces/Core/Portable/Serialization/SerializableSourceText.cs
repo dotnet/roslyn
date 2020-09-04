@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -14,9 +13,28 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
+    /// <summary>
+    /// Represents a <see cref="SourceText"/> which can be serialized for sending to another process. The text is not
+    /// required to be a live object in the current process, and can instead be held in temporary storage accessible by
+    /// both processes.
+    /// </summary>
     internal sealed class SerializableSourceText
     {
+        /// <summary>
+        /// The storage location for <see cref="SourceText"/>.
+        /// </summary>
+        /// <remarks>
+        /// At least one of <see cref="Storage"/> or <see cref="Text"/> will be non-<see langword="null"/>. If both are
+        /// provided, they must reference the same source text.
+        /// </remarks>
         public ITemporaryTextStorageWithName? Storage { get; }
+
+        /// <summary>
+        /// The <see cref="SourceText"/> in the current process.
+        /// </summary>
+        /// <remarks>
+        /// <inheritdoc cref="Storage"/>
+        /// </remarks>
         public SourceText? Text { get; }
 
         public SerializableSourceText(ITemporaryTextStorageWithName storage)
@@ -39,12 +57,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public ImmutableArray<byte> GetChecksum()
         {
-            if (Storage is not null)
-                return Storage.GetChecksum();
-            else if (Text is not null)
-                return Text.GetChecksum();
-            else
-                return ImmutableArray<byte>.Empty;
+            return Text?.GetChecksum() ?? Storage!.GetChecksum();
         }
 
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
@@ -52,10 +65,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (Text is not null)
                 return Text;
 
-            if (Storage is not { } textStorage)
-                throw new NotSupportedException();
-
-            return await textStorage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
+            return await Storage!.ReadTextAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
