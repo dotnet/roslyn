@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            public sealed override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+            public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
                 return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var updatedDocument = await task.ConfigureAwait(false);
                     currentSolution = currentSolution.WithDocumentSyntaxRoot(
                         updatedDocument.Id,
-                        await updatedDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
+                        await updatedDocument.GetRequiredSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
                 }
 
                 var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
@@ -74,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private async Task<Document> FixDocumentAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
             {
-                var model = await document.GetSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+                var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
 
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Also ensure that we do not pass in duplicates by invoking Distinct.
                 // See https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
                 var filteredDiagnostics = diagnostics.Distinct()
-                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, fixAllContext.Document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
+                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
                 // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.

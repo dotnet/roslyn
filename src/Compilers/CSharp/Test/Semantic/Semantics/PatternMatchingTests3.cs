@@ -1435,7 +1435,7 @@ Block[B0] - Entry
                   Value: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
                   Pattern: 
-                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
                 Leaving: {R2}
             Next (Regular) Block[B2]
         Block[B2] - Block
@@ -1492,7 +1492,7 @@ Block[B0] - Entry
                   Value: 
                     IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
                   Pattern: 
-                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
                 Leaving: {R4}
             Next (Regular) Block[B6]
         Block[B6] - Block
@@ -1560,7 +1560,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
                 Arms(1):
                     ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
                       Pattern: 
-                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
                       Value: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1580,7 +1580,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
                 Arms(1):
                     ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => throw null!')
                       Pattern: 
-                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
                       Value: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1982,7 +1982,7 @@ class Point
 }
 class Animal { }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y1 or 1) { }
@@ -2078,7 +2078,7 @@ N.G<B>[]
 N.G<B>[]
 N.G<B>[]
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2150,7 +2150,7 @@ G<B>[]
 N.G<B>[]
 N.G<B>[]
 N.G<B>[]";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2222,7 +2222,7 @@ G<B>[]
 N.G<B>[]
 N.G<B>[]
 N.G<B>[]";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2271,7 +2271,7 @@ namespace N
 G<B>.D
 N.G<B>.D
 System.Int32";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2320,7 +2320,7 @@ namespace N
 G<B>.D
 N.G<B>.D
 System.Int32";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2351,7 +2351,7 @@ class C
     }
 }";
             var expectedOutput = @"111121";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2409,7 +2409,7 @@ class C
     }
 }";
             var expectedOutput = @"121212";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2455,7 +2455,7 @@ class C
         };
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 1L or 2L: Console.Write(2); break;
@@ -2486,7 +2486,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (8,13): error CS8781: Relational patterns may not be used for a value of type 'string'.
                 //             <"0" => "negative",
@@ -2526,7 +2526,7 @@ class C
     @"negative
 zero
 positive";
-                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2564,7 +2564,7 @@ class C
 less
 same
 more";
-                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2593,7 +2593,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (14,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case >= 0m: // error: subsumed
@@ -2635,7 +2635,7 @@ less
 same
 more
 incomparable";
-                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2651,7 +2651,7 @@ class C
     bool M1(object o) => o is < (0.0d / 0.0d);
     bool M2(object o) => o is < (0.0f / 0.0f);
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (4,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
                 //     bool M1(object o) => o is < (0.0d / 0.0d);
@@ -2677,7 +2677,7 @@ class C
         _                                      => false,
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         'a'                                    => true, // error 1
@@ -2705,7 +2705,7 @@ class C
         _ => 7,
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (12,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         _ => 7,
@@ -2728,7 +2728,7 @@ class C
         _ => 7
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (5,6): error CS1525: Invalid expression term '|'
                 //     {
@@ -2799,7 +2799,7 @@ class C
 1
 1
 7";
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
                 var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2858,7 +2858,7 @@ class C
 1
 1
 1";
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
                 var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2899,7 +2899,7 @@ class C
 " : "")
 + @"    };
 }";
-                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                     if (withExhaustive)
                     {
                         compilation.VerifyDiagnostics(
@@ -2955,7 +2955,7 @@ class C
 " : "")
 + @"    };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             if (withExhaustive)
             {
                 compilation.VerifyEmitDiagnostics(
@@ -2984,7 +2984,7 @@ class C
         _ => 7
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1525: Invalid expression term '=='
                 //         == 0 => 1,
@@ -3023,7 +3023,7 @@ class C
         _ => 7, // 1
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (23,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         _ => 7, // 1
@@ -3092,7 +3092,7 @@ class C
 106.12 => A
 110 => A
 111111111 => A";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -3230,7 +3230,7 @@ System.Object
 System.Object
 System.Int64
 ";
-            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -3318,7 +3318,7 @@ Base
 Base
 Base
 ";
-            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -4567,7 +4567,7 @@ enum LifeStage
 70 -> LateAdult
 80 -> LateAdult
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -4733,7 +4733,7 @@ enum LifeStage
 70 -> LateAdult
 80 -> LateAdult
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -4825,7 +4825,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
         }
@@ -4919,7 +4919,7 @@ CASES
             {
                 var casesString = string.Join("\n", cases);
                 var source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
                 var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5203,7 +5203,7 @@ static class Assert
 }
 ";
             source = source.Replace("KTYPE", constantType).Replace("TYPE", type);
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
@@ -5272,7 +5272,7 @@ static class Assert
 }
 ";
             source = source.Replace("KTYPE", constantType).Replace("TYPE", type);
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
@@ -6614,6 +6614,63 @@ namespace System
                 // (3,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ x: 1,  y: 2,  Extra: 3 }' is not covered.
                 //     static int M((int x, int y) s) => s switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ x: 1,  y: 2,  Extra: 3 }").WithLocation(3, 41)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_30()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M((bool, bool, bool, bool) t) => t switch
+    {
+        (false, true, true, true) => 3,
+        (false, true, false, true) when b => 4,
+        (false, false, false, true) => 5,
+        (false, false, true, true) => 6,
+        (true, _, false, _) => 1,
+        (true, _, true, _) => 2,
+        (false, _, _, false) => 7,
+    };
+    bool b => true;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,44): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(false, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+
+                //     int M((bool, bool, bool, bool) t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("(false, true, false, true)").WithLocation(4, 44)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_31()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M((object?, bool, bool, bool) t) => t switch
+    {
+        (null, true, true, true) => 3,
+        (null, true, false, true) when b => 4,
+        (null, false, false, true) => 5,
+        (null, false, true, true) => 6,
+        ({ }, _, false, _) => 1,
+        ({ }, _, true, _) => 2,
+        (null, _, _, false) => 7,
+    };
+    bool b => true;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //     int M((object?, bool, bool, bool) t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
         }
     }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
     {
         protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, DiagnosticBag diagnostics)
-            : base(containingType, name, memberOffset, diagnostics)
+            : base(containingType, name, hasBody: true, memberOffset, diagnostics)
         {
         }
 
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override void MethodChecks(DiagnosticBag diagnostics)
         {
             base.MethodChecks(diagnostics);
-            VerifyOerridesMethodFromObject(this, diagnostics);
+            VerifyOverridesMethodFromObject(this, ReturnType.SpecialType, diagnostics);
         }
 
         /// <summary>
         /// Returns true if reported an error
         /// </summary>
-        internal static bool VerifyOerridesMethodFromObject(MethodSymbol overriding, DiagnosticBag diagnostics)
+        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialType returnSpecialType, DiagnosticBag diagnostics)
         {
             bool reportAnError = false;
 
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     MethodSymbol leastOverridden = overriding.GetLeastOverriddenMethod(accessingTypeOpt: null);
 
-                    reportAnError = leastOverridden.ReturnType.SpecialType == overriding.ReturnType.SpecialType &&
-                                    leastOverridden.ContainingType.SpecialType != SpecialType.System_Object;
+                    reportAnError = leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions) &&
+                                    (leastOverridden.ContainingType.SpecialType != SpecialType.System_Object || returnSpecialType != leastOverridden.ReturnType.SpecialType);
                 }
             }
 

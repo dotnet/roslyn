@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
@@ -352,11 +351,6 @@ class C{i}
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ChangeSignatureCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
             using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
@@ -369,13 +363,13 @@ class C{i}
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
+            var handler = workspace.ExportProvider.GetCommandHandler<CSharpChangeSignatureCommandHandler>(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

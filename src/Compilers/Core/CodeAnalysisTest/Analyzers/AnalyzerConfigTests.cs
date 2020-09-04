@@ -1497,7 +1497,9 @@ is_global = true ", "/.editorconfig"));
             var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
 
             Assert.Single(configs);
-            Assert.Null(globalConfig);
+            Assert.NotNull(globalConfig);
+            Assert.Empty(globalConfig.GlobalSection.Properties);
+            Assert.Empty(globalConfig.NamedSections);
             configs.Free();
         }
 
@@ -1883,14 +1885,12 @@ dotnet_diagnostic.cs000.severity = none
 dotnet_diagnostic.cs001.severity = error
 ", "/.editorconfig"));
 
-            var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs" },
-                configs);
+            var set = AnalyzerConfigSet.Create(configs);
             configs.Free();
 
             Assert.Equal(CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress),
                                                    ("cs001", ReportDiagnostic.Error)),
-                         options[0].TreeOptions);
+                         set.GlobalConfigOptions.TreeOptions);
         }
 
         [Fact]
@@ -1928,23 +1928,21 @@ dotnet_diagnostic.cs000.severity = foo
 dotnet_diagnostic.cs001.severity = bar
 ", "/.editorconfig"));
 
-            var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "c:/path/to/file.cs" },
-                configs);
+            var set = AnalyzerConfigSet.Create(configs);
+            var options = new[] { "/test.cs", "c:/path/to/file.cs" }.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
             configs.Free();
 
-            options[0].Diagnostics.Verify(
+            set.GlobalConfigOptions.Diagnostics.Verify(
                 Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1)
                 );
 
             options[1].Diagnostics.Verify(
-                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1),
                 Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs001", "bar", "<Global Config>").WithLocation(1, 1)
                 );
         }
 
         [Fact]
-        public void GlobalConfigCanSeverityInSectionOverridesGlobal()
+        public void GlobalConfigSeverityInSectionOverridesGlobal()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
@@ -2087,6 +2085,20 @@ option2 = config3
                     }
               },
               options);
+        }
+
+        [Fact]
+        public void GlobalConfigOptionsAreEmptyWhenNoGlobalConfig()
+        {
+            var set = AnalyzerConfigSet.Create(ImmutableArray<AnalyzerConfig>.Empty);
+            var globalOptions = set.GlobalConfigOptions;
+
+            Assert.NotNull(globalOptions.AnalyzerOptions);
+            Assert.NotNull(globalOptions.TreeOptions);
+
+            Assert.Empty(globalOptions.AnalyzerOptions);
+            Assert.Empty(globalOptions.Diagnostics);
+            Assert.Empty(globalOptions.TreeOptions);
         }
 
 

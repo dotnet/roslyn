@@ -348,18 +348,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Location location in locations)
             {
                 // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
-                if (location == null)
+                if (location == null || !location.IsInSource)
                 {
                     continue;
                 }
-                if (location.IsInSource)
+
+                if (location.SourceSpan.Length != 0)
                 {
-                    SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
+                    SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
                     if (token.Kind() != SyntaxKind.None)
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)
+                        {
                             builder.Add(node.GetReference());
+                        }
+                    }
+                }
+                else
+                {
+                    // Since the location we're interested in can't contain a token, we'll inspect the whole tree,
+                    // pruning away branches that don't contain that location. We'll pick the narrowest node of the type
+                    // we're looking for.
+                    // eg: finding the ParameterSyntax from the empty location of a blank identifier
+                    SyntaxNode parent = location.SourceTree.GetRoot();
+                    SyntaxNode found = null;
+                    foreach (var descendant in parent.DescendantNodesAndSelf(c => c.Location.SourceSpan.Contains(location.SourceSpan)))
+                    {
+                        if (descendant is TNode && descendant.Location.SourceSpan.Contains(location.SourceSpan))
+                        {
+                            found = descendant;
+                        }
+                    }
+
+                    if (found is object)
+                    {
+                        builder.Add(found.GetReference());
                     }
                 }
             }
@@ -971,14 +995,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (info.Code == (int)ErrorCode.ERR_BogusType)
                 {
-                    info = GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? info;
+                    info = GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() ?? info;
                 }
             }
 
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        private DiagnosticInfo GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo()
+        private DiagnosticInfo GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()
         {
             switch (this.Kind)
             {
@@ -1068,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (current == AllowedRequiredModifierType.None ||
                         (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
                     {
-                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
+                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
                         {
                             return true;
                         }

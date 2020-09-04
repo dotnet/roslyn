@@ -13,12 +13,13 @@ using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer
-        : AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
+        : AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
     {
         protected override string CompilerErrorCodePrefix => "CS";
         protected override int CompilerErrorCodeDigitCount => 4;
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
         protected override (Assembly assembly, string typeName) GetCompilerDiagnosticAnalyzerInfo()
             => (typeof(SyntaxKind).Assembly, CompilerDiagnosticAnalyzerNames.CSharpCompilerAnalyzerTypeName);
     }

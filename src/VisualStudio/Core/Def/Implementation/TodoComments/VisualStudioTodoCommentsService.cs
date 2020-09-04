@@ -8,7 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -28,14 +29,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
-    [Export(typeof(IVisualStudioTodoCommentsService))]
     [Export(typeof(IVsTypeScriptTodoCommentService))]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoCommentsService
         : ForegroundThreadAffinitizedObject,
-          IVisualStudioTodoCommentsService,
           ITodoCommentsListener,
           ITodoListProvider,
-          IVsTypeScriptTodoCommentService
+          IVsTypeScriptTodoCommentService,
+          IEventListener<object>
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -69,16 +70,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
-        void IVisualStudioTodoCommentsService.Start(CancellationToken cancellationToken)
-            => _ = StartAsync(cancellationToken);
+        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        {
+            if (workspace is VisualStudioWorkspace)
+                _ = StartAsync();
+        }
 
-        private async Task StartAsync(CancellationToken cancellationToken)
+        private async Task StartAsync()
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
-                await StartWorkerAsync(cancellationToken).ConfigureAwait(false);
+                await StartWorkerAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -91,8 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             }
         }
 
-        private async Task StartWorkerAsync(CancellationToken cancellationToken)
+        private async Task StartWorkerAsync()
         {
+            var cancellationToken = ThreadingContext.DisposalToken;
+
             _workQueueSource.SetResult(
                 new AsyncBatchingWorkQueue<DocumentAndComments>(
                     TimeSpan.FromSeconds(1),
@@ -101,7 +107,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
+            {
+                ComputeTodoCommentsInCurrentProcess(cancellationToken);
                 return;
+            }
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
@@ -118,6 +127,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
+        {
+            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            var analyzerProvider = new InProcTodoCommentsIncrementalAnalyzerProvider(this);
+
+            registrationService.AddAnalyzerProvider(
+                analyzerProvider,
+                new IncrementalAnalyzerProviderMetadata(
+                    nameof(InProcTodoCommentsIncrementalAnalyzerProvider),
+                    highPriorityForActiveFile: false,
+                    workspaceKinds: WorkspaceKind.Host));
         }
 
         private Task ProcessTodoCommentInfosAsync(
@@ -210,9 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // TS doesn't have syntax trees, so just explicitly pass along null when converting the data.
-            foreach (var comment in todoComments)
-                converted.Add(comment.CreateSerializableData(document, text, tree: null));
+            await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);

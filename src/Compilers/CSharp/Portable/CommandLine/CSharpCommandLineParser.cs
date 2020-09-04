@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
             var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
-            int warningLevel = 4;
+            int warningLevel = Diagnostic.DefaultWarningLevel;
             bool highEntropyVA = false;
             bool printFullPaths = false;
             string? moduleAssemblyName = null;
@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
+            bool skipAnalyzers = false;
             ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo? preferredUILang = null;
             string? touchedFilesPath = null;
@@ -895,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
-                            else if (newWarningLevel < 0 || newWarningLevel > 4)
+                            else if (newWarningLevel < 0)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel, name);
                             }
@@ -1177,6 +1178,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "reportanalyzer":
                             reportAnalyzer = true;
+                            continue;
+
+                        case "skipanalyzers":
+                        case "skipanalyzers+":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = true;
+                            continue;
+
+                        case "skipanalyzers-":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = false;
                             continue;
 
                         case "nostdlib":
@@ -1503,6 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
+                SkipAnalyzers = skipAnalyzers,
                 EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }

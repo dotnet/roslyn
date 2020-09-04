@@ -22,15 +22,14 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -40,10 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly VisualStudio14StructureTaggerProvider _outliningTaggerProvider;
+        private readonly SourceGeneratedFileManager _sourceGeneratedFileManager;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
@@ -51,13 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             : base(outliningTaggerProvider.ThreadingContext)
         {
             _serviceProvider = serviceProvider;
-            _outliningTaggerProvider = outliningTaggerProvider;
 
             var componentModel = _serviceProvider.GetService<SComponentModel, IComponentModel>();
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            _textEditorFactoryService = componentModel.GetService<ITextEditorFactoryService>();
-            _textDocumentFactoryService = componentModel.GetService<ITextDocumentFactoryService>();
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
+            _sourceGeneratedFileManager = componentModel.GetService<SourceGeneratedFileManager>();
         }
 
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
@@ -83,6 +78,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
+                }
+                else
+                {
+                    // This may be a file from a source generator; if so let's go to it instead
+                    var generatorRunResult = project.GetGeneratorDriverRunResultAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    if (generatorRunResult.TryGetGeneratorAndHint(sourceLocation.SourceTree!, out var generator, out var hintName))
+                    {
+                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, generator, hintName, sourceLocation.SourceSpan);
+                        return true;
+                    }
                 }
             }
 
@@ -212,8 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            if (WouldNotifyToSpecificSymbol(definitionItem, rqName1, solution, cancellationToken, out filePath, out lineNumber, out charOffset) ||
-                WouldNotifyToSpecificSymbol(definitionItem, rqName2, solution, cancellationToken, out filePath, out lineNumber, out charOffset))
+            if (WouldNotifyToSpecificSymbol(definitionItem, rqName1, cancellationToken, out filePath, out lineNumber, out charOffset) ||
+                WouldNotifyToSpecificSymbol(definitionItem, rqName2, cancellationToken, out filePath, out lineNumber, out charOffset))
             {
                 return true;
             }
@@ -225,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool WouldNotifyToSpecificSymbol(
-            DefinitionItem definitionItem, string rqName, Solution solution, CancellationToken cancellationToken,
+            DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             AssertIsForeground();
@@ -270,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool TryGetNavigationAPIRequiredArguments(
             DefinitionItem definitionItem,
-            string rqName,
+            string? rqName,
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out IVsHierarchy? hierarchy,
             out uint itemID,
@@ -337,13 +343,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             hierarchy = null;
             itemID = (uint)VSConstants.VSITEMID.Nil;
             return false;
-        }
-
-        private IVsRunningDocumentTable GetRunningDocumentTable()
-        {
-            var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            RoslynDebug.Assert(runningDocumentTable != null);
-            return runningDocumentTable;
         }
     }
 }

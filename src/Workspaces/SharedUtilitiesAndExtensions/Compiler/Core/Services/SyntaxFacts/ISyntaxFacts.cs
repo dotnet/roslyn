@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// preprocessor directive.  For example `if` or `pragma`.
         /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
+        bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
@@ -184,10 +185,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
 #nullable enable
-        bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
 #nullable restore
-        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
+        /// <summary>
+        /// Gets the containing expression that is actually a language expression and not just typed
+        /// as an ExpressionSyntax for convenience. For example, NameSyntax nodes on the right side
+        /// of qualified names and member access expressions are not language expressions, yet the
+        /// containing qualified names or member access expressions are indeed expressions.
+        /// </summary>
+        SyntaxNode GetStandaloneExpression(SyntaxNode node);
+
+        /// <summary>
+        /// Call on the `.y` part of a `x?.y` to get the entire `x?.y` conditional access expression.  This also works
+        /// when there are multiple chained conditional accesses.  For example, calling this on '.y' or '.z' in
+        /// `x?.y?.z` will both return the full `x?.y?.z` node.  This can be used to effectively get 'out' of the RHS of
+        /// a conditional access, and commonly represents the full standalone expression that can be operated on
+        /// atomically.
+        /// </summary>
+        SyntaxNode GetRootConditionalAccessExpression(SyntaxNode node);
+
+        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
 
         /// <summary>
@@ -368,14 +388,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration(SyntaxNode node);
         bool IsNamespaceDeclaration(SyntaxNode node);
+        List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
-        int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
-        SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         /// <summary>
@@ -450,6 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction);
         bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
         bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement);
+        bool IsOnWhileStatementHeader(SyntaxNode root, int position, out SyntaxNode whileStatement);
         bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, out SyntaxNode typeDeclaration);
 

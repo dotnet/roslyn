@@ -9,6 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// The record type includes a synthesized override of object.Equals(object? obj).
+    /// It is an error if the override is declared explicitly. The synthesized override
+    /// returns Equals(other as R) where R is the record type.
+    /// </summary>
     internal sealed class SynthesizedRecordObjEquals : SynthesizedRecordObjectMethod
     {
         private readonly MethodSymbol _typedRecordEquals;
@@ -19,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typedRecordEquals = typedRecordEquals;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplement) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -29,30 +34,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                     TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), NullableAnnotation.Annotated),
                                                                     ordinal: 0, RefKind.None, "obj", isDiscard: false, Locations)),
                     IsVararg: false,
-                    DeclaredConstraintsForOverrideOrImplement: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
 
         protected override int GetParameterCountFromSyntax() => 1;
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 
-            var paramAccess = F.Parameter(Parameters[0]);
-
-            BoundExpression expression;
-            if (ContainingType.IsStructType())
+            try
             {
-                throw ExceptionUtilities.Unreachable;
-            }
-            else
-            {
-                // For classes:
-                //      return this.Equals(param as ContainingType);
-                expression = F.Call(F.This(), _typedRecordEquals, F.As(paramAccess, ContainingType));
-            }
+                var paramAccess = F.Parameter(Parameters[0]);
 
-            F.CloseMethod(F.Block(ImmutableArray.Create<BoundStatement>(F.Return(expression))));
+                BoundExpression expression;
+                if (ContainingType.IsStructType())
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+                else
+                {
+                    if (_typedRecordEquals.ReturnType.SpecialType != SpecialType.System_Boolean)
+                    {
+                        // There is a signature mismatch, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
+                    // For classes:
+                    //      return this.Equals(param as ContainingType);
+                    expression = F.Call(F.This(), _typedRecordEquals, F.As(paramAccess, ContainingType));
+                }
+
+                F.CloseMethod(F.Block(ImmutableArray.Create<BoundStatement>(F.Return(expression))));
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
         }
     }
 }

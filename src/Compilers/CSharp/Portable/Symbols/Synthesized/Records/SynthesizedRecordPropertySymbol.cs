@@ -11,9 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordPropertySymbol : SourcePropertySymbolBase, IAttributeTargetSymbol
+    internal sealed class SynthesizedRecordPropertySymbol : SourcePropertySymbolBase
     {
-        public ParameterSymbol BackingParameter { get; }
+        public SourceParameterSymbol BackingParameter { get; }
 
         public SynthesizedRecordPropertySymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -42,14 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasParameters: false,
                 diagnostics)
         {
-            BackingParameter = backingParameter;
+            BackingParameter = (SourceParameterSymbol)backingParameter;
         }
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
 
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.None;
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.None;
+        public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
 
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
@@ -58,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => new SyntaxTokenList();
 
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => new SyntaxList<AttributeListSyntax>();
+            => BackingParameter.AttributeDeclarationList;
 
         protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
@@ -83,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingType,
                 this,
                 _modifiers,
-                _sourceName,
                 ((ParameterSyntax)syntax).Identifier.GetLocation(),
                 syntax,
                 diagnostics);
@@ -113,5 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override bool HasPointerTypeSyntactically
             // Since we already bound the type, don't bother looking at syntax
             => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
+
+        public static bool HaveCorrespondingSynthesizedRecordPropertySymbol(SourceParameterSymbol parameter)
+        {
+            return parameter.ContainingSymbol is SynthesizedRecordConstructor &&
+                   parameter.ContainingType.GetMembersUnordered().Any((s, parameter) => (s as SynthesizedRecordPropertySymbol)?.BackingParameter == (object)parameter, parameter);
+        }
     }
 }

@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -486,6 +488,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
+            {
+                MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                DecodeModuleInitializerAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
+            {
+                DecodeUnmanagedCallersOnlyAttribute(arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -760,6 +771,144 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         bestFitMapping,
                         throwOnUnmappable),
                     preserveSig);
+            }
+        }
+
+        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                return;
+            }
+
+            Debug.Assert(ContainingType is object);
+            var hasError = false;
+
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteDiagnostics))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            arguments.Diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteDiagnostics);
+
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (IsGenericMethod || ContainingType.IsGenericType)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
+            {
+                DeclaringCompilation.AddModuleInitializerMethod(this);
+            }
+        }
+
+        private void DecodeUnmanagedCallersOnlyAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            {
+                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
+            }
+
+            if (!arguments.Attribute.CommonNamedArguments.IsDefaultOrEmpty)
+            {
+                foreach (var (key, value) in arguments.Attribute.CommonNamedArguments)
+                {
+                    if (key != "CallConvs"
+                        || value.Kind != TypedConstantKind.Array
+                        || value.Values.Any(v => v.Kind != TypedConstantKind.Type))
+                    {
+                        continue;
+                    }
+
+                    foreach (var callConvTypedConstant in value.Values)
+                    {
+                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                        {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, arguments.AttributeSyntaxOpt.Location, callConvTypedConstant.ValueInternal ?? "null");
+                        }
+                    }
+                }
+            }
+
+            var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
+            {
+                MethodDeclarationSyntax m => (m.ReturnType, m.TypeParameterList),
+                LocalFunctionStatementSyntax l => (l.ReturnType, l.TypeParameterList),
+                _ => default
+            };
+
+            if (returnTypeSyntax is null)
+            {
+                // We already issued an error for these above. We don't immediately bail out so we can error on invalid
+                // calling convention types as well, but erroring on parameter or return types will likely just be noise.
+                Debug.Assert(MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction));
+                return;
+            }
+
+            if (isGenericMethod(this) || ContainingType.IsGenericType)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, arguments.AttributeSyntaxOpt.Name.Location);
+            }
+
+            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
+            foreach (var param in Parameters)
+            {
+                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
+            }
+
+            static bool isGenericMethod([DisallowNull] MethodSymbol? method)
+            {
+                do
+                {
+                    if (method.IsGenericMethod)
+                    {
+                        return true;
+                    }
+
+                    method = method.ContainingSymbol as MethodSymbol;
+                } while (method is not null);
+
+                return false;
+            }
+
+            static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, DiagnosticBag diagnostics)
+            {
+                // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
+                // in reporting managed types being used
+                switch (type.ManagedKindNoUseSiteDiagnostics)
+                {
+                    case ManagedKind.Unmanaged:
+                    case ManagedKind.UnmanagedWithGenerics:
+                        // Note that this will let through some things that are technically unmanaged, but not
+                        // actually blittable. However, we don't have a formal concept of blittable in C#
+                        // itself, so checking for purely unmanaged types is the best we can do here.
+                        return;
+
+                    case ManagedKind.Managed:
+                        // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
+                        diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
+                        return;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.ManagedKindNoUseSiteDiagnostics);
+                }
             }
         }
 #nullable restore

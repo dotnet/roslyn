@@ -169,7 +169,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Services.Test.Utilit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf", "src\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj", "{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\DesktopHost\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\HostProcess\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost.UnitTests", "src\Interactive\HostTest\InteractiveHost.UnitTests.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}"
 EndProject
@@ -192,8 +192,6 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.VisualStudio.LanguageServices.UnitTests", "src\VisualStudio\Core\Test\Microsoft.VisualStudio.LanguageServices.UnitTests.vbproj", "{A1455D30-55FC-45EF-8759-3AEBDB13D940}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup", "src\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.InteractiveComponents", "src\VisualStudio\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.csproj", "{2169F526-8A88-435D-8732-486ACA095A6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.DiagnosticsWindow", "src\VisualStudio\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj", "{A486D7DE-F614-409D-BB41-0FFDF582E35C}"
 EndProject
@@ -337,6 +335,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Wpf", "src\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj", "{FFB00FB5-8C8C-4A02-B67D-262B9D28E8B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalyzerRunner", "src\Tools\AnalyzerRunner\AnalyzerRunner.csproj", "{60166C60-813C-46C4-911D-2411B4ABBC0F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2} = {B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}
+		{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD} = {49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}
+		{3CDEEAB7-2256-418A-BEB2-620B5CB16302} = {3CDEEAB7-2256-418A-BEB2-620B5CB16302}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debugging.Package", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.Package.csproj", "{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89}"
 EndProject
@@ -344,7 +347,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests", "src\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj", "{037F06F0-3BE8-42D0-801E-2F74FC380AB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\DesktopHost\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\HostProcess\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.IntegrationService", "src\VisualStudio\IntegrationTest\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj", "{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}"
 EndProject
@@ -825,10 +828,6 @@ Global
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1300,7 +1299,6 @@ Global
 		{91C574AD-0352-47E9-A019-EE02CC32A396} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A1455D30-55FC-45EF-8759-3AEBDB13D940} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{2169F526-8A88-435D-8732-486ACA095A6A} = {19148439-436F-4CDA-B493-70AF4FFC13E9}
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{B617717C-7881-4F01-AB6D-B1B6CC0483A0} = {4C81EBB2-82E1-4C81-80C4-84CC40FA281B}
 		{FD6BA96C-7905-4876-8BCC-E38E2CA64F31} = {913A4C08-898E-49C7-9692-0EF9DC56CF6E}

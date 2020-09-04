@@ -199,7 +199,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             //  await <expr>.M(...).ConfigureAwait(...)
 
             var expressionNode = nameNode;
-            if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+            if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
+                syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
             {
                 expressionNode = nameNode.Parent;
             }

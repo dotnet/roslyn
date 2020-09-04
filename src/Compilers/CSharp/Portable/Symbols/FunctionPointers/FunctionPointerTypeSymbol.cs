@@ -26,15 +26,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     suppressUseSiteDiagnostics));
 
         /// <summary>
+        /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed. This is
+        /// intended for use in test code.
+        /// </summary>
+        public static FunctionPointerTypeSymbol CreateFromPartsForTests(
+            CallingConvention callingConvention,
+            TypeWithAnnotations returnType,
+            ImmutableArray<CustomModifier> refCustomModifiers,
+            RefKind returnRefKind,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<ImmutableArray<CustomModifier>> parameterRefCustomModifiers,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromPartsForTest(callingConvention, returnType, refCustomModifiers, returnRefKind, parameterTypes, parameterRefCustomModifiers, parameterRefKinds, compilation));
+
+        /// <summary>
         /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed.
         /// </summary>
         public static FunctionPointerTypeSymbol CreateFromParts(
+            CallingConvention callingConvention,
+            ImmutableArray<CustomModifier> callingConventionModifiers,
             TypeWithAnnotations returnType,
             RefKind returnRefKind,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             CSharpCompilation compilation)
-            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, callingConventionModifiers, returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
 
         public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(
@@ -46,17 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers)
             => new FunctionPointerTypeSymbol(Signature.SubstituteParameterSymbols(substitutedReturnType, substitutedParameterTypes, refCustomModifiers, paramRefCustomModifiers));
-
-        public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
-            convention switch
-            {
-                "" => (CallingConvention.Default, true),
-                "cdecl" => (CallingConvention.CDecl, true),
-                "managed" => (CallingConvention.Default, true),
-                "thiscall" => (CallingConvention.ThisCall, true),
-                "stdcall" => (CallingConvention.Standard, true),
-                _ => (CallingConvention.Default, false),
-            };
 
         private FunctionPointerTypeSymbol(FunctionPointerMethodSymbol signature)
         {
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         // Pointers do not support boxing, so they really have no base type.
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
-        internal override ManagedKind ManagedKind => ManagedKind.Unmanaged;
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Unmanaged;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
@@ -194,5 +200,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static RefKind GetRefKindForHashCode(RefKind refKind)
             => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
+
+        /// <summary>
+        /// Return true if the given type is valid as a calling convention modifier type.
+        /// </summary>
+        internal static bool IsCallingConventionModifier(NamedTypeSymbol modifierType)
+        {
+            return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+                   && modifierType.Arity == 0
+                   && modifierType.Name != "CallConv"
+                   && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
+#pragma warning disable IDE0055 // Formatting wants to put the braces at the beginning of the line https://github.com/dotnet/roslyn/issues/46284
+                   && modifierType.ContainingNamespace is
+                      {
+                          Name: "CompilerServices",
+                          ContainingNamespace:
+                          {
+                              Name: "Runtime",
+                              ContainingNamespace:
+                              {
+                                  Name: "System",
+                                  ContainingNamespace: { IsGlobalNamespace: true }
+                              }
+                          }
+                      };
+#pragma warning restore IDE0055
+        }
     }
 }

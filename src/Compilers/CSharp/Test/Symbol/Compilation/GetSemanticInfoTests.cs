@@ -4446,7 +4446,7 @@ public class B : A
             Assert.Equal(classAnother, rightInfo.CandidateSymbols.Single());
 
             compilation.VerifyDiagnostics(
-                // (12,14): error CS0060: Inconsistent accessibility: base class 'A' is less accessible than class 'B'
+                // (12,14): error CS0060: Inconsistent accessibility: base type 'A' is less accessible than class 'B'
                 // public class B : A
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A"),
                 // (14,12): error CS0122: 'A.Nested' is inaccessible due to its protection level
@@ -5789,6 +5789,50 @@ namespace ConsoleApplication1
         }
 
         [Fact]
+        public void PartialTypeDiagnostics_StaticConstructors()
+        {
+            var file1 = @"
+partial class C
+{
+    static C() {}
+}
+";
+
+            var file2 = @"
+partial class C
+{
+    static C() {}
+}
+";
+            var file3 = @"
+partial class C
+{
+    static C() {}
+}
+";
+
+            var tree1 = Parse(file1);
+            var tree2 = Parse(file2);
+            var tree3 = Parse(file3);
+            var comp = CreateCompilation(new[] { tree1, tree2, tree3 });
+            var model1 = comp.GetSemanticModel(tree1);
+            var model2 = comp.GetSemanticModel(tree2);
+            var model3 = comp.GetSemanticModel(tree3);
+
+            model1.GetDeclarationDiagnostics().Verify();
+
+            model2.GetDeclarationDiagnostics().Verify(
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12));
+
+            model3.GetDeclarationDiagnostics().Verify(
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12));
+
+            Assert.Equal(3, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").StaticConstructors.Length);
+        }
+
+        [Fact]
         public void PartialTypeDiagnostics_Constructors()
         {
             var file1 = @"
@@ -5822,16 +5866,15 @@ partial class C
             model1.GetDeclarationDiagnostics().Verify();
 
             model2.GetDeclarationDiagnostics().Verify(
-                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+                // (4,5): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 5));
 
             model3.GetDeclarationDiagnostics().Verify(
-                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+                // (4,5): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 5));
 
             Assert.Equal(3, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Length);
         }
-
 
         [WorkItem(1076661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1076661")]
         [Fact]

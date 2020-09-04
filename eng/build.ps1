@@ -43,6 +43,7 @@ param (
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
+  [switch]$oop64bit = $true,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -199,8 +200,7 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
-  $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
+  $solution = "Roslyn.sln"
 
   Write-Host "$($solution):"
 
@@ -213,7 +213,7 @@ function BuildSolution() {
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
+  $testTargetFrameworks = if ($testCoreClr) { 'net5.0%3Bnetcoreapp3.1' } else { "" }
   
   $ibcDropName = GetIbcDropName
 
@@ -277,11 +277,11 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "master"
+    $fallback = "main"
 
     $branchData = GetBranchPublishData $officialSourceBranchName
     if ($branchData -eq $null) {
-      Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
       Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
       return $fallback
     }
@@ -309,6 +309,8 @@ function GetIbcDropName() {
     
     # Find the matching drop
     $branch = GetIbcSourceBranchName
+    Write-Host "Optimization data branch name is '$branch'."
+
     $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch
     return $drop.Name
 }
@@ -321,7 +323,7 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $branchData = GetBranchPublishData $branchName
 
   if ($branchData -eq $null) {
-    Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+    Write-LogIssue -Type warning -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. "
     $branchData = GetBranchPublishData $fallbackBranch
   }
 
@@ -330,12 +332,14 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $vsMajorVersion = $branchData.vsMajorVersion
   $vsChannel = "int.$vsBranchSimpleName"
 
-  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
+  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"
   Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
 
   $insertionDir = Join-Path $VSSetupDir "Insertion"
-  $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-  Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  if (Test-Path $insertionDir) {
+    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  }
 }
 
 # Core function for running our unit / integration tests tests
@@ -405,6 +409,7 @@ function TestUsingOptimizedRunner() {
 
   # Exclude out the multi-targetted netcore app projects
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
+  $dlls = $dlls | ?{ -not ($_.FullName -match ".*net5.0.*") }
 
   # Exclude out the ref assemblies
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
@@ -592,6 +597,8 @@ function Setup-IntegrationTestRun() {
     # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
     Capture-Screenshot $screenshotPath
   }
+
+  $env:ROSLYN_OOP64BIT = "$oop64bit"
 }
 
 function Prepare-TempDir() {

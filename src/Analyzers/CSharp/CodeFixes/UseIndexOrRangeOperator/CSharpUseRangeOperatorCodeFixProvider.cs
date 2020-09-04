@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -150,16 +151,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var startFromEnd = IsFromEnd(lengthLikeProperty, instance, ref startOperation);
             var startExpr = (ExpressionSyntax)startOperation.Syntax;
 
-            // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
-            // change our end-op to be `val` and record that we should emit it as `^val`.
-            var endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
-            var endExpr = (ExpressionSyntax)endOperation.Syntax;
+            var endFromEnd = false;
+            ExpressionSyntax endExpr = null;
 
-            // If the range operation goes to 'expr.Length' then we can just leave off the end part
-            // of the range.  i.e. `start..`
-            if (IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
+            if (!(endOperation is null))
             {
-                endExpr = null;
+                // We need to do the same for the second argument, since it's present.
+                // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
+                // change our end-op to be `val` and record that we should emit it as `^val`.
+                endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
+
+                // Check if the range goes to 'expr.Length'; if it does, we leave off
+                // the end part of the range, i.e. `start..`.
+                if (!IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
+                {
+                    endExpr = (ExpressionSyntax)endOperation.Syntax;
+                }
             }
 
             // If we're starting the range operation from 0, then we can just leave off the start of
@@ -171,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
 
             return RangeExpression(
-                startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr,
-                endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr);
+                startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr?.Parenthesize(),
+                endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr?.Parenthesize());
         }
 
         private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)

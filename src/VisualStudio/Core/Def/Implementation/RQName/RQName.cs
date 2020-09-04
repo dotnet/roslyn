@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <param name="symbol">The symbol to build an RQName for.</param>
         /// <returns>A string suitable to pass as the pszRQName argument to methods in <see cref="IVsRefactorNotify"/>
         /// and <see cref="IVsSymbolicNavigationNotify"/>.</returns>
-        public static string From(ISymbol symbol)
+        public static string? From(ISymbol symbol)
             => RQNameInternal.From(symbol);
     }
 }

@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         }
 
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace vsWorkspace)
@@ -46,14 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
-                    return WorkspaceStatusService.Default;
+                    return new WorkspaceStatusService();
                 }
 
                 // only VSWorkspace supports partial load mode
                 return new Service(_serviceProvider, _listener);
             }
 
-            return WorkspaceStatusService.Default;
+            return new WorkspaceStatusService();
         }
 
         /// <summary>

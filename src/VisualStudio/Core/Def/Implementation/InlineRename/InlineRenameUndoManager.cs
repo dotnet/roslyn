@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                     undoManager.Add(new RedoPrimitive(undoManager, GetUndoTransactionDescription(state.ReplacementText)));
                 }
 
-                foreach (var state in this.RedoStack)
+                foreach (var _ in this.RedoStack)
                 {
                     undoManager.UndoTo(null);
                 }
