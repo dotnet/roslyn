@@ -8,7 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -223,8 +225,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     else
                     {
                         Debug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
-                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols), $"{nameof(dependentSymbols)} was expected to contain the same elements in {nameof(existingDependentSymbols)}.");
+                        if (!dependentSymbols.SetEquals(existingDependentSymbols))
+                        {
+                            var builder = new StringBuilder();
+                            builder.AppendLine($"{nameof(dependentSymbols)} was expected to contain the same elements in {nameof(existingDependentSymbols)}.");
+                            addToStringBuilder(dependentSymbols, nameof(dependentSymbols), builder);
+                            addToStringBuilder(existingDependentSymbols, nameof(existingDependentSymbols), builder);
+                            Debug.Assert(false, builder.ToString());
+                        }
                     }
+                }
+
+                static void addToStringBuilder(HashSet<ISymbol> symbols, string setName, StringBuilder builder)
+                {
+                    builder.AppendLine($"{setName} contains {symbols.Count} elements:");
+                    foreach (var element in symbols)
+                    {
+                        builder.AppendLine(element.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                    }
+                    builder.AppendLine();
                 }
             }
 
