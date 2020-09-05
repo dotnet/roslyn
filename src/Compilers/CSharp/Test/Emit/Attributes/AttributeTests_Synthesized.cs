@@ -1193,7 +1193,7 @@ public class Test
 using System.Runtime.CompilerServices;
 
 [assembly: CompilationRelaxationsAttribute(0)]
-", options: TestOptions.CreateTestOptions(outputKind, optimizationLevel));
+", options: TestOptions.CreateTestOptions(OutputKind.NetModule, optimizationLevel));
 
             var reference = ModuleMetadata.CreateFromImage(referenceComp.EmitToArray()).GetReference();
 
