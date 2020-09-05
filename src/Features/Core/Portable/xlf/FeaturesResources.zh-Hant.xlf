@@ -675,6 +675,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將成員提取直到基底類型...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">數量詞 {x,y} 前面沒有任何項目</target>
