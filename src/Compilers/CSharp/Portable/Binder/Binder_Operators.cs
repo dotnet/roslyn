@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var operatorText = node.IsKind(SyntaxKind.EqualsExpression) ? "==" : "!=";
                     var expressionValue = node.IsKind(SyntaxKind.NotEqualsExpression); // != NaN always produces true. == NaN always produces false.
-                    Error(diagnostics, ErrorCode.WRN_EqualityWithNaN, node, operatorToken.Text, operatorText, expressionValue);
+                    Error(diagnostics, ErrorCode.WRN_EqualityWithNaN, node, operatorText, expressionValue);
                 }
             }
 
