@@ -887,6 +887,11 @@
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_EqualityWithNaN">
+        <source>The operator '{0}' will always return '{1}' for NaN</source>
+        <target state="new">The operator '{0}' will always return '{1}' for NaN</target>
+        <note>NaN is not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>

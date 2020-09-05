@@ -557,7 +557,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((left.ConstantValue?.SpecialType == SpecialType.System_Double && left.ConstantValue.DoubleValue is double.NaN) ||
                     (right.ConstantValue?.SpecialType == SpecialType.System_Double && right.ConstantValue.DoubleValue is double.NaN))
                 {
-                    // TODO:  Create new warning with level 5 and report it here
+                    var operatorText = node.IsKind(SyntaxKind.EqualsExpression) ? "==" : "!=";
+                    var expressionValue = node.IsKind(SyntaxKind.NotEqualsExpression); // != NaN always produces true. == NaN always produces false.
+                    Error(diagnostics, ErrorCode.WRN_EqualityWithNaN, node, operatorToken.Text, operatorText, expressionValue);
                 }
             }
 

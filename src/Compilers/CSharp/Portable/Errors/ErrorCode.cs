@@ -1903,6 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterIsStaticClass = 8897,
         WRN_ReturnTypeIsStaticClass = 8898,
 
+        WRN_EqualityWithNaN = 8899,
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
