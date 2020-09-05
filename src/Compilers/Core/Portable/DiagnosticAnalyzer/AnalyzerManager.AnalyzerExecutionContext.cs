@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
