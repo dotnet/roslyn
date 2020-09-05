@@ -45,9 +45,11 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             // So, the code fix will do: Replace(node at diagnostic.Location, node at diagnostic.AdditionalLocations[0]).
             if (rightOperand.ConstantValue.HasValue && rightOperand.ConstantValue.Value is true)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor,
+                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
                     operation.Syntax.GetLocation(),
-                    additionalLocations: new[] { leftOperand.Syntax.GetLocation() }));
+                    ReportDiagnostic.Hidden,
+                    additionalLocations: new[] { leftOperand.Syntax.GetLocation() },
+                    properties: null));
             }
             else if (leftOperand.ConstantValue.HasValue && leftOperand.ConstantValue.Value is true)
             {
