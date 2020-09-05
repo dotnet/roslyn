@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,10 +40,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
             : base(solutionProvider)
         {
-            _csTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
-            _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
+            _csTriggerCharacters = GetCSharpTriggerCharacters(completionProviders);
+            _vbTriggerCharacters = GetVisualBasicTriggerCharacters(completionProviders);
         }
 
         public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
@@ -50,6 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
+                if (request.Context.TriggerCharacter == "@")
+                {
+                    //Debugger.Launch();
+                }
                 return Array.Empty<LSP.CompletionItem>();
             }
 
@@ -60,6 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (request.Context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter && !char.IsLetterOrDigit(triggerCharacter) &&
                 !IsValidTriggerCharacterForDocument(document, request.Context.TriggerCharacter))
             {
+                if (request.Context.TriggerCharacter == "@")
+                {
+                    //Debugger.Launch();
+                }
                 return Array.Empty<LSP.CompletionItem>();
             }
 
@@ -90,12 +97,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
+                if (request.Context.TriggerCharacter == "@")
+                {
+                    //Debugger.Launch();
+                }
                 return Array.Empty<LSP.CompletionItem>();
             }
 
             var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
-            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger)).ToArray();
+            var items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger)).ToArray();
+            if (request.Context.TriggerCharacter == "@")
+            {
+                //Debugger.Launch();
+            }
+            return items;
 
             // Local functions
             bool IsValidTriggerCharacterForDocument(Document document, string triggerCharacter)
@@ -191,14 +207,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+        internal static ImmutableHashSet<string> GetCSharpTriggerCharacters(IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
-            if (provider is LSPCompletionProvider lspProvider)
-            {
-                return lspProvider.TriggerCharacters;
-            }
+            // @ is a trigger character for razor, but not it is not provided by C# completion providers.
+            return GetAllTriggerCharacters(completionProviders, LanguageNames.CSharp).Add("@");
+        }
 
-            return ImmutableHashSet<char>.Empty;
+        internal static ImmutableHashSet<string> GetVisualBasicTriggerCharacters(IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
+        {
+            return GetAllTriggerCharacters(completionProviders, LanguageNames.VisualBasic);
+        }
+
+        private static ImmutableHashSet<string> GetAllTriggerCharacters(IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders, string languageName)
+        {
+            return completionProviders.Where(lz => lz.Metadata.Language == languageName).SelectMany(
+                lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
+
+            static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+            {
+                if (provider is LSPCompletionProvider lspProvider)
+                {
+                    return lspProvider.TriggerCharacters;
+                }
+
+                return ImmutableHashSet<char>.Empty;
+            }
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)

@@ -29,16 +29,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InitializeHandler([ImportMany] IEnumerable<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> completionProviders)
         {
-            _completionProviders = completionProviders
-                .Where(lz => lz.Metadata.Language == LanguageNames.CSharp || lz.Metadata.Language == LanguageNames.VisualBasic)
-                .ToImmutableArray();
+            _completionProviders = completionProviders.ToImmutableArray();
         }
 
         public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
-            var triggerCharacters = _completionProviders.SelectMany(
-                lz => CompletionHandler.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
+            var triggerCharacters = CompletionHandler.GetCSharpTriggerCharacters(_completionProviders).Union(CompletionHandler.GetVisualBasicTriggerCharacters(_completionProviders));
 
             return Task.FromResult(new LSP.InitializeResult
             {
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         ResolveProvider = true,
                         AllCommitCharacters = commitCharacters,
-                        TriggerCharacters = triggerCharacters
+                        TriggerCharacters = triggerCharacters.ToArray()
                     },
                     SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     DocumentSymbolProvider = true,
