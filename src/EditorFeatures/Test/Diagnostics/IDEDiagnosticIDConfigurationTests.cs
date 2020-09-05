@@ -397,6 +397,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0083
 csharp_style_prefer_not_pattern = true:suggestion
 
+# IDE0085
+dotnet_diagnostic.IDE0085.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -554,6 +557,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 
 # IDE0084
 visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0085
+dotnet_diagnostic.IDE0085.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -942,6 +948,9 @@ No editorconfig based code style option
 # IDE0083, PreferNotPattern
 csharp_style_prefer_not_pattern = true:suggestion
 
+# IDE0085
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -1132,6 +1141,9 @@ No editorconfig based code style option
 
 # IDE0084, PreferIsNotExpression
 visual_basic_style_prefer_isnot_expression = true:suggestion
+
+# IDE0085
+No editorconfig based code style option
 
 # IDE1006
 No editorconfig based code style option
