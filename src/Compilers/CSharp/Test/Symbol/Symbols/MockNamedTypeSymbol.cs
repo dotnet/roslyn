@@ -135,10 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return _typeKind; }
-        }
+        protected override TypeKind TypeKindImpl => _typeKind;
 
         internal override bool IsInterface
         {

@@ -286,13 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SymbolKind KindImpl => SymbolKind.ArrayType;
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Array;
-            }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Array;
 
         public override Symbol? ContainingSymbol
         {

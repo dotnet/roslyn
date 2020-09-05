@@ -214,10 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => this.Manager.System_Object;
 
-            public override TypeKind TypeKind
-            {
-                get { return TypeKind.Class; }
-            }
+            protected override TypeKind TypeKindImpl => TypeKind.Class;
 
             internal override bool IsInterface
             {

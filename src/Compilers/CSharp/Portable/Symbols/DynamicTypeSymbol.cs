@@ -56,13 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SymbolKind KindImpl => SymbolKind.DynamicType;
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Dynamic;
-            }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Dynamic;
 
         public override ImmutableArray<Location> Locations
         {

@@ -106,13 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _underlyingType.TypeKind;
-            }
-        }
+        protected override TypeKind TypeKindImpl => _underlyingType.TypeKind;
 
         internal override bool IsInterface
         {

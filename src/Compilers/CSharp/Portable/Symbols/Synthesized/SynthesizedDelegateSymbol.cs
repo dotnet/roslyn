@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Delegate; }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Delegate;
 
         internal override MethodSymbol Constructor
         {

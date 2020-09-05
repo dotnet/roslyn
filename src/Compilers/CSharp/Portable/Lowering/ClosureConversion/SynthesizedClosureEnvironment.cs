@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class SynthesizedClosureEnvironment : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly MethodSymbol _topLevelMethod;
+        private readonly TypeKind _typeKind;
         internal readonly SyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
         /// <summary>
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ArrayBuilder<Symbol> _membersBuilder = ArrayBuilder<Symbol>.GetInstance();
         private ImmutableArray<Symbol> _members;
 
-        public override TypeKind TypeKind { get; }
+        protected override TypeKind TypeKindImpl => _typeKind;
         internal override MethodSymbol Constructor { get; }
 
         internal SynthesizedClosureEnvironment(
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId closureId)
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
-            TypeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
+            _typeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             _topLevelMethod = topLevelMethod;
             OriginalContainingMethodOpt = containingMethod;
             Constructor = isStruct ? null : new SynthesizedClosureEnvironmentConstructor(this);

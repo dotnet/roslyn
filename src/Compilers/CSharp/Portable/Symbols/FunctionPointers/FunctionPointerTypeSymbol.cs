@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReferenceType => false;
         public override bool IsValueType => true;
-        public override TypeKind TypeKind => TypeKind.FunctionPointer;
+        protected override TypeKind TypeKindImpl => TypeKind.FunctionPointer;
         public override bool IsRefLikeType => false;
         public override bool IsReadOnly => false;
         protected override SymbolKind KindImpl => SymbolKind.FunctionPointerType;

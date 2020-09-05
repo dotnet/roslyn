@@ -280,10 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Class; }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Class;
 
         public override NamedTypeSymbol ContainingType
         {

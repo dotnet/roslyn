@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
+        // Cached TypeKind
+        private TypeKind _lazyTypeKind = TypeKind.Unknown;
+
         private ImmutableHashSet<Symbol> _lazyAbstractMembers;
         private InterfaceInfo _lazyInterfaceInfo;
 
@@ -482,9 +485,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// TypeKind specified by derived symbol. The kind is cached in the parent <see cref="TypeSymbol"/> type to allow the property to inline.
+        /// The returned value should be constant for the TypeSymbol instance.
+        /// </summary>
+        protected abstract TypeKind TypeKindImpl { get; }
+
+        /// <summary>
         /// Gets the kind of this type.
         /// </summary>
-        public abstract TypeKind TypeKind { get; }
+        public TypeKind TypeKind
+        {
+            get
+            {
+                // Return the cached TypeKind or get it from the derived symbol.
+                return _lazyTypeKind > 0 ? _lazyTypeKind : GetAndSetTypeKind();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private TypeKind GetAndSetTypeKind()
+        {
+            // Look up from derived symbol on first call.
+            var kind = TypeKindImpl;
+            _lazyTypeKind = kind;
+            return kind;
+        }
 
         /// <summary>
         /// Gets corresponding special TypeId of this type.

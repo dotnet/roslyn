@@ -59,10 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _constructor = isIterator ? (MethodSymbol)new IteratorConstructor(this) : new AsyncConstructor(this);
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return _typeKind; }
-        }
+        protected override TypeKind TypeKindImpl => _typeKind;
 
         internal override MethodSymbol Constructor
         {

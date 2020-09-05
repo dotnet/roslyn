@@ -163,10 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _field.ContainingType; }
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Struct; }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Struct;
 
         internal override MethodSymbol Constructor
         {

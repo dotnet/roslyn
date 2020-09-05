@@ -194,13 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override SymbolKind KindImpl => SymbolKind.TypeParameter;
 
-        public sealed override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.TypeParameter;
-            }
-        }
+        protected sealed override TypeKind TypeKindImpl => TypeKind.TypeParameter;
 
         // Only the compiler can create TypeParameterSymbols.
         internal TypeParameterSymbol()

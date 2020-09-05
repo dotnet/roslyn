@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeKind TypeKind
+        protected override TypeKind TypeKindImpl
         {
             get
             {

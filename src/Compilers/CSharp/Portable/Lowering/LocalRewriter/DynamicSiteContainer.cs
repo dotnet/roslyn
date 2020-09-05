@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _topLevelMethod.ContainingSymbol; }
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Class; }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Class;
 
         public sealed override bool AreLocalsZeroed
         {

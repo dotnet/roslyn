@@ -688,13 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _flags.TypeKind;
-            }
-        }
+        protected override TypeKind TypeKindImpl => _flags.TypeKind;
 
         internal MergedTypeDeclaration MergedDeclaration
         {

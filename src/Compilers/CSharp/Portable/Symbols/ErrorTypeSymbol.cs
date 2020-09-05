@@ -215,13 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the kind of this type.
         /// </summary>
-        public sealed override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Error;
-            }
-        }
+        protected sealed override TypeKind TypeKindImpl => TypeKind.Error;
 
         internal sealed override bool IsInterface
         {

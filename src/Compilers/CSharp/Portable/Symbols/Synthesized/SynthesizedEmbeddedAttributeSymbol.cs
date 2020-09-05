@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
-        public override TypeKind TypeKind => TypeKind.Class;
+        protected override TypeKind TypeKindImpl => TypeKind.Class;
 
         public override Symbol ContainingSymbol => _namespace;
 

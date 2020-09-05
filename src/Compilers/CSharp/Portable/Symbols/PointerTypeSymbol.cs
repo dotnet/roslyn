@@ -156,13 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override SymbolKind KindImpl => SymbolKind.PointerType;
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Pointer;
-            }
-        }
+        protected override TypeKind TypeKindImpl => TypeKind.Pointer;
 
         public override Symbol ContainingSymbol
         {
