@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -31,6 +32,11 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
         private void AnalyzeBinaryOperator(OperationAnalysisContext context)
         {
             var operation = (IBinaryOperation)context.Operation;
+            if (operation.OperatorMethod is not null) // Overloaded operator
+            {
+                return;
+            }
+
             if (operation.OperatorKind != BinaryOperatorKind.Equals)
             {
                 return;
