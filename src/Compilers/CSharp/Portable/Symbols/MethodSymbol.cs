@@ -635,13 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns value 'Method' of the <see cref="SymbolKind"/>
         /// </summary>
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Method;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.Method;
 
         /// <summary>
         /// Returns true if this symbol represents a constructor of a script class.

@@ -163,13 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns value 'Label' of the <see cref="SymbolKind"/>
         /// </summary>
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Label;
-            }
-        }
+        protected override SymbolKind KindImpl => SymbolKind.Label;
 
         protected sealed override ISymbol CreateISymbol()
         {

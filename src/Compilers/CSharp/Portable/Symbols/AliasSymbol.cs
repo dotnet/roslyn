@@ -131,13 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Alias;
-            }
-        }
+        protected override SymbolKind KindImpl => SymbolKind.Alias;
 
         /// <summary>
         /// Gets the <see cref="NamespaceOrTypeSymbol"/> for the

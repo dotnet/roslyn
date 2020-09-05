@@ -605,13 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
-        public override SymbolKind Kind // Cannot seal this method because of the ErrorSymbol.
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        // Cannot seal this method because of the ErrorSymbol.
+        protected override SymbolKind KindImpl => SymbolKind.NamedType;
 
         internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved);
 

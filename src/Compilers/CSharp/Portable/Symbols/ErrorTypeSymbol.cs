@@ -210,13 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.ErrorType;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.ErrorType;
 
         /// <summary>
         /// Gets the kind of this type.

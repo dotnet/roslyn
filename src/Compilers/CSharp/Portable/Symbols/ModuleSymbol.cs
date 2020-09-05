@@ -53,13 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns value 'NetModule' of the <see cref="SymbolKind"/>
         /// </summary>
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NetModule;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.NetModule;
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {

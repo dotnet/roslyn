@@ -54,13 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.DynamicType;
-            }
-        }
+        protected override SymbolKind KindImpl => SymbolKind.DynamicType;
 
         public override TypeKind TypeKind
         {

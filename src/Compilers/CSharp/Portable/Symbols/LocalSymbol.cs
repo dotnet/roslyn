@@ -166,13 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns value 'Local' of the <see cref="SymbolKind"/>
         /// </summary>
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Local;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.Local;
 
         internal sealed override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {

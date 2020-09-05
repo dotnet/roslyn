@@ -124,10 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override SymbolKind Kind
-        {
-            get { return OriginalDefinition.Kind; }
-        }
+        protected sealed override SymbolKind KindImpl => OriginalDefinition.Kind;
 
         public sealed override NamedTypeSymbol OriginalDefinition
         {

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         public override bool IsStatic => false;
         public override bool IsVirtual => false;
-        public override SymbolKind Kind => SymbolKind.Discard;
+        protected override SymbolKind KindImpl => SymbolKind.Discard;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscard(this, a);

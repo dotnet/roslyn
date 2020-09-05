@@ -114,13 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Namespace;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.Namespace;
 
         public override sealed bool IsImplicitlyDeclared
         {

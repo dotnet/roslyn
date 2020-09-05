@@ -284,13 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.ArrayType;
-            }
-        }
+        protected override SymbolKind KindImpl => SymbolKind.ArrayType;
 
         public override TypeKind TypeKind
         {

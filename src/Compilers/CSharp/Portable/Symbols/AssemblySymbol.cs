@@ -186,13 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitAssembly(this);
         }
 
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Assembly;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.Assembly;
 
         public sealed override AssemblySymbol ContainingAssembly
         {

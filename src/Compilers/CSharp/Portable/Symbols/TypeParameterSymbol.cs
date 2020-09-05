@@ -192,13 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitTypeParameter(this);
         }
 
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.TypeParameter;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.TypeParameter;
 
         public sealed override TypeKind TypeKind
         {

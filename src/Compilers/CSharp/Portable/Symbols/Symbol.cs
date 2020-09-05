@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -28,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract partial class Symbol : ISymbolInternal, IFormattable
     {
         private ISymbol _lazyISymbol;
+        // Cached kind
+        private SymbolKind _lazyKind = (SymbolKind)(-1);
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -87,9 +90,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Kind specified by derived symbol. The kind is cached in the parent <see cref="Symbol"/> type to allow the property to inline.
+        /// The returned value should be constant for the Symbol instance.
+        /// </summary>
+        protected abstract SymbolKind KindImpl { get; }
+
+        /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
-        public abstract SymbolKind Kind { get; }
+        public SymbolKind Kind
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                // Return the cached Kind or get it from the derived symbol.
+                return _lazyKind >= 0 ? _lazyKind : GetAndSetKind();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private SymbolKind GetAndSetKind()
+        {
+            // Look up from derived symbol on first call.
+            var kind = KindImpl;
+            _lazyKind = kind;
+            return kind;
+        }
 
         /// <summary>
         /// Get the symbol that logically contains this symbol. 

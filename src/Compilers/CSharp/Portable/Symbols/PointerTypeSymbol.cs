@@ -154,13 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.PointerType;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.PointerType;
 
         public override TypeKind TypeKind
         {

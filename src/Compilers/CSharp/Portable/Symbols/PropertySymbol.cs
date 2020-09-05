@@ -315,13 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
-        public sealed override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Property;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.Property;
 
         /// <summary>
         /// Implements visitor pattern.

@@ -39,13 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.RangeVariable;
-            }
-        }
+        protected sealed override SymbolKind KindImpl => SymbolKind.RangeVariable;
 
         public override ImmutableArray<Location> Locations
         {
