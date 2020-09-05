@@ -53,9 +53,8 @@ namespace Roslyn.SyntaxVisualizer.Control
                     return null;
                 }
 
-                // Since the color type isn't default then it has been customized, we will
-                // perform an additional check for RGB colors to see if the customized color
-                // matches the color scheme color.
+                // If the color is not CT_RAW then foregroundColorRef doesn't
+                // regpresent the RGB values for the color and we can't interpret them.
                 if (foregroundColorType != (int)__VSCOLORTYPE.CT_RAW)
                 {
                     return null;
@@ -86,7 +85,8 @@ namespace Roslyn.SyntaxVisualizer.Control
                 return;
             }
 
-            // Open Text Editor category for readonly access.
+            // Open Text Editor to make changes. Make sure LOADDEFAULTS is passed so any default 
+            // values can be modified as well.
             if (fontsAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS)) != VSConstants.S_OK)
             {
                 // We were unable to access color information.
