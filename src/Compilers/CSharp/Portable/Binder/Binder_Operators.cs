@@ -1171,9 +1171,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue)
+            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                ReportUseSiteDiagnostics(bestMethod, diagnostics, node);
             }
 
             result.Free();
@@ -1279,9 +1280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue)
+            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                ReportUseSiteDiagnostics(bestMethod, diagnostics, node);
             }
 
             result.Free();

@@ -206,25 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsCallingConventionModifier(NamedTypeSymbol modifierType)
         {
-            return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+            Debug.Assert(modifierType.ContainingAssembly is not null || modifierType.IsErrorType());
+            return (object?)modifierType.ContainingAssembly == modifierType.ContainingAssembly?.CorLibrary
                    && modifierType.Arity == 0
                    && modifierType.Name != "CallConv"
                    && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
-#pragma warning disable IDE0055 // Formatting wants to put the braces at the beginning of the line https://github.com/dotnet/roslyn/issues/46284
-                   && modifierType.ContainingNamespace is
-                      {
-                          Name: "CompilerServices",
-                          ContainingNamespace:
-                          {
-                              Name: "Runtime",
-                              ContainingNamespace:
-                              {
-                                  Name: "System",
-                                  ContainingNamespace: { IsGlobalNamespace: true }
-                              }
-                          }
-                      };
-#pragma warning restore IDE0055
+                   && modifierType.IsCompilerServicesTopLevelType();
         }
     }
 }
