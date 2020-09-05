@@ -1165,33 +1165,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
-            // If the method being called is a partial method without a definition, or is a conditional method
-            // whose condition is not true, then the call has no effect and it is ignored for the purposes of
-            // definite assignment analysis.
-            bool callsAreOmitted = node.Method.CallsAreOmitted(node.SyntaxTree);
-            TLocalState savedState = default(TLocalState);
-
-            if (callsAreOmitted)
-            {
-                savedState = this.State.Clone();
-                SetUnreachable();
-            }
-
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
             VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
 
-            if (!callsAreOmitted && node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
             {
                 VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
 
             VisitArgumentsAfterCall(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
             VisitReceiverAfterCall(node.ReceiverOpt, node.Method);
-
-            if (callsAreOmitted)
-            {
-                this.State = savedState;
-            }
 
             return null;
         }
