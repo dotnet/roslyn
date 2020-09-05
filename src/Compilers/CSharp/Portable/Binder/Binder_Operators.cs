@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorSignature bestSignature = best.Signature;
 
+            CheckNativeIntegerFeatureAvailability(bestSignature.Kind, node, diagnostics);
+
             if (CheckOverflowAtRuntime)
             {
                 bestSignature = new BinaryOperatorSignature(
@@ -581,6 +583,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
             }
+
+            CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
 
             TypeSymbol resultType = signature.ReturnType;
             BoundExpression resultLeft = left;
@@ -1182,9 +1186,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue)
+            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                ReportUseSiteDiagnostics(bestMethod, diagnostics, node);
             }
 
             result.Free();
@@ -1290,9 +1295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue)
+            if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                ReportUseSiteDiagnostics(bestMethod, diagnostics, node);
             }
 
             result.Free();
@@ -2117,6 +2123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var signature = best.Signature;
 
+            CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -2487,6 +2495,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultMethod = signature.Method;
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType.SpecialType, diagnostics);
+
+            CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
 
             return new BoundUnaryOperator(
                 node,
@@ -4001,6 +4011,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return ConstantValue.Bad;
+            }
+        }
+
+        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            switch (operatorKind & BinaryOperatorKind.TypeMask)
+            {
+                case BinaryOperatorKind.NInt:
+                case BinaryOperatorKind.NUInt:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    break;
+            }
+        }
+
+        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            switch (operatorKind & UnaryOperatorKind.TypeMask)
+            {
+                case UnaryOperatorKind.NInt:
+                case UnaryOperatorKind.NUInt:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    break;
             }
         }
     }

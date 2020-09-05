@@ -6510,6 +6510,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_EntryPointCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
   <data name="WRN_EqualityWithNaN" xml:space="preserve">
     <value>The operator '{0}' will always return '{1}' for NaN</value>
     <comment>NaN is not localizable.</comment>

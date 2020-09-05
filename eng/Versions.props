@@ -23,15 +23,15 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.8.0-2.20408.4</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.8.0-2.20414.4</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.3.0-beta1.20352.4</RoslynDiagnosticsNugetPackageVersion>
-    <MicrosoftCodeAnalysisNetAnalyzersVersion>3.3.0-beta1.20352.4</MicrosoftCodeAnalysisNetAnalyzersVersion>
+    <MicrosoftCodeAnalysisNetAnalyzersVersion>5.0.0-rc2.20453.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <CodeStyleLayerCodeAnalysisVersion>3.7.0</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20407.3</MicrosoftCodeAnalysisTestingVersion>
-    <CodeStyleAnalyzerVersion>3.7.0-3.20271.4</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>3.8.0-2.20414.4</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.8.5</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
@@ -243,8 +243,8 @@
     -->
     <NewtonsoftJsonVersion>12.0.2</NewtonsoftJsonVersion>
     <StreamJsonRpcVersion>2.4.34</StreamJsonRpcVersion>
-    <SystemCollectionsImmutableVersion>5.0.0-preview.8.20371.14</SystemCollectionsImmutableVersion>
-    <SystemReflectionMetadataVersion>5.0.0-preview.8.20371.14</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>5.0.0-preview.8.20407.11</SystemCollectionsImmutableVersion>
+    <SystemReflectionMetadataVersion>5.0.0-preview.8.20407.11</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>1.1.1</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
   <PropertyGroup>

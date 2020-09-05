@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="generators">The generators that will run as part of this driver.</param>
         /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver.</param>
         /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver.</param>
-        // https://github.com/dotnet/roslyn/issues/46623 (we'll make this internal rather than removing it)
-        [Obsolete("Use CSharpGeneratorDriver.Create(...) instead")]
-        public CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+        internal CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
             : base(parseOptions, generators, optionsProvider, additionalTexts)
         {
         }
@@ -58,10 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver, or <c>null</c> if there are none.</param>
         /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
         public static CSharpGeneratorDriver Create(IEnumerable<ISourceGenerator> generators, IEnumerable<AdditionalText>? additionalTexts = null, CSharpParseOptions? parseOptions = null, AnalyzerConfigOptionsProvider? optionsProvider = null)
-            // https://github.com/dotnet/roslyn/issues/46623 - can remove suppression when me make it internal
-#pragma warning disable CS0618 // Type or member is obsolete
             => new CSharpGeneratorDriver(parseOptions ?? CSharpParseOptions.Default, generators.ToImmutableArray(), optionsProvider ?? CompilerAnalyzerConfigOptionsProvider.Empty, additionalTexts.AsImmutableOrEmpty());
-#pragma warning restore CS0618 // Type or member is obsolete
 
         internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
             => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, fileName, cancellationToken);

@@ -307,6 +307,11 @@
         <target state="translated">'else' 無法開始陳述式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
@@ -526,6 +531,11 @@
         <source>Pattern missing</source>
         <target state="translated">缺少模式</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
         <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
@@ -891,6 +901,16 @@
         <source>The operator '{0}' will always return '{1}' for NaN</source>
         <target state="new">The operator '{0}' will always return '{1}' for NaN</target>
         <note>NaN is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>

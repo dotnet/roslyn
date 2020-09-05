@@ -9603,5 +9603,43 @@ class C
 
             await AssertFormatAsync(expectedCode, code);
         }
+
+        [Fact, WorkItem(47442, "https://github.com/dotnet/roslyn/issues/47442")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentImplicitObjectCreationInitializer()
+        {
+            var code = @"
+class C
+{
+    public string Name { get; set; }
+    public static C Create1(string name)
+        => new C()
+    {
+        Name = name
+    };
+    public static C Create2(string name)
+        => new()
+    {
+        Name = name
+    };
+}";
+            var expectedCode = @"
+class C
+{
+    public string Name { get; set; }
+    public static C Create1(string name)
+        => new C()
+        {
+            Name = name
+        };
+    public static C Create2(string name)
+        => new()
+        {
+            Name = name
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
     }
 }
