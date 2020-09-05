@@ -16,12 +16,12 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    internal sealed class RemoveRedundantEqualityWithTrueCodeFixProvider
+    internal sealed class RemoveRedundantEqualityCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RemoveRedundantEqualityWithTrueCodeFixProvider()
+        public RemoveRedundantEqualityCodeFixProvider()
         {
         }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(new MyCodeAction(
-                    AnalyzersResources.Remove_redundant_equality_with_true,
+                    AnalyzersResources.Remove_redundant_equality,
                     c => FixAsync(context.Document, diagnostic, c)),
                     diagnostic);
             }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnertmostNodeForTie: true);
+                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 var replacementNode = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 editor.ReplaceNode(node, replacementNode);
             }

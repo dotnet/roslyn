@@ -6,16 +6,16 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
+namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class RemoveRedundantEqualityWithTrueDiagnosticAnalyzer
+    internal sealed class RemoveRedundantEqualityDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableResourceString s_title =
-            new(nameof(AnalyzersResources.Remove_redundant_equality_with_true), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            new(nameof(AnalyzersResources.Remove_redundant_equality), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        public RemoveRedundantEqualityWithTrueDiagnosticAnalyzer()
+        public RemoveRedundantEqualityDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveRedundantEqualityWithTrueDiagnosticId,
                   option: null,
                   s_title)
@@ -37,9 +37,12 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             }
             var rightOperand = operation.RightOperand;
             var leftOperand = operation.LeftOperand;
-            // The reported additionalLocations represents the non-true side of equality.
-            // This is used by the codefix as the location of the replacement node.
-            // So, the code fix will do: Replace(diagnostic.Location, diagnostic.AdditionalLocations[0]).
+            // The reported additionalLocations represents the non-redundant side of equality.
+            // For example: if (x == true) {}
+            //     additionalLocations: x
+            //     primary Location:    x == true
+            // additionalLocations is used by the codefix as the location of the replacement node.
+            // So, the code fix will do: Replace(node at diagnostic.Location, node at diagnostic.AdditionalLocations[0]).
             if (rightOperand.ConstantValue.HasValue && rightOperand.ConstantValue.Value is true)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,

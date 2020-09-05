@@ -227,9 +227,9 @@
         <target state="translated">移除不必要的 Cast</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_equality_with_true">
-        <source>Remove redundant equality with true</source>
-        <target state="new">Remove redundant equality with true</target>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="new">Remove redundant equality</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
