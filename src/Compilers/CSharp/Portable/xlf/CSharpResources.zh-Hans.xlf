@@ -912,6 +912,11 @@
         <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="WRN_EqualityWithNaN_Title">
+        <source>Don't use equality operators against NaN</source>
+        <target state="new">Don't use equality operators against NaN</target>
+        <note>NaN is not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
