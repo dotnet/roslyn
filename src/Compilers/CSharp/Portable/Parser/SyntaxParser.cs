@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Runtime.CompilerServices;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
@@ -285,10 +286,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected SyntaxToken CurrentToken
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return _currentToken ?? (_currentToken = this.FetchCurrentToken());
+                return _currentToken ?? GetAndSetCurrentToken();
+
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        SyntaxToken GetAndSetCurrentToken()
+        {
+            return (_currentToken = this.FetchCurrentToken());
         }
 
         private SyntaxToken FetchCurrentToken()
