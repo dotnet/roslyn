@@ -1618,28 +1618,5 @@ public class C
     }
 }").VerifyDiagnostics();
         }
-
-        [Fact]
-        public void ConditionalAttributeOnLocalFunctionShouldNotProduceWarning()
-        {
-            CreateCompilation(@"
-using System.Diagnostics;
-
-public class C
-{
-    public void M()
-    {
-        local();
-        local2();
-
-        [Conditional(""DEBUG"")]
-        static void local() { }
-
-        static void local2() { }
-    }
-}
-").VerifyDiagnostics();
-        }
-
     }
 }
