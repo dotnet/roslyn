@@ -3662,5 +3662,17 @@ class X
             var typeInfo = model.GetTypeInfo(lambda.Body);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void WarningOnEqualityWithNaN()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    bool Func1(double x) => x == double.NaN; // WARNING: Always false.
+    bool Func2(double x) => x != double.NaN; // WARNING: Always true.
+    bool Func3(double x) => x is double.NaN; // No warning. This is correct.
+}").VerifyDiagnostics();
+        }
     }
 }
