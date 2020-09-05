@@ -3637,7 +3637,7 @@ public class Vec
         if ((1, null) is 4) {}
         if (null is var x1) {}
         if (Main is var x2) {}
-        if ((delegate {}) is var x3) {}
+        if (delegate {} is var x3) {}
         if ((1, null) is var x4) {}
     }
 }
