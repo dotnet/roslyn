@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-
     internal sealed class RemoveRedundantEqualityWithTrueCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             {
                 context.RegisterCodeFix(new MyCodeAction(
                     AnalyzersResources.Remove_redundant_equality_with_true,
-                    (ct) => FixAsync(context.Document, diagnostic, ct)),
+                    c => FixAsync(context.Document, diagnostic, c)),
                     diagnostic);
             }
             return Task.CompletedTask;
@@ -47,8 +46,8 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var node = root.FindNode(diagnostic.Location.SourceSpan);
-                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
+                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnertmostNodeForTie: true);
+                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 editor.ReplaceNode(node, replacementNode);
             }
         }
