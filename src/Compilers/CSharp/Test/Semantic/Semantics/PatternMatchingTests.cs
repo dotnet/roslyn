@@ -3633,7 +3633,7 @@ public class Vec
     {
         if (null is 1) {}
         if (Main is 2) {}
-        if ((delegate {}) is 3) {}
+        if (delegate {} is 3) {}
         if ((1, null) is 4) {}
         if (null is var x1) {}
         if (Main is var x2) {}
@@ -3652,6 +3652,9 @@ public class Vec
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
+                // (8,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is 3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(8, 25),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
