@@ -552,6 +552,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            if (node.IsKind(SyntaxKind.EqualsExpression) || node.IsKind(SyntaxKind.NotEqualsExpression))
+            {
+                if ((left.ConstantValue?.SpecialType == SpecialType.System_Double && left.ConstantValue.DoubleValue is double.NaN) ||
+                    (right.ConstantValue?.SpecialType == SpecialType.System_Double && right.ConstantValue.DoubleValue is double.NaN))
+                {
+                    // TODO:  Create new warning with level 5 and report it here
+                }
+            }
+
             switch (node.Kind())
             {
                 case SyntaxKind.EqualsExpression:
