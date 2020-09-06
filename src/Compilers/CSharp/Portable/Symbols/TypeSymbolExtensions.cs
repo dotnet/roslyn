@@ -525,11 +525,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo>? localUseSiteDiagnostics = useSiteDiagnostics;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
+            var closure = IsAtLeastAsVisibleAsClosure.Get(useSiteDiagnostics);
+
+            var result = type.VisitType(closure.Func, sym,
                                         canDigThroughNullable: true); // System.Nullable is public
-            useSiteDiagnostics = localUseSiteDiagnostics;
+
+            useSiteDiagnostics = closure.Release();
             return result is null;
+        }
+
+        // Type to reduce allocations of the Func<TypeSymbol, Symbol, bool, bool> closure in the above method
+        private class IsAtLeastAsVisibleAsClosure
+        {
+            [ThreadStatic]
+            private static IsAtLeastAsVisibleAsClosure? s_cache;
+
+            private HashSet<DiagnosticInfo>? _useSiteDiagnostics;
+            public Func<TypeSymbol, Symbol, bool, bool> Func { get; }
+
+            private IsAtLeastAsVisibleAsClosure()
+            {
+                Func = IsTypeLessVisibleThan;
+            }
+
+            private bool IsTypeLessVisibleThan(TypeSymbol type, Symbol symbol, bool unused)
+                => TypeSymbolExtensions.IsTypeLessVisibleThan(type, symbol, ref _useSiteDiagnostics);
+
+            public static IsAtLeastAsVisibleAsClosure Get(HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            {
+                IsAtLeastAsVisibleAsClosure value;
+
+                ref var cache = ref s_cache;
+                if (cache is not null)
+                {
+                    value = cache;
+                    cache = null;
+                }
+                else
+                {
+                    value = new IsAtLeastAsVisibleAsClosure();
+                }
+
+                value._useSiteDiagnostics = useSiteDiagnostics;
+
+                return value;
+            }
+
+            public HashSet<DiagnosticInfo>? Release()
+            {
+                var useSiteDiagnostics = _useSiteDiagnostics;
+                _useSiteDiagnostics = null;
+
+                ref var cache = ref s_cache;
+                if (cache is null)
+                {
+                    cache = this;
+                }
+
+                return useSiteDiagnostics;
+            }
         }
 
         private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
