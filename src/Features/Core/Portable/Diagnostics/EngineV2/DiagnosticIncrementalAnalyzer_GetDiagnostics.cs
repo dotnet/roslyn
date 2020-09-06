@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             if (!(id is LiveDiagnosticUpdateArgsId argsId))
             {
-                return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
             }
 
             var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);

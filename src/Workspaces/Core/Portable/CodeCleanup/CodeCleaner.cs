@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static async Task<Document> CleanupAsync(Document document, SyntaxAnnotation annotation, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await CleanupAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), providers, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var cleanupService = document.GetLanguageService<ICodeCleanerService>();
+            var cleanupService = document.GetRequiredLanguageService<ICodeCleanerService>();
             return cleanupService.CleanupAsync(document, spans, providers, cancellationToken);
         }
 
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var cleanupService = workspace.Services.GetLanguageServices(root.Language).GetService<ICodeCleanerService>();
+            var cleanupService = workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ICodeCleanerService>();
             return cleanupService.CleanupAsync(root, spans, workspace, providers, cancellationToken);
         }
     }

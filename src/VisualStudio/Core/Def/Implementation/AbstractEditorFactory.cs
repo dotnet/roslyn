@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -297,6 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            Contract.ThrowIfNull(rootToFormat);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
 
             // Apply file header preferences
@@ -321,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Organize using directives
             addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
-            rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken));
 
             // Format document
             var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);

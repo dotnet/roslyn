@@ -74,9 +74,9 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 12),
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
                 // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
@@ -1292,6 +1292,22 @@ data struct S2(int X, int Y);";
                 // (5,27): error CS0128: A local variable or function named 'Y' is already defined in this scope
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27)
+            );
+        }
+
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
+        [Fact]
+        public void ClassInheritingFromRecord()
+        {
+            var src = @"
+abstract record AbstractRecord {}
+class SomeClass : AbstractRecord {}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8865: Only records may inherit from records.
+                // class SomeClass : AbstractRecord {}
+                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "AbstractRecord").WithLocation(3, 19)
             );
         }
 

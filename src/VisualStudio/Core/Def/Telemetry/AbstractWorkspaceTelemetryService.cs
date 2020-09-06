@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         public bool HasActiveSession
-            => CurrentSession != null;
+            => CurrentSession != null && CurrentSession.IsOptedIn;
 
         public string? SerializeCurrentSessionSettings()
             => CurrentSession?.SerializeSettings();

@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             public int Count => Builder.Count;
             public T this[int index] => Builder[index];
 
-            public void AddIfNotNull([AllowNull] T value)
+            public void AddIfNotNull(T? value)
             {
                 if (value != null)
                 {

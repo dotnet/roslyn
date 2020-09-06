@@ -10,6 +10,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -20,8 +21,13 @@ namespace Microsoft.CodeAnalysis.Host
         string? TryGetStorageLocation(Solution solution);
     }
 
+    internal interface IPersistentStorageLocationService2 : IPersistentStorageLocationService
+    {
+        string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey);
+    }
+
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]
-    internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
+    internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService, IPersistentStorageLocationService2
     {
         /// <summary>
         /// Used to ensure that the path components we generate do not contain any characters that might be invalid in a
@@ -49,19 +55,22 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public string? TryGetStorageLocation(Solution solution)
+            => TryGetStorageLocation(solution.Workspace, (SolutionKey)solution);
+
+        public string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey)
         {
-            if (!IsSupported(solution.Workspace))
+            if (!IsSupported(workspace))
                 return null;
 
-            if (string.IsNullOrWhiteSpace(solution.FilePath))
+            if (string.IsNullOrWhiteSpace(solutionKey.FilePath))
                 return null;
 
             // Ensure that each unique workspace kind for any given solution has a unique
             // folder to store their data in.
 
             var cacheDirectory = GetCacheDirectory();
-            var kind = StripInvalidPathChars(solution.Workspace.Kind ?? "");
-            var hash = StripInvalidPathChars(Checksum.Create(solution.FilePath).ToString());
+            var kind = StripInvalidPathChars(workspace.Kind ?? "");
+            var hash = StripInvalidPathChars(Checksum.Create(solutionKey.FilePath).ToString());
 
             return Path.Combine(cacheDirectory, kind, hash);
 

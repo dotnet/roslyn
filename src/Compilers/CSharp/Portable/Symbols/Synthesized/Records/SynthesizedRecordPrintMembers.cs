@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var basePrintCall = F.Call(receiver: F.Base(ContainingType.BaseTypeNoUseSiteDiagnostics), printMethod, builder);
                     if (printableMembers.IsEmpty)
                     {
-                        // return base.print(builder);
+                        // return base.PrintMembers(builder);
                         F.CloseMethod(F.Return(basePrintCall));
                         return;
                     }
                     else
                     {
-                        // if (base.print(builder))
+                        // if (base.PrintMembers(builder))
                         //     builder.Append(", ")
                         block!.Add(F.If(basePrintCall, makeAppendString(F, builder, ", ")));
                     }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // builder.Append(<name>);
                     // builder.Append(" = ");
-                    // builder.Append((object)<value>);
+                    // builder.Append((object)<value>); OR builder.Append(<value>.ToString()); for value types
                     // builder.Append(", "); // except for last member
 
                     var member = printableMembers[i];
@@ -171,10 +171,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _ => throw ExceptionUtilities.UnexpectedValue(member.Kind)
                     };
 
-                    block.Add(F.ExpressionStatement(
-                        F.Call(receiver: builder,
-                            F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
-                            F.Convert(F.SpecialType(SpecialType.System_Object), value))));
+                    Debug.Assert(value.Type is not null);
+                    if (value.Type.IsValueType)
+                    {
+                        block.Add(F.ExpressionStatement(
+                            F.Call(receiver: builder,
+                                F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString),
+                                F.Call(value, F.SpecialMethod(SpecialMember.System_Object__ToString)))));
+                    }
+                    else
+                    {
+                        block.Add(F.ExpressionStatement(
+                            F.Call(receiver: builder,
+                                F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
+                                F.Convert(F.SpecialType(SpecialType.System_Object), value))));
+                    }
 
                     if (i < printableMembers.Length - 1)
                     {
