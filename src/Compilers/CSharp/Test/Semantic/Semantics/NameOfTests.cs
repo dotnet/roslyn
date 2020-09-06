@@ -1411,40 +1411,6 @@ public static class Extensions
         }
 
         [Fact]
-        public void TestNintWhenNotDefined()
-        {
-            var source = @"
-class Program
-{
-    static string M() => nameof(nint);
-}
-";
-            var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
-                // (4,33): error CS0103: The name 'nint' does not exist in the current context
-                //     static string M() => nameof(nint);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(4, 33)
-            );
-        }
-
-        [Fact]
-        public void TestNintWhenNotDefined()
-        {
-            var source = @"
-class Program
-{
-    static string M() => nameof(nint);
-}
-";
-            var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
-                // (4,33): error CS0103: The name 'nint' does not exist in the current context
-                //     static string M() => nameof(nint);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(4, 33)
-            );
-        }
-
-        [Fact]
         public void TestDynamicWhenNotDefined()
         {
             var source = @"
