@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = null;
                 if (node is IdentifierNameSyntax identifier)
                 {
-                    var type = BindNativeIntegerSymbolIfAny(identifier, diagnostics);
+                    var type = IsInsideNameof ? null : BindNativeIntegerSymbolIfAny(identifier, diagnostics);
                     if (type is { })
                     {
                         expression = new BoundTypeExpression(node, null, type);
