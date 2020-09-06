@@ -3628,13 +3628,6 @@ class Program
                 // (7,34): error CS0103: The name 'nuint' does not exist in the current context
                 //         Console.WriteLine(nameof(nuint));
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().First(n => n is IdentifierNameSyntax { Identifier: { ValueText: "nint" } });
-            var symbol = (ITypeSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.Equal("nint", symbol.ToTestDisplayString());
-            Assert.True(symbol.IsNativeIntegerType);
         }
 
         [Fact]
@@ -3734,7 +3727,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (5,20): error CS0103: The name 'nint' does not exist in the current context
                 //         _ = nameof(nint.Equals);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
