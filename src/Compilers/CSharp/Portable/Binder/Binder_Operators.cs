@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsKind(SyntaxKind.EqualsExpression) || node.IsKind(SyntaxKind.NotEqualsExpression))
             {
-                if (isDoubleNaN(left) || isFloatNaN(left) || isDoubleNaN(right) || FloatNaN(right))
+                if (isDoubleNaN(left) || isFloatNaN(left) || isDoubleNaN(right) || isFloatNaN(right))
                 {
                     var operatorText = node.OperatorToken.Text;
                     var expressionValue = node.IsKind(SyntaxKind.NotEqualsExpression); // != NaN always produces true. == NaN always produces false.
@@ -623,10 +623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
             
             static bool isDoubleNaN(BoundExpression expression) =>
-                expression.ConstantValue?.SpecialType == SpecialType.System_Double && left.ConstantValue.DoubleValue is double.NaN;
+                expression.ConstantValue?.SpecialType == SpecialType.System_Double && expression.ConstantValue.DoubleValue is double.NaN;
 
             static bool isFloatNaN(BoundExpression expression) =>
-                expression.ConstantValue?.SpecialType == SpecialType.System_Single && left.ConstantValue.SingleValue is float.NaN;
+                expression.ConstantValue?.SpecialType == SpecialType.System_Single && expression.ConstantValue.SingleValue is float.NaN;
         }
 
         private bool BindSimpleBinaryOperatorParts(BinaryExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression left, BoundExpression right, BinaryOperatorKind kind,
