@@ -3666,13 +3666,14 @@ class X
         [Fact]
         public void WarningOnEqualityWithNaN()
         {
+            // TODO: Remove WithWarningLevel(5) after https://github.com/dotnet/roslyn/pull/47077 is merged.
             var compilation = CreateCompilation(@"
 class C
 {
     bool Func1(double x) => x == double.NaN; // WARNING: Always false.
     bool Func2(double x) => x != double.NaN; // WARNING: Always true.
     bool Func3(double x) => x is double.NaN; // No warning. This is correct.
-}").VerifyDiagnostics();
+}", options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics();
         }
     }
 }
