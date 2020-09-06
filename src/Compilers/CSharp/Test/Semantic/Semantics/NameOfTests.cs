@@ -1409,5 +1409,22 @@ public static class Extensions
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
+
+        [Fact]
+        public void TestNint()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+                // (7,20): error CS1525: Invalid expression term 'nint'
+                //         s = nameof(nint);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "nint").WithArguments("nint").WithLocation(7, 20)
+            );
+        }
     }
 }
