@@ -152,13 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the immediately containing symbol of the <see cref="LabelSymbol"/>.
         /// It should be the <see cref="MethodSymbol"/> containing the label in its body.
         /// </summary>
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        protected override Symbol? ContainingSymbolImpl => throw new NotSupportedException();
 
         /// <summary>
         /// Returns value 'Label' of the <see cref="SymbolKind"/>

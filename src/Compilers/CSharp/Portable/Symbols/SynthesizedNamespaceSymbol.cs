@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
             => _name;
 
-        public override Symbol ContainingSymbol
-            => _containingSymbol;
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         public override AssemblySymbol ContainingAssembly
             => _containingSymbol.ContainingAssembly;

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public sealed override Symbol ContainingSymbol
+        protected sealed override Symbol ContainingSymbolImpl
         {
             get
             {

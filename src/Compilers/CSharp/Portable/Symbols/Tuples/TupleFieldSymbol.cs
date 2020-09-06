@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get
             {

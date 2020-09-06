@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return null; }
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get { return _container; }
         }

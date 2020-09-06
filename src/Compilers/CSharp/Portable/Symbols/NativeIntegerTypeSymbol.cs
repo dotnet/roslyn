@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
-        public override Symbol ContainingSymbol => _underlyingType.ContainingSymbol;
+        protected override Symbol ContainingSymbolImpl => _underlyingType.ContainingSymbol;
 
         internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics => ImmutableArray<TypeWithAnnotations>.Empty;
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingMethod);
         }
 
-        public override Symbol ContainingSymbol => _container;
+        protected override Symbol ContainingSymbolImpl => _container;
 
         public override MethodSymbol UnderlyingMethod { get; }
 
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingParameter);
         }
 
-        public override Symbol ContainingSymbol => _container;
+        protected override Symbol ContainingSymbolImpl => _container;
 
         public override TypeWithAnnotations TypeWithAnnotations => _containingType.SubstituteUnderlyingType(_underlyingParameter.TypeWithAnnotations);
 
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NativeIntegerTypeSymbol.VerifyEquality(this, underlyingProperty);
         }
 
-        public override Symbol ContainingSymbol => _container;
+        protected override Symbol ContainingSymbolImpl => _container;
 
         public override TypeWithAnnotations TypeWithAnnotations => _container.SubstituteUnderlyingType(_underlyingProperty.TypeWithAnnotations);
 

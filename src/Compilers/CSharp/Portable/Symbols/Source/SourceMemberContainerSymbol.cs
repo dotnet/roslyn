@@ -668,13 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingSymbol;
-            }
-        }
+        protected sealed override Symbol ContainingSymbolImpl => _containingSymbol;
 
         #endregion
 

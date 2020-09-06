@@ -108,10 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<TypeWithAnnotations>.Empty;
             }
 
-            public override Symbol ContainingSymbol
-            {
-                get { return _container; }
-            }
+            protected override Symbol ContainingSymbolImpl => _container;
 
             internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
             {

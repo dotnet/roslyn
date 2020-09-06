@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations { get { return _explicitInterfaceImplementations; } }
 
-        public override Symbol ContainingSymbol { get { return _containingType; } }
+        protected override Symbol ContainingSymbolImpl { get { return _containingType; } }
 
         public override MethodKind MethodKind { get { return _methodKind; } }
 

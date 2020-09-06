@@ -472,10 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _owner; }
-        }
+        protected override Symbol ContainingSymbolImpl => _owner;
 
         public override VarianceKind Variance
         {
@@ -598,10 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _owner; }
-        }
+        protected override Symbol ContainingSymbolImpl => _owner;
 
         public override bool HasConstructorConstraint
         {
@@ -838,10 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return this.Owner; }
-        }
+        protected override Symbol ContainingSymbolImpl => this.Owner;
 
         public override bool HasConstructorConstraint
         {

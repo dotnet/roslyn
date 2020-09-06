@@ -111,10 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyTypeParameters != null);
         }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get { return _newContainer; }
-        }
+        protected sealed override Symbol ContainingSymbolImpl => _newContainer;
 
         public override NamedTypeSymbol ContainingType
         {

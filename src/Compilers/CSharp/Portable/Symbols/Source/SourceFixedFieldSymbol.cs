@@ -158,10 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _field.ContainingType; }
-        }
+        protected override Symbol ContainingSymbolImpl => _field.ContainingType;
 
         protected override TypeKind TypeKindImpl => TypeKind.Struct;
 

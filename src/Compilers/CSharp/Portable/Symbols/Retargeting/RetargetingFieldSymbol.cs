@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingField.GetFieldType(fieldsBeingBound), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get
             {

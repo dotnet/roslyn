@@ -225,13 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the symbol that logically contains this symbol. 
         /// </summary>
-        public override Symbol? ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        protected override Symbol? ContainingSymbolImpl => null;
 
         /// <summary>
         /// Gets the locations where this symbol was originally defined, either in source or
@@ -632,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _constructedFrom; }
         }
 
-        public override Symbol? ContainingSymbol
+        protected override Symbol? ContainingSymbolImpl
         {
             get { return _constructedFrom.ContainingSymbol; }
         }
@@ -671,10 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this; }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingSymbol; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         internal override TypeMap TypeSubstitution
         {

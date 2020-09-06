@@ -237,13 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name].OfType<NamedTypeSymbol>());
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingNamespace;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingNamespace;
 
         public override AssemblySymbol ContainingAssembly
         {

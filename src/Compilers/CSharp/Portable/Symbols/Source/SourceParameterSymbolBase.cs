@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get { return _containingSymbol; }
-        }
+        protected sealed override Symbol ContainingSymbolImpl => _containingSymbol;
 
         public sealed override AssemblySymbol ContainingAssembly
         {

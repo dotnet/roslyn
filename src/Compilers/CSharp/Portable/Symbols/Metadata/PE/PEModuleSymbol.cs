@@ -193,13 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _assemblySymbol;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _assemblySymbol;
 
         public override AssemblySymbol ContainingAssembly
         {

@@ -47,10 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingType; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingType;
 
         public override Accessibility DeclaredAccessibility
         {

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _underlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get
             {

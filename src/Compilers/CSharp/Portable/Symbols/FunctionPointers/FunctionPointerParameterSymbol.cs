@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations TypeWithAnnotations { get; }
         public override RefKind RefKind { get; }
         public override int Ordinal { get; }
-        public override Symbol ContainingSymbol => _containingSymbol;
+        protected override Symbol? ContainingSymbolImpl => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get
             {

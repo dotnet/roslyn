@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _nameToSymbols.Keys; }
             }
 
-            public override Symbol ContainingSymbol
+            protected override Symbol ContainingSymbolImpl
             {
                 get { return this.Manager.Compilation.SourceModule.GlobalNamespace; }
             }

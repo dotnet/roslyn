@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RoslynDebug.Assert(underlyingLocal is object);
             RoslynDebug.Assert(updatedContainingSymbol is object);
             Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
-            ContainingSymbol = updatedContainingSymbol;
+            _containingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
             _underlyingLocal = underlyingLocal;
         }
@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private readonly SourceLocalSymbol _underlyingLocal;
-        public override Symbol ContainingSymbol { get; }
+        private readonly Symbol _containingSymbol;
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
         public override TypeWithAnnotations TypeWithAnnotations { get; }
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)

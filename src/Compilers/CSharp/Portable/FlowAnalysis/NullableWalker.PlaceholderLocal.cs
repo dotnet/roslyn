@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override int GetHashCode() => _identifier.GetHashCode();
             internal override SyntaxNode ScopeDesignatorOpt => null;
-            public override Symbol ContainingSymbol => _containingSymbol;
+            protected override Symbol ContainingSymbolImpl => _containingSymbol;
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
             public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
             public override TypeWithAnnotations TypeWithAnnotations => _type;

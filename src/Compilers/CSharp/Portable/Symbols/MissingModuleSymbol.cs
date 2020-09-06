@@ -84,13 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return assembly;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => assembly;
 
         public override NamespaceSymbol GlobalNamespace
         {

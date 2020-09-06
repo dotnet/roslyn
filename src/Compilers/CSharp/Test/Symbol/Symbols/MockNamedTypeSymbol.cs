@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return _typeKind == TypeKind.Interface; }
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get { return null; }
         }

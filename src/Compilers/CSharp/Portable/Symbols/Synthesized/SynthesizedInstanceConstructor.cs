@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Sealed
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get { return _containingType; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingType;
 
         public sealed override NamedTypeSymbol ContainingType
         {

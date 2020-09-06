@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodKind MethodKind => MethodKind.LocalFunction;
 
-        public sealed override Symbol ContainingSymbol => _containingSymbol;
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         public override string Name => Syntax.Identifier.ValueText ?? "";
 

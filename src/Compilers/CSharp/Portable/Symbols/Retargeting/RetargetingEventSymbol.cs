@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        public override Symbol? ContainingSymbol
+        protected override Symbol? ContainingSymbolImpl
         {
             get
             {

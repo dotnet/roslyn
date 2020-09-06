@@ -44,13 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override Symbol ContainingSymbol
-            {
-                get
-                {
-                    return _container;
-                }
-            }
+            protected override Symbol? ContainingSymbolImpl => _container;
 
             public override bool HasConstructorConstraint
             {

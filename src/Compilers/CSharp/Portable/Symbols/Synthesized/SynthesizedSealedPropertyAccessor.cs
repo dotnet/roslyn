@@ -43,13 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _property.ContainingType;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _property.ContainingType;
 
         public override ImmutableArray<Location> Locations
         {

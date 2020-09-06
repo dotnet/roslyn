@@ -155,13 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitDynamicType(this);
         }
 
-        public override Symbol? ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        protected override Symbol? ContainingSymbolImpl => null;
 
         public override Accessibility DeclaredAccessibility
         {

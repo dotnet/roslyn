@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name, arity));
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get
             {

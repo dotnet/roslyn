@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        public override Symbol ContainingSymbol => _containingType;
+        protected override Symbol ContainingSymbolImpl => _containingType;
 
         public override NamedTypeSymbol ContainingType => _containingType;
 

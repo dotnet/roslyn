@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsRefLikeType => false;
         public override bool IsReadOnly => false;
         protected override SymbolKind KindImpl => SymbolKind.FunctionPointerType;
-        public override Symbol? ContainingSymbol => null;
+        protected override Symbol? ContainingSymbolImpl => null;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;

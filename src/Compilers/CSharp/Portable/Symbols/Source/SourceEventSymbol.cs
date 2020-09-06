@@ -86,13 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override abstract TypeWithAnnotations TypeWithAnnotations { get; }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get
-            {
-                return containingType;
-            }
-        }
+        protected sealed override Symbol ContainingSymbolImpl => containingType;
 
         public override NamedTypeSymbol ContainingType
         {

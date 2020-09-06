@@ -316,13 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingType;
 
         public override NamedTypeSymbol ContainingType
         {

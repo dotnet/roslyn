@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal MergedNamespaceDeclaration MergedDeclaration
             => _mergedDeclaration;
 
-        public override Symbol ContainingSymbol
-            => _container;
+        protected override Symbol ContainingSymbolImpl => _container;
 
         public override AssemblySymbol ContainingAssembly
             => _module.ContainingAssembly;

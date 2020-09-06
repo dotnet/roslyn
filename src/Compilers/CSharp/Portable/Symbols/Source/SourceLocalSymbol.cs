@@ -255,10 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _valEscapeScope = value;
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingSymbol; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         /// <summary>
         /// Gets the name of the local variable.

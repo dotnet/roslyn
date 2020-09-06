@@ -194,10 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _stateMachineType; }
-        }
+        protected override Symbol ContainingSymbolImpl => _stateMachineType;
 
         public override ImmutableArray<Location> Locations
         {

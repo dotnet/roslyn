@@ -158,13 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeKind TypeKindImpl => TypeKind.Pointer;
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => null;
 
         public override ImmutableArray<Location> Locations
         {

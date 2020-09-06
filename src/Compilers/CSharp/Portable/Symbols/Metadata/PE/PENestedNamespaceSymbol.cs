@@ -79,10 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _typesByNS = typesByNS;
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingNamespaceSymbol; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingNamespaceSymbol;
 
         internal override PEModuleSymbol ContainingPEModule
         {

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // display classes for static lambdas do not have any data and can be serialized.
         public override bool IsSerializable => (object)SingletonCache != null;
 
-        public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
+        protected override Symbol ContainingSymbolImpl => _topLevelMethod.ContainingSymbol;
 
         // Closures in the same method share the same SynthesizedClosureEnvironment. We must
         // always return true because two closures in the same method might have different

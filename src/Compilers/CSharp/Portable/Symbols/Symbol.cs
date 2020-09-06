@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SymbolKind _lazyKind = (SymbolKind)(-1);
         private Symbol _lazyOriginalSymbolDefinition = null;
         private ModuleSymbol _lazyContainingModule = null;
+        private Symbol _lazyContainingSymbol = null;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -120,9 +121,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get the symbol that logically contains this symbol. 
+        /// Get the symbol that logically contains this symbol.
         /// </summary>
-        public abstract Symbol ContainingSymbol { get; }
+        public Symbol ContainingSymbol => _lazyContainingSymbol ?? GetAndSetContainingSymbol();
+
+        protected abstract Symbol ContainingSymbolImpl { get; }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private Symbol GetAndSetContainingSymbol()
+        {
+            // Look up from derived Symbol on first call.
+            var containingSymbol = ContainingSymbolImpl;
+            _lazyContainingSymbol = containingSymbol;
+            return containingSymbol;
+        }
+
 
         /// <summary>
         /// Returns the nearest lexically enclosing type, or null if there is none.

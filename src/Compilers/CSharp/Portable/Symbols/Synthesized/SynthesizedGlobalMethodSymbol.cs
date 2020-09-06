@@ -75,10 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Synthesized methods that must be emitted in the compiler generated
         /// PrivateImplementationDetails class have null containing type symbol.
         /// </summary>
-        public sealed override Symbol ContainingSymbol
-        {
-            get { return null; }
-        }
+        protected override Symbol ContainingSymbolImpl => null;
 
         public sealed override NamedTypeSymbol ContainingType
         {

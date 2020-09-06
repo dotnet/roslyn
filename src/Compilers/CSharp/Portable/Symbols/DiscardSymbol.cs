@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithAnnotations TypeWithAnnotations { get; }
 
-        public override Symbol? ContainingSymbol => null;
+        protected override Symbol? ContainingSymbolImpl => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsAbstract => false;

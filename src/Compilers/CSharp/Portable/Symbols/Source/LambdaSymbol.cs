@@ -294,10 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingSymbol; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         internal override Microsoft.Cci.CallingConvention CallingConvention
         {

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isIndexedProperty = isIndexedProperty;
         }
 
-        public override Symbol ContainingSymbol { get { return _containingSymbol; } }
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         public override RefKind RefKind { get { return RefKind.None; } }
 

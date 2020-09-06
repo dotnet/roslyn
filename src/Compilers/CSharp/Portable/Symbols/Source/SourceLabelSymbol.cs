@@ -114,13 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingMethod;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingMethod;
 
         // Get the identifier node or token that defined this label symbol. This is useful for robustly
         // checking if a label symbol actually matches a particular definition, even in the presence

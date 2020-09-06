@@ -29,13 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _moduleSymbol = moduleSymbol;
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _moduleSymbol;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _moduleSymbol;
 
         internal override PEModuleSymbol ContainingPEModule
         {

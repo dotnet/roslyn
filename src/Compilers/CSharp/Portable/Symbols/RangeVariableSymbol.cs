@@ -126,13 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingSymbol;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         internal override TResult Accept<TArg, TResult>(CSharpSymbolVisitor<TArg, TResult> visitor, TArg a)
         {

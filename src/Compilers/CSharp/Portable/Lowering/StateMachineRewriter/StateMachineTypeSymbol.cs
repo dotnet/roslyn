@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get { return KickoffMethod.ContainingType; }
         }

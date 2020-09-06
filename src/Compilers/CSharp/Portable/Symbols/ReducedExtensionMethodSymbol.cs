@@ -444,10 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.DeclaredAccessibility; }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _reducedFrom.ContainingSymbol; }
-        }
+        protected override Symbol ContainingSymbolImpl => _reducedFrom.ContainingSymbol;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
@@ -599,10 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _containingMethod = containingMethod;
             }
 
-            public override Symbol ContainingSymbol
-            {
-                get { return _containingMethod; }
-            }
+            protected override Symbol ContainingSymbolImpl => _containingMethod;
 
             public override int Ordinal
             {

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeKind TypeKindImpl => TypeKind.Class;
 
-        public override Symbol ContainingSymbol => _namespace;
+        protected override Symbol ContainingSymbolImpl => _namespace;
 
         internal override ModuleSymbol ContainingModuleImpl => _module;
 

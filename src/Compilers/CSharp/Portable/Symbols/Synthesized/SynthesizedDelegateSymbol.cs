@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt);
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingSymbol; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingSymbol;
 
         protected override TypeKind TypeKindImpl => TypeKind.Delegate;
 
@@ -280,10 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public override Symbol ContainingSymbol
-            {
-                get { return _containingType; }
-            }
+            protected override Symbol ContainingSymbolImpl => _containingType;
 
             public override ImmutableArray<Location> Locations
             {

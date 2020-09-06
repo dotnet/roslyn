@@ -110,10 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _parameters; }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _implementingType; }
-        }
+        protected override Symbol ContainingSymbolImpl => _implementingType;
 
         public override NamedTypeSymbol ContainingType
         {

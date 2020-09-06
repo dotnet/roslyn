@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol? ContainingSymbol => null;
+        protected override Symbol? ContainingSymbolImpl => null;
         // Function pointers cannot have type parameters
         public override int Arity => 0;
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;

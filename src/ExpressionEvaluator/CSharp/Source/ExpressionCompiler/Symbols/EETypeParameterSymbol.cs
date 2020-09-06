@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _getTypeMap = getTypeMap;
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get { return _container; }
         }

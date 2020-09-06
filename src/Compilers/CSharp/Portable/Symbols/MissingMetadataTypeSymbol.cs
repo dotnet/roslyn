@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override Symbol ContainingSymbol
+            protected override Symbol ContainingSymbolImpl
             {
                 get
                 {
@@ -412,14 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            public override Symbol ContainingSymbol
-            {
-                get
-                {
-                    return _containingType;
-                }
-            }
-
+            protected override Symbol ContainingSymbolImpl => _containingType;
 
             protected override SpecialType SpecialTypeImpl
             {

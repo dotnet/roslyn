@@ -293,13 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        protected sealed override Symbol ContainingSymbolImpl => null;
 
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be

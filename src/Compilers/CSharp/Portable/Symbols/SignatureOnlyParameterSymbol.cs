@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
+        protected override Symbol ContainingSymbolImpl { get { throw ExceptionUtilities.Unreachable; } }
 
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }
 

@@ -119,10 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        public override Symbol? ContainingSymbol
-        {
-            get { return _container; }
-        }
+        protected override Symbol? ContainingSymbolImpl => _container;
 
         public override ImmutableArray<Location> Locations
         {

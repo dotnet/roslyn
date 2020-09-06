@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _topLevelMethod = topLevelMethod;
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get { return _topLevelMethod.ContainingSymbol; }
         }

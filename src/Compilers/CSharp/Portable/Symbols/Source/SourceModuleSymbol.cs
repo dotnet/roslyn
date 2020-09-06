@@ -372,13 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _assemblySymbol;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _assemblySymbol;
 
         public override AssemblySymbol ContainingAssembly
         {

@@ -57,10 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract BoundBlock CreateBody(DiagnosticBag diagnostics);
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingType; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingType;
 
         public abstract override string Name
         {

@@ -106,10 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return default(SyntaxToken); }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingMethodOpt; }
-        }
+        protected override Symbol ContainingSymbolImpl => _containingMethodOpt;
 
         public override string Name
         {

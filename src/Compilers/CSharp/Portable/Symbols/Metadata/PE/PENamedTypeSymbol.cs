@@ -532,13 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _container;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _container;
 
         public override NamedTypeSymbol ContainingType
         {

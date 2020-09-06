@@ -354,13 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
         }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
+        protected sealed override Symbol ContainingSymbolImpl => _containingType;
 
         public override NamedTypeSymbol ContainingType
         {

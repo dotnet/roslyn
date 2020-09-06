@@ -36,13 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _container;
-            }
-        }
+        protected override Symbol ContainingSymbolImpl => _container;
 
         public override TypeParameterSymbol OriginalDefinition
         {

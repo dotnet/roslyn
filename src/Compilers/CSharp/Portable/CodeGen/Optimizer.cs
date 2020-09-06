@@ -2169,7 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return false; }
         }
 
-        public override Symbol ContainingSymbol
+        protected override Symbol ContainingSymbolImpl
         {
             get { throw new NotImplementedException(); }
         }
