@@ -405,7 +405,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed text
                 if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
                 {
-                    var sourceText = await _assetProvider.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
+                    var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
+                    var sourceText = await serializableSourceText.GetTextAsync(_cancellationToken).ConfigureAwait(false);
 
                     document = document.Kind switch
                     {

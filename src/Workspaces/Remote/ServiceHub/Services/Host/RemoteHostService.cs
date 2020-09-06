@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    var newText = text.WithChanges(textChanges);
+                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
                     var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
 
                     // save new text in the cache so that when asked, the data is most likely already there
@@ -319,9 +319,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
+                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(baseTextChecksum, out var serializableSourceText))
                     {
-                        return sourceText;
+                        return await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     // do slower one
