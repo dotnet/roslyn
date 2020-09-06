@@ -1409,5 +1409,82 @@ public static class Extensions
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
+
+        [Fact]
+        public void TestNintWhenNotDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+                // (4,33): error CS0103: The name 'nint' does not exist in the current context
+                //     static string M() => nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(4, 33)
+            );
+        }
+
+        [Fact]
+        public void TestNintWhenNotDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+                // (4,33): error CS0103: The name 'nint' does not exist in the current context
+                //     static string M() => nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(4, 33)
+            );
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+                // (4,33): error CS0103: The name 'nint' does not exist in the current context
+                //     static string M() => nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 33)
+            );
+        }
+
+        [Fact]
+        public void TestNintWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object nint) => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestDynamicWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object dynamic) => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+        }
     }
 }
