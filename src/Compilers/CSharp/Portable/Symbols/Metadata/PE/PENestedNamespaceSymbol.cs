@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ModuleSymbol ContainingModule
+        internal override ModuleSymbol ContainingModuleImpl
         {
             get
             {

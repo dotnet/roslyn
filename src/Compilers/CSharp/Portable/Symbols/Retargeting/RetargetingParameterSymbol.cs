@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override ModuleSymbol ContainingModule
+        internal sealed override ModuleSymbol ContainingModuleImpl
         {
             get
             {

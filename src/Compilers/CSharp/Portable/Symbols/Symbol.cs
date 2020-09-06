@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Cached kind
         private SymbolKind _lazyKind = (SymbolKind)(-1);
         private Symbol _lazyOriginalSymbolDefinition = null;
+        private ModuleSymbol _lazyContainingModule = null;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -256,7 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the module containing this symbol. If this symbol is shared across multiple
         /// modules, or doesn't belong to a module, returns null.
         /// </summary>
-        internal virtual ModuleSymbol ContainingModule
+        internal ModuleSymbol ContainingModule => _lazyContainingModule ?? GetAndSetContainingModule();
+
+        internal virtual ModuleSymbol ContainingModuleImpl
         {
             get
             {
@@ -265,6 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var container = this.ContainingSymbol;
                 return (object)container != null ? container.ContainingModule : null;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private ModuleSymbol GetAndSetContainingModule()
+        {
+            // Look up from derived Symbol on first call.
+            var containingModule = ContainingModuleImpl;
+            _lazyContainingModule = containingModule;
+            return containingModule;
         }
 
         /// <summary>

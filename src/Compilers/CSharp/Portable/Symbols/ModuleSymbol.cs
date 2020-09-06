@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ModuleSymbol ContainingModule
+        internal sealed override ModuleSymbol ContainingModuleImpl
         {
             get
             {

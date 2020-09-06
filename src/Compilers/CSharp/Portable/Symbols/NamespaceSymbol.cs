@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract override AssemblySymbol ContainingAssembly { get; }
 
-        internal override ModuleSymbol ContainingModule
+        internal override ModuleSymbol ContainingModuleImpl
         {
             get
             {

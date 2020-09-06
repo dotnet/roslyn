@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ModuleSymbol ContainingModuleImpl { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override bool MustCallMethodsDirectly { get { throw ExceptionUtilities.Unreachable; } }
 

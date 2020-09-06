@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _namespaceName; }
             }
 
-            internal override ModuleSymbol ContainingModule
+            internal override ModuleSymbol ContainingModuleImpl
             {
                 get
                 {

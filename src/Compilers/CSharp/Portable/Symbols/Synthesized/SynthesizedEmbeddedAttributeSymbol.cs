@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol => _namespace;
 
-        internal override ModuleSymbol ContainingModule => _module;
+        internal override ModuleSymbol ContainingModuleImpl => _module;
 
         public override AssemblySymbol ContainingAssembly => _module.ContainingAssembly;
 

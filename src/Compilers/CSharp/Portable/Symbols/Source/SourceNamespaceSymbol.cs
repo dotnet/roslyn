@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetTypeMembers(name).WhereAsArray((s, arity) => s.Arity == arity, arity);
         }
 
-        internal override ModuleSymbol ContainingModule
+        internal override ModuleSymbol ContainingModuleImpl
         {
             get
             {
