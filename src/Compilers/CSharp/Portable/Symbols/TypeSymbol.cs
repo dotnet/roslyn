@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Cached TypeKind
         private TypeKind _lazyTypeKind = TypeKind.Unknown;
+        // Cached SpecialType
+        private SpecialType _lazySpecialType = (SpecialType)(-1);
 
         private ImmutableHashSet<Symbol> _lazyAbstractMembers;
         private InterfaceInfo _lazyInterfaceInfo;
@@ -517,12 +519,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Not preserved in types constructed from this one.
         /// </remarks>
-        public virtual SpecialType SpecialType
+        public SpecialType SpecialType
         {
             get
             {
-                return SpecialType.None;
+                // Return the cached SpecialType or get it from the derived symbol.
+                return _lazySpecialType >= 0 ? _lazySpecialType : GetAndSetSpecialType();
             }
+        }
+
+        protected virtual SpecialType SpecialTypeImpl => SpecialType.None;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private SpecialType GetAndSetSpecialType()
+        {
+            // Look up from derived symbol on first call.
+            var type = SpecialTypeImpl;
+            _lazySpecialType = type;
+            return type;
         }
 
         /// <summary>

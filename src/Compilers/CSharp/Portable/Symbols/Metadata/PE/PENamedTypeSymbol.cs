@@ -328,13 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override SpecialType SpecialType
-        {
-            get
-            {
-                return _corTypeId;
-            }
-        }
+        protected override SpecialType SpecialTypeImpl => _corTypeId;
 
         internal PEModuleSymbol ContainingPEModule
         {

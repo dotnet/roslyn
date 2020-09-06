@@ -680,13 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Flags Encoded Properties
 
-        public override SpecialType SpecialType
-        {
-            get
-            {
-                return _flags.SpecialType;
-            }
-        }
+        protected override SpecialType SpecialTypeImpl => _flags.SpecialType;
 
         protected override TypeKind TypeKindImpl => _flags.TypeKind;
 

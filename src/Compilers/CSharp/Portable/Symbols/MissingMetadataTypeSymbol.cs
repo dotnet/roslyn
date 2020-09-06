@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override SpecialType SpecialType
+            protected override SpecialType SpecialTypeImpl
             {
                 get
                 {
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 
-            public override SpecialType SpecialType
+            protected override SpecialType SpecialTypeImpl
             {
                 get
                 {
