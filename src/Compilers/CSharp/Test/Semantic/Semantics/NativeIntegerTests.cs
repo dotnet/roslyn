@@ -3621,10 +3621,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
-@"nint
-nuint");
+            comp.VerifyDiagnostics(
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
+                //         Console.WriteLine(nameof(nint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
+                //         Console.WriteLine(nameof(nuint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -3657,7 +3660,10 @@ nuint");
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
         }
 
         [Fact]
@@ -3707,6 +3713,28 @@ nuint");
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_05()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = nameof(nint.Equals);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nameof(nint.Equals);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
