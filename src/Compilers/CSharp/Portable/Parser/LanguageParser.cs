@@ -5218,7 +5218,7 @@ tryAgain:
         /// <returns></returns>
         private bool IsTrueIdentifier()
         {
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && token.Text is not ("nint" or "nuint"))
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.CurrentToken.Text is not ("nint" or "nuint"))
             {
                 if (!IsCurrentTokenPartialKeywordOfPartialMethodOrType() &&
                     !IsCurrentTokenQueryKeywordInQuery() &&
