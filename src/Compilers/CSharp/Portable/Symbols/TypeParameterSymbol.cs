@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed TypeSymbol OriginalTypeSymbolDefinition
+        protected override sealed TypeSymbol OriginalTypeSymbolDefinitionImpl
         {
             get
             {

@@ -546,10 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalDefinition = originalDefinition;
         }
 
-        public override NamedTypeSymbol OriginalDefinition
-        {
-            get { return _originalDefinition; }
-        }
+        protected override NamedTypeSymbol OriginalDefinitionImpl => _originalDefinition;
 
         internal override bool MangleName
         {

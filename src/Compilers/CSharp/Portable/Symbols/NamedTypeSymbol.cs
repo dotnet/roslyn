@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbolInternal
     {
+        private NamedTypeSymbol _originalDefinition = null;
         private bool _hasNoBaseCycles;
 
         // Only the compiler can create NamedTypeSymbols.
@@ -1159,20 +1160,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
         /// source or metadata.
         /// </summary>
-        public new virtual NamedTypeSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new NamedTypeSymbol OriginalDefinition => _originalDefinition ?? GetAndSetOriginalDefinition();
 
-        protected override sealed TypeSymbol OriginalTypeSymbolDefinition
+        protected virtual NamedTypeSymbol OriginalDefinitionImpl => this;
+
+        protected override sealed TypeSymbol OriginalTypeSymbolDefinitionImpl => this.OriginalDefinition;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private NamedTypeSymbol GetAndSetOriginalDefinition()
         {
-            get
-            {
-                return this.OriginalDefinition;
-            }
+            // Look up from derived NamedTypeSymbol on first call.
+            var originalDefinition = OriginalDefinitionImpl;
+            _originalDefinition = originalDefinition;
+            return originalDefinition;
         }
 
         /// <summary>

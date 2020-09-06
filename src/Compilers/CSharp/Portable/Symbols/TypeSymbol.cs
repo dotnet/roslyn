@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeKind _lazyTypeKind = TypeKind.Unknown;
         // Cached SpecialType
         private SpecialType _lazySpecialType = (SpecialType)(-1);
+        private TypeSymbol _lazyOriginalTypeSymbolDefinition = null;
 
         private ImmutableHashSet<Symbol> _lazyAbstractMembers;
         private InterfaceInfo _lazyInterfaceInfo;
@@ -129,29 +130,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
         /// source or metadata.
         /// </summary>
-        public new TypeSymbol OriginalDefinition
+        public new TypeSymbol OriginalDefinition => OriginalTypeSymbolDefinition;
+
+        private TypeSymbol OriginalTypeSymbolDefinition
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return OriginalTypeSymbolDefinition;
+                return _lazyOriginalTypeSymbolDefinition ?? GetAndSetOriginalTypeSymbolDefinition();
             }
         }
 
-        protected virtual TypeSymbol OriginalTypeSymbolDefinition
+        protected virtual TypeSymbol OriginalTypeSymbolDefinitionImpl => this;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private TypeSymbol GetAndSetOriginalTypeSymbolDefinition()
         {
-            get
-            {
-                return this;
-            }
+            // Look up from derived TypeSymbol on first call.
+            var originalTypeSymbolDefinition = OriginalTypeSymbolDefinitionImpl;
+            _lazyOriginalTypeSymbolDefinition = originalTypeSymbolDefinition;
+            return originalTypeSymbolDefinition;
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
-        {
-            get
-            {
-                return this.OriginalTypeSymbolDefinition;
-            }
-        }
+        protected override sealed Symbol OriginalSymbolDefinitionImpl => OriginalTypeSymbolDefinition;
 
         /// <summary>
         /// Gets the BaseType of this type. If the base type could not be determined, then 

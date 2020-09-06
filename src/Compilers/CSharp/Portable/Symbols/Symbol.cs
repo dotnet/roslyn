@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ISymbol _lazyISymbol;
         // Cached kind
         private SymbolKind _lazyKind = (SymbolKind)(-1);
+        private Symbol _lazyOriginalSymbolDefinition = null;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -281,20 +282,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
         /// source or metadata.
         /// </summary>
-        public Symbol OriginalDefinition
-        {
-            get
-            {
-                return OriginalSymbolDefinition;
-            }
-        }
+        public Symbol OriginalDefinition => OriginalSymbolDefinition;
 
-        protected virtual Symbol OriginalSymbolDefinition
+        private Symbol OriginalSymbolDefinition => _lazyOriginalSymbolDefinition ?? GetAndSetOriginalSymbolDefinition();
+
+        protected virtual Symbol OriginalSymbolDefinitionImpl
         {
             get
             {
                 return this;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private Symbol GetAndSetOriginalSymbolDefinition()
+        {
+            // Look up from derived NamedTypeSymbol on first call.
+            var originalSymbolDefinition = OriginalSymbolDefinitionImpl;
+            _lazyOriginalSymbolDefinition = originalSymbolDefinition;
+            return originalSymbolDefinition;
         }
 
         /// <summary>

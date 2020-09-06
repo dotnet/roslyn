@@ -126,10 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override SymbolKind KindImpl => OriginalDefinition.Kind;
 
-        public sealed override NamedTypeSymbol OriginalDefinition
-        {
-            get { return _underlyingType; }
-        }
+        protected sealed override NamedTypeSymbol OriginalDefinitionImpl => _underlyingType;
 
         internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {

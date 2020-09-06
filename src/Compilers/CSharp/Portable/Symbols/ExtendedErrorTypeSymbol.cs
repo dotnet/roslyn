@@ -163,14 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override NamedTypeSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
-
         // public override SymbolKind Kind { get { return SymbolKind.Error; } }
         public override ImmutableArray<Location> Locations
         {
