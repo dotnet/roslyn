@@ -224,14 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     else
                     {
                         Debug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
-                        if (!dependentSymbols.SetEquals(existingDependentSymbols))
-                        {
-                            var builder = new StringBuilder();
-                            builder.AppendLine($"{nameof(dependentSymbols)} was expected to contain the same elements in {nameof(existingDependentSymbols)}.");
-                            addToStringBuilder(dependentSymbols, nameof(dependentSymbols), builder);
-                            addToStringBuilder(existingDependentSymbols, nameof(existingDependentSymbols), builder);
-                            Debug.Assert(false, builder.ToString());
-                        }
+                        Debug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
                     }
                 }
 
