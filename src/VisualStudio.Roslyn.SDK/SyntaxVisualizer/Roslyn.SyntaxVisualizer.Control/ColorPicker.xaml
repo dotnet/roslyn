@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:Roslyn.SyntaxVisualizer.Control"
              mc:Ignorable="d" 
              x:Name="Control"
+             Focusable="True"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:PercentConverter x:Key="PercentConverter" />
@@ -77,6 +78,7 @@
                 Text="{Binding Red}" 
                 Grid.Row="0" 
                 Grid.Column="1" 
+                GotFocus="SelectAllText"
                 AutomationProperties.Name="Red" 
                 AutomationProperties.LabeledBy="{Binding ElementName=RedLabel}" 
                 AutomationProperties.LiveSetting="Polite" />
@@ -87,6 +89,7 @@
                 Text="{Binding Green}" 
                 Grid.Row="1" 
                 Grid.Column="1" 
+                GotFocus="SelectAllText"
                 AutomationProperties.Name="Green" 
                 AutomationProperties.LabeledBy="{Binding ElementName=GreenLabel}" 
                 AutomationProperties.LiveSetting="Polite" />
@@ -97,6 +100,7 @@
                 Text="{Binding Blue}" 
                 Grid.Row="2" 
                 Grid.Column="1" 
+                GotFocus="SelectAllText"
                 AutomationProperties.Name="Blue" 
                 AutomationProperties.LabeledBy="{Binding ElementName=BlueLabel}" 
                 AutomationProperties.LiveSetting="Polite" />

@@ -17,6 +17,9 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             ColorPicker.OriginalColor = color;
             ColorPicker.Color = color;
+
+            // Focus the color picker control on load
+            Loaded += (s, e) => ColorPicker.Focus();
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)

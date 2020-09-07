@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Roslyn.SyntaxVisualizer.Control
@@ -44,6 +45,9 @@ namespace Roslyn.SyntaxVisualizer.Control
                         break;
                 }
             };
+
+            // Focus the first tab item when the control gets focus
+            GotFocus += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
         }
 
         public Color Color
@@ -56,6 +60,14 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             get => (Color)GetValue(OriginalColorProperty);
             set => SetValue(OriginalColorProperty, value);
+        }
+
+        private void SelectAllText(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                textBox.SelectAll();
+            }
         }
 
         private static void OnColorChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
