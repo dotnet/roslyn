@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(AnalyzersResources.Naming_Styles), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected NamingStyleDiagnosticAnalyzerBase()
-            : base(IDEDiagnosticIds.NamingRuleId,
-                   option: null,    // No unique option to configure the diagnosticId
-                   s_localizableTitleNamingStyle,
-                   s_localizableMessageFormat)
+          : base(IDEDiagnosticIds.NamingRuleId,
+                 option: null,    // No unique option to configure the diagnosticId
+                 s_localizableTitleNamingStyle,
+                 s_localizableMessageFormat)
         {
         }
 
@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // Workaround: RegisterSymbolAction doesn't work with locals, local functions, parameters, or type parameters.
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
+
+        protected abstract bool ShouldIgnore(ISymbol symbol);
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
@@ -105,6 +107,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(symbol.Name))
+            {
+                return null;
+            }
+
+            if (ShouldIgnore(symbol))
             {
                 return null;
             }
