@@ -45,9 +45,6 @@ namespace Roslyn.SyntaxVisualizer.Control
                         break;
                 }
             };
-
-            // Focus the first tab item when the control gets focus
-            GotFocus += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
         }
 
         public Color Color

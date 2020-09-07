@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Roslyn.SyntaxVisualizer.Control"
              mc:Ignorable="d" 
              x:Name="Control"
-             Focusable="True"
+             Focusable="False"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:PercentConverter x:Key="PercentConverter" />

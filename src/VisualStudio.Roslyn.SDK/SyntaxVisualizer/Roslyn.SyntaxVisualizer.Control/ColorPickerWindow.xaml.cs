@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Roslyn.SyntaxVisualizer.Control
@@ -18,8 +19,8 @@ namespace Roslyn.SyntaxVisualizer.Control
             ColorPicker.OriginalColor = color;
             ColorPicker.Color = color;
 
-            // Focus the color picker control on load
-            Loaded += (s, e) => ColorPicker.Focus();
+            // Focus the first tab item when the window loads
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
