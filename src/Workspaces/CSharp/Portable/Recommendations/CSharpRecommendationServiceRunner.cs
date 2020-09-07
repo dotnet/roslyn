@@ -367,8 +367,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 normalSymbols = normalSymbols.Concat(typeMembers);
             }
+            var explicitConversion = container.GetMembers(WellKnownMemberNames.ExplicitConversionName);
+            var indexer = container.GetMembers(WellKnownMemberNames.Indexer);
 
-            return normalSymbols;
+            return normalSymbols.AddRange(explicitConversion).AddRange(indexer);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsOffOfDereferencedExpression(ExpressionSyntax originalExpression)
