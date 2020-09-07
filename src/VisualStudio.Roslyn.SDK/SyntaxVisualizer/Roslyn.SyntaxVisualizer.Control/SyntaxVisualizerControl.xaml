@@ -237,7 +237,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Label Name="colorKindText" Padding="5,2,5,2" Grid.Column="0" />
-                        <Button Name="colorPickerButton" Width="30" Margin="5, 0, 5, 0" Grid.Column="1" />
+                        <Button Name="colorPickerButton" Width="30" Margin="5, 0, 5, 0" Grid.Column="1" AutomationProperties.Name="Color Picker" />
                     </Grid>
                 </Grid>
             </Border>

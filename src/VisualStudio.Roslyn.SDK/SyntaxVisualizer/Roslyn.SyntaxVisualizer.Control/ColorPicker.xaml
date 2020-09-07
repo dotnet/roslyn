@@ -7,7 +7,6 @@
              mc:Ignorable="d" 
              x:Name="Control"
              d:DesignHeight="450" d:DesignWidth="800">
-
     <UserControl.Resources>
         <local:PercentConverter x:Key="PercentConverter" />
     </UserControl.Resources>
@@ -30,7 +29,7 @@
                 Hue="{Binding Hue, Mode=TwoWay}" 
                 Width="50"
                 Margin="5, 0, 5, 0" />
-            
+
         </DockPanel>
         <Grid x:Name="ColorDetailsGrd" Grid.Column="1">
             <Grid.Resources>
@@ -70,36 +69,80 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Label Content="Red" Grid.Row="0" Grid.Column="0" />
-            <TextBox Text="{Binding Red}" Grid.Row="0" Grid.Column="1" />
+            <!-- Use Polite LiveSettings for values that will change so that screen readers will read off their changes, but not interrupt any current notification being read -->
 
-            <Label Content="Green" Grid.Row="1" Grid.Column="0" />
-            <TextBox Text="{Binding Green}" Grid.Row="1" Grid.Column="1" />
+            <Label Content="Red" Grid.Row="0" Grid.Column="0" x:Name="RedLabel" />
+            <TextBox 
+                x:Name="Red"
+                Text="{Binding Red}" 
+                Grid.Row="0" 
+                Grid.Column="1" 
+                AutomationProperties.Name="Red" 
+                AutomationProperties.LabeledBy="{Binding ElementName=RedLabel}" 
+                AutomationProperties.LiveSetting="Polite" />
 
-            <Label Content="Blue" Grid.Row="2" Grid.Column="0" />
-            <TextBox Text="{Binding Blue}" Grid.Row="2" Grid.Column="1" />
+            <Label Content="Green" Grid.Row="1" Grid.Column="0" x:Name="GreenLabel" />
+            <TextBox 
+                x:Name="Green"
+                Text="{Binding Green}" 
+                Grid.Row="1" 
+                Grid.Column="1" 
+                AutomationProperties.Name="Green" 
+                AutomationProperties.LabeledBy="{Binding ElementName=GreenLabel}" 
+                AutomationProperties.LiveSetting="Polite" />
 
-            <Label Content="Hex" Grid.Row="3" Grid.Column="0" />
-            <TextBlock Text="{Binding Color}" Grid.Row="3" Grid.Column="1" />
+            <Label Content="Blue" Grid.Row="2" Grid.Column="0" x:Name="BlueLabel" />
+            <TextBox 
+                x:Name="Blue"
+                Text="{Binding Blue}" 
+                Grid.Row="2" 
+                Grid.Column="1" 
+                AutomationProperties.Name="Blue" 
+                AutomationProperties.LabeledBy="{Binding ElementName=BlueLabel}" 
+                AutomationProperties.LiveSetting="Polite" />
 
-            <Label Content="Hue" Grid.Row="4" Grid.Column="0" />
-            <TextBlock Text="{Binding Hue, StringFormat=N2}" Grid.Row="4" Grid.Column="1" />
+            <Label Content="Hex" Grid.Row="3" Grid.Column="0" x:Name="HexLabel" />
+            <TextBlock 
+                Text="{Binding Color}" 
+                Grid.Row="3" 
+                Grid.Column="1" 
+                Focusable="False" 
+                AutomationProperties.LiveSetting="Polite" 
+                AutomationProperties.LabeledBy="{Binding ElementName=HexLabel}" />
 
-            <Label Content="Saturation" Grid.Row="5" Grid.Column="0" />
-            <TextBlock Text="{Binding Saturation, Converter={StaticResource PercentConverter}}" Grid.Row="5" Grid.Column="1" />
+            <Label Content="Hue" Grid.Row="4" Grid.Column="0" x:Name="HueLabel"/>
+            <TextBlock 
+                Text="{Binding Hue, StringFormat=N2}" 
+                Grid.Row="4" 
+                Grid.Column="1" 
+                AutomationProperties.LiveSetting="Polite" 
+                AutomationProperties.LabeledBy="{Binding ElementName=HueLabel}" />
 
-            <Label Content="Brightness" Grid.Row="6" Grid.Column="0" />
-            <TextBlock Text="{Binding Brightness, Converter={StaticResource PercentConverter}}" Grid.Row="6" Grid.Column="1" />
+            <Label Content="Saturation" Grid.Row="5" Grid.Column="0" x:Name="SaturationLabel"/>
+            <TextBlock 
+                Text="{Binding Saturation, Converter={StaticResource PercentConverter}}" 
+                Grid.Row="5" 
+                Grid.Column="1" 
+                AutomationProperties.LiveSetting="Polite" 
+                AutomationProperties.LabeledBy="{Binding ElementName=SaturationLabel}" />
 
-            <Label Content="Original Color" Grid.Row="7" Grid.Column="0" />
-            <Rectangle Grid.Row="7" Grid.Column="1">
+            <Label Content="Brightness" Grid.Row="6" Grid.Column="0" x:Name="BrightnessLabel"/>
+            <TextBlock 
+                Text="{Binding Brightness, Converter={StaticResource PercentConverter}}" 
+                Grid.Row="6" 
+                Grid.Column="1" 
+                AutomationProperties.LiveSetting="Polite" 
+                AutomationProperties.LabeledBy="{Binding ElementName=BrightnessLabel}" />
+
+            <Label Content="Original Color" Grid.Row="7" Grid.Column="0" x:Name="OriginalColorLabel" />
+            <Rectangle Grid.Row="7" Grid.Column="1" Focusable="False" AutomationProperties.LabeledBy="{Binding ElementName=OriginalColorLabel}">
                 <Rectangle.Fill>
                     <SolidColorBrush Color="{Binding OriginalColor, Mode=OneWay}" />
                 </Rectangle.Fill>
             </Rectangle>
 
-            <Label Content="New Color" Grid.Row="8" Grid.Column="0" />
-            <Rectangle Grid.Row="8" Grid.Column="1">
+            <Label Content="New Color" Grid.Row="8" Grid.Column="0" x:Name="NewColorLabel" />
+            <Rectangle Grid.Row="8" Grid.Column="1" Focusable="False" AutomationProperties.LabeledBy="{Binding ElementName=NewColorLabel}" >
                 <Rectangle.Fill>
                     <SolidColorBrush Color="{Binding Color, Mode=OneWay}" />
                 </Rectangle.Fill>
