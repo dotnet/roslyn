@@ -3673,7 +3673,13 @@ class C
     bool Func1(double x) => x == double.NaN; // WARNING: Always false.
     bool Func2(double x) => x != double.NaN; // WARNING: Always true.
     bool Func3(double x) => x is double.NaN; // No warning. This is correct.
-}", options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics();
+}", options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (4,29): warning CS8903: The operator '==' will always return 'False' for NaN
+                //     bool Func1(double x) => x == double.NaN; // WARNING: Always false.
+                Diagnostic(ErrorCode.WRN_EqualityWithNaN, ""x == double.NaN"").WithArguments(""=="", ""False"").WithLocation(4, 29),
+                // (5,29): warning CS8903: The operator '!=' will always return 'True' for NaN
+                //     bool Func2(double x) => x != double.NaN; // WARNING: Always true.
+                Diagnostic(ErrorCode.WRN_EqualityWithNaN, ""x != double.NaN"").WithArguments(""!="", ""True"").WithLocation(5, 29));
         }
     }
 }
