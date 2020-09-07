@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(AnalyzersResources.Naming_Styles), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected NamingStyleDiagnosticAnalyzerBase()
-          : base(IDEDiagnosticIds.NamingRuleId,
-                 option: null,    // No unique option to configure the diagnosticId
-                 s_localizableTitleNamingStyle,
-                 s_localizableMessageFormat)
+            : base(IDEDiagnosticIds.NamingRuleId,
+                   option: null,    // No unique option to configure the diagnosticId
+                   s_localizableTitleNamingStyle,
+                   s_localizableMessageFormat)
         {
         }
 
