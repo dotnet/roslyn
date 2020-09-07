@@ -206,11 +206,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private static bool TryGetTextForOperator(SyntaxToken token, Document document, out string text)
         {
-            if (token.IsKind(SyntaxKind.ExclamationToken) && token.Parent is not null)
+            if (token.IsKind(SyntaxKind.ExclamationToken) && token.Parent is not null &&
+                token.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
             {
-                text = token.Parent.IsKind(SyntaxKind.LogicalNotExpression)
-                    ? Keyword("!")
-                    : Keyword("nullForgiving");
+                text = Keyword("nullForgiving");
                 return true;
             }
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
