@@ -998,14 +998,20 @@ namespace Microsoft.CodeAnalysis
 
                             var newTree = tree
                                 // TODO: this causes https://github.com/dotnet/roslyn/issues/47278; fix that bug in Roslyn
-                                .WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options)
-                                .WithFilePath(Path.Combine(Guid.NewGuid().ToString(), Path.GetFileName(tree.FilePath)));
-
-                            compilation = compilation.ReplaceSyntaxTree(tree, newTree);
+                                .WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options);
 
                             var text = newTree.GetText();
                             if (!text.CanBeEmbedded)
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
+
+                            static string createUniquePath(string oldPath) =>
+                                string.IsNullOrEmpty(oldPath) ? $"{Guid.NewGuid()}.cs" : Path.Combine(Guid.NewGuid().ToString(), Path.GetFileName(oldPath));
+
+                            newTree = newTree
+                                .WithFilePath(createUniquePath(tree.FilePath))
+                                .WithChangedText(text);
+
+                            compilation = compilation.ReplaceSyntaxTree(tree, newTree);
 
                             embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(newTree.FilePath, text));
                         }
