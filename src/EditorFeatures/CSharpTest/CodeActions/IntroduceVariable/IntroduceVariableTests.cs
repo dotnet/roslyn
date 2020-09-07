@@ -3064,6 +3064,97 @@ options: ImplicitTypingEverywhere());
 
             await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInBlockBodiedLambda()
+        {
+            var code =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M()
+    {
+        new List<Action>
+        {
+            () =>
+            {
+                [|Array.Empty<string>()|].Count();
+            }
+        };
+    }
+}
+";
+
+            var expected =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M()
+    {
+        new List<Action>
+        {
+            () =>
+            {
+                var {|Rename:vs|} = Array.Empty<string>();
+                vs.Count();
+            }
+        };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInBlockBodiedLambdaWithPropertyAccess()
+        {
+            var code =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M()
+    {
+        new List<Action>
+        {
+            () =>
+            {
+                var x = [|Array.Empty<string>()|].Length;
+            }
+        };
+    }
+}
+";
+
+            var expected =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M()
+    {
+        new List<Action>
+        {
+            () =>
+            {
+                var {|Rename:vs|} = Array.Empty<string>();
+                var x = vs.Length;
+            }
+        };
+    }
+}
+";
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
+        }
 
         [WorkItem(1037057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
