@@ -13,13 +13,10 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
     internal sealed class RemoveRedundantEqualityDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly LocalizableResourceString s_title =
-            new(nameof(AnalyzersResources.Remove_redundant_equality), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         public RemoveRedundantEqualityDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveRedundantEqualityWithTrueDiagnosticId,
-                  option: null,
-                  s_title)
+                   option: null,
+                   new LocalizableResourceString(nameof(AnalyzersResources.Remove_redundant_equality), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
