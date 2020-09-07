@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (property.OpenBraceToken, property.CloseBraceToken);
                 case WithExpressionSyntax withExpr:
                     return (withExpr.Initializer.OpenBraceToken, withExpr.Initializer.CloseBraceToken);
-                case ImplicitObjectCreationExpressionSyntax newExpr when newExpr.Initializer != null:
-                    return (newExpr.Initializer.OpenBraceToken, newExpr.Initializer.CloseBraceToken);
+                case ImplicitObjectCreationExpressionSyntax { Initializer: { } initializer }:
+                    return (initializer.OpenBraceToken, initializer.CloseBraceToken);
             }
 
             return default;

@@ -27,13 +27,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var typeAndLocation = GetInitializedType(document, semanticModel, position, cancellationToken);
-            if (typeAndLocation is null)
+            if (!(GetInitializedType(document, semanticModel, position, cancellationToken) is var (type, initializerLocation)))
             {
                 return;
             }
 
-            var (type, initializerLocation) = typeAndLocation;
             if (type is ITypeParameterSymbol typeParameterSymbol)
             {
                 type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
