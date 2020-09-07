@@ -10,8 +10,8 @@ If you want to suggest a new feature for the C# or Visual Basic languages go her
 - [dotnet/csharplang](https://github.com/dotnet/csharplang) for C# specific issues
 - [dotnet/vblang](https://github.com/dotnet/vblang) for VB-specific features
 - [dotnet/csharplang](https://github.com/dotnet/csharplang) for features that affect both languages
-### Getting started with the Roslyn APIs
 
+### Getting started with the Roslyn APIs
 
 If you want to get started using Roslyn's APIs to analyzer your code take a look at these links:
 - [Roslyn Architecture Overview](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/compiler-api-model) 
@@ -30,7 +30,9 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 
 #### Questions
 
+A great way to get started is to ask some questions!
 - Start with a question on [discussions](https://github.com/dotnet/roslyn/discussions)
+- You can also join in on the design discussions on [gitter](https://gitter.im/dotnet/roslyn) or [discord](http://aka.ms/discord-csharp-roslyn)
 
 #### See if your issue is already being worked on! (Add your own votes using the 👍 reaction)
 - [IDE](https://aka.ms/roslyn-ide-in-progress)
