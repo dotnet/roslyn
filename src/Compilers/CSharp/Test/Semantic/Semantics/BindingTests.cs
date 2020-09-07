@@ -3676,10 +3676,10 @@ class C
 }", options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
                 // (4,29): warning CS8903: The operator '==' will always return 'False' for NaN
                 //     bool Func1(double x) => x == double.NaN; // WARNING: Always false.
-                Diagnostic(ErrorCode.WRN_EqualityWithNaN, ""x == double.NaN"").WithArguments(""=="", ""False"").WithLocation(4, 29),
+                Diagnostic(ErrorCode.WRN_EqualityWithNaN, "x == double.NaN").WithArguments("==", "False").WithLocation(4, 29),
                 // (5,29): warning CS8903: The operator '!=' will always return 'True' for NaN
                 //     bool Func2(double x) => x != double.NaN; // WARNING: Always true.
-                Diagnostic(ErrorCode.WRN_EqualityWithNaN, ""x != double.NaN"").WithArguments(""!="", ""True"").WithLocation(5, 29));
+                Diagnostic(ErrorCode.WRN_EqualityWithNaN, "x != double.NaN").WithArguments("!=", "True").WithLocation(5, 29));
         }
     }
 }
