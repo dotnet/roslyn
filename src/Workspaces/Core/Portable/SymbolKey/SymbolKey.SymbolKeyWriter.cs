@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                 _nextId++;
 
                 StartKey();
-                if (BodyLevelSymbolKey.IsBodyLevelSymbol(symbol))
+                if (IsBodyLevelSymbol(symbol))
                 {
                     WriteType(SymbolKeyType.BodyLevel);
                     BodyLevelSymbolKey.Create(symbol, this);
