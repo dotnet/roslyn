@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
 
-        IDS_FeatureDiscards = MessageBase + 12688
+        IDS_FeatureDiscards = MessageBase + 12688,
 
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
