@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 IBinaryOperation op => VisitBinaryOperator(op),
                 IPatternOperation op => VisitPatternOperation(input, op),
-                IIsTypeOperation op => new Type(VisitInput(op.ValueOperand), op.TypeOperand),
+                IIsTypeOperation op => new Type(VisitInput(op.ValueOperand), op.TypeOperand, op.Syntax),
                 IIsPatternOperation op => VisitPatternOperation(VisitInput(op.Value), op.Pattern),
                 IPatternCaseClauseOperation op => VisitBinary(op.Pattern, op.Guard, disjunctive: false, input: null),
                 ISwitchExpressionArmOperation op => VisitBinary(op.Pattern, op.Guard, disjunctive: false, input: null),
@@ -45,34 +45,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         }
 
         [return: NotNullIfNotNull("operation")]
-        private static Evaluation? VisitInput(IOperation? operation)
+        private static Evaluation? VisitInput(IOperation? operation, Evaluation? input = null)
         {
-            Debug.Assert(!(operation is IConditionalAccessInstanceOperation));
-
             if (operation is null)
                 return null;
 
-            return VisitNode(operation) ?? new OperationEvaluation(operation);
+            return VisitNode(operation, input) ?? new OperationEvaluation(operation);
 
-            static Evaluation? VisitNode(IOperation operation)
+            static Evaluation? VisitNode(IOperation operation, Evaluation? input)
             {
                 return operation switch
                 {
-                    IMemberReferenceOperation op when IsBaseExpressionMemberAccess(op) => null,
+                    IMemberReferenceOperation op when IsImplicitThisOrBaseMemberAccess(op) => null,
                     ILocalReferenceOperation op => new Variable(input: null, op.Local, op.Syntax),
-                    IFieldReferenceOperation op => new MemberEvaluation(VisitInput(op.Instance), op),
+                    IFieldReferenceOperation op => new MemberEvaluation(VisitInput(op.Instance, input), op),
                     IPropertyReferenceOperation op when op.Property.IsIndexer => VisitIndexerReference(op),
                     IPropertyReferenceOperation op => VisitNullableTypeMemberAccess(op) ??
-                                                      new MemberEvaluation(VisitInput(op.Instance), op),
-                    IConditionalAccessOperation op => VisitConditionalAccess(VisitInput(op.Operation), op.WhenNotNull),
+                                                      new MemberEvaluation(VisitInput(op.Instance, input), op),
+                    IConditionalAccessOperation op => VisitNode(op.WhenNotNull, VisitInput(op.Operation, input)),//, op.WhenNotNull),
                     IConversionOperation op when op.Conversion.IsUserDefined => null,
-                    IConversionOperation op when op.Conversion.IsImplicit => VisitInput(op.Operand),
-                    IConversionOperation op => new Type(VisitInput(op.Operand), op.Type),
+                    IConversionOperation op when op.Conversion.IsImplicit => VisitInput(op.Operand, input),
+                    IConversionOperation op => new Type(VisitInput(op.Operand, input), op.Type, op.Syntax),
+                    IConditionalAccessInstanceOperation => input,
                     _ => null,
                 };
             }
 
-            static bool IsBaseExpressionMemberAccess(IMemberReferenceOperation operation)
+            static bool IsImplicitThisOrBaseMemberAccess(IMemberReferenceOperation operation)
             {
                 // We cannot use `base` as an standalone expression. So if we encounter `base.x.y.z` we
                 // will walk down until the very last member reference, but not the `base` node itself,
@@ -82,22 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 //
                 return operation.Instance is IInstanceReferenceOperation instance &&
                        instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance &&
-                       instance.Syntax.IsKind(SyntaxKind.BaseExpression);
-            }
-
-            static Evaluation? VisitConditionalAccess(Evaluation? input, IOperation operation)
-            {
-                if (input is null)
-                    return null;
-
-                return operation switch
-                {
-                    IFieldReferenceOperation op => new MemberEvaluation(input, op),
-                    IPropertyReferenceOperation op => new MemberEvaluation(input, op),
-                    IConditionalAccessOperation op => VisitConditionalAccess(
-                        VisitConditionalAccess(input, op.Operation), op.WhenNotNull),
-                    _ => null
-                };
+                       (instance.IsImplicit || instance.Syntax.IsKind(SyntaxKind.BaseExpression));
             }
 
             static Evaluation? VisitIndexerReference(IPropertyReferenceOperation op)
@@ -129,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return op.Property.Name switch
                 {
                     // (1) Checking `HasValue` is interpreted as a null check
-                    nameof(Nullable<int>.HasValue) => new NotNull(VisitInput(op.Instance)),
+                    nameof(Nullable<int>.HasValue) => new NotNull(VisitInput(op.Instance), op.Syntax),
                     // (2) Skipping `Value` access since in patterns this is implicit
                     nameof(Nullable<int>.Value) => VisitInput(op.Instance),
                     _ => null
@@ -212,8 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         {
             return DetermineNullConstant(op) switch
             {
-                ConstantResult.Right => new NotNull(VisitInput(op.LeftOperand)),
-                ConstantResult.Left => new NotNull(VisitInput(op.RightOperand)),
+                ConstantResult.Right => new NotNull(VisitInput(op.LeftOperand), op.Syntax),
+                ConstantResult.Left => new NotNull(VisitInput(op.RightOperand), op.Syntax),
                 _ => null,
             };
 
@@ -288,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 // If the type is significant, we record it as an evaluation on the original input.
                 // This helps to keep the correct order with regard to the narrowed type when rewriting.
-                input = new Type(input, pattern.NarrowedType);
+                input = new Type(input, pattern.NarrowedType, pattern.Syntax);
             }
 
             return pattern switch
@@ -296,8 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 IBinaryPatternOperation op => VisitBinaryPatternOperation(input, op),
                 IConstantPatternOperation op => new Constant(input, op.Value),
                 IRelationalPatternOperation op => new Relational(input, op.OperatorKind, op.Value),
-                ITypePatternOperation _ => input, // The matched type is already captured in the input
-                IDiscardPatternOperation _ => True.Instance, // A discard pattern always matches
+                ITypePatternOperation => input, // The matched type is already captured in the input
+                IDiscardPatternOperation => True.Instance, // A discard pattern always matches
                 INegatedPatternOperation op => Not.Create(VisitPatternOperation(input, op.Pattern)),
                 IDeclarationPatternOperation op => VisitDeclarationPatternOperation(input, op),
                 IRecursivePatternOperation op => VisitRecursivePatternOperation(input, op),
@@ -329,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var tests = ArrayBuilder<AnalyzedNode>.GetInstance();
 
             if (operation.DeclaredSymbol != null)
-                tests.Add(new Variable(input, operation.DeclaredSymbol));
+                tests.Add(new Variable(input, operation.DeclaredSymbol, operation.Syntax));
 
             if (TryAddPropertySubpatterns(input, operation, tests) &&
                 TryAddPositionalSubpatterns(input, operation, tests))
@@ -370,10 +354,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         {
                             Debug.Assert(method.Name == WellKnownMemberNames.DeconstructMethodName);
                             Debug.Assert(method.Parameters.Length - (method.IsExtensionMethod ? 1 : 0) == subpatternCount);
-                            var deconstructEvaluation = new DeconstructEvaluation(input, method);
+                            var deconstructEvaluation = new DeconstructEvaluation(input, method, operation.Syntax);
                             for (var index = 0; index < subpatternCount; index++)
                             {
-                                var outVariableEvaluation = new OutVariableEvaluation(deconstructEvaluation, index);
+                                var outVariableEvaluation = new OutVariableEvaluation(deconstructEvaluation, index, operation.Syntax);
                                 var subpattern = VisitCore(operation.DeconstructionSubpatterns[index], outVariableEvaluation);
                                 if (subpattern is null)
                                     return false;
@@ -388,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                             var indexer = iTupleType.GetIndexers().Single();
                             for (var index = 0; index < subpatternCount; index++)
                             {
-                                var indexEvaluation = new IndexEvaluation(input, indexer, index);
+                                var indexEvaluation = new IndexEvaluation(input, indexer, index, operation.Syntax);
                                 var subpattern = VisitCore(operation.DeconstructionSubpatterns[index], indexEvaluation);
                                 if (subpattern is null)
                                     return false;
@@ -404,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                             for (var index = 0; index < subpatternCount; index++)
                             {
                                 var field = (IFieldSymbol)tupleType.GetMembers($"Item{index + 1}").Single();
-                                var fieldEvaluation = new MemberEvaluation(input, field);
+                                var fieldEvaluation = new MemberEvaluation(input, field, operation.Syntax);
                                 var subpattern = VisitCore(operation.DeconstructionSubpatterns[index], fieldEvaluation);
                                 if (subpattern is null)
                                     return false;
@@ -421,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         private static AnalyzedNode VisitDeclarationPatternOperation(Evaluation? input, IDeclarationPatternOperation op)
         {
             return op.DeclaredSymbol != null
-                ? new Variable(input, op.DeclaredSymbol)
+                ? new Variable(input, op.DeclaredSymbol, op.Syntax)
                 : True.Instance;
         }
     }

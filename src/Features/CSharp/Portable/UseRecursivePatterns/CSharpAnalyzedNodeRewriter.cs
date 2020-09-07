@@ -27,11 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
     {
         public static ExpressionSyntax AsExpressionSyntax(this AnalyzedNode node)
         {
-            Debug.Assert(!(node is Evaluation e) || e.Syntax is ExpressionSyntax, "!(node is Evaluation e) || e.Syntax is ExpressionSyntax");
+            Debug.Assert(!(node is Evaluation e) || e.Syntax is ExpressionSyntax,
+                        "!(node is Evaluation e) || e.Syntax is ExpressionSyntax");
 
             return node switch
             {
-                Evaluation p => (ExpressionSyntax)p.Syntax!,
+                Evaluation p => (ExpressionSyntax)p.Syntax,
                 Pair p => IsPatternExpression(AsExpressionSyntax(p.Input), AsPatternSyntax(p.Pattern)),
                 AndSequence p => p.Nodes.Select(AsExpressionSyntax).Aggregate((left, right) => BinaryExpression(SyntaxKind.LogicalAndExpression, left, right)),
                 OrSequence p => p.Nodes.Select(AsExpressionSyntax).Aggregate((left, right) => BinaryExpression(SyntaxKind.LogicalOrExpression, left, right)),
@@ -49,22 +50,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         public static PatternSyntax AsPatternSyntax(this AnalyzedNode node, out ExpressionSyntax? expression, bool recurse = false)
         {
             expression = null;
-            return node switch
+            var pattern = node switch
             {
-                OrSequence p when CanSimplifyConsecutiveConstantTests(p, out var constants) => AsPatternSyntax(SimplifyConsecutiveConstantTests(constants)),
-                OrSequence p => p.Nodes.Select(p => AsPatternSyntax(p)).Aggregate((left, right) => BinaryPattern(SyntaxKind.OrPattern, left, right)),
-                True _ => DiscardPattern(),
-                False _ => UnaryPattern(DiscardPattern()),
-                Not { Operand: NotNull _ } => ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                Not p => UnaryPattern(AsPatternSyntax(p.Operand)),
-                NotNull _ => UnaryPattern(ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression))),
-                Relational p => RelationalPattern(Token(AsSyntaxKind(p.OperatorKind)), (ExpressionSyntax)p.Value.Syntax),
+                OrSequence p when CanSimplifyConsecutiveConstantTests(p, out var constants)
+                    => AsPatternSyntax(SimplifyConsecutiveConstantTests(constants)),
+                OrSequence p => p.Nodes
+                    .Select(p => AsPatternSyntax(p))
+                    .Aggregate((left, right) => BinaryPattern(SyntaxKind.OrPattern, left, right)),
+                True => DiscardPattern(),
+                False => UnaryPattern(DiscardPattern()),
+                Not { Operand: NotNull } => ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                NotNull => UnaryPattern(ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression))),
+                Relational p => RelationalPattern(Token(AsSyntaxKind(p.OperatorKind)), ((ExpressionSyntax)p.Value.Syntax)),
                 Constant p => ConstantPattern(((ExpressionSyntax)p.Value.Syntax).WithoutTrailingTrivia()),
                 Type p => TypePattern(p.TypeSymbol.GenerateTypeSyntax()),
                 Variable p => VarPattern(SingleVariableDesignation(Identifier(p.DeclaredSymbol.Name))),
                 var p when !recurse => AsRecursivePatternSyntax(p, out expression),
                 var p => throw UnexpectedNode(p)
             };
+
+            return pattern;
         }
 
         private static Exception UnexpectedNode(AnalyzedNode p)
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             VariableDesignationSyntax? designation = null;
 
             using var _0 = ArrayBuilder<PositionalPatternClauseSyntax>.GetInstance(out var positionalClauses);
-            using var _1 = ArrayBuilder<SubpatternSyntax>.GetInstance(out var propertySubpatterns);
+            using var _1 = ArrayBuilder<(MemberEvaluation Member, PatternSyntax Pattern)>.GetInstance(out var propertySubpatterns);
             using var _2 = ArrayBuilder<PatternSyntax?>.GetInstance(out var tupleSubpatterns);
             using var _3 = ArrayBuilder<PatternSyntax?>.GetInstance(out var indexedSubpatterns);
             using var _4 = ArrayBuilder<PatternSyntax>.GetInstance(out var remainingPatterns);
@@ -155,13 +160,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         break;
 
                     case MemberEvaluation member:
-                        propertySubpatterns.Add(AsSubpatternSyntax(member, AsConstantPattern(true)));
+                        propertySubpatterns.Add((member, AsConstantPattern(true)));
                         break;
                     case Not { Operand: MemberEvaluation member }:
-                        propertySubpatterns.Add(AsSubpatternSyntax(member, AsConstantPattern(false)));
+                        propertySubpatterns.Add((member, AsConstantPattern(false)));
                         break;
                     case Pair { Input: MemberEvaluation member } pair:
-                        propertySubpatterns.Add(AsSubpatternSyntax(member, AsPatternSyntax(pair.Pattern)));
+                        propertySubpatterns.Add((member, AsPatternSyntax(pair.Pattern)));
                         break;
 
                     case Pair { Input: DeconstructEvaluation input } pair:
@@ -175,15 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         type = t.TypeSymbol;
                         break;
 
-                    case NotNull _:
+                    case NotNull:
                         break;
 
-                    case Pair { Input: OperationEvaluation _ } p:
+                    case Pair { Input: OperationEvaluation } p:
                         remainingExpressions.Add(AsExpressionSyntax(p));
                         break;
                     case OperationEvaluation p:
                         remainingExpressions.Add(AsExpressionSyntax(p));
                         break;
+
+                    case Not p:
+                        remainingPatterns.Add(UnaryPattern(AsPatternSyntax(p.Operand)));
+                        break;
+
                     case var v:
                         remainingPatterns.Add(AsPatternSyntax(v, recurse: true));
                         break;
@@ -197,24 +207,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 if (tupleSubpatterns.Count < arity)
                     tupleSubpatterns.SetItem(arity - 1, null);
                 var list = tupleSubpatterns.Select(p => Subpattern(p ?? DiscardPattern()));
-                var patternClause = PositionalPatternClause(SeparatedList(list));
-                remainingPatterns.Add(RecursivePattern(null, patternClause, null, null));
+                var positional = PositionalPatternClause(SeparatedList(list));
+                remainingPatterns.Add(RecursivePattern(null, positional, null, null));
             }
             else if (!indexedSubpatterns.IsEmpty())
             {
                 var list = indexedSubpatterns.Select(p => Subpattern(p ?? DiscardPattern()));
-                var patternClause = PositionalPatternClause(SeparatedList(list));
-                remainingPatterns.Add(RecursivePattern(null, patternClause, null, null));
+                var positional = PositionalPatternClause(SeparatedList(list));
+                remainingPatterns.Add(RecursivePattern(null, positional, null, null));
             }
 
             if (!positionalClauses.IsEmpty() ||
                 !propertySubpatterns.IsEmpty())
             {
-                var recursive = RecursivePattern(
-                    type?.GenerateTypeSyntax(),
-                    positionalClauses.FirstOrDefault(),
-                    PropertyPatternClause(SeparatedList(propertySubpatterns)),
-                    designation);
+                var properties = PropertyPatternClause(SeparatedList(propertySubpatterns
+                    .OrderBy(p => p.Member.Syntax.SpanStart)
+                    .Select(p => AsSubpatternSyntax(p.Member, p.Pattern))));
+                var recursive = RecursivePattern(type?.GenerateTypeSyntax(), positionalClauses.FirstOrDefault(), properties, designation);
                 remainingPatterns.Insert(0, recursive.WithAdditionalAnnotations(Simplifier.Annotation));
                 remainingPatterns.AddRange(positionalClauses.Skip(1).Select(
                     positional => RecursivePattern(null, positional, null, null)));
@@ -319,8 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         private static AnalyzedNode SimplifyConsecutiveConstantTests(ImmutableArray<Constant> constants)
         {
             var tests = ArrayBuilder<AnalyzedNode>.GetInstance();
-            foreach (var bucket in ConsecutiveGroups(constants))
+            foreach (var group in ConsecutiveGroups(constants))
             {
+                var bucket = group.AsList();
                 Debug.Assert(bucket.Count > 0);
                 if (bucket.Count <= 2)
                 {
@@ -329,25 +339,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 else
                 {
                     var builder = ArrayBuilder<AnalyzedNode>.GetInstance(2);
-                    builder.Add(new Relational(null, BinaryOperatorKind.GreaterThanOrEqual, bucket.First().Value));
-                    builder.Add(new Relational(null, BinaryOperatorKind.LessThanOrEqual, bucket.Last().Value));
+                    builder.Add(new Relational(null, BinaryOperatorKind.GreaterThanOrEqual, bucket[0].Value));
+                    builder.Add(new Relational(null, BinaryOperatorKind.LessThanOrEqual, bucket[^1].Value));
                     tests.Add(AndSequence.Create(builder));
                 }
             }
 
             return OrSequence.Create(tests);
 
-            static IEnumerable<IReadOnlyCollection<Constant>> ConsecutiveGroups(ImmutableArray<Constant> source)
+            static IEnumerable<IEnumerable<Constant>> ConsecutiveGroups(ImmutableArray<Constant> source)
             {
-                // Finding consecutive groups. This works by grouping constants by the diffrence with their ordered index
+                // Finding consecutive groups. This works by grouping constants by the difference with their ordered index
                 // For instance:
-                //      
+                //
                 //      Constants:      8, 3, 5, 1, 6, 2
                 //      Ordered:        1, 2, 3, 5, 6, 8
                 //      Index:          0, 1, 2, 3, 4, 5
                 //      Difference:     1, 1, 1, 2, 2, 3
-                //      Groups:         {1, 2, 3}, {5, 6}, {8} 
-                //      Result:         >=1 and <=3, 5, 6, 8 
+                //      Groups:         {1, 2, 3}, {5, 6}, {8}
+                //      Result:         >=1 and <=3, 5, 6, 8
                 //
                 // We'll convert groups with more than two elements to a range check
                 //
@@ -355,8 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     .Select(constant => (constant, value: (IConvertible)constant.Value.ConstantValue.Value))
                     .OrderBy(item => item.value)
                     .Select((item, index) => (item.constant, item.value, index))
-                    .GroupBy(item => item.value.ToInt64(null) - item.index)
-                    .Select(group => group.Select(item => item.constant).ToList());
+                    .GroupBy(item => item.value.ToUInt64(null) - (uint)item.index, item => item.constant);
             }
         }
 

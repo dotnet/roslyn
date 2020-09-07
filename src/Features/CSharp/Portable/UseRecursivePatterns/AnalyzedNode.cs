@@ -15,83 +15,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 {
-    internal abstract class AnalyzedNode
+    using static SyntaxFactory;
+
+    internal abstract record AnalyzedNode
     {
-        // TODO: this should be unnecessary if we redefine the tree using records
-        public sealed override bool Equals(object? obj)
-        {
-            var other = (AnalyzedNode?)obj;
-            if (ReferenceEquals(this, other))
-                return true;
-            if (GetType() != other?.GetType())
-                return false;
-
-            return (this, other) switch
-            {
-                (Test left, Test right) when !Equals(left.Input, right.Input) => false,
-                (Not left, Not right) => Equals(left.Operand, right.Operand),
-                (Type left, Type right) => left.TypeSymbol.Equals(right.TypeSymbol),
-                (Constant left, Constant right) => SyntaxFactory.AreEquivalent(left.Value.Syntax, right.Value.Syntax),
-                (Variable left, Variable right) => left.DeclaredSymbol.Equals(right.DeclaredSymbol),
-                (Relational left, Relational right) => left.OperatorKind == right.OperatorKind &&
-                                                       SyntaxFactory.AreEquivalent(left.Value.Syntax, right.Value.Syntax),
-                (OperationEvaluation left, OperationEvaluation right) => SyntaxFactory.AreEquivalent(left.Syntax, right.Syntax),
-                (MemberEvaluation left, MemberEvaluation right) => left.Symbol.Equals(right.Symbol),
-                (DeconstructEvaluation left, DeconstructEvaluation right) => left.DeconstructMethod.Equals(right.DeconstructMethod),
-                (IndexEvaluation left, IndexEvaluation right) => left.Index == right.Index && left.Property.Equals(right.Property),
-                (Sequence left, Sequence right) => left.Nodes.SequenceEqual(right.Nodes, (object?)null, (left, right, _) => left.Equals(right)),
-                (NotNull _, NotNull _) => true,
-                _ => false,
-            };
-        }
-
-        // TODO: this should be unnecessary if we redefine the tree using records
-        public sealed override int GetHashCode()
-        {
-            return GetType().GetHashCode() ^
-                   (GetSymbol(this)?.GetHashCode() ?? 0) ^
-                   (this switch { Relational v => (int)v.OperatorKind, IndexEvaluation v => v.Index, _ => 0 }) ^
-                   Hash.CombineValues(GetChildren(this));
-
-            static ISymbol? GetSymbol(AnalyzedNode @this)
-            {
-                return @this switch
-                {
-                    DeconstructEvaluation v => v.DeconstructMethod,
-                    IndexEvaluation v => v.Property,
-                    MemberEvaluation v => v.Symbol,
-                    Type v => v.TypeSymbol,
-                    Variable v => v.DeclaredSymbol,
-                    _ => null
-                };
-            }
-
-            static ImmutableArray<AnalyzedNode> GetChildren(AnalyzedNode @this)
-            {
-                return @this switch
-                {
-                    Sequence seq => seq.Nodes,
-                    Not not => ImmutableArray.Create(not.Operand),
-                    Test { Input: { } input } => ImmutableArray.Create<AnalyzedNode>(input),
-                    Pair pair => ImmutableArray.Create(pair.Input, pair.Pattern),
-                    _ => ImmutableArray<AnalyzedNode>.Empty,
-                };
-            }
-        }
-
-        internal sealed class True : AnalyzedNode
+        internal sealed record True : AnalyzedNode
         {
             public static readonly AnalyzedNode Instance = new True();
             private True() { }
         }
 
-        internal sealed class False : AnalyzedNode
+        internal sealed record False : AnalyzedNode
         {
             public static readonly AnalyzedNode Instance = new False();
             private False() { }
         }
 
-        internal sealed class Not : AnalyzedNode
+        internal sealed record Not : AnalyzedNode
         {
             public readonly AnalyzedNode Operand;
 
@@ -108,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return operand switch
                 {
                     null => null,
-                    True _ => False.Instance,
-                    False _ => True.Instance,
+                    True => False.Instance,
+                    False => True.Instance,
                     Not p => p.Operand,
                     Relational p => new Relational(p.Input, Negate(p.OperatorKind), p.Value),
                     _ => new Not(operand)
@@ -129,13 +69,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal abstract class Sequence : AnalyzedNode
+        internal abstract record Sequence : AnalyzedNode
         {
             public readonly ImmutableArray<AnalyzedNode> Nodes;
 
             protected Sequence(ImmutableArray<AnalyzedNode> nodes)
             {
                 Nodes = nodes;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode() ^ Hash.CombineValues(Nodes);
+            }
+
+            public virtual bool Equals(Sequence? other)
+            {
+                return base.Equals(other) && Nodes.SequenceEqual(other.Nodes);
             }
 
             /// <summary>
@@ -157,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class AndSequence : Sequence
+        internal sealed record AndSequence : Sequence
         {
             public AndSequence(ImmutableArray<AnalyzedNode> nodes) : base(nodes) { }
 
@@ -182,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 {
                     switch (tests[i])
                     {
-                        case True _:
+                        case True:
                             tests.RemoveAt(i);
                             break;
                         case False f:
@@ -207,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class OrSequence : Sequence
+        internal sealed record OrSequence : Sequence
         {
             public OrSequence(ImmutableArray<AnalyzedNode> nodes) : base(nodes) { }
 
@@ -232,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 {
                     switch (tests[i])
                     {
-                        case False _:
+                        case False:
                             tests.RemoveAt(i);
                             break;
                         case True t:
@@ -257,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class Pair : AnalyzedNode
+        internal sealed record Pair : AnalyzedNode
         {
             public readonly Evaluation Input;
             public readonly AnalyzedNode Pattern;
@@ -269,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal abstract class Test : AnalyzedNode
+        internal abstract record Test : AnalyzedNode
         {
             public readonly Evaluation? Input;
 
@@ -286,9 +236,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             protected abstract Test WithInputCore(Evaluation? newInput);
         }
 
-        internal sealed class Constant : Test
+        internal sealed record Constant : Test
         {
             public readonly IOperation Value;
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public bool Equals(Constant? other)
+            {
+                return base.Equals(other) && AreEquivalent(Value.Syntax, other.Value.Syntax);
+            }
 
             public Constant(Evaluation? input, IOperation value) : base(input)
             {
@@ -302,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class Relational : Test
+        internal sealed record Relational : Test
         {
             public readonly BinaryOperatorKind OperatorKind;
             public readonly IOperation Value;
@@ -314,47 +274,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Value = value;
             }
 
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public bool Equals(Relational? other)
+            {
+                return base.Equals(other) &&
+                    OperatorKind == other.OperatorKind &&
+                    AreEquivalent(Value.Syntax, other.Value.Syntax);
+            }
+
             protected override Test WithInputCore(Evaluation? newInput)
             {
                 return new Relational(newInput, OperatorKind, Value);
             }
         }
 
-        internal abstract class Evaluation : Test
+        internal abstract record Evaluation : Test
         {
-            // Record the syntax so we don't have to recreate the whole
-            // node if this happens to be rewritten as an expression.
-            public readonly SyntaxNode? Syntax;
+            public readonly SyntaxNode Syntax;
 
-            protected Evaluation(Evaluation? input, SyntaxNode? syntax = null) : base(input)
+            protected Evaluation(Evaluation? input, SyntaxNode syntax) : base(input)
             {
                 Syntax = syntax;
             }
 
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public virtual bool Equals(Evaluation? other)
+            {
+                return base.Equals(other);
+            }
+
+            // UNDONE: Use covariant return types when available:
+            // protected abstract override Evaluation WithInputCore(Evaluation? newInput);
             public new Evaluation WithInput(Evaluation? newInput)
             {
                 return (Evaluation)base.WithInput(newInput);
             }
         }
 
-        internal sealed class NotNull : Evaluation
+        internal sealed record NotNull : Evaluation
         {
-            public NotNull(Evaluation? input)
-                : base(input)
+            public NotNull(Evaluation? input, SyntaxNode syntax)
+                : base(input, syntax)
             {
             }
 
             protected override Test WithInputCore(Evaluation? newInput)
             {
-                return new NotNull(newInput);
+                return new NotNull(newInput, Syntax);
             }
         }
 
-        internal sealed class Variable : Evaluation
+        internal sealed record Variable : Evaluation
         {
             public readonly ISymbol DeclaredSymbol;
 
-            public Variable(Evaluation? input, ISymbol symbol, SyntaxNode? syntax = null) : base(input, syntax)
+            public Variable(Evaluation? input, ISymbol symbol, SyntaxNode syntax) : base(input, syntax)
             {
                 Debug.Assert(symbol is ILocalSymbol || symbol is IFieldSymbol);
                 DeclaredSymbol = symbol;
@@ -366,27 +348,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class Type : Evaluation
+        internal sealed record Type : Evaluation
         {
             public readonly ITypeSymbol TypeSymbol;
 
-            public Type(Evaluation? input, ITypeSymbol type) : base(input)
+            public Type(Evaluation? input, ITypeSymbol type, SyntaxNode syntax) : base(input, syntax)
             {
                 TypeSymbol = type;
             }
 
             protected override Test WithInputCore(Evaluation? newInput)
             {
-                return new Type(newInput, TypeSymbol);
+                return new Type(newInput, TypeSymbol, Syntax);
             }
         }
 
-        internal sealed class IndexEvaluation : Evaluation
+        internal sealed record IndexEvaluation : Evaluation
         {
             public readonly IPropertySymbol Property;
             public readonly int Index;
 
-            public IndexEvaluation(Evaluation? input, IPropertySymbol property, int index, SyntaxNode? syntax = null)
+            public IndexEvaluation(Evaluation? input, IPropertySymbol property, int index, SyntaxNode syntax)
                 : base(input, syntax)
             {
                 Property = property;
@@ -399,18 +381,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class MemberEvaluation : Evaluation
+        internal sealed record MemberEvaluation : Evaluation
         {
             public readonly ISymbol Symbol;
 
-            private MemberEvaluation(Evaluation? input, ISymbol symbol, SyntaxNode? syntax)
+            private MemberEvaluation(Evaluation? input, ISymbol symbol, SyntaxNode syntax)
                 : base(input, syntax)
             {
                 Symbol = symbol;
             }
 
             public MemberEvaluation(Evaluation? input, IFieldReferenceOperation op)
-                : this(input, op.Field.CorrespondingTupleField ?? op.Field, op.Syntax)
+                : this(input, op.Field.CorrespondingTupleField ?? (ISymbol)op.Field, op.Syntax)
             {
             }
 
@@ -419,8 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
             }
 
-            public MemberEvaluation(Evaluation? input, IFieldSymbol field)
-                : this(input, field, syntax: null)
+            public MemberEvaluation(Evaluation? input, IFieldSymbol field, SyntaxNode syntax)
+                : this(input, (ISymbol)field, syntax)
             {
                 Debug.Assert(field.IsTupleField());
             }
@@ -446,27 +428,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        internal sealed class DeconstructEvaluation : Evaluation
+        internal sealed record DeconstructEvaluation : Evaluation
         {
             public readonly IMethodSymbol DeconstructMethod;
 
-            public DeconstructEvaluation(Evaluation? input, IMethodSymbol deconstructMethod)
-                : base(input)
+            public DeconstructEvaluation(Evaluation? input, IMethodSymbol deconstructMethod, SyntaxNode syntax)
+                : base(input, syntax)
             {
                 DeconstructMethod = deconstructMethod;
             }
 
             protected override Test WithInputCore(Evaluation? newInput)
             {
-                return new DeconstructEvaluation(newInput, DeconstructMethod);
+                return new DeconstructEvaluation(newInput, DeconstructMethod, Syntax);
             }
         }
 
-        internal sealed class OutVariableEvaluation : Evaluation
+        internal sealed record OutVariableEvaluation : Evaluation
         {
             public readonly int Index;
 
-            public OutVariableEvaluation(Evaluation? input, int index) : base(input)
+            public OutVariableEvaluation(Evaluation? input, int index, SyntaxNode syntax) : base(input, syntax)
             {
                 Debug.Assert(input is DeconstructEvaluation);
                 Index = index;
@@ -474,15 +456,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             protected override Test WithInputCore(Evaluation? newInput)
             {
-                return new OutVariableEvaluation(newInput, Index);
+                return new OutVariableEvaluation(newInput, Index, Syntax);
             }
         }
 
-        internal sealed class OperationEvaluation : Evaluation
+        internal sealed record OperationEvaluation : Evaluation
         {
             public OperationEvaluation(IOperation operation)
                 : base(input: null, operation.Syntax)
             {
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public bool Equals(OperationEvaluation? other)
+            {
+                return base.Equals(other) && AreEquivalent(Syntax, other.Syntax);
             }
 
             protected override Test WithInputCore(Evaluation? newInput)
@@ -500,8 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 return node switch
                 {
-                    False _ => "FALSE",
-                    True _ => "TRUE",
+                    False => "FALSE",
+                    True => "TRUE",
                     Test test => $"{(test.Input is null ? null : $"{DumpNode(test.Input)}<-")}{DumpTest(test)}",
                     Sequence seq => $"{(seq is AndSequence ? "AND" : "OR")}({string.Concat(seq.Nodes.Select(n => $"\n{new string(' ', (depth + 1) * 4)}{DumpNode(n, depth + 1)}"))})",
                     Not not => $"NOT({DumpNode(not.Operand, depth + 1)})",
@@ -518,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     DeconstructEvaluation p => $"D:{p.DeconstructMethod.Name}",
                     IndexEvaluation p => $"this[{p.Index}]",
                     MemberEvaluation p => $"{p.Symbol.Name}",
-                    NotNull _ => "{}",
+                    NotNull => "{}",
                     OperationEvaluation p => $"E:{p.Syntax}",
                     OutVariableEvaluation p => $"out var v{p.Index}",
                     Type p => $"T:{p.TypeSymbol.Name}",
@@ -536,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     BinaryOperatorKind.LessThanOrEqual => "<=",
                     BinaryOperatorKind.GreaterThan => ">",
                     BinaryOperatorKind.GreaterThanOrEqual => ">=",
-                    _ => "??"
+                    var v => throw ExceptionUtilities.UnexpectedValue(v)
                 };
             }
         }

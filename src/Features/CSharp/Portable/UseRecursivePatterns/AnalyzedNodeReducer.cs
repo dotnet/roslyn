@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 positiveTests.Add(new Pair(input, Combine(sequence, children)));
             }
 
+            // Just release the map, nested builders are freed in the loop above
             map.Free();
 
             // Apply demorgan's

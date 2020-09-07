@@ -263,6 +263,9 @@ namespace Roslyn.Utilities
         public static T[] AsArray<T>(this IEnumerable<T> source)
             => source as T[] ?? source.ToArray();
 
+        public static IList<T> AsList<T>(this IEnumerable<T> source)
+            => source as IList<T> ?? source.ToList();
+
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, TResult> selector)
         {
             if (source == null)

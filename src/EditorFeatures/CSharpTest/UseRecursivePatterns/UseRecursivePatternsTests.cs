@@ -147,16 +147,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
         return
             a && type is
             {
+                Name: >= 1 and <= 3,
+                Nullable1: not null,
+                Nullable2: null,
+                Nullable3: 5,
                 SomeProp1: true,
                 SomeProp2: false,
                 SomeProp3: false,
                 SomeProp4: false,
                 SomeProp5: false,
                 SomeProp6: false,
-                Name: >= 1 and <= 3,
-                Nullable1: not null,
-                Nullable2: null,
-                Nullable3: 5,
                 Kind: >= 4 and <= 6,
                 ContainingSymbol: C
                 {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M(C type)
     {
-        return type is { IsStruct: true, Name: ""ValueTuple"" };
+        return type is { Name: ""ValueTuple"", IsStruct: true };
     }
     string Name;
     bool IsStruct;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M(C type)
     {
-        return type is { IsClass: false, Name: ""ValueTuple"" };
+        return type is { Name: ""ValueTuple"", IsClass: false };
     }
     string Name;
     bool IsClass;
@@ -1073,6 +1073,174 @@ class C
     {
         return !(node is C c) [||]|| c.SomeProp is C;
     }
+}");
+        }
+
+        [Fact]
+        public async Task TestImplicitThisReceiver()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    C b;
+    bool M()
+    {
+        return b.P1 == 1 [||]|| b.P1 == 2;
+    }
+    public int P1, P2;
+}",
+@"class C
+{
+    C b;
+    bool M()
+    {
+        return b is { P1: 1 or 2 };
+    }
+    public int P1, P2;
+}");
+        }
+
+        [Fact]
+        public async Task TestBaseMemberAccess01()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+    bool M()
+    {
+        return base.b.P1 == 1 [||]|| base.b.P1 == 2;
+    }
+}
+class B
+{
+    public B b;
+    public int P1, P2;
+}",
+@"class C : B
+{
+    bool M()
+    {
+        return base.b is { P1: 1 or 2 };
+    }
+}
+class B
+{
+    public B b;
+    public int P1, P2;
+}");
+        }
+
+        [Fact]
+        public async Task TestBaseMemberAccess02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+    bool M()
+    {
+        return base.b.P1 == 1 [||]|| this.b.P1 == 2 || b.P1 == 3;
+    }
+}
+class B
+{
+    public B b;
+    public int P1, P2;
+}",
+@"class C : B
+{
+    bool M()
+    {
+        return base.b is { P1: 1 } || this is { b: { P1: 2 } } || b is { P1: 3 };
+    }
+}
+class B
+{
+    public B b;
+    public int P1, P2;
+}");
+        }
+
+        [Fact]
+        public async Task Test40()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return !this.IsUserDefined [||]||
+            this.Method is object ||
+            this._uncommonData?._conversionResult.Kind == 0;
+    }
+    bool IsUserDefined;
+    object Method;
+    C _uncommonData;
+    C _conversionResult;
+    int Kind;
+}",
+@"class C
+{
+    bool M()
+    {
+        return this is { IsUserDefined: false } or { Method: object } or { _uncommonData: { _conversionResult: { Kind: 0 } } };
+    }
+    bool IsUserDefined;
+    object Method;
+    C _uncommonData;
+    C _conversionResult;
+    int Kind;
+}");
+        }
+
+        [Fact]
+        public async Task Test41()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return [||]!this.IsUserDefined;
+    }
+    bool IsUserDefined;
+}",
+@"class C
+{
+    bool M()
+    {
+        return this is { IsUserDefined: false };
+    }
+    bool IsUserDefined;
+}");
+        }
+
+        [Fact]
+        public async Task Test42()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return this._uncommonData?._conversionResult.Kind [||]== 0;
+    }
+    bool IsUserDefined;
+    object Method;
+    C _uncommonData;
+    C _conversionResult;
+    int Kind;
+}",
+@"class C
+{
+    bool M()
+    {
+        return this is { _uncommonData: { _conversionResult: { Kind: 0 } } };
+    }
+    bool IsUserDefined;
+    object Method;
+    C _uncommonData;
+    C _conversionResult;
+    int Kind;
 }");
         }
     }

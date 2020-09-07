@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 if (!(current is ExpressionSyntax expr))
                     break;
 
+                expr = expr.WalkUpParentheses();
                 if (expr.IsTopmostExpression())
                     return expr;
             }
