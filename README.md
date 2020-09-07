@@ -11,9 +11,18 @@ If you want to suggest a new feature for the C# or Visual Basic languages go her
 - [dotnet/vblang](https://github.com/dotnet/vblang) for VB-specific features
 - [dotnet/csharplang](https://github.com/dotnet/csharplang) for features that affect both languages
 
-Discussion about the transition of language design to the new repos is at https://github.com/dotnet/roslyn/issues/18002.
+### Getting started with the Roslyn APIs
 
-### Download C# and Visual Basic
+If you want to get started using Roslyn's APIs to analyzer your code take a look at these links:
+- [Roslyn Architecture Overview](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/compiler-api-model) 
+  - [Syntax APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-syntax)
+  - [Semantic APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-semantics)
+  - [Workspace APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-workspace)
+- [Tutorial: Write your first analyzer and code fix](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/tutorials/how-to-write-csharp-analyzer-code-fix)
+- Useful Tools
+  - [Syntax Visualizer Tool](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/syntax-visualizer)
+  - [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
+  - Browse the source with the [enhanced source view](http://sourceroslyn.io/)
 
 Want to start developing in C# and Visual Basic? Download [Visual Studio 2019](https://www.visualstudio.com/downloads/), which has the latest features built-in. There are 
 also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202019) available with 
