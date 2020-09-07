@@ -10,8 +10,8 @@ If you want to suggest a new feature for the C# or Visual Basic languages go her
 - [dotnet/csharplang](https://github.com/dotnet/csharplang) for C# specific issues
 - [dotnet/vblang](https://github.com/dotnet/vblang) for VB-specific features
 - [dotnet/csharplang](https://github.com/dotnet/csharplang) for features that affect both languages
-
 ### Getting started with the Roslyn APIs
+
 
 If you want to get started using Roslyn's APIs to analyzer your code take a look at these links:
 - [Roslyn Architecture Overview](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/compiler-api-model) 
@@ -24,49 +24,33 @@ If you want to get started using Roslyn's APIs to analyzer your code take a look
   - [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
   - Browse the source with the [enhanced source view](http://sourceroslyn.io/)
 
-Want to start developing in C# and Visual Basic? Download [Visual Studio 2019](https://www.visualstudio.com/downloads/), which has the latest features built-in. There are 
-also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202019) available with 
-Visual Studio 2019 already installed.
-
-To install the latest release without Visual Studio, download the [.NET SDK nightlies](https://github.com/dotnet/installer/blob/master/README.md#installers-and-binaries).
-
-See [what's new with the C# and VB compilers](docs/wiki/Changelog-for-C%23-and-VB-compilers.md).
-
-**Pre-release builds** are available from the following public NuGet feeds: 
-- [Compiler](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json`
-- [IDE Services](https://devdiv.visualstudio.com/DevDiv/_packaging?_a=feed&feed=vssdk): `https://devdiv.pkgs.visualstudio.com/_packaging/vssdk/nuget/v3/index.json` 
-- [.NET SDK](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet5): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json`
-
-### Source code
-
-* Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
-* [Enhanced source view](http://sourceroslyn.io/), powered by Roslyn 
-* [Building, testing and debugging the sources](docs/wiki/Building-Testing-and-Debugging.md)
-
-### Get started
-
-* Tutorial articles by Alex Turner in MSDN Magazine
-  - [Use Roslyn to Write a Live Code Analyzer for Your API](https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/special-issue/csharp-and-visual-basic-use-roslyn-to-write-a-live-code-analyzer-for-your-api)
-  - [Adding a Code Fix to your Roslyn Analyzer](https://docs.microsoft.com/en-us/archive/msdn-magazine/2015/february/csharp-adding-a-code-fix-to-your-roslyn-analyzer)
-* [Roslyn Overview](docs/wiki/Roslyn-Overview.md) 
-* [API Changes between CTP 6 and RC](docs/wiki/VS-2015-RC-API-Changes.md)
-* [Samples and Walkthroughs](docs/wiki/Samples-and-Walkthroughs.md)
-* [Documentation](https://github.com/dotnet/roslyn/tree/master/docs)
-* [Analyzer documentation](https://github.com/dotnet/roslyn/tree/master/docs/analyzers)
-* [Syntax Visualizer Tool](docs/wiki/Syntax-Visualizer.md)
-* [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
-* [Roadmap](docs/wiki/Roadmap.md) 
-* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
-* [FAQ](docs/wiki/FAQ.md)
-
-### Contribute!
+## Contribute!
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
 
-* [How to Contribute](docs/wiki/Contributing-Code.md)
-* [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
+#### Questions
 
-Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/labels/help%20wanted) is a great place to start.
+- Start with a question on [discussions](https://github.com/dotnet/roslyn/discussions)
+
+#### See if your issue is already being worked on! (Add your own votes using the 👍 reaction)
+- [IDE](https://aka.ms/roslyn-ide-in-progress)
+- [Compiler](https://aka.ms/roslyn-compiler-in-progress)
+
+#### Vote in the Backlog! (Add your own votes using the 👍 reaction)
+- [IDE Bugs](https://aka.ms/roslyn-ide-bug-backlog)
+- [IDE Features](https://aka.ms/roslyn-ide-feature-backlog)
+- [Compiler Bugs](https://aka.ms/roslyn-compiler-bug-backlog)
+- [Compiler Features](https://aka.ms/roslyn-compiler-features-backlog)
+
+#### Find a bug to fix! (Add your own votes using the 👍 reaction)
+- First read this guide: [How to Contribute](docs/wiki/Contributing-Code.md)
+- Top Bugs 
+  - [IDE](https://aka.ms/roslyn-ide-bugs-help-wanted)
+  - [Compiler](https://aka.ms/roslyn-compiler-bugs-help-wanted)
+
+#### Find a feature to implement! (Add your own votes using the 👍 reaction)
+- [IDE](https://aka.ms/roslyn-ide-feature-help-wanted)
+- [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
 
 This [project](CODE-OF-CONDUCT.md) has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
