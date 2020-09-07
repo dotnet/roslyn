@@ -3285,10 +3285,19 @@ public class Program
 
             var tree = Parse(text);
 
+            Assert.Equal(@"/// <summary>
+    /// This is Foo.Bar
+    /// </summary>
+", getDocumentationCommentString());
+
             tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(eol: Environment.NewLine), tree.Options);
 
-            // NormalizeWhitespace doesn't change the text here (though it might change the tree structure)
+            // NormalizeWhitespace didn't change the full text, but it moved whitespace into the documentation comment
             Assert.Equal(text, tree.ToString());
+            Assert.Equal(@"/// <summary>
+    /// This is Foo.Bar
+    /// </summary>
+    ", getDocumentationCommentString());
 
             var comp = CreateCompilation(tree);
 
@@ -3297,6 +3306,9 @@ public class Program
             DocumentationCommentCompiler.WriteDocumentationCommentXml(comp, null, null, diags, default);
 
             diags.Verify();
+
+            string getDocumentationCommentString() =>
+                tree.GetRoot().DescendantTrivia().Single(n => n.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).ToFullString();
         }
 
         #region Xml Test helpers
