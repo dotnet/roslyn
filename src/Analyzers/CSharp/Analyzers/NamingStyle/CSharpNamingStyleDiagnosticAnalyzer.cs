@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
-using System.Diagnostics.SymbolStore;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
             => symbol.IsKind(SymbolKind.Parameter)
             && IsParameterOfRecordDeclaration(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());
 
-        private static bool IsParameterOfRecordDeclaration(SyntaxNode node)
+        private static bool IsParameterOfRecordDeclaration(SyntaxNode? node)
             => node != null && node.HasAncestor<RecordDeclarationSyntax>();
     }
 }
