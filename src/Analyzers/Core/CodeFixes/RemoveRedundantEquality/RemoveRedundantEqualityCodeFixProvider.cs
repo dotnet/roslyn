@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityWithTrueDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId);
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
