@@ -29,15 +29,17 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
         private void AnalyzeBinaryOperator(OperationAnalysisContext context)
         {
             var operation = (IBinaryOperation)context.Operation;
-            if (operation.OperatorMethod is not null) // Overloaded operator
+            if (operation.OperatorMethod is not null)
+            {
+                // We shouldn't report diagnostic on overloaded operator as the behavior can change.
+                return;
+            }
+
+            if (operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals))
             {
                 return;
             }
 
-            if (operation.OperatorKind != BinaryOperatorKind.Equals)
-            {
-                return;
-            }
             var rightOperand = operation.RightOperand;
             var leftOperand = operation.LeftOperand;
             // The reported additionalLocations represents the non-redundant side of equality.
@@ -49,16 +51,18 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             if (rightOperand.ConstantValue.HasValue && rightOperand.ConstantValue.Value is true)
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
-                    operation.Syntax.GetLocation(),
+                    rightOperand.Syntax.GetLocation(),
                     ReportDiagnostic.Hidden,
                     additionalLocations: new[] { leftOperand.Syntax.GetLocation() },
                     properties: null));
             }
             else if (leftOperand.ConstantValue.HasValue && leftOperand.ConstantValue.Value is true)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor,
-                    operation.Syntax.GetLocation(),
-                    additionalLocations: new[] { rightOperand.Syntax.GetLocation() }));
+                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
+                    leftOperand.Syntax.GetLocation(),
+                    ReportDiagnostic.Hidden,
+                    additionalLocations: new[] { rightOperand.Syntax.GetLocation() },
+                    properties: null));
             }
         }
     }
