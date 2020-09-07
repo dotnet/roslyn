@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
 
-        public const string RemoveRedundantEqualityWithTrueDiagnosticId = "IDE0085";
+        public const string RemoveRedundantEqualityDiagnosticId = "IDE0090";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
