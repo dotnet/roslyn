@@ -64,15 +64,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Look for the form: !(x is Y y)
             if (!(node is PrefixUnaryExpressionSyntax
-            {
-                Operand: ParenthesizedExpressionSyntax
                 {
-                    Expression: IsPatternExpressionSyntax
+                    Operand: ParenthesizedExpressionSyntax
                     {
-                        Pattern: DeclarationPatternSyntax,
-                    } isPattern,
-                },
-            } notExpression))
+                        Expression: IsPatternExpressionSyntax
+                        {
+                            Pattern: DeclarationPatternSyntax,
+                        } isPattern,
+                    },
+                } notExpression))
             {
                 return;
             }
