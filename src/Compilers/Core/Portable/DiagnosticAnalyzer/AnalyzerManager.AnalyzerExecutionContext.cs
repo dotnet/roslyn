@@ -227,16 +227,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         Debug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
                     }
                 }
-
-                static void addToStringBuilder(HashSet<ISymbol> symbols, string setName, StringBuilder builder)
-                {
-                    builder.AppendLine($"{setName} contains {symbols.Count} elements:");
-                    foreach (var element in symbols)
-                    {
-                        builder.AppendLine(element.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-                    }
-                    builder.AppendLine();
-                }
             }
 
             public void ClearSymbolScopeTask(ISymbol symbol)
