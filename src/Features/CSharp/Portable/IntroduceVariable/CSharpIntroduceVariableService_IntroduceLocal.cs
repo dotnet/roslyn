@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var text = await document.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
             {
-                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                declarationStatement = declarationStatement.WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
             }
 
             switch (containerToGenerateInto)
