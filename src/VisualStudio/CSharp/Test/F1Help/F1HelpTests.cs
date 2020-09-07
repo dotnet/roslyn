@@ -746,5 +746,34 @@ class Program
     }
 }", "nameof");
         }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNullForgiving()
+        {
+            await Test_KeywordAsync(
+@"#nullable enable
+class C
+{
+    int goo(string? x)
+    {
+        return x[||]!.GetHashCode();
+    }
+}", "nullForgiving_CSharpKeyword");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLogicalNot()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    bool goo(bool x)
+    {
+        return [||]!x;
+    }
+}", "!_CSharpKeyword");
+        }
     }
 }

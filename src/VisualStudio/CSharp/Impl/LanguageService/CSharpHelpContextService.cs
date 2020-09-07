@@ -206,6 +206,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private static bool TryGetTextForOperator(SyntaxToken token, Document document, out string text)
         {
+            if (token.IsKind(SyntaxKind.ExclamationToken) && token.Parent is not null)
+            {
+                text = token.Parent.IsKind(SyntaxKind.LogicalNotExpression)
+                    ? Keyword("!")
+                    : Keyword("nullForgiving");
+                return true;
+            }
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
