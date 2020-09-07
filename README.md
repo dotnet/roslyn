@@ -4,12 +4,12 @@
 
 Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
-### Language Design Discussion
+### C# and Visual Basic Language Feature Suggestions
 
-We are now taking language feature discussion in other repositories:
-- https://github.com/dotnet/csharplang for C# specific issues
-- https://github.com/dotnet/vblang for VB-specific features
-- https://github.com/dotnet/csharplang for features that affect both languages
+If you want to suggest a new feature for the C# or Visual Basic languages go here:
+- [dotnet/csharplang](https://github.com/dotnet/csharplang) for C# specific issues
+- [dotnet/vblang](https://github.com/dotnet/vblang) for VB-specific features
+- [dotnet/csharplang](https://github.com/dotnet/csharplang) for features that affect both languages
 
 Discussion about the transition of language design to the new repos is at https://github.com/dotnet/roslyn/issues/18002.
 
