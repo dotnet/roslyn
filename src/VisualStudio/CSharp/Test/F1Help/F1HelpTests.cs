@@ -759,7 +759,7 @@ class C
     {
         return x[||]!.GetHashCode();
     }
-}", "nullForgiving_CSharpKeyword");
+}", "nullForgiving");
         }
 
         [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
@@ -773,7 +773,7 @@ class C
     {
         return [||]!x;
     }
-}", "!_CSharpKeyword");
+}", "!");
         }
     }
 }
