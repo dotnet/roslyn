@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalUserDefinedOperators,
                 resultType,
                 hasErrors);
-            
+
             static bool isDoubleNaN(BoundExpression expression) =>
                 expression.ConstantValue?.SpecialType == SpecialType.System_Double && expression.ConstantValue.DoubleValue is double.NaN;
 
