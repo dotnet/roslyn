@@ -15,29 +15,30 @@ If you want to suggest a new feature for the C# or Visual Basic languages go her
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
 
-#### Questions
+### Questions
 
 A great way to get started is to ask some questions!
 - Start with a question on [discussions](https://github.com/dotnet/roslyn/discussions)
 - You can also join in on the design discussions on [gitter](https://gitter.im/dotnet/roslyn) or [discord](http://aka.ms/discord-csharp-roslyn)
 
-#### See if your issue is already being worked on! (Add your own votes using the 👍 reaction)
+### See if your issue is already being worked on! (Add your own votes using the 👍 reaction)
 - [IDE](https://aka.ms/roslyn-ide-in-progress)
 - [Compiler](https://aka.ms/roslyn-compiler-in-progress)
 
-#### Vote in the Backlog! (Add your own votes using the 👍 reaction)
+### Vote in the Backlog! (Add your own votes using the 👍 reaction)
 - [IDE Bugs](https://aka.ms/roslyn-ide-bug-backlog)
 - [IDE Features](https://aka.ms/roslyn-ide-feature-backlog)
 - [Compiler Bugs](https://aka.ms/roslyn-compiler-bug-backlog)
 - [Compiler Features](https://aka.ms/roslyn-compiler-features-backlog)
 
-#### Find a bug to fix! (Add your own votes using the 👍 reaction)
+### Find a bug to fix! (Add your own votes using the 👍 reaction)
 - First read this guide: [How to Contribute](docs/wiki/Contributing-Code.md)
+- [Building, testing and debugging the sources](docs/wiki/Building-Testing-and-Debugging.md)
 - Top Bugs 
   - [IDE](https://aka.ms/roslyn-ide-bugs-help-wanted)
   - [Compiler](https://aka.ms/roslyn-compiler-bugs-help-wanted)
 
-#### Find a feature to implement! (Add your own votes using the 👍 reaction)
+### Find a feature to implement! (Add your own votes using the 👍 reaction)
 - [IDE](https://aka.ms/roslyn-ide-feature-help-wanted)
 - [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
 
