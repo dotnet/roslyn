@@ -253,6 +253,7 @@ function BuildSolution() {
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       /p:RestoreUseStaticGraphEvaluation=true `
+      /graph `
       /p:VisualStudioIbcDrop=$ibcDropName `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
