@@ -118,6 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, cancellationToken)
         End Function
 
+        Private Function ISemanticFactsService_GenerateUniqueLocalName(
+            semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, usedName As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
+            Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, usedName, cancellationToken)
+        End Function
+
         Private Function ISemanticFactsService_GenerateUniqueName(semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, filter As Func(Of ISymbol, Boolean), usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
             Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, filter, usedNames, cancellationToken)
         End Function
