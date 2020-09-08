@@ -244,8 +244,8 @@
     -->
     <NewtonsoftJsonVersion>12.0.2</NewtonsoftJsonVersion>
     <StreamJsonRpcVersion>2.6.21-alpha</StreamJsonRpcVersion>
-    <SystemCollectionsImmutableVersion>5.0.0-preview.8.20371.14</SystemCollectionsImmutableVersion>
-    <SystemReflectionMetadataVersion>5.0.0-preview.8.20371.14</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>5.0.0-preview.8.20407.11</SystemCollectionsImmutableVersion>
+    <SystemReflectionMetadataVersion>5.0.0-preview.8.20407.11</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>1.1.1</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
   <PropertyGroup>
