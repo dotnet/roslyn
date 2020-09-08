@@ -11,19 +11,6 @@ If you want to suggest a new feature for the C# or Visual Basic languages go her
 - [dotnet/vblang](https://github.com/dotnet/vblang) for VB-specific features
 - [dotnet/csharplang](https://github.com/dotnet/csharplang) for features that affect both languages
 
-### Getting started with the Roslyn APIs
-
-If you want to get started using Roslyn's APIs to analyzer your code take a look at these links:
-- [Roslyn Architecture Overview](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/compiler-api-model) 
-  - [Syntax APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-syntax)
-  - [Semantic APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-semantics)
-  - [Workspace APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-workspace)
-- [Tutorial: Write your first analyzer and code fix](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/tutorials/how-to-write-csharp-analyzer-code-fix)
-- Useful Tools
-  - [Syntax Visualizer Tool](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/syntax-visualizer)
-  - [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
-  - Browse the source with the [enhanced source view](http://sourceroslyn.io/)
-
 ## Contribute!
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
@@ -53,6 +40,20 @@ A great way to get started is to ask some questions!
 #### Find a feature to implement! (Add your own votes using the 👍 reaction)
 - [IDE](https://aka.ms/roslyn-ide-feature-help-wanted)
 - [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
+
+
+### Getting started with the Roslyn APIs
+
+If you want to get started using Roslyn's APIs to analyzer your code take a look at these links:
+- [Roslyn Architecture Overview](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/compiler-api-model) 
+  - [Syntax APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-syntax)
+  - [Semantic APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-semantics)
+  - [Workspace APIs](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/work-with-workspace)
+- [Tutorial: Write your first analyzer and code fix](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/tutorials/how-to-write-csharp-analyzer-code-fix)
+- Useful Tools
+  - [Syntax Visualizer Tool](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/syntax-visualizer)
+  - [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
+  - Browse the source with the [enhanced source view](http://sourceroslyn.io/)
 
 This [project](CODE-OF-CONDUCT.md) has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
