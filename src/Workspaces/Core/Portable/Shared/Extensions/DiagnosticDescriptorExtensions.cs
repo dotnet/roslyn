@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         ///     'dotnet_analyzer_diagnostic.category-%RuleCategory%.severity = %severity%'
         ///         or
         ///     'dotnet_analyzer_diagnostic.severity = %severity%'
+        /// Docs: https://docs.microsoft.com/visualstudio/code-quality/use-roslyn-analyzers?view=vs-2019#set-rule-severity-of-multiple-analyzer-rules-at-once-in-an-editorconfig-file for details
         /// </summary>
         private static bool TryGetSeverityFromBulkConfiguration(
             DiagnosticDescriptor descriptor,
