@@ -35,7 +35,7 @@ namespace IdeCoreBenchmarks
         public NavigateToBenchmarks()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.slnf");
 
             if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
