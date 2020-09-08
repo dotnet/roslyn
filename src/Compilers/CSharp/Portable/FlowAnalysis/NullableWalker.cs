@@ -4549,11 +4549,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly ImmutableArray<BoundExpression> Arguments;
             public readonly ImmutableArray<VisitArgumentResult> Results;
+            public readonly ImmutableArray<int> ArgsToParamsOpt;
 
-            public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results)
+            public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results, ImmutableArray<int> argsToParamsOpt)
             {
                 Arguments = arguments;
                 Results = results;
+                ArgsToParamsOpt = argsToParamsOpt;
             }
 
             public bool IsDefault => Arguments.IsDefault || Results.IsDefault;
@@ -4574,20 +4576,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var comparand = compareExchangeInfo.Arguments[2];
-            var valueFlowState = compareExchangeInfo.Results[1].RValueType.State;
+            Debug.Assert(compareExchangeInfo.Arguments.Length == 3);
+
+            var comparand = compareExchangeInfo.Arguments[GetArgumentOrdinalFromParameterOrdinal(2, compareExchangeInfo.ArgsToParamsOpt)];
+            var valueFlowState = compareExchangeInfo.Results[GetArgumentOrdinalFromParameterOrdinal(1, compareExchangeInfo.ArgsToParamsOpt)].RValueType.State;
             if (comparand.ConstantValue?.IsNull == true)
             {
                 // If location contained a null, then the write `location = value` definitely occurred
             }
             else
             {
-                var locationFlowState = compareExchangeInfo.Results[0].RValueType.State;
+                var locationFlowState = compareExchangeInfo.Results[GetArgumentOrdinalFromParameterOrdinal(0, compareExchangeInfo.ArgsToParamsOpt)].RValueType.State;
                 // A write may have occurred
                 valueFlowState = valueFlowState.Join(locationFlowState);
             }
 
             return valueFlowState;
+
+            static int GetArgumentOrdinalFromParameterOrdinal(int parameterOrdinal, ImmutableArray<int> argsToParamsOpt)
+            {
+                if (argsToParamsOpt.IsDefault)
+                {
+                    return parameterOrdinal;
+                }
+
+                for (int i = 0; i < argsToParamsOpt.Length; i++)
+                {
+                    if (argsToParamsOpt[i] == parameterOrdinal)
+                    {
+                        return i;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -4869,7 +4891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.HasErrors && !parametersOpt.IsDefault)
             {
                 // For CompareExchange method we need more context to determine the state of outbound assignment
-                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results) : default;
+                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results, argsToParamsOpt) : default;
 
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
@@ -4890,7 +4912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterAnnotations,
                         results[i],
                         notNullParametersBuilder,
-                        (!compareExchangeInfo.IsDefault && i == 0) ? compareExchangeInfo : default);
+                        (!compareExchangeInfo.IsDefault && parameter.Ordinal == 0) ? compareExchangeInfo : default);
                 }
             }
             else
