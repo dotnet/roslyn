@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
         /// </summary>
-        public Compilation? Compilation => _semanticModel?.Compilation;
+        public Compilation Compilation => _semanticModel?.Compilation ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Options specified for the analysis.
