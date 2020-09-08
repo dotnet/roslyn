@@ -6606,21 +6606,21 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("discards", "7.0").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
                 // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
-                // (6,29): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("discards", "7.0").WithLocation(6, 29),
-                // (7,13): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
+                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("discards", "7.0").WithLocation(7, 13),
-                // (7,22): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
+                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("discards", "7.0").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
                 // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         bool b = 3 is int _;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7.0").WithLocation(8, 18),
