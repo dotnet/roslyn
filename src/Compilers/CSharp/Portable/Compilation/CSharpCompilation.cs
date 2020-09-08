@@ -1820,20 +1820,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
                     }
                 }
-                else if (viableEntryPoints.Count > 1)
-                {
-                    viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
-                    var info = new CSDiagnosticInfo(
-                         ErrorCode.ERR_MultipleEntryPoints,
-                         args: Array.Empty<object>(),
-                         symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
-
-                    diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
-                }
                 else
                 {
-                    entryPoint = viableEntryPoints[0];
+                    foreach (var viableEntryPoint in viableEntryPoints)
+                    {
+                        if (viableEntryPoint.UnmanagedCallersOnlyAttributeData is { } data)
+                        {
+                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.Locations.First());
+                        }
+                    }
+
+                    if (viableEntryPoints.Count > 1)
+                    {
+                        viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
+                        var info = new CSDiagnosticInfo(
+                             ErrorCode.ERR_MultipleEntryPoints,
+                             args: Array.Empty<object>(),
+                             symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
+                             additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+
+                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                    }
+                    else
+                    {
+                        entryPoint = viableEntryPoints[0];
+                    }
                 }
 
                 taskEntryPoints.Free();
