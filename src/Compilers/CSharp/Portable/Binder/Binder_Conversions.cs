@@ -1093,7 +1093,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
+            var location = syntax.Location;
+            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
@@ -1102,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (selectedMethod.IsConditional)
             {
                 // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, location, selectedMethod);
                 return true;
             }
 
@@ -1110,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, location, selectedMethod);
                 return true;
             }
 
@@ -1118,6 +1119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ReportUnsafeIfNotAllowed(syntax, diagnostics);
             }
+
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
