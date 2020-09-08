@@ -12332,26 +12332,26 @@ class C : I
 .class public A
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
-  .method public virtual native int modopt(int32) F1()
+  .method public virtual native int[] modopt(int32) F1()
   {
     .param [0]
     .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
     ldnull
     throw
   }
-  .method public virtual native int modopt(int32) F2()
+  .method public virtual native int[] modopt(int32) F2()
   {
     ldnull
     throw
   }
-  .method public virtual native int modopt(int32) F3()
+  .method public virtual native int[] modopt(int32) F3()
   {
     .param [0]
     .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
     ldnull
     throw
   }
-  .method public virtual native int modopt(int32) F4()
+  .method public virtual native int[] modopt(int32) F4()
   {
     ldnull
     throw
@@ -12362,25 +12362,25 @@ class C : I
             var sourceB =
 @"class B : A
 {
-    public override System.IntPtr F1() => default;
-    public override nint F2() => default;
-    public override nint F3() => default;
-    public override System.IntPtr F4() => default;
+    public override System.IntPtr[] F1() => default;
+    public override nint[] F2() => default;
+    public override nint[] F3() => default;
+    public override System.IntPtr[] F4() => default;
 }";
             var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("A");
-            Assert.Equal("nint modopt(System.Int32) A.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("System.IntPtr modopt(System.Int32) A.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("nint modopt(System.Int32) A.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("System.IntPtr modopt(System.Int32) A.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F4()", type.GetMember("F4").ToTestDisplayString());
 
             type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("System.IntPtr modopt(System.Int32) B.F1()", type.GetMember("F1").ToTestDisplayString());
-            Assert.Equal("nint modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
-            Assert.Equal("nint modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
-            Assert.Equal("System.IntPtr modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
         }
     }
 }
