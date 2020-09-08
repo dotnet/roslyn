@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -126,6 +125,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             considerRefKindDifferences: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
+        /// This instance is used to determine if a partial method implementation matches the definition
+        /// including differences ignored by the runtime other than dynamic/object and nullability.
+        /// </summary>
+        public static readonly MemberSignatureComparer PartialMethodsStrictComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: false,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+
+        /// <summary>
+        /// This instance is used to determine if an extended partial method implementation matches the definition,
+        /// including differences ignored by the runtime.
+        /// </summary>
+        public static readonly MemberSignatureComparer ExtendedPartialMethodsStrictComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.ConsiderEverything);
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.

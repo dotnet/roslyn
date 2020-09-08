@@ -601,13 +601,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
+            bool checkNullableMethodOverride = true;
             MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
-            bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
-            if (!returnTypesEqual
+            if (!constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions)
                 && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
                 && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(definition.ReturnType))
             {
+                checkNullableMethodOverride = false;
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
+            }
+            else if (!(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(constructedDefinition, implementation))
+            {
+                checkNullableMethodOverride = false;
+                diagnostics.Add(ErrorCode.ERR_PartialMethodSignatureDifference, implementation.Locations[0], getFormattedSymbol(constructedDefinition), getFormattedSymbol(implementation));
+                static FormattedSymbol getFormattedSymbol(Symbol symbol) => new FormattedSymbol(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
             }
 
             if (definition.RefKind != implementation.RefKind)
@@ -656,24 +663,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
-            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
-                implementation.DeclaringCompilation,
-                constructedDefinition,
-                implementation,
-                diagnostics,
-                (diagnostics, implementedMethod, implementingMethod, topLevel, returnTypesEqual) =>
-                {
-                    if (returnTypesEqual)
+            if (checkNullableMethodOverride)
+            {
+                SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                    implementation.DeclaringCompilation,
+                    constructedDefinition,
+                    implementation,
+                    diagnostics,
+                    (diagnostics, implementedMethod, implementingMethod, topLevel, checkNullableMethodOverride) =>
                     {
-                        // report only if this is an unsafe *nullability* difference
-                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
-                    }
-                },
-                (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
-                {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
-                },
-                extraArgument: returnTypesEqual);
+                        // Should have reported ERR_PartialMethodSignatureDifference above.
+                        Debug.Assert(false);
+                    },
+                    (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                    },
+                    extraArgument: (object)null);
+            }
         }
 
         private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
