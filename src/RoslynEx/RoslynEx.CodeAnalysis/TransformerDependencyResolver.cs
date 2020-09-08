@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using RoslynEx.Graphs;
 
@@ -20,7 +19,7 @@ namespace RoslynEx
 
             Dictionary<string, int> nameToIndexMapping = transformers.Select((t, i) => (t.GetType().FullName, i)).ToDictionary(x => x.FullName, x => x.i);
 
-            AbstractGraph graph = AbstractGraph.CreateGraph(n);
+            Graph graph = new Graph(n);
             bool[] hasPredecessor = new bool[n];
 
             foreach (var order in transformerOrders)

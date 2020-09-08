@@ -11,8 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\AbstractGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\Graph.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphs\GraphInt32.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphs\GraphInt64.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\SimpleLinkedListNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynExMessageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDependencyResolver.cs" />

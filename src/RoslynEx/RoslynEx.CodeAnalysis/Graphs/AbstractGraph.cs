@@ -1,11 +1,10 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 
 namespace RoslynEx.Graphs
 {
     /// <summary>
-    /// Implements efficient algorithms for graphs of maximum 32 nodes.
+    /// Implements algorithms for graphs.
     /// </summary>
     internal abstract class AbstractGraph
     {
@@ -13,23 +12,6 @@ namespace RoslynEx.Graphs
         public const int Cycle = int.MinValue;
 
         private readonly int size;
-
-
-        public static AbstractGraph CreateGraph(int size)
-        {
-            if (size <= 32)
-            {
-                return new GraphInt32(size);
-            }
-            else if (size <= 64)
-            {
-                return new GraphInt64(size);
-            }
-            else
-            {
-                return new Graph(size);
-            }
-        }
 
         protected AbstractGraph(int size)
         {
@@ -76,28 +58,6 @@ namespace RoslynEx.Graphs
             }
 
             return stringBuilder.ToString();
-        }
-
-        public static AbstractGraph Deserialize(string data)
-        {
-            string[] elements = data.Split(';');
-            int size = int.Parse(elements[0], CultureInfo.InvariantCulture);
-
-            AbstractGraph graph = CreateGraph(size);
-
-            for (int i = 1; i < elements.Length; i++)
-            {
-                if (string.IsNullOrEmpty(elements[i]))
-                    continue;
-
-                string[] edge = elements[i].Split(',');
-                int predecessor = int.Parse(edge[0], CultureInfo.InvariantCulture);
-                int sucessor = int.Parse(edge[1], CultureInfo.InvariantCulture);
-
-                graph.AddEdge(predecessor, sucessor);
-            }
-
-            return graph;
         }
     }
 }
