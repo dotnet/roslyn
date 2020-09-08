@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <target state="translated">包含類型 '{0}' 的組件參考了 .NET Framework，此情形不受支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
@@ -46,7 +46,7 @@
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
-        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <target state="translated">其他檔案不屬於基礎 'CompilationWithAnalyzers'。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -121,7 +121,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <target state="translated">提供的 SourceText 必須有明確的編碼集。</target>
         <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">

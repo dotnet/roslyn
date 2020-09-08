@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">&amp;Default</target>
+        <target state="translated">Par &amp;défaut</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|CommandName">
@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|LocCanonicalName">
         <source>Default</source>
-        <target state="translated">Default</target>
+        <target state="translated">Par défaut</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|ButtonText">
         <source>&amp;Error</source>
-        <target state="translated">&amp;Error</target>
+        <target state="translated">&amp;Erreur</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|CommandName">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|ButtonText">
         <source>&amp;Silent</source>
-        <target state="translated">&amp;Silent</target>
+        <target state="translated">&amp;Silencieux</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|CommandName">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|LocCanonicalName">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="translated">Silencieux</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|ButtonText">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">&amp;None</target>
+        <target state="translated">&amp;Aucune</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|CommandName">
@@ -109,27 +109,27 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">None</target>
+        <target state="translated">Aucun(e)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|ButtonText">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="translated">Définir la gravité</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|CommandName">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="translated">Définir la gravité</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|LocCanonicalName">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="translated">Définir la gravité</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|ButtonText">
         <source>&amp;Warning</source>
-        <target state="translated">&amp;Warning</target>
+        <target state="translated">A&amp;vertissement</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|CommandName">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|LocCanonicalName">
         <source>Warning</source>
-        <target state="translated">Warning</target>
+        <target state="translated">Avertissement</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">

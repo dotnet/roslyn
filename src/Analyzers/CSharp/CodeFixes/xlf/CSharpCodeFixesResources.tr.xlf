@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
-        <target state="new">Convert 'typeof' to 'nameof'</target>
+        <target state="translated">'Typeof' metodunu 'nameof' metoduna dönüştürün</target>
         <note />
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">

@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Suppression_preferences">
         <source>Suppression preferences</source>
-        <target state="new">Suppression preferences</target>
+        <target state="translated">Gizleme tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_specifications">

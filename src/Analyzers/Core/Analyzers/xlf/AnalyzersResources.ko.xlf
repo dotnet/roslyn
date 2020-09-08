@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression">
         <source>Remove unnecessary suppression</source>
-        <target state="new">Remove unnecessary suppression</target>
+        <target state="translated">불필요한 비표시 오류(Suppression) 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">

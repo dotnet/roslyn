@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
-        <target state="new">Edit color scheme</target>
+        <target state="translated">编辑配色方案</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">设置文档的格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
-        <target state="new">Pattern matching preferences:</target>
+        <target state="translated">模式匹配首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
         <source>Prefer pattern matching over mixed type check</source>
-        <target state="new">Prefer pattern matching over mixed type check</target>
+        <target state="translated">首选模式匹配而不是混合类型检查</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">

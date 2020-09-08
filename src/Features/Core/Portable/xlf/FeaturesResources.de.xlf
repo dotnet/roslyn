@@ -542,7 +542,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">Klasse als "abstract" festlegen</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -607,17 +607,17 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">Durch Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung verhindert, weil der Text zu viele Anweisungen enthält.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">Durch das Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">Durch das Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung verhindert, weil die Datei zu groß ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Durch das Ändern der Quelldatei "{0}" wird verhindert, dass die Debugsitzung aufgrund eines internen Fehlers fortgesetzt wird: {1}.</target>
+        <target state="translated">Durch das Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -677,7 +677,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">Member auf neue Basisklasse ziehen...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1827,7 +1827,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">async-Modifizierer entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
