@@ -4,8 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Roslyn.SyntaxVisualizer.Control"
+        xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+        xmlns:vs3="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
         mc:Ignorable="d"
         ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+        vs2:ImageThemingUtilities.ThemeScrollBars="True"
+        Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}"
         Title="Color Picker" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -14,9 +22,9 @@
         </Grid.RowDefinitions>
 
         <local:ColorPicker Grid.Row="0" x:Name="ColorPicker" Color="{Binding Color}" OriginalColor="{Binding Color, Mode=OneTime}" />
-        <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal">
+        <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0, 0, 10, 5">
             <StackPanel.Resources>
-                <Style TargetType="Button">
+                <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ThemedDialogButtonStyleKey}}">
                     <Setter Property="Margin" Value="5" />
                     <Setter Property="Padding" Value="5" />
                     <Setter Property="MinWidth" Value="40" />

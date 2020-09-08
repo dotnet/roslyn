@@ -4,14 +4,41 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Roslyn.SyntaxVisualizer.Control"
+             xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              mc:Ignorable="d" 
              x:Name="Control"
              Focusable="False"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:PercentConverter x:Key="PercentConverter" />
+        <ControlTemplate x:Uid="ControlTemplate_5" x:Key="ErrorTemplate">
+            <DockPanel x:Uid="DockPanel_1"
+                   LastChildFill="True">
+                <AdornedElementPlaceholder x:Uid="ControlWithError" Name="ControlWithError">
+                    <Border x:Uid="Border_5" BorderBrush="Red" BorderThickness="1" />
+                </AdornedElementPlaceholder>
+                <imaging:CrispImage x:Uid="CrispImage_1"
+                                DockPanel.Dock="Right"
+                                VerticalAlignment="Center"
+                                Moniker="{x:Static catalog:KnownMonikers.StatusInvalid}"
+                                Height="16"
+                                Width="16"
+                                Margin="5,0,0,0"
+                                ToolTip="{Binding ElementName=ControlWithError,Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+            </DockPanel>
+        </ControlTemplate>
+        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.TextBoxStyleKey}}" x:Key="ThemedDialogTextBoxStyle">
+            <Setter x:Uid="Setter_41" Property="Validation.ErrorTemplate" Value="{StaticResource ErrorTemplate}" />
+            <Style.Triggers>
+                <Trigger x:Uid="Trigger_11" Property="Validation.HasError" Value="True">
+                    <Setter x:Uid="Setter_49" Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
@@ -30,28 +57,33 @@
                 Hue="{Binding Hue, Mode=TwoWay}" 
                 Width="50"
                 Margin="5, 0, 5, 0" />
-
         </DockPanel>
         <Grid x:Name="ColorDetailsGrd" Grid.Column="1">
             <Grid.Resources>
-                <Style TargetType="Label">
+                <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ThemedDialogLabelStyleKey}}">
                     <Setter Property="HorizontalAlignment" Value="Right" />
+                    <Setter Property="VerticalAlignment" Value="Bottom" />
                     <Setter Property="Padding" Value="0, 0, 10, 0" />
                     <Setter Property="Margin" Value="0, 5, 0, 5" />
                 </Style>
 
-                <Style TargetType="TextBox">
-                    <Setter Property="Margin" Value="0, 5, 0, 5" />
+                <Style TargetType="TextBox" BasedOn="{StaticResource ThemedDialogTextBoxStyle}">
+                    <!-- Validation indicators have width of 16 and show on the right side, need more margin space on the right-->
+                    <Setter Property="Margin" Value="0, 5, 20, 5" />
                     <Setter Property="Width" Value="100" />
                 </Style>
 
                 <Style TargetType="TextBlock">
+                    <!-- TextBlock doesn't have it's own resource for binding, so instead just make sure the foreground is bound to the same as all the labels -->
+                    <Setter Property="Foreground" Value="{Binding Path=Foreground, ElementName=RedLabel}" />
+                    <Setter Property="Padding" Value="0, 0, 10, 0" />
                     <Setter Property="Margin" Value="0, 5, 0, 5" />
-                    <Setter Property="Width" Value="100" />
+                    <Setter Property="HorizontalAlignment" Value="Left" />
+                    <Setter Property="VerticalAlignment" Value="Bottom" />
                 </Style>
                 <Style TargetType="Rectangle">
                     <Setter Property="Height" Value="25" />
-                    <Setter Property="Margin" Value="5" />
+                    <Setter Property="Margin" Value="0, 5, 10, 5" />
                 </Style>
             </Grid.Resources>
             <Grid.ColumnDefinitions>
@@ -73,7 +105,7 @@
             <!-- Use Polite LiveSettings for values that will change so that screen readers will read off their changes, but not interrupt any current notification being read -->
 
             <Label Content="Red" Grid.Row="0" Grid.Column="0" x:Name="RedLabel" />
-            <TextBox 
+            <TextBox
                 x:Name="Red"
                 Text="{Binding Red}" 
                 Grid.Row="0" 
