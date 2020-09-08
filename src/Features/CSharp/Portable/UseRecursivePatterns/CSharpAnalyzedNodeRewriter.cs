@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             INamedTypeSymbol? tupleTypeOpt = null;
 
             Visit(node);
+
             void Visit(AnalyzedNode node)
             {
                 switch (node)
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 Debug.Assert(Regex.IsMatch(tupleField.Name, @"^Item\d+$"));
                 Debug.Assert(tupleTypeOpt is null || tupleTypeOpt.Equals(tupleField.ContainingSymbol));
-                var position = int.Parse(tupleField.Name.Substring(4));
+                var position = int.Parse(tupleField.Name[4..]);
                 tupleSubpatterns.SetItem(position - 1, pattern);
                 tupleTypeOpt ??= (INamedTypeSymbol)tupleField.ContainingSymbol;
             }

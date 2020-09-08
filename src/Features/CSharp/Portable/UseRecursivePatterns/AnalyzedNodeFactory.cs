@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     IPropertyReferenceOperation op when op.Property.IsIndexer => VisitIndexerReference(op),
                     IPropertyReferenceOperation op => VisitNullableTypeMemberAccess(op) ??
                                                       new MemberEvaluation(VisitInput(op.Instance, input), op),
-                    IConditionalAccessOperation op => VisitNode(op.WhenNotNull, VisitInput(op.Operation, input)),//, op.WhenNotNull),
+                    IConditionalAccessOperation op => VisitNode(op.WhenNotNull, VisitInput(op.Operation, input)),
                     IConversionOperation op when op.Conversion.IsUserDefined => null,
                     IConversionOperation op when op.Conversion.IsImplicit => VisitInput(op.Operand, input),
                     IConversionOperation op => new Type(VisitInput(op.Operand, input), op.Type, op.Syntax),
@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var operand = Visit(op.Operand);
             if (operand is null || operand is OperationEvaluation)
                 return null;
+
             return Not.Create(operand);
         }
         private static AnalyzedNode? VisitBinary(IOperation left, IOperation right, bool disjunctive, Evaluation? input)
@@ -138,9 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var leftNode = VisitCore(left, input);
             if (leftNode is null)
                 return null;
+
             var rightNode = VisitCore(right, input);
             if (rightNode is null)
                 return null;
+
             return Sequence.Create(disjunctive, leftNode, rightNode);
         }
 
@@ -335,11 +338,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         IPropertyReferenceOperation op => new MemberEvaluation(input, op),
                         _ => null
                     };
+
                     if (evaluation is null)
                         return false;
+
                     var pattern = VisitCore(property.Pattern, evaluation);
                     if (pattern is null)
                         return false;
+
                     tests.Add(pattern);
                 }
                 return true;
@@ -361,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                                 var subpattern = VisitCore(operation.DeconstructionSubpatterns[index], outVariableEvaluation);
                                 if (subpattern is null)
                                     return false;
+
                                 tests.Add(subpattern);
                             }
                             break;
@@ -376,6 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                                 var subpattern = VisitCore(operation.DeconstructionSubpatterns[index], indexEvaluation);
                                 if (subpattern is null)
                                     return false;
+
                                 tests.Add(subpattern);
                             }
                             break;
@@ -392,6 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                                 var subpattern = VisitCore(operation.DeconstructionSubpatterns[index], fieldEvaluation);
                                 if (subpattern is null)
                                     return false;
+
                                 tests.Add(subpattern);
                             }
                             break;
