@@ -13,13 +13,17 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:PercentConverter x:Key="PercentConverter" />
-        <ControlTemplate x:Uid="ControlTemplate_5" x:Key="ErrorTemplate">
-            <DockPanel x:Uid="DockPanel_1"
-                   LastChildFill="True">
-                <AdornedElementPlaceholder x:Uid="ControlWithError" Name="ControlWithError">
-                    <Border x:Uid="Border_5" BorderBrush="Red" BorderThickness="1" />
+
+        <!-- 
+            The ThemedDialogTextBoxStyleKey has an exception introduced when it's used. ErrorTemplate and ThemedDialogTextBoxStyle can be removed once the bug is fixed
+            https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198412
+        -->
+        <ControlTemplate x:Key="ErrorTemplate">
+            <DockPanel LastChildFill="True">
+                <AdornedElementPlaceholder Name="ControlWithError">
+                    <Border BorderBrush="Red" BorderThickness="1" />
                 </AdornedElementPlaceholder>
-                <imaging:CrispImage x:Uid="CrispImage_1"
+                <imaging:CrispImage
                                 DockPanel.Dock="Right"
                                 VerticalAlignment="Center"
                                 Moniker="{x:Static catalog:KnownMonikers.StatusInvalid}"
@@ -30,10 +34,10 @@
             </DockPanel>
         </ControlTemplate>
         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.TextBoxStyleKey}}" x:Key="ThemedDialogTextBoxStyle">
-            <Setter x:Uid="Setter_41" Property="Validation.ErrorTemplate" Value="{StaticResource ErrorTemplate}" />
+            <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ErrorTemplate}" />
             <Style.Triggers>
-                <Trigger x:Uid="Trigger_11" Property="Validation.HasError" Value="True">
-                    <Setter x:Uid="Setter_49" Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
