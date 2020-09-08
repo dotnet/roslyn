@@ -2878,7 +2878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (containingType?.IsTupleType == true && !isDefaultValueTypeConstructor)
                         {
                             // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
-                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, useRestField: true);
+                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, ((BoundObjectCreationExpression)node).ArgsToParamsOpt, useRestField: true);
                         }
                         else
                         {
@@ -4592,24 +4592,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return valueFlowState;
+        }
 
-            static int GetArgumentOrdinalFromParameterOrdinal(int parameterOrdinal, ImmutableArray<int> argsToParamsOpt)
+        static int GetArgumentOrdinalFromParameterOrdinal(int parameterOrdinal, ImmutableArray<int> argsToParamsOpt)
+        {
+            if (argsToParamsOpt.IsDefault)
             {
-                if (argsToParamsOpt.IsDefault)
-                {
-                    return parameterOrdinal;
-                }
-
-                for (int i = 0; i < argsToParamsOpt.Length; i++)
-                {
-                    if (argsToParamsOpt[i] == parameterOrdinal)
-                    {
-                        return i;
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable;
+                return parameterOrdinal;
             }
+
+            for (int i = 0; i < argsToParamsOpt.Length; i++)
+            {
+                if (argsToParamsOpt[i] == parameterOrdinal)
+                {
+                    return i;
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -6165,7 +6165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     this.State[slot] = NullableFlowState.NotNull;
-                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, useRestField: false);
+                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, argsToParamsOpt: default, useRestField: false);
                 }
 
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
@@ -6189,6 +6189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol tupleType,
             ImmutableArray<BoundExpression> values,
             ImmutableArray<TypeWithState> types,
+            ImmutableArray<int> argsToParamsOpt,
             bool useRestField)
         {
             Debug.Assert(tupleType.IsTupleType);
@@ -6205,13 +6206,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 for (int i = 0; i < n; i++)
                 {
-                    trackState(values[i], tupleElements[i], types[i]);
+                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(i, argsToParamsOpt);
+                    trackState(values[argOrdinal], tupleElements[i], types[argOrdinal]);
                 }
                 if (useRestField &&
                     values.Length == NamedTypeSymbol.ValueTupleRestPosition &&
                     tupleType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() is FieldSymbol restField)
                 {
-                    trackState(values.Last(), restField, types.Last());
+                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(NamedTypeSymbol.ValueTupleRestPosition - 1, argsToParamsOpt);
+                    trackState(values[argOrdinal], restField, types[argOrdinal]);
                 }
             }
 
