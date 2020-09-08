@@ -104,9 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             throw new UnsupportedSignatureContent();
                         }
-                        return _transformFlags[_index++] ?
-                            type.AsNativeInteger() :
-                            (type.NativeIntegerUnderlyingType ?? type);
+                        return (_transformFlags[_index++], type.IsNativeIntegerType) switch
+                        {
+                            (false, true) => type.NativeIntegerUnderlyingType,
+                            (true, false) => type.AsNativeInteger(),
+                            _ => type,
+                        };
                 }
             }
 

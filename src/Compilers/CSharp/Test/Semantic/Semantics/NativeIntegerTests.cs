@@ -12235,25 +12235,35 @@ interface I
 {
     S<nint> F1();
     S<System.IntPtr> F2();
+    S<nint> F3();
+    S<System.IntPtr> F4();
 }
 class C : I
 {
     S<System.IntPtr> I.F1() => default;
     S<nint> I.F2() => default;
+    S<nint> I.F3() => default;
+    S<System.IntPtr> I.F4() => default;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics();
+
             var type = comp.GetTypeByMetadataName("I");
             Assert.Equal("S<nint> I.F1()", type.GetMember("F1").ToTestDisplayString());
             Assert.Equal("S<System.IntPtr> I.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("S<nint> I.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> I.F4()", type.GetMember("F4").ToTestDisplayString());
+
             type = comp.GetTypeByMetadataName("C");
             Assert.Equal("S<System.IntPtr> C.I.F1()", type.GetMember("I.F1").ToTestDisplayString());
             Assert.Equal("S<nint> C.I.F2()", type.GetMember("I.F2").ToTestDisplayString());
+            Assert.Equal("S<nint> C.I.F3()", type.GetMember("I.F3").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> C.I.F4()", type.GetMember("I.F4").ToTestDisplayString());
         }
 
         [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
         [Fact]
-        public void OverrideParameterCustomModifierDifferences()
+        public void OverrideParameterTypeCustomModifierDifferences()
         {
             var sourceA =
 @".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
@@ -12273,6 +12283,16 @@ class C : I
   {
     ret
   }
+  .method public virtual void F3(native int modopt(int32) i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ret
+  }
+  .method public virtual void F4(native int modopt(int32) i)
+  {
+    ret
+  }
 }";
             var refA = CompileIL(sourceA);
 
@@ -12281,15 +12301,86 @@ class C : I
 {
     public override void F1(System.IntPtr i) { }
     public override void F2(nint i) { }
+    public override void F3(nint i) { }
+    public override void F4(System.IntPtr i) { }
 }";
             var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics();
+
             var type = comp.GetTypeByMetadataName("A");
             Assert.Equal("void A.F1(nint modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
             Assert.Equal("void A.F2(System.IntPtr modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("void A.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("void A.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+
             type = comp.GetTypeByMetadataName("B");
             Assert.Equal("void B.F1(System.IntPtr modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
             Assert.Equal("void B.F2(nint modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("void B.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("void B.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void OverrideReturnTypeCustomModifierDifferences()
+        {
+            var sourceA =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public virtual native int modopt(int32) F1()
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public virtual native int modopt(int32) F2()
+  {
+    ldnull
+    throw
+  }
+  .method public virtual native int modopt(int32) F3()
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public virtual native int modopt(int32) F4()
+  {
+    ldnull
+    throw
+  }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class B : A
+{
+    public override System.IntPtr F1() => default;
+    public override nint F2() => default;
+    public override nint F3() => default;
+    public override System.IntPtr F4() => default;
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("nint modopt(System.Int32) A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr modopt(System.Int32) A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint modopt(System.Int32) A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr modopt(System.Int32) A.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("System.IntPtr modopt(System.Int32) B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
         }
     }
 }
