@@ -648,6 +648,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             base.ApplyProjectChanges(projectChanges);
 
+            // After normal project changes have been applied, we need to apply changes for
+            // generated razor documents that are mapped to a location in a file outside of our workspace.
+            // Since these generated documents have CanApplyChange() == false, they will not
+            // be applied during the normal ApplyProjectChanges workflow.
             var changedMappedDocuments = projectChanges.GetChangedDocuments()
                 .Where(id => ShouldApplyChangesToMappedDocuments(id))
                 .ToImmutableArray();
@@ -655,6 +659,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 ApplyChangesForMappedDocuments(projectChanges, changedMappedDocuments);
             }
+
+            return;
 
             bool ShouldApplyChangesToMappedDocuments(DocumentId id)
             {
@@ -667,7 +673,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void ApplyChangesForMappedDocuments(ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
         {
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
-            var mappedSpansPerDocument = GetTextChangesAndMappedSpans(projectChanges, changedMappedDocuments);
+            var mappedSpansPerDocument = GetTextChangesAndMappedSpans(projectChanges, changedMappedDocuments).WaitAndGetResult(CancellationToken.None);
 
             // Create mapped text changes using the mapped spans and original text changes.
             using var _ = ArrayBuilder<(string FileName, TextChange TextChange)>.GetInstance(out var mappedChangesBuilder);
@@ -678,36 +684,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var mappedChanges = mappedChangesBuilder.ToImmutable();
-            if (mappedChanges.Any())
+            // Group the mapped text changes by file, then apply all mapped text changes for the file.
+            foreach (var changesForFile in mappedChanges.GroupBy(change => change.FileName))
             {
-                // Group the mapped text changes by file, then apply all mapped text changes for the file.
-                foreach (var changesForFile in mappedChanges.GroupBy(change => change.FileName))
-                {
-                    using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectChanges.ProjectId), needsSave: true, needsUndoDisabled: false);
-                    TextEditApplication.UpdateText(changesForFile.Select(change => change.TextChange).ToImmutableArray(), invisibleEditor.TextBuffer, EditOptions.None);
-                }
+                using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectChanges.ProjectId), needsSave: true, needsUndoDisabled: false);
+                TextEditApplication.UpdateText(changesForFile.Select(change => change.TextChange).ToImmutableArray(), invisibleEditor.TextBuffer, EditOptions.None);
             }
 
-            static Dictionary<DocumentId, (ImmutableArray<MappedSpanResult> MappedSpans, ImmutableArray<TextChange> OriginalTextChanges)> GetTextChangesAndMappedSpans(
+            return;
+
+            static async Task<Dictionary<DocumentId, (ImmutableArray<MappedSpanResult> MappedSpans, ImmutableArray<TextChange> OriginalTextChanges)>> GetTextChangesAndMappedSpans(
                 ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
             {
-                return Task.Run(async () =>
+                var mappedSpansPerDocument = new Dictionary<DocumentId, (ImmutableArray<MappedSpanResult> MappedSpans, ImmutableArray<TextChange> OriginalTextChanges)>();
+                foreach (var changedDocumentId in changedMappedDocuments)
                 {
-                    var mappedSpansPerDocument = new Dictionary<DocumentId, (ImmutableArray<MappedSpanResult> MappedSpans, ImmutableArray<TextChange> OriginalTextChanges)>();
-                    foreach (var changedDocumentId in changedMappedDocuments)
-                    {
-                        var oldDocument = projectChanges.OldProject.GetDocument(changedDocumentId)!;
-                        var newDocument = projectChanges.NewProject.GetDocument(changedDocumentId)!;
+                    var oldDocument = projectChanges.OldProject.GetDocument(changedDocumentId)!;
+                    var newDocument = projectChanges.NewProject.GetDocument(changedDocumentId)!;
 
-                        var mappingService = newDocument.Services.GetService<ISpanMappingService>();
-                        var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
-                        var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+                    var mappingService = newDocument.Services.GetService<ISpanMappingService>();
+                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(true)).ToImmutableArray();
+                    var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(true);
 
-                        mappedSpansPerDocument[changedDocumentId] = (mappedSpanResults, textChanges);
-                    }
+                    mappedSpansPerDocument[changedDocumentId] = (mappedSpanResults, textChanges);
+                }
 
-                    return mappedSpansPerDocument;
-                }).WaitAndGetResult(CancellationToken.None);
+                return mappedSpansPerDocument;
             }
 
             static void MapTextChanges(CodeAnalysis.Document newDocument, ImmutableArray<MappedSpanResult> mappedSpanResults, ImmutableArray<TextChange> originalTextChanges, ArrayBuilder<(string, TextChange)> builder)
