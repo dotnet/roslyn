@@ -608,8 +608,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
-            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
+        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+            => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()
             => this.Name;
