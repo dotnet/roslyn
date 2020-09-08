@@ -200,6 +200,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     clientConnection.AddLocalRpcTarget(options.ClientRpcTarget);
                 }
 
+                // Clear RPC target so that the server connection is forced to create a new proxy for the callback
+                // instead of just invoking the callback object directly (this emulates the product that does
+                // not serialize the callback object over).
+                options.ClientRpcTarget = null;
+
                 // Creates service instance and connects it to the pipe. 
                 // We don't need to store the instance anywhere.
                 _ = _services.CreateBrokeredService(descriptor, pipePair.Item1, options);

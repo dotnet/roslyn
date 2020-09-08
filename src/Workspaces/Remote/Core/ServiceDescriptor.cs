@@ -17,6 +17,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        {
+            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
+            NotifyClientOfEvents = false,
+
+            // Only allow public methods (may be on internal types) to be invoked remotely.
+            AllowNonPublicInvocation = false
+        };
+
         // Enables remote APIs to pass Stream as parameter.
         private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
         {
@@ -54,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Remote
         protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
         {
             jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
-            return base.CreateConnection(jsonRpc);
-        }
+            var connection = base.CreateConnection(jsonRpc);
+            connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
+            return connection;
     }
 }
