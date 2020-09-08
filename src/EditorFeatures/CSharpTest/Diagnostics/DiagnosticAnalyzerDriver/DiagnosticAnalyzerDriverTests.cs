@@ -623,7 +623,13 @@ class C
                 nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
                 expectedNugetSuppressorsExecuted: false,
                 vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
-                expectedVsixSuppressorsExecuted: true);
+                expectedVsixSuppressorsExecuted: true,
+                new[]
+                {
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
+                });
 
             // All without overlap, the VSIX analyzer and suppressor still work when nuget analyzers are present:
             //   1) No duplicate diagnostics
@@ -642,7 +648,10 @@ class C
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
-                    (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer))
+                    (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
                 });
 
             // All without overlap, verify the following:
@@ -661,13 +670,16 @@ class C
                 new[]
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
                 });
 
-            // Suppressors with duplicate support for VsixAnalzer, but not 100% overlap. Verify the following:
+            // Suppressors with duplicate support for VsixAnalyzer, but not 100% overlap. Verify the following:
             //   1) No duplicate diagnostics
             //   2) Both NuGet and Vsix analyzers execute
-            //   3) Both Nuget and Vsix suppressors execute
-            //   4) Appropriate diagnostic filtering is done - Nuget suppressor and Vsix suppressor together suppresses VSIX analyzer.
+            //   3) Only Nuget suppressor executes
+            //   4) Appropriate diagnostic filtering is done - Nuget suppressor uppresses VSIX analyzer.
             await TestNuGetAndVsixAnalyzerCoreAsync(
                 nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
                 expectedNugetAnalyzersExecuted: true,
@@ -676,13 +688,16 @@ class C
                 nugetSuppressors: ImmutableArray.Create(partialNugetSuppressor),
                 expectedNugetSuppressorsExecuted: true,
                 vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
-                expectedVsixSuppressorsExecuted: true,
+                expectedVsixSuppressorsExecuted: false,
                 new[]
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: false).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
                 });
 
-            // Suppressors with duplicate support for VsixAnalzer, with 100% overlap. Verify the following:
+            // Suppressors with duplicate support for VsixAnalyzer, with 100% overlap. Verify the following:
             //   1) No duplicate diagnostics
             //   2) Both NuGet and Vsix analyzers execute
             //   3) Only Nuget suppressor executes
@@ -699,6 +714,9 @@ class C
                 new[]
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
                 });
         }
 
@@ -781,15 +799,16 @@ class C
             var document = project.Documents.Single();
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
-            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan))
+            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan, includeSuppressedDiagnostics: true))
                 .OrderBy(d => d.Id).ToImmutableArray();
 
             diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
 
             var index = 0;
-            foreach (var (_, expectedMessage) in expectedDiagnostics)
+            foreach (var (d, expectedMessage) in expectedDiagnostics)
             {
                 Assert.Equal(expectedMessage, diagnostics[index].GetMessage());
+                Assert.Equal(d.IsSuppressed, diagnostics[index].IsSuppressed);
                 index++;
             }
 

@@ -147,24 +147,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (hostAnalyzer is DiagnosticSuppressor suppressor)
                 {
-                    var suppressionDescriptors = suppressor.SupportedSuppressions;
-                    foreach (var descriptor in suppressionDescriptors)
+                    skippedDiagnosticIdsForAnalyzer = ImmutableArray<string>.Empty;
+
+                    // Only execute host suppressor if it does not suppress any diagnostic ID reported by project analyzer
+                    // and does not share any suppression ID with a project suppressor.
+                    foreach (var descriptor in suppressor.SupportedSuppressions)
                     {
-                        if (projectAnalyzerDiagnosticIds.Contains(descriptor.SuppressedDiagnosticId))
+                        if (projectAnalyzerDiagnosticIds.Contains(descriptor.SuppressedDiagnosticId) ||
+                            projectSuppressedDiagnosticIds.Contains(descriptor.SuppressedDiagnosticId))
                         {
-                            // Host analyzer cannot suppress nuget analyzers diagnostics.
-                            skippedDiagnosticIdsBuilder.Add(descriptor.Id);
-                        }
-                        else if (projectSuppressedDiagnosticIds.Contains(descriptor.SuppressedDiagnosticId))
-                        {
-                            // Host analyzer lets the nuget installed analyzer suppress the diagnostic if there is overlap.
-                            skippedDiagnosticIdsBuilder.Add(descriptor.Id);
-                        }
-                        else
-                        {
-                            shouldInclude = true;
+                            return false;
                         }
                     }
+
+                    return true;
                 }
 
                 skippedDiagnosticIdsForAnalyzer = skippedDiagnosticIdsBuilder.ToImmutableAndFree();
