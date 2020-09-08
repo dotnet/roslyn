@@ -297,8 +297,6 @@ retry:
         /// <seealso href="https://github.com/microsoft/vs-threading/blob/558f24c576cc620a00b20ed1fa90a5e2d13b0440/src/Microsoft.VisualStudio.Threading/ThreadingTools.cs#L181-L255"/>
         private static void AttachCancellation<T>(TaskCompletionSource<T> taskCompletionSource, CancellationToken cancellationToken)
         {
-            _ = taskCompletionSource ?? throw new ArgumentNullException(nameof(taskCompletionSource));
-
             if (!cancellationToken.CanBeCanceled || taskCompletionSource.Task.IsCompleted)
                 return;
 
@@ -308,14 +306,14 @@ retry:
                 return;
             }
 
-            var tuple = new CancelableTaskCompletionSource<T>(taskCompletionSource, cancellationToken);
-            tuple.CancellationTokenRegistration = cancellationToken.Register(
+            var cancelableTaskCompletionSource = new CancelableTaskCompletionSource<T>(taskCompletionSource, cancellationToken);
+            cancelableTaskCompletionSource.CancellationTokenRegistration = cancellationToken.Register(
                 static s =>
                 {
                     var t = (CancelableTaskCompletionSource<T>)s!;
                     t.TaskCompletionSource.TrySetCanceled(t.CancellationToken);
                 },
-                tuple,
+                cancelableTaskCompletionSource,
                 useSynchronizationContext: false);
 
             Debug.Assert(taskCompletionSource.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
@@ -325,7 +323,7 @@ retry:
                     var t = (CancelableTaskCompletionSource<T>)s!;
                     t.CancellationTokenRegistration.Dispose();
                 },
-                tuple,
+                cancelableTaskCompletionSource,
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);
@@ -340,7 +338,7 @@ retry:
         /// required for cancellation handling, rather than a special closure and delegate for each one.
         /// </remarks>
         /// <seealso href="https://github.com/microsoft/vs-threading/blob/558f24c576cc620a00b20ed1fa90a5e2d13b0440/src/Microsoft.VisualStudio.Threading/ThreadingTools.cs#L318-L372"/>
-        private class CancelableTaskCompletionSource<T>
+        private sealed class CancelableTaskCompletionSource<T>
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="CancelableTaskCompletionSource{T}"/> class.
@@ -349,7 +347,7 @@ retry:
             /// <param name="cancellationToken">The cancellation token.</param>
             internal CancelableTaskCompletionSource(TaskCompletionSource<T> taskCompletionSource, CancellationToken cancellationToken)
             {
-                TaskCompletionSource = taskCompletionSource ?? throw new ArgumentNullException(nameof(taskCompletionSource));
+                TaskCompletionSource = taskCompletionSource;
                 CancellationToken = cancellationToken;
             }
 

@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             queue.Enqueue(1);
             Assert.True(queue.TryDequeue(out var value));
             Assert.Equal(1, value);
+            Assert.False(queue.IsCompleted);
         }
 
         [Fact]
