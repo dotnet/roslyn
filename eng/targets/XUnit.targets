@@ -11,16 +11,20 @@
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <Compile Include="$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)"
+             Condition="Exists('$(RepositoryEngineeringDir)config\test\Core\InstallTraceListener$(DefaultLanguageSourceExtension)')"/>
+  </ItemGroup>
+
   <!-- Add a default test app.config, if the project doesn't already have one-->
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
       <_DefaultAppConfigFile Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(RepositoryEngineeringDir)config\test\Desktop\app.config</_DefaultAppConfigFile>
-      <_DefaultAppConfigFile Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(RepositoryEngineeringDir)config\test\Core\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
-      <None Include="$(_DefaultAppConfigFile)">
+      <None Include="$(_DefaultAppConfigFile)" Condition="'$(_DefaultAppConfigFile)' != ''">
         <Link>app.config</Link>
       </None>
     </ItemGroup>

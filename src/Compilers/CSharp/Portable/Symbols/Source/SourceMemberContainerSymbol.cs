@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -733,19 +734,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return managedKind;
         }
 
-        public override bool IsStatic => _declModifiers.HasFlag(DeclarationModifiers.Static);
+        public override bool IsStatic => HasFlag(DeclarationModifiers.Static);
 
-        public sealed override bool IsRefLikeType => _declModifiers.HasFlag(DeclarationModifiers.Ref);
+        public sealed override bool IsRefLikeType => HasFlag(DeclarationModifiers.Ref);
 
-        public override bool IsReadOnly => _declModifiers.HasFlag(DeclarationModifiers.ReadOnly);
+        public override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
 
-        public override bool IsSealed => _declModifiers.HasFlag(DeclarationModifiers.Sealed);
+        public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => _declModifiers.HasFlag(DeclarationModifiers.Abstract);
+        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
 
-        internal bool IsPartial => _declModifiers.HasFlag(DeclarationModifiers.Partial);
+        internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
-        internal bool IsNew => _declModifiers.HasFlag(DeclarationModifiers.New);
+        internal bool IsNew => HasFlag(DeclarationModifiers.New);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
 
         public override Accessibility DeclaredAccessibility
         {
