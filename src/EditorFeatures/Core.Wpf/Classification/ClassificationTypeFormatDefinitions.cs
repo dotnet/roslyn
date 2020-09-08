@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#define dark_theme
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -73,15 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
 
-        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
-        // can be removed.  Right now it serves as an easy way to recompile while flipping
-        // between different themes.
-#if dark_theme
-        private static readonly Color s_stringEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
-#else
-        private static readonly Color s_stringEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
-#endif
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StringEscapeCharacter)]
         [Name(ClassificationTypeNames.StringEscapeCharacter)]
@@ -96,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public StringEscapeCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
-                this.ForegroundColor = s_stringEscapeColor;
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
 
@@ -685,25 +674,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         #region Regex
 
-        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
-        // can be removed.  Right now it serves as an easy way to recompile while flipping
-        // between different themes.
-#if dark_theme
-        private static readonly Color s_regexTextColor = Color.FromRgb(0xd6, 0x9d, 0x85);
-        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
-        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
-        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x8a, 0xff);
-        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xd7, 0x45, 0x8c);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(0x61, 0xa6, 0x4a);
-#else
-        private static readonly Color s_regexTextColor = Color.FromRgb(0x80, 0x00, 0x00);
-        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
-        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
-        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x73, 0xff);
-        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xff, 0x00, 0xc1);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(0x00, 0x80, 0x00);
-#endif
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexComment)]
         [Name(ClassificationTypeNames.RegexComment)]
@@ -718,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
-                this.ForegroundColor = s_regexCommentColor;
+                this.ForegroundColor = Color.FromRgb(0x00, 0x80, 0x00);
             }
         }
 
@@ -736,7 +706,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
-                this.ForegroundColor = s_characterClassColor;
+                this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
             }
         }
 
@@ -754,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
-                this.ForegroundColor = s_regexAnchorAndQuantifierColor;
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
 
@@ -772,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexQuantifierFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
-                this.ForegroundColor = s_regexAnchorAndQuantifierColor;
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
 
@@ -790,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
-                this.ForegroundColor = s_regexGroupingAndAlternationColor;
+                this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
 
@@ -808,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexAlternationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
-                this.ForegroundColor = s_regexGroupingAndAlternationColor;
+                this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
 
@@ -826,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
-                this.ForegroundColor = s_regexTextColor;
+                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
             }
         }
 
@@ -847,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // by default, we make a self-escaped character just the bolded form of the normal
                 // text color.
-                this.ForegroundColor = s_regexTextColor;
+                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
                 this.IsBold = true;
             }
         }
@@ -866,7 +836,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public RegexOtherEscapeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
-                this.ForegroundColor = s_regexOtherEscapeColor;
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
         #endregion
