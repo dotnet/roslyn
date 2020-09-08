@@ -989,6 +989,7 @@ namespace Microsoft.CodeAnalysis
                     var compilationBefore = compilation;
                     compilation = RunTransformers(compilation, transfomers, analyzerConfigProvider, diagnostics);
 
+                    // fix whitespace and embed transformed code into PDB to support debugging
                     if (compilation != compilationBefore)
                     {
                         foreach (var tree in compilation.SyntaxTrees)

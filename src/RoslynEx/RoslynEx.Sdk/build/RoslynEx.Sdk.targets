@@ -2,24 +2,23 @@
 <Project>
   <PropertyGroup>
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
-    <RoslynExToolsetVersion>3.8.0-poc.20457.2</RoslynExToolsetVersion>
+    <RoslynExToolsetVersion>3.8.0-dev</RoslynExToolsetVersion>
   </PropertyGroup>
 
-  <Target Name="SetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
+  <Target Name="RoslynExSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
     <ItemGroup>
       <!-- include assemblies from the current project -->
       <None Include="@(BuiltProjectOutputGroupOutput)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
       <!-- include assemblies from references -->
       <None Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
-
   </Target>
-  
+
   <!-- based on https://stackoverflow.com/a/56018426/41071 -->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);SetLibAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);RoslynExSetLibAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="SetLibAssembliesInPackage" DependsOnTargets="ResolveReferences">
+  <Target Name="RoslynExSetLibAssembliesInPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <!-- include assemblies from references -->
       <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
@@ -28,7 +27,7 @@
     </ItemGroup>
   </Target>
 
-  <UsingTask TaskName="RewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="RoslynExRewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <NuspecFile />
       <ToolsetVersion />
@@ -124,7 +123,7 @@
               />
   </Target>
 
-  <Target Name="UpdateNuspec" DependsOnTargets="RoslynExGenerateNuspec">
+  <Target Name="RoslynExUpdateNuspec" DependsOnTargets="RoslynExGenerateNuspec">
     <ItemGroup>
       <FilteredOutput Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'" />
     </ItemGroup>
@@ -133,12 +132,12 @@
       <NuspecFileAbsolutePath>@(FilteredOutput)</NuspecFileAbsolutePath>
     </PropertyGroup>
 
-    <RewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)" ToolsetVersion="$(RoslynExToolsetVersion)" />
+    <RoslynExRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)" ToolsetVersion="$(RoslynExToolsetVersion)" />
 
   </Target>
 
   <PropertyGroup>
-    <BeforePack>$(BeforePack); SetAnalyzerAssembliesInPackage; UpdateNuspec</BeforePack>
+    <BeforePack>$(BeforePack); RoslynExSetAnalyzerAssembliesInPackage; RoslynExUpdateNuspec</BeforePack>
   </PropertyGroup>
 
 </Project>

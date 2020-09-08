@@ -7,10 +7,6 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <AssemblyName>RoslynEx.Interface</AssemblyName>
     <PackageId>RoslynEx.Sdk</PackageId>
-    <PreReleaseVersionLabel>poc</PreReleaseVersionLabel>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <OfficialBuild>true</OfficialBuild>
-    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).1</OfficialBuildId>
   </PropertyGroup>
 
   <Import Project="..\RoslynEx.Shared\RoslynEx.Shared.projitems" Label="Shared" />

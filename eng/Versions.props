@@ -250,7 +250,7 @@
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
-    <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
+    <UsingToolNuGetRepack>false</UsingToolNuGetRepack>
     <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
