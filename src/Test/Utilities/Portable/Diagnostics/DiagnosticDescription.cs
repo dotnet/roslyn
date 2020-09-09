@@ -113,13 +113,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _isSuppressed = isSuppressed;
         }
 
-        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false)
+        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false, bool isSuppressed = false)
         {
             _code = d.Code;
             _isWarningAsError = d.IsWarningAsError;
             _location = d.Location;
             _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
+            _isSuppressed = isSuppressed;
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0 || d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
@@ -240,6 +241,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_isWarningAsError != d._isWarningAsError)
                 return false;
 
+            if (_isSuppressed != d._isSuppressed)
+                return false;
+
             if (!_ignoreArgumentsWhenComparing)
             {
                 if (_squiggledText != d._squiggledText)
@@ -328,6 +332,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int hashCode;
             hashCode = _code.GetHashCode();
             hashCode = Hash.Combine(_isWarningAsError.GetHashCode(), hashCode);
+            hashCode = Hash.Combine(_isSuppressed.GetHashCode(), hashCode);
 
             // TODO: !!! This implementation isn't consistent with Equals, which might ignore inequality of some members based on ignoreArgumentsWhenComparing flag, etc.
             hashCode = Hash.Combine(_squiggledText, hashCode);
@@ -372,6 +377,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 sb.Append('"');
             }
+
+            sb.Append(", isSuppressed: ");
+            sb.Append(_isSuppressed ? "true" : "false");
 
             sb.Append(")");
 

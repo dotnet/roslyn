@@ -679,7 +679,7 @@ class C
             //   1) No duplicate diagnostics
             //   2) Both NuGet and Vsix analyzers execute
             //   3) Only Nuget suppressor executes
-            //   4) Appropriate diagnostic filtering is done - Nuget suppressor uppresses VSIX analyzer.
+            //   4) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
             await TestNuGetAndVsixAnalyzerCoreAsync(
                 nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
                 expectedNugetAnalyzersExecuted: true,
