@@ -37,8 +37,8 @@ namespace Roslyn.Utilities
             return default!;
         }
 
-        public static V GetOrValue<K, V>(this Dictionary<K, V> dictionary, K key, V defaultValue)
-            where K : notnull
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+            where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var value))
             {

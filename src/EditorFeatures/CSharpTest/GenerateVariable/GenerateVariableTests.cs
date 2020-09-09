@@ -8974,7 +8974,7 @@ class C
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
@@ -9004,7 +9004,7 @@ class C
         object o = null;
         switch (o)
         {
-            case Blah { [|X|]: int i }:
+            case Blah { X: int i }:
                 break;
         }
     }
@@ -9017,7 +9017,7 @@ class C
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern2()
         {
@@ -9047,7 +9047,7 @@ class C
         Blah o = null;
         switch (o)
         {
-            case { [|X|]: int i }:
+            case { X: int i }:
                 break;
         }
     }
