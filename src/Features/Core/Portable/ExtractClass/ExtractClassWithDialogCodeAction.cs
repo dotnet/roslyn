@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
-        public override string Title => FeaturesResources.Pull_members_up_to_new_base_class;
+        public override string Title => FeaturesResources.Extract_base_class;
 
         public ExtractClassWithDialogCodeAction(
             Document document,

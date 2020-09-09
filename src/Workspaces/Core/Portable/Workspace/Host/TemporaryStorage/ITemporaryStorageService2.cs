@@ -6,6 +6,7 @@
 
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -22,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Attach to existing <see cref="ITemporaryTextStorage"/> with given name.
         /// </summary>
-        ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding? encoding, CancellationToken cancellationToken = default);
+        ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken = default);
     }
 }
