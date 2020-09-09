@@ -1196,13 +1196,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
+            var overriddenParameters = overriddenMethod.Parameters;
+            var overridingParameters = overridingMethod.Parameters;
+            var overridingMethodOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(overriddenMethod.ParameterCount == overridingMethod.ParameterCount - overridingMethodOffset);
             if (reportMismatchInReturnType != null)
             {
+                var overridingReturnType = getNotNullIfNotNullOutputType(overridingMethod.ReturnTypeWithAnnotations, overridingMethod.ReturnNotNullIfParameterNotNull);
                 // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
                         overridingMethod.RefKind,
-                        overridingMethod.ReturnTypeWithAnnotations.Type,
+                        overridingReturnType.Type,
                         overriddenMethod.ReturnTypeWithAnnotations.Type))
                 {
                     reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
@@ -1214,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
                         overriddenMethod.ReturnTypeWithAnnotations,
                         overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
-                        overridingMethod.ReturnTypeWithAnnotations,
+                        overridingReturnType,
                         overridingMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
                     reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
@@ -1227,17 +1232,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            ImmutableArray<ParameterSymbol> overridingParameters = overridingMethod.GetParameters();
-            var overriddenParameters = overriddenMethod.GetParameters();
-
-            int overridingMethodOffset = invokedAsExtensionMethod ? 1 : 0;
-            Debug.Assert(overriddenMethod.ParameterCount == overridingMethod.ParameterCount - overridingMethodOffset);
-            for (int i = 0; i < overriddenMethod.ParameterCount; i++)
+            for (int i = 0; i < overriddenParameters.Length; i++)
             {
                 var overriddenParameter = overriddenParameters[i];
                 var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
                 var overridingParameter = overridingParameters[i + overridingMethodOffset];
-                var overridingParameterType = overridingParameter.TypeWithAnnotations;
+                var overridingParameterType = getNotNullIfNotNullOutputType(overridingParameter.TypeWithAnnotations, overridingParameter.NotNullIfParameterNotNull);
                 // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
@@ -1257,6 +1257,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, true, extraArgument);
                 }
+            }
+
+            TypeWithAnnotations getNotNullIfNotNullOutputType(TypeWithAnnotations outputType, ImmutableHashSet<string> notNullIfParameterNotNull)
+            {
+                for (var i = 0; i < overriddenParameters.Length; i++)
+                {
+                    var overridingParam = overridingParameters[i + overridingMethodOffset];
+                    var overriddenParam = overriddenParameters[i];
+                    if (notNullIfParameterNotNull.Contains(overridingParam.Name) && !overriddenParam.TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                    {
+                        return outputType.AsNotAnnotated();
+                    }
+                }
+
+                return outputType;
             }
 
             static bool isValidNullableConversion(
