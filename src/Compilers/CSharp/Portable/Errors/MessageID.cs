@@ -213,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12786,
         IDS_FeatureExtensionGetEnumerator = MessageBase + 12787,
         IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
+        IDS_Parameter = MessageBase + 12789,
+        IDS_Return = MessageBase + 12790,
     }
 
     // Message IDs may refer to strings that need to be localized.

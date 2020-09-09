@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private bool _enabled = false;
 
-        protected CancellationToken DisposalToken { get; private set; }
+        protected CancellationToken DisposalToken { get; }
 
         protected AbstractDelayStartedService(
             IThreadingContext threadingContext,
@@ -47,17 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             Workspace = workspace;
             _serviceOnOffOption = onOffOption;
             _perLanguageOptions = perLanguageOptions.ToImmutableArray();
+            DisposalToken = threadingContext.DisposalToken;
         }
 
         protected abstract void EnableService();
 
         protected abstract void StartWorking();
 
-        internal void Connect(string languageName, CancellationToken disposalToken)
+        internal void Connect(string languageName)
         {
             this.AssertIsForeground();
 
-            DisposalToken = disposalToken;
             var options = Workspace.Options;
             if (!options.GetOption(_serviceOnOffOption))
             {

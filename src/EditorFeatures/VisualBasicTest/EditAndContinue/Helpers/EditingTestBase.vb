@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Inherits BasicTestBase
 
         Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
-            Return New VisualBasicEditAndContinueAnalyzer(New TestActiveStatementSpanTracker())
+            Return New VisualBasicEditAndContinueAnalyzer()
         End Function
 
         Public Enum StateMachineKind

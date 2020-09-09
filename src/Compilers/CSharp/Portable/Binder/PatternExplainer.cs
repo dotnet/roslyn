@@ -52,10 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundEvaluationDecisionDagNode e => (distance(e.Next), e.Next),
                     BoundTestDecisionDagNode { Test: BoundDagNonNullTest _ } t when !nullPaths => (1 + distance(t.WhenTrue), t.WhenTrue),
                     BoundTestDecisionDagNode { Test: BoundDagExplicitNullTest _ } t when !nullPaths => (1 + distance(t.WhenFalse), t.WhenFalse),
-                    BoundTestDecisionDagNode t when distance(t.WhenTrue) is var trueDist && distance(t.WhenFalse) is var falseDist =>
-                        (trueDist <= falseDist) ? (1 + trueDist, t.WhenTrue) : (1 + falseDist, t.WhenFalse),
-                    BoundWhenDecisionDagNode w when distance(w.WhenTrue) is var trueDist && distance(w.WhenFalse) is var falseDist =>
-                        (trueDist <= falseDist) ? (1 + trueDist, w.WhenTrue) : (1 + falseDist + nodeCount, w.WhenFalse),
+                    BoundTestDecisionDagNode t when distance(t.WhenTrue) is var trueDist1 && distance(t.WhenFalse) is var falseDist1 =>
+                        (trueDist1 <= falseDist1) ? (1 + trueDist1, t.WhenTrue) : (1 + falseDist1, t.WhenFalse),
+                    BoundWhenDecisionDagNode w when distance(w.WhenTrue) is var trueDist2 && distance(w.WhenFalse) is var falseDist2 =>
+                        // add nodeCount to the distance if we need to flag that the path requires failure of a when clause
+                        (trueDist2 <= falseDist2) ? (1 + trueDist2, w.WhenTrue) : (1 + (falseDist2 < nodeCount ? nodeCount : 0) + falseDist2, w.WhenFalse),
                     // treat the endpoint as distance 1.
                     // treat other nodes as not on the path to the endpoint
                     _ => ((n == node) ? 1 : infinity, null),

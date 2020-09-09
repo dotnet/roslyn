@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             return FromState(state);
         }
 
-        public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
+        public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var state = RunGeneratorsCore(compilation, diagnosticsBag, cancellationToken);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
         }
 
-        public GeneratorDriver TryApplyEdits(Compilation compilation, out Compilation outputCompilation, out bool success, CancellationToken cancellationToken = default)
+        internal GeneratorDriver TryApplyEdits(Compilation compilation, out Compilation outputCompilation, out bool success, CancellationToken cancellationToken = default)
         {
             // if we can't apply any partial edits, just instantly return
             if (_state.EditsFailed || _state.Edits.Length == 0)
@@ -122,6 +122,12 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
+        public GeneratorDriver RemoveAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
+        {
+            var newState = _state.With(additionalTexts: _state.AdditionalTexts.RemoveRange(additionalTexts));
+            return FromState(newState);
+        }
+
         public GeneratorDriverRunResult GetRunResult()
         {
             var results = _state.Generators.ZipAsArray(
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis
                 // initialize the generator if needed
                 if (!generatorState.Info.Initialized)
                 {
-                    InitializationContext context = new InitializationContext(cancellationToken);
+                    var context = new GeneratorInitializationContext(cancellationToken);
                     Exception? ex = null;
                     try
                     {
@@ -235,7 +241,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new SourceGeneratorContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
+                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
                 try
                 {
                     generator.Execute(context);
@@ -274,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                 if (edit.AcceptedBy(generatorState.Info))
                 {
                     // attempt to apply the edit
-                    var context = new EditContext(generatorState.SourceTexts.ToImmutableArray(), cancellationToken);
+                    var context = new GeneratorEditContext(generatorState.SourceTexts.ToImmutableArray(), cancellationToken);
                     var succeeded = edit.TryApply(generatorState.Info, context);
                     if (!succeeded)
                     {

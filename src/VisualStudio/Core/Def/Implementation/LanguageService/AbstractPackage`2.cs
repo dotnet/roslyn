@@ -94,10 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
-            _packageInstallerService?.Connect(this.RoslynLanguageName, this.DisposalToken);
-            _symbolSearchService?.Connect(this.RoslynLanguageName, this.DisposalToken);
-
-            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
+            _packageInstallerService?.Connect(this.RoslynLanguageName);
+            _symbolSearchService?.Connect(this.RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();

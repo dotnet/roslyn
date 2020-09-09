@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -38,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var optionService = workspaceServices.GetService<IOptionService>();
-            var errorReportingService = workspaceServices.GetService<IErrorReportingService>();
-            var errorLoggerService = workspaceServices.GetService<IErrorLoggerService>();
+            var optionService = workspaceServices.GetRequiredService<IOptionService>();
+            var errorReportingService = workspaceServices.GetRequiredService<IErrorReportingService>();
+            var errorLoggerService = workspaceServices.GetRequiredService<IErrorLoggerService>();
             return new ExtensionManager(optionService, errorReportingService, errorLoggerService, _errorHandlers);
         }
 

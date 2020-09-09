@@ -105,6 +105,7 @@ This document provides guidance for thinking about language interactions and tes
 - modopt and modreq
 - ref assemblies
 - extern alias
+- UnmanagedCallersOnly
 - telemetry
 
 # Testing in interaction with other components

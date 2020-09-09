@@ -167,13 +167,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
         public async Task<SumType<CompletionList, CompletionItem[]>> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
             // Convert to sumtype before reporting to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107698
-            => await _requestHandlerProvider.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
+            => await _requestHandlerProvider.ExecuteRequestAsync<CompletionParams, CompletionList>(Methods.TextDocumentCompletionName,
                 completionParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
         public Task<CompletionItem> ResolveCompletionItemAsync(CompletionItem completionItem, CancellationToken cancellationToken)
             => _requestHandlerProvider.ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName,
                 completionItem, _clientCapabilities, _clientName, cancellationToken);
+
+        [JsonRpcMethod(Methods.TextDocumentFoldingRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<FoldingRange[]> GetTextDocumentFoldingRangeAsync(FoldingRangeParams textDocumentFoldingRangeParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(Methods.TextDocumentFoldingRangeName,
+                textDocumentFoldingRangeParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
         public Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
@@ -301,7 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // so that we clear out any diagnostics in mapped files that are no longer a part
             // of the current diagnostics set (because the diagnostics were fixed).
             // Use sorted set to have consistent publish ordering for tests and debugging.
-            var urisForCurrentDocument = _documentsToPublishedUris.GetOrValue(document.Id, ImmutableSortedSet.Create<Uri>(s_uriComparer)).Union(fileUriToDiagnostics.Keys);
+            var urisForCurrentDocument = _documentsToPublishedUris.GetValueOrDefault(document.Id, ImmutableSortedSet.Create<Uri>(s_uriComparer)).Union(fileUriToDiagnostics.Keys);
 
             // Update the mapping for this document to be the uris we're about to publish diagnostics for.
             _documentsToPublishedUris[document.Id] = urisForCurrentDocument;
@@ -310,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             foreach (var fileUri in urisForCurrentDocument)
             {
                 // Get the updated diagnostics for a single uri that were contributed by the current document.
-                var diagnostics = fileUriToDiagnostics.GetOrValue(fileUri, ImmutableArray<LanguageServer.Protocol.Diagnostic>.Empty);
+                var diagnostics = fileUriToDiagnostics.GetValueOrDefault(fileUri, ImmutableArray<LanguageServer.Protocol.Diagnostic>.Empty);
 
                 if (_publishedFileToDiagnostics.ContainsKey(fileUri))
                 {
@@ -442,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 => _server._documentsToPublishedUris.Keys.ToImmutableArray();
 
             internal IImmutableSet<Uri> GetFileUrisForDocument(DocumentId documentId)
-                => _server._documentsToPublishedUris.GetOrValue(documentId, ImmutableSortedSet<Uri>.Empty);
+                => _server._documentsToPublishedUris.GetValueOrDefault(documentId, ImmutableSortedSet<Uri>.Empty);
 
             internal ImmutableArray<LanguageServer.Protocol.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
             {

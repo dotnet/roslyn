@@ -1417,7 +1417,12 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject);
+            var oldDocument = oldProject.GetAdditionalDocumentState(newDocument.Id);
+            Contract.ThrowIfNull(oldDocument);
+
+            return ForkProject(
+                newProject,
+                translate: new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument));
         }
 
         private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
@@ -1734,6 +1739,9 @@ namespace Microsoft.CodeAnalysis
                 ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
                 : SpecializedTasks.Null<Compilation>();
         }
+
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
+            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
 
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
