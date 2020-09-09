@@ -1490,5 +1490,21 @@ class Program
                 //     static string F3() => nameof(typeof(dynamic));
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(6, 34));
         }
+
+        [Fact]
+        public void TestNameOfNintWhenTheyAreIdentifierNames()
+        {
+            var source @"
+public class C 
+{
+    public string nint;
+    public void nameof(string x)
+    {
+        nameof(nint);
+    }
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+        }
     }
 }
