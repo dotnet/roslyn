@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using MessagePack;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Nerdbank.Streams;
 using Newtonsoft.Json;
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
-            if (exception is RemoteInvocationException or JsonException)
+            if (exception is RemoteInvocationException or MessagePackSerializationException or IOException)
             {
                 // indicates bug on client side or in serialization, propagate the exception
                 return FatalError.ReportWithoutCrashAndPropagate(exception);
