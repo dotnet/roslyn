@@ -152,7 +152,7 @@ static class C { }
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
             var root = await document.GetSyntaxRootAsync();
 
-            // # of classified spans + 2 generated spans ('two' and 'three')
+            // # of classified spans + 2 generated spans ('two' and 'three"')
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, root!.FullSpan);
             var expectedNumberOfTokens = classifiedSpans.Count() + 2;
 
@@ -175,7 +175,7 @@ static class C { }
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
             var root = await document.GetSyntaxRootAsync();
 
-            // # of classified spans + 2 generated spans ('two' and 'three')
+            // # of classified spans + 2 generated spans ('two' and 'three"')
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, root!.FullSpan);
             var expectedNumberOfTokens = classifiedSpans.Count() + 2;
 
@@ -205,6 +205,31 @@ class C
             // # of classified spans + 1 generated span ('"')
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, root!.FullSpan);
             var expectedNumberOfTokens = classifiedSpans.Count() + 1;
+
+            Assert.Equal(expectedNumberOfTokens * 5, results.Data!.Length);
+        }
+
+        [Fact]
+        public async Task TestGetSemanticTokensWithNestedInterpolatedStringsAsync()
+        {
+            var markup =
+@"{|caret:|}class C
+{
+    void M()
+    {
+        var s = $""One { $""two ${""three\n""} \n""}\n"";
+    }
+}";
+
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var results = await RunGetSemanticTokensAsync(workspace.CurrentSolution, locations["caret"].First());
+
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var root = await document.GetSyntaxRootAsync();
+
+            // # of classified spans + 3 generated spans ('"' x3)
+            var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, root!.FullSpan);
+            var expectedNumberOfTokens = classifiedSpans.Count() + 3;
 
             Assert.Equal(expectedNumberOfTokens * 5, results.Data!.Length);
         }
