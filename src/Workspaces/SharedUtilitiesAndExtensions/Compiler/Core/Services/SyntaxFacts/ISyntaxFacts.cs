@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// identifier that is always treated as being a special keyword, regardless of where it is
         /// found in the token stream.  Examples of this are tokens like <see langword="class"/> and
         /// <see langword="Class"/> in C# and VB respectively.
-        /// 
+        ///
         /// Importantly, this does *not* include contextual keywords.  If contextual keywords are
         /// important for your scenario, use <see cref="IsContextualKeyword"/> or <see
         /// cref="ISyntaxFactsExtensions.IsReservedOrContextualKeyword"/>.  Also, consider using
-        /// <see cref="ISyntaxFactsExtensions.IsWord"/> if all you need is the ability to know 
+        /// <see cref="ISyntaxFactsExtensions.IsWord"/> if all you need is the ability to know
         /// if this is effectively any identifier in the language, regardless of whether the language
         /// is treating it as a keyword or not.
         /// </summary>
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// 'contextual' keywords.  This is because they are not treated as keywords depending on
         /// the syntactic context around them.  Instead, the language always treats them identifiers
         /// that have special *semantic* meaning if they end up not binding to an existing symbol.
-        /// 
+        ///
         /// Importantly, if <paramref name="token"/> is not in the syntactic construct where the
         /// language thinks an identifier should be contextually treated as a keyword, then this
         /// will return <see langword="false"/>.
-        /// 
+        ///
         /// Or, in other words, the parser must be able to identify these cases in order to be a
         /// contextual keyword.  If identification happens afterwards, it's not contextual.
         /// </summary>
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         /// <summary>
-        /// Get the node on the left side of the dot if given a dotted expression. 
+        /// Get the node on the left side of the dot if given a dotted expression.
         /// </summary>
         /// <param name="allowImplicitTarget">
         /// In VB, we have a member access expression with a null expression, this may be one of the
@@ -288,13 +288,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         /// <summary>
         /// Returns true for nodes that represent the body of a method.
-        /// 
-        /// For VB this will be 
+        ///
+        /// For VB this will be
         /// MethodBlockBaseSyntax.  This will be true for things like constructor, method, operator
         /// bodies as well as accessor bodies.  It will not be true for things like sub() function()
-        /// lambdas.  
-        /// 
-        /// For C# this will be the BlockSyntax or ArrowExpressionSyntax for a 
+        /// lambdas.
+        ///
+        /// For C# this will be the BlockSyntax or ArrowExpressionSyntax for a
         /// method/constructor/deconstructor/operator/accessor.  It will not be included for local
         /// functions.
         /// </summary>
@@ -516,6 +516,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
 
         bool IsImplicitObjectCreation(SyntaxNode node);
+        SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
+        bool IsThrowStatement(SyntaxNode node);
+        bool IsLocalFunction(SyntaxNode node);
     }
 
     [Flags]

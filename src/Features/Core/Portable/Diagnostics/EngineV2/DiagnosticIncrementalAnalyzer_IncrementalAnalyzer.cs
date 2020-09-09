@@ -354,16 +354,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets;
             }
 
-            // Compute analyzer config special diagnostic options for computing effective severity.
+            // Compute analyzer config options for computing effective severity.
             // Note that these options are not cached onto the project, so we compute it once upfront. 
-            var analyzerConfigSpecialDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigSpecialDiagnosticOptions));
+            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions));
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, ImmutableDictionary<string, ReportDiagnostic> analyzerConfigSpecialDiagnosticOptions)
+        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
             // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!, analyzerConfigSpecialDiagnosticOptions) != ReportDiagnostic.Hidden);
+            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!, analyzerConfigOptions) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(

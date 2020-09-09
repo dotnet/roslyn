@@ -64,8 +64,8 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_RAW" Source="FF686868" />
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
+                <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
@@ -219,8 +219,8 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_RAW" Source="FF686868" />
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
+                <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
@@ -374,8 +374,8 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_RAW" Source="FF504848" />
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
+                <Foreground Type="CT_RAW" Source="FF504848" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF5B5B5B" />
@@ -529,8 +529,8 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_RAW" Source="FF959493" />
                 <Background Type="CT_RAW" Source="FF2D2C2C" />
+                <Foreground Type="CT_RAW" Source="FF959493" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
