@@ -1421,8 +1421,8 @@ class Program
 ";
             var option = TestOptions.ReleaseDll;
             CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
-                // (4,33): error CS0103: The name 'nint' does not exist in the current context
-                //     static string M() => nameof(nint);
+                // (4,33): error CS0103: The name 'dynamic' does not exist in the current context
+                //     static string M() => nameof(dynamic);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 33)
             );
         }
@@ -1452,5 +1452,20 @@ class Program
             var option = TestOptions.ReleaseDll;
             CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
         }
+    }
+
+    [Fact]
+    public void TestTypeArguments()
+    {
+        var source = @"
+interface I<T> { }
+class Program
+{
+    static string F1() => nameof(I<int>);
+    static string F2() => nameof(I<nint>);
+    static string F3() => nameof(I<dynamic>);
+}";
+        var option = TestOptions.ReleaseDll;
+        CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
     }
 }
