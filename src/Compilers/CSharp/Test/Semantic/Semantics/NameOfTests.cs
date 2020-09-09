@@ -1453,11 +1453,10 @@ class Program
             CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void TestTypeArguments()
         {
-             var source = @"
+            var source = @"
 interface I<T> { }
 class Program
 {
@@ -1465,8 +1464,8 @@ class Program
     static string F2() => nameof(I<nint>);
     static string F3() => nameof(I<dynamic>);
 }";
-             var option = TestOptions.ReleaseDll;
-             CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
         }
     }
 }
