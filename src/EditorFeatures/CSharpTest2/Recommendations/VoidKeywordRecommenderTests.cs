@@ -772,5 +772,25 @@ class C
 {
     delegate*$$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        public async Task TestAfterReadonlyInStruct()
+        {
+            await VerifyKeywordAsync(@"
+struct S
+{
+    public readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        public async Task TestNotAfterReadonlyInClass()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    public readonly $$");
+        }
     }
 }
