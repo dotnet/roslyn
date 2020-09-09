@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 text = Keyword("nullForgiving");
                 return true;
             }
-            
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
