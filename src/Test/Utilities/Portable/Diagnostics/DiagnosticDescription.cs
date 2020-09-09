@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _isSuppressed = isSuppressed;
         }
 
-        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false, bool isSuppressed = false)
+        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false)
         {
             _code = d.Code;
             _isWarningAsError = d.IsWarningAsError;
+            _isSuppressed = d.IsSuppressed;
             _location = d.Location;
             _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
-            _isSuppressed = isSuppressed;
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0 || d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
