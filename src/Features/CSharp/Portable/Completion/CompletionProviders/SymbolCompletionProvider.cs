@@ -6,12 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +24,7 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -257,5 +263,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
+
+        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        {
+            if (item.Properties.TryGetValue("IsConversion", out var value) && value == "true")
+            {
+                var completionChange = await HandleConversionChangeAsync(document, item, completionListSpan, cancellationToken).ConfigureAwait(false);
+                if (completionChange is { })
+                {
+                    return completionChange;
+                }
+            }
+
+            return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<CompletionChange> HandleConversionChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
+        {
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var symbol = symbols.First() as IMethodSymbol;
+            var convertToType = symbol.ReturnType;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(completionListSpan.Start);
+            var syntax = token.Parent;
+            var startPosition = completionListSpan.Start;
+            var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(startPosition, cancellationToken).ConfigureAwait(false), startPosition);
+            if (syntax is MemberAccessExpressionSyntax memberAccess)
+            {
+                // expr. -> ((type)expr).
+                var newNode =
+                    ParenthesizedExpression(
+                        CastExpression(Token(SyntaxKind.OpenParenToken), IdentifierName(typeName), Token(SyntaxKind.CloseParenToken), memberAccess.Expression));
+                var newNodeText = newNode.ToFullString();
+                var textChange = new TextChange(memberAccess.Expression.Span, newNodeText);
+                return CompletionChange.Create(textChange);
+            }
+
+            return null;
+        }
     }
 }
