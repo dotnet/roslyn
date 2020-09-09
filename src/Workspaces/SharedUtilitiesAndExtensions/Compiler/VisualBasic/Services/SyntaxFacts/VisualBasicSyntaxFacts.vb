@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsStartOfUnicodeEscapeSequence(c As Char) As Boolean Implements ISyntaxFacts.IsStartOfUnicodeEscapeSequence
-            Return False ' VB does not support identifiers with escaped unicode characters 
+            Return False ' VB does not support identifiers with escaped unicode characters
         End Function
 
         Public Function IsLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsLiteral
@@ -1202,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetNameForAttributeArgument(argument As SyntaxNode) As String Implements ISyntaxFacts.GetNameForAttributeArgument
-            ' All argument types are ArgumentSyntax in VB. 
+            ' All argument types are ArgumentSyntax in VB.
             Return GetNameForArgument(argument)
         End Function
 
@@ -1335,7 +1335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             '    ConstructorMemberDeclaration  |
             '    OperatorDeclaration
             Select Case node.Kind()
-                ' Because fields declarations can define multiple symbols "Public a, b As Integer" 
+                ' Because fields declarations can define multiple symbols "Public a, b As Integer"
                 ' We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 Case SyntaxKind.VariableDeclarator
                     If (node.Parent.IsKind(SyntaxKind.FieldDeclaration)) Then
@@ -2388,6 +2388,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetTypeOfTypePattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfTypePattern
             Throw New NotImplementedException()
+        End Function
+
+        Public Function GetExpressionOfThrowExpression(throwExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
+            ' ThrowExpression doesn't exist in VB
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function IsThrowStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsThrowStatement
+            Return node.IsKind(SyntaxKind.ThrowStatement)
+        End Function
+
+        Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
+            Return False
         End Function
     End Class
 End Namespace
