@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             else
             {
-                // The result was not available yet (or it was canceled/crashes).  Just return an empty result to
+                // The result was not available yet (or it was canceled/faulted).  Just return an empty result to
                 // signify we couldn't get this right now.
                 return ImmutableArray<PackageSource>.Empty;
             }
