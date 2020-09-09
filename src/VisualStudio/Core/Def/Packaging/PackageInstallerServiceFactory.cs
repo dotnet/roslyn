@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.Editor;
@@ -73,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// <c>solutionChanged == true iff changedProject == null</c> and <c>solutionChanged == false iff changedProject
         /// != null</c>. So technically having both values is redundant.  However, i like the clarity of having both.
         /// </remarks>
-        private AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();
@@ -93,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
@@ -101,9 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
-            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
-                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(threadingContext,
+                   workspace,
+                   SymbolSearchOptions.Enabled,
+                   SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
+                   SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
 
@@ -118,6 +122,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageInstaller = packageInstaller;
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
+
+            _workQueue = new AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>(
+                TimeSpan.FromSeconds(1),
+                this.ProcessWorkQueueAsync,
+                equalityComparer: null,
+                listenerProvider.GetListener(FeatureAttribute.PackageInstaller),
+                this.DisposalToken);
         }
 
         public event EventHandler? PackageSourcesChanged;
@@ -204,11 +215,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 return;
             }
-
-            _workQueue = new AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>(
-                TimeSpan.FromSeconds(1),
-                ProcessWorkQueueAsync,
-                this.DisposalToken);
 
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
