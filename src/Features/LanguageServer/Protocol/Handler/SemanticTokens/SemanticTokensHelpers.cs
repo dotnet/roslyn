@@ -187,37 +187,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            var tokensToProcess = new Stack<UnprocessedSemanticToken>();
-
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(
                     lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
                     currentClassifiedSpanIndex, tokenTypesToIndex,
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
-                    out var tokenType, out var tokenModifiers, out var unprocessedToken);
+                    out var tokenType, out var tokenModifiers);
 
                 data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
-
-                if (unprocessedToken.HasValue)
-                {
-                    tokensToProcess.Push(unprocessedToken.Value);
-                }
-
-                // Potentially process the unprocessed token (if one exists).
-                // An unprocessed token may occur in files with strings containing regex or escape characters. For example, using
-                // the string "Hello \n World", the earlier the call we make to Classifier.GetClassifiedSpansAsync will return two
-                // classified spans: one for the entire string, and one for the escape character '\n'. However, this is problematic
-                // when returning semantic tokens to LSP, since there is no way to indicate overlapping tokens unless one is a modifier.
-                // We must therefore break the resulting classified spans into three tokens: "Hello", "\n", and "World", the last of
-                // which is processed as an unprocessed token.
-                // We use a stack to store the unprocessed tokens since there may be multiple at a time, e.g. interpolated strings.
-                if (!tokensToProcess.IsEmpty() && TryProcessToken(
-                        lines, tokensToProcess.Peek(), classifiedSpans, currentClassifiedSpanIndex,
-                        data, ref lastLineNumber, ref lastStartCharacter))
-                {
-                    tokensToProcess.Pop();
-                }
             }
 
             return data.ToArray();
@@ -234,11 +212,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             out int startCharacterDeltaOut,
             out int tokenLengthOut,
             out int tokenTypeOut,
-            out int tokenModifiersOut,
-            out UnprocessedSemanticToken? unprocessedTokenOut)
+            out int tokenModifiersOut)
         {
-            unprocessedTokenOut = null;
-
             // Each semantic token is represented in LSP by five numbers:
             //     1. Token line number delta, relative to the previous token
             //     2. Token start character delta, relative to the previous token
@@ -248,11 +223,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var classifiedSpan = classifiedSpans[currentClassifiedSpanIndex];
             var originalTextSpan = classifiedSpan.TextSpan;
+            var linePosition = lines.GetLinePositionSpan(originalTextSpan).Start;
+            var lineNumber = linePosition.Line;
 
             // 1. Token line number delta, relative to the previous token
+            var deltaLine = lineNumber - lastLineNumber;
+            Contract.ThrowIfTrue(deltaLine < 0, $"deltaLine is less than 0: {deltaLine}");
+
             // 2. Token start character delta, relative to the previous token
-            ComputeLineNumberAndStartCharacterDelta(
-                lines, originalTextSpan, ref lastLineNumber, ref lastStartCharacter, out var deltaLine, out var deltaStartCharacter);
+            // (Relative to 0 or the previous token’s start if they're on the same line)
+            var deltaStartCharacter = linePosition.Character;
+            if (lastLineNumber == lineNumber)
+            {
+                deltaStartCharacter -= lastStartCharacter;
+            }
+
+            lastLineNumber = lineNumber;
+            lastStartCharacter = linePosition.Character;
 
             // 3. Token length
             var tokenLength = originalTextSpan.Length;
@@ -271,18 +258,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
                     // from integer to LSP token types).
                     tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
-
-                    // Note: There is the possibility of overlapping non-identical spans, e.g. in the case of strings
-                    // with escape or regex characters.
-                    // If the current text span overlaps with another span but is not identical (identical = modifier),
-                    // we shorten the token and potentially process the cut off portion later into a separate token.
-                    if (currentClassifiedSpanIndex + 1 < classifiedSpans.Length &&
-                        classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan != originalTextSpan &&
-                        classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan.Start < originalTextSpan.End)
-                    {
-                        tokenLength = classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan.Start - originalTextSpan.Start;
-                        unprocessedTokenOut = new UnprocessedSemanticToken(originalTextSpan, tokenTypeIndex);
-                    }
                 }
                 else
                 {
@@ -309,115 +284,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return currentClassifiedSpanIndex;
         }
 
-        private static void ComputeLineNumberAndStartCharacterDelta(
-            TextLineCollection lines,
-            TextSpan tokenTextSpan,
-            ref int lastLineNumber,
-            ref int lastStartCharacter,
-            out int deltaLineOut,
-            out int deltaStartCharacterOut)
-        {
-            var linePosition = lines.GetLinePositionSpan(tokenTextSpan).Start;
-            var lineNumber = linePosition.Line;
-
-            // 1. Token line number delta, relative to the previous token
-            deltaLineOut = lineNumber - lastLineNumber;
-            Contract.ThrowIfTrue(deltaLineOut < 0, $"deltaLine is less than 0: {deltaLineOut}");
-
-            // 2. Token start character delta, relative to the previous token
-            // (Relative to 0 or the previous token’s start if they're on the same line)
-            deltaStartCharacterOut = linePosition.Character;
-            if (lastLineNumber == lineNumber)
-            {
-                deltaStartCharacterOut -= lastStartCharacter;
-            }
-
-            lastLineNumber = lineNumber;
-            lastStartCharacter = linePosition.Character;
-        }
-
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
             s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr);
             Contract.ThrowIfNull(tokenTypeStr, "tokenTypeStr is null.");
             Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
-        }
-
-        private static bool TryProcessToken(
-            TextLineCollection lines,
-            UnprocessedSemanticToken unprocessedToken,
-            ClassifiedSpan[] classifiedSpans,
-            int currentClassifiedSpanIndex,
-            ArrayBuilder<int> data,
-            ref int lastLineNumber,
-            ref int lastStartCharacter)
-        {
-            var currentTextSpan = classifiedSpans[currentClassifiedSpanIndex].TextSpan;
-            if (currentTextSpan == unprocessedToken._originalTextSpan)
-            {
-                return false;
-            }
-
-            if (currentClassifiedSpanIndex + 1 < classifiedSpans.Length)
-            {
-                var nextTextSpan = classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan;
-
-                // If the next token's start exceeds the unprocessed token's end, we can discard the unprocessed
-                // token since it's no longer relevant.
-                if (unprocessedToken._originalTextSpan.End < nextTextSpan.Start)
-                {
-                    return true;
-                }
-
-                // We only need to consider unprocessed tokens if there's a gap between tokens or if we're at the
-                // end of the file. Otherwise, skip processing the unprocessed token for now.
-                if (currentTextSpan.End == nextTextSpan.Start)
-                {
-                    return false;
-                }
-            }
-
-            // Case 1: We've reached the end of the file and processed all tokens other than our unprocessed token.
-            if (currentClassifiedSpanIndex + 1 == classifiedSpans.Length)
-            {
-                var textSpan = new TextSpan(currentTextSpan.End, unprocessedToken._originalTextSpan.End - currentTextSpan.End);
-                ComputeLineNumberAndStartCharacterDelta(
-                    lines, textSpan, ref lastLineNumber, ref lastStartCharacter, out var deltaLine, out var deltaStartCharacter);
-
-                data.AddRange(deltaLine, deltaStartCharacter, textSpan.Length, unprocessedToken._tokenType, 0);
-                return true;
-            }
-            // Case 2: We're in-between some tokens. There's a chance that we may still have to leave some of the
-            // token processing for later, e.g. the string "1 \n 2 \n 3" will have to go through multiple rounds
-            // of processing.
-            else
-            {
-                var nextTextSpan = classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan;
-                var textSpan = new TextSpan(currentTextSpan.End, nextTextSpan.Start - currentTextSpan.End);
-                Contract.ThrowIfTrue(textSpan.IsEmpty);
-                ComputeLineNumberAndStartCharacterDelta(
-                    lines, textSpan, ref lastLineNumber, ref lastStartCharacter, out var deltaLine, out var deltaStartCharacter);
-
-                data.AddRange(deltaLine, deltaStartCharacter, textSpan.Length, unprocessedToken._tokenType, 0);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Represents a semantic token that we've only partially processed.
-        /// May occur in files with strings containing escape characters or regex.
-        /// </summary>
-        private struct UnprocessedSemanticToken
-        {
-            internal TextSpan _originalTextSpan;
-            internal int _tokenType;
-
-            public UnprocessedSemanticToken(TextSpan originalTextSpan, int tokenType)
-            {
-                _originalTextSpan = originalTextSpan;
-                _tokenType = tokenType;
-            }
         }
     }
 }
