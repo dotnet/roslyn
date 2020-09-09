@@ -1305,6 +1305,20 @@ namespace Microsoft.CodeAnalysis.Host
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"record Foo(int MyInt)
+{
+    public Foo(string [|p_myString|]) : this(1)
+    {
+    }
+}",
+                new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_ParameterFormattedAsProperties()
         {
             await TestInRegularAndScriptAsync(

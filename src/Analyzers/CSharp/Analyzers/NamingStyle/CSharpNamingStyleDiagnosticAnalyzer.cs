@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
             && IsParameterOfRecordDeclaration(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());
 
         private static bool IsParameterOfRecordDeclaration(SyntaxNode? node)
-            => node != null && node.HasAncestor<RecordDeclarationSyntax>();
+            => node is ParameterSyntax
+            {
+                Parent: ParameterListSyntax
+                {
+                    Parent: RecordDeclarationSyntax
+                }
+            };
     }
 }
