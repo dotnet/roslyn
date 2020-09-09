@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var tests = ArrayBuilder<AnalyzedNode>.GetInstance();
             foreach (var group in ConsecutiveGroups(constants))
             {
-                var bucket = group.AsList();
-                Debug.Assert(bucket.Count > 0);
-                if (bucket.Count <= 2)
+                var bucket = group.ToArray();
+                Debug.Assert(bucket.Length > 0);
+                if (bucket.Length <= 2)
                 {
                     tests.AddRange(bucket);
                 }
