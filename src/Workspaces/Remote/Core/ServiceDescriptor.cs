@@ -66,5 +66,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
+        }
     }
 }
