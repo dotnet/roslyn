@@ -6913,12 +6913,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
             // (see NullableReferenceTypesTests.ImplicitConversions_07).
-            var methodOpt = conversion.Method;
-            Debug.Assert(methodOpt is object);
-            Debug.Assert(methodOpt.ParameterCount == 1);
+            var method = conversion.Method;
+            Debug.Assert(method is object);
+            Debug.Assert(method.ParameterCount == 1);
             Debug.Assert(operandType.Type is object);
 
-            var parameter = methodOpt.Parameters[0];
+            var parameter = method.Parameters[0];
             var parameterAnnotations = GetParameterAnnotations(parameter);
             var parameterType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
             TypeWithState underlyingOperandType = default;
@@ -6952,18 +6952,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // method parameter type -> method return type
-            var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
+            var methodReturnType = method.ReturnTypeWithAnnotations;
             operandType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
             if (!isLiftedConversion || operandState.IsNotNull())
             {
-                var returnNotNull = operandState.IsNotNull() && methodOpt.ReturnNotNullIfParameterNotNull.Contains(parameter.Name);
+                var returnNotNull = operandState.IsNotNull() && method.ReturnNotNullIfParameterNotNull.Contains(parameter.Name);
                 if (returnNotNull)
                 {
                     operandType = operandType.WithNotNullState();
                 }
                 else
                 {
-                    operandType = ApplyUnconditionalAnnotations(operandType, GetRValueAnnotations(methodOpt));
+                    operandType = ApplyUnconditionalAnnotations(operandType, GetRValueAnnotations(method));
                 }
             }
 
