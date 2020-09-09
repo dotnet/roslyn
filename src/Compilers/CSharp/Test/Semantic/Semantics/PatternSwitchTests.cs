@@ -3243,5 +3243,32 @@ static class Ex
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
                 );
         }
+
+        [Fact]
+        public void MultiplePathsToState_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int a, int b)
+    {
+        _ = (a, b) switch
+        {
+            (0, 0) => 0,
+            (0, 1) => 1,
+            (0, 2) => 2,
+
+            (1, 0) => 5,
+            (1, 1) => 6,
+            (1, 2) => 7,
+
+            _ => 10,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
+        }
     }
 }
