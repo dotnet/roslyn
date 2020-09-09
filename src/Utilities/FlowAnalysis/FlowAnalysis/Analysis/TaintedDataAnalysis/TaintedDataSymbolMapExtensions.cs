@@ -215,7 +215,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IPropertyReferenceOperation propertyReferenceOperation)
         {
-            if (propertyReferenceOperation.Instance.Type is not INamedTypeSymbol namedType)
+            if (propertyReferenceOperation.Instance?.Type is not INamedTypeSymbol namedType)
             {
                 return false;
             }
