@@ -121,26 +121,24 @@ namespace Microsoft.CodeAnalysis.Rename
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var result = await client.RunRemoteAsync<SerializableRenameLocations?>(
-                            WellKnownServiceHubService.CodeAnalysis,
-                            nameof(IRemoteRenamer.FindRenameLocationsAsync),
+                        var options = SerializableRenameOptionSet.Dehydrate(optionSet);
+
+                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                             solution,
-                            new object[]
-                            {
-                                serializedSymbol,
-                                SerializableRenameOptionSet.Dehydrate(optionSet),
-                            },
+                            (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
                             callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result != null)
+                        if (result.HasValue && result.Value != null)
                         {
-                            var rehydrated = await RenameLocations.TryRehydrateAsync(
-                                solution, result, cancellationToken).ConfigureAwait(false);
+                            var rehydrated = await TryRehydrateAsync(
+                                solution, result.Value, cancellationToken).ConfigureAwait(false);
 
                             if (rehydrated != null)
                                 return rehydrated;
                         }
+
+                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                     }
                 }
             }

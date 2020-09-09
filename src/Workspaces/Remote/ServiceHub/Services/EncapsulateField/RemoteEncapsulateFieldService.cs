@@ -13,16 +13,27 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : IRemoteEncapsulateFieldService
+    internal sealed class RemoteEncapsulateFieldService : BrokeredServiceBase, IRemoteEncapsulateFieldService
     {
-        public Task<(DocumentId, TextChange[])[]> EncapsulateFieldsAsync(
+        internal sealed class Factory : FactoryBase<IRemoteEncapsulateFieldService>
+        {
+            protected override IRemoteEncapsulateFieldService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteEncapsulateFieldService(arguments);
+        }
+
+        public RemoteEncapsulateFieldService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+        }
+
+        public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
             bool updateReferences,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -36,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
                         if (resolved == null)
-                            return Array.Empty<(DocumentId, TextChange[])>();
+                            return ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>.Empty;
 
                         fields.Add(resolved);
                     }

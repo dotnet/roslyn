@@ -10,14 +10,12 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
+using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-<<<<<<< HEAD
-=======
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
->>>>>>> 8938054fd78... Formatter fixes
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote

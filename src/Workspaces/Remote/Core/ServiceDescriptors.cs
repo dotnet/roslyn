@@ -8,10 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -40,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
             CreateDescriptors(typeof(IRemoteDocumentHighlightsService)),
+            CreateDescriptors(typeof(IRemoteEncapsulateFieldService)),
+            CreateDescriptors(typeof(IRemoteRenamerService)),
+            CreateDescriptors(typeof(IRemoteConvertTupleToStructCodeRefactoringService)),
         });
 
         private static string GetServiceName(Type serviceInterface)

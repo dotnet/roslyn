@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -37,10 +38,20 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    [DataContract]
     internal class SerializableSymbolAndProjectId
     {
+        [DataMember(Order = 0)]
         public string SymbolKeyData;
+
+        [DataMember(Order = 1)]
         public ProjectId ProjectId;
+
+        public SerializableSymbolAndProjectId(string symbolKeyData, ProjectId projectId)
+        {
+            SymbolKeyData = symbolKeyData;
+            ProjectId = projectId;
+        }
 
         public static SerializableSymbolAndProjectId Dehydrate(
             IAliasSymbol alias, Document document, CancellationToken cancellationToken)
@@ -60,11 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static SerializableSymbolAndProjectId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = symbol.GetSymbolKey(cancellationToken).ToString(),
-                ProjectId = project.Id,
-            };
+            => new(symbol.GetSymbolKey(cancellationToken).ToString(), project.Id);
 
         public static bool TryCreate(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken,
@@ -90,11 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-            result = new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = SymbolKey.CreateString(symbol, cancellationToken),
-                ProjectId = project.Id,
-            };
+            result = new SerializableSymbolAndProjectId(SymbolKey.CreateString(symbol, cancellationToken), project.Id);
             return true;
         }
         public async Task<ISymbol> TryRehydrateAsync(
@@ -126,10 +129,20 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    [DataContract]
     internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
     {
+        [DataMember(Order = 0)]
         public bool IsValueUsageInfo;
+
+        [DataMember(Order = 1)]
         public int UsageInfoUnderlyingValue;
+
+        public SerializableSymbolUsageInfo(bool isValueUsageInfo, int usageInfoUnderlyingValue)
+        {
+            IsValueUsageInfo = isValueUsageInfo;
+            UsageInfoUnderlyingValue = usageInfoUnderlyingValue;
+        }
 
         public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
         {
@@ -146,11 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
             }
 
-            return new SerializableSymbolUsageInfo
-            {
-                IsValueUsageInfo = isValueUsageInfo,
-                UsageInfoUnderlyingValue = usageInfoUnderlyingValue
-            };
+            return new SerializableSymbolUsageInfo(isValueUsageInfo, usageInfoUnderlyingValue);
         }
 
         public SymbolUsageInfo Rehydrate()
@@ -174,35 +183,59 @@ namespace Microsoft.CodeAnalysis.Remote
             => Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
     }
 
+    [DataContract]
     internal class SerializableReferenceLocation
     {
+        [DataMember(Order = 0)]
         public DocumentId Document { get; set; }
 
+        [DataMember(Order = 1)]
         public SerializableSymbolAndProjectId Alias { get; set; }
 
+        [DataMember(Order = 2)]
         public TextSpan Location { get; set; }
 
+        [DataMember(Order = 3)]
         public bool IsImplicit { get; set; }
 
+        [DataMember(Order = 4)]
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
+        [DataMember(Order = 5)]
         public ImmutableDictionary<string, string> AdditionalProperties { get; set; }
 
+        [DataMember(Order = 6)]
         public CandidateReason CandidateReason { get; set; }
+
+        public SerializableReferenceLocation(
+            DocumentId document,
+            SerializableSymbolAndProjectId alias,
+            TextSpan location,
+            bool isImplicit,
+            SerializableSymbolUsageInfo symbolUsageInfo,
+            ImmutableDictionary<string, string> additionalProperties,
+            CandidateReason candidateReason)
+        {
+            Document = document;
+            Alias = alias;
+            Location = location;
+            IsImplicit = isImplicit;
+            SymbolUsageInfo = symbolUsageInfo;
+            AdditionalProperties = additionalProperties;
+            CandidateReason = candidateReason;
+        }
 
         public static SerializableReferenceLocation Dehydrate(
             ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
-            return new SerializableReferenceLocation
-            {
-                Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
-                Location = referenceLocation.Location.SourceSpan,
-                IsImplicit = referenceLocation.IsImplicit,
-                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
-                AdditionalProperties = referenceLocation.AdditionalProperties,
-                CandidateReason = referenceLocation.CandidateReason
-            };
+            return new SerializableReferenceLocation(
+                referenceLocation.Document.Id,
+                SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
+                referenceLocation.Location.SourceSpan,
+                referenceLocation.IsImplicit,
+                SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
+                referenceLocation.AdditionalProperties,
+                referenceLocation.CandidateReason);
         }
 
         public async Task<ReferenceLocation> RehydrateAsync(

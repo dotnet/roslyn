@@ -12,17 +12,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : IRemoteConvertTupleToStructCodeRefactoringProvider
+    internal sealed class RemoteConvertTupleToStructCodeRefactoringService : BrokeredServiceBase, IRemoteConvertTupleToStructCodeRefactoringService
     {
-        public Task<SerializableConvertTupleToStructResult> ConvertToStructAsync(
+        internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService>
+        {
+            protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteConvertTupleToStructCodeRefactoringService(arguments);
+        }
+
+        public RemoteConvertTupleToStructCodeRefactoringService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+        }
+
+        public ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             TextSpan span,
             Scope scope,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableConvertTupleToStructResult>(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -39,11 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var renamedToken = await GetRenamedTokenAsync(
                         solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
 
-                    return new SerializableConvertTupleToStructResult
-                    {
-                        DocumentTextChanges = documentTextChanges,
-                        RenamedToken = renamedToken,
-                    };
+                    return new SerializableConvertTupleToStructResult(documentTextChanges, renamedToken);
                 }
             }, cancellationToken);
         }

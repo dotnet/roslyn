@@ -13,18 +13,28 @@ using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : IRemoteRenamer
+    internal sealed class RemoteRenamerService : BrokeredServiceBase, IRemoteRenamerService
     {
-        public Task<SerializableConflictResolution?> RenameSymbolAsync(
+        internal sealed class Factory : FactoryBase<IRemoteRenamerService>
+        {
+            protected override IRemoteRenamerService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteRenamerService(arguments);
+        }
+
+        public RemoteRenamerService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+        }
+
+        public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string newName,
             SerializableRenameOptionSet options,
-            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
+            ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableConflictResolution?>(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -46,13 +56,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<SerializableRenameLocations?> FindRenameLocationsAsync(
+        public ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameOptionSet options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableRenameLocations?>(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -71,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<SerializableConflictResolution?> ResolveConflictsAsync(
+        public ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
-            SerializableSymbolAndProjectId[] nonConflictSymbolIds,
+            ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableConflictResolution?>(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -100,10 +110,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [return: NotNullIfNotNull("nonConflictSymbolIds")]
-        private static async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[]? nonConflictSymbolIds, CancellationToken cancellationToken)
+        private static async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds, CancellationToken cancellationToken)
         {
-            if (nonConflictSymbolIds == null)
+            if (nonConflictSymbolIds.IsDefault)
+            {
                 return null;
+            }
 
             var builder = ImmutableHashSet.CreateBuilder<ISymbol>();
             foreach (var id in nonConflictSymbolIds)
