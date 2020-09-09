@@ -30,20 +30,18 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
+                var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     solution,
-                    new object[]
-                    {
-                        document.Id,
-                        position,
-                        documentsToSearch.Select(d => d.Id).ToArray()
-                    },
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.SelectAsArray(h => h.Rehydrate(solution));
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<DocumentHighlights>.Empty;
+                }
+
+                return result.Value.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(

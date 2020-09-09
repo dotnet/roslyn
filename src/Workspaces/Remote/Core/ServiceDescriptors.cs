@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
+            CreateDescriptors(typeof(IRemoteDocumentHighlightsService)),
         });
 
         private static string GetServiceName(Type serviceInterface)

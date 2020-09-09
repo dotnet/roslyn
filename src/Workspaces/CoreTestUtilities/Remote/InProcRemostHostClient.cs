@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationCacheService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 

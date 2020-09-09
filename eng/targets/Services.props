@@ -16,6 +16,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticClassification" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticClassificationCache" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationCacheService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DocumentHighlights" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDocumentHighlightsService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttribute" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProjectTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />

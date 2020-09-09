@@ -13,13 +13,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : IRemoteDocumentHighlights
+    internal sealed class RemoteDocumentHighlightsService : BrokeredServiceBase, IRemoteDocumentHighlightsService
     {
-        public Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
+        internal sealed class Factory : FactoryBase<IRemoteDocumentHighlightsService>
         {
-            return RunServiceAsync(async () =>
+            protected override IRemoteDocumentHighlightsService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteDocumentHighlightsService(arguments);
+        }
+
+        public RemoteDocumentHighlightsService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+        }
+
+        public ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
             {
                 // NOTE: In projection scenarios, we might get a set of documents to search
                 // that are not all the same language and might not exist in the OOP process
@@ -34,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var result = await service.GetDocumentHighlightsAsync(
                     document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
 
-                return (IList<SerializableDocumentHighlights>)result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
+                return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
             }, cancellationToken);
         }
     }
