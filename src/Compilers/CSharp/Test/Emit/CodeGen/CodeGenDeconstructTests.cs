@@ -6566,7 +6566,7 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         _ = M();
+                //         _ = 1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 9)
                 );
         }
