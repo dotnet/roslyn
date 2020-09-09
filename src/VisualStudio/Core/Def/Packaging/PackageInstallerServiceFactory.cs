@@ -57,10 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-        private readonly Lazy<IVsPackageInstallerServices> _packageInstallerServices;
-        private readonly Lazy<IVsPackageInstaller2> _packageInstaller;
-        private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
-        private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
+        private readonly Lazy<IVsPackageInstallerServices>? _packageInstallerServices;
+        private readonly Lazy<IVsPackageInstaller2>? _packageInstaller;
+        private readonly Lazy<IVsPackageUninstaller>? _packageUninstaller;
+        private readonly Lazy<IVsPackageSourceProvider>? _packageSourceProvider;
 
         private IVsPackage? _nugetPackageManager;
 
@@ -97,10 +97,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             SVsServiceProvider serviceProvider,
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices> packageInstallerServices,
-            [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2> packageInstaller,
-            [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller> packageUninstaller,
-            [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider> packageSourceProvider)
+            [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices>? packageInstallerServices,
+            [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
+            [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
+            [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
             : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
@@ -151,8 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
-                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+                if (_packageSourceProvider != null)
+                    return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false).SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
@@ -167,6 +167,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return ImmutableArray<PackageSource>.Empty;
         }
 
+        [MemberNotNullWhen(true, nameof(_packageInstallerServices))]
+        [MemberNotNullWhen(true, nameof(_packageInstaller))]
+        [MemberNotNullWhen(true, nameof(_packageUninstaller))]
+        [MemberNotNullWhen(true, nameof(_packageSourceProvider))]
         private bool IsEnabled
         {
             get
@@ -283,6 +287,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject)
         {
+            this.AssertIsForeground();
+            Contract.ThrowIfFalse(IsEnabled);
+
             try
             {
                 if (!_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
@@ -331,6 +338,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
         {
             this.AssertIsForeground();
+            Contract.ThrowIfFalse(IsEnabled);
 
             try
             {
@@ -366,6 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private string? GetInstalledVersion(string packageName, EnvDTE.Project dteProject)
         {
             this.AssertIsForeground();
+            Contract.ThrowIfFalse(IsEnabled);
 
             try
             {
