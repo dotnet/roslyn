@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
+namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal sealed class RemoveRedundantEqualityCodeFixProvider
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEqualityWithTrue
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+                var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
                 editor.ReplaceNode(node, replacementNode);
             }
         }
