@@ -21,10 +21,14 @@ namespace Analyzer.Utilities
             bool isPortedFxCopRule,
             bool isDataflowRule,
             bool isEnabledByDefaultInFxCopAnalyzers = true,
+            bool isEnabledByDefaultInAggressiveMode = true,
             params string[] additionalCustomTags)
         {
             // PERF: Ensure that all DFA rules are disabled by default in NetAnalyzers package.
             Debug.Assert(!isDataflowRule || ruleLevel == RuleLevel.Disabled || ruleLevel == RuleLevel.CandidateForRemoval);
+
+            // Ensure 'isEnabledByDefaultInAggressiveMode' is not false for enabled rules in default mode
+            Debug.Assert(isEnabledByDefaultInAggressiveMode || ruleLevel == RuleLevel.Disabled || ruleLevel == RuleLevel.CandidateForRemoval);
 
             var (defaultSeverity, enabledByDefault) = GetDefaultSeverityAndEnabledByDefault(ruleLevel, isEnabledByDefaultInFxCopAnalyzers);
 
@@ -32,9 +36,7 @@ namespace Analyzer.Utilities
             var helpLink = $"https://docs.microsoft.com/visualstudio/code-quality/{id.ToLowerInvariant()}";
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
-            var customTags = isPortedFxCopRule ?
-                (isDataflowRule ? FxCopWellKnownDiagnosticTags.PortedFxCopDataflowRule : FxCopWellKnownDiagnosticTags.PortedFxCopRule) :
-                (isDataflowRule ? WellKnownDiagnosticTagsExtensions.DataflowAndTelemetry : WellKnownDiagnosticTagsExtensions.Telemetry);
+            var customTags = GetDefaultCustomTags(isPortedFxCopRule, isDataflowRule, isEnabledByDefaultInAggressiveMode);
             if (additionalCustomTags.Length > 0)
             {
                 customTags = customTags.Concat(additionalCustomTags).ToArray();
@@ -63,6 +65,25 @@ namespace Analyzer.Utilities
                     _ => throw new System.NotImplementedException(),
                 };
 #endif
+            }
+
+            static string[] GetDefaultCustomTags(
+                bool isPortedFxCopRule,
+                bool isDataflowRule,
+                bool isEnabledByDefaultInAggressiveMode)
+            {
+                if (isEnabledByDefaultInAggressiveMode)
+                {
+                    return isPortedFxCopRule ?
+                    (isDataflowRule ? FxCopWellKnownDiagnosticTags.PortedFxCopDataflowRuleEnabledInAggressiveMode : FxCopWellKnownDiagnosticTags.PortedFxCopRuleEnabledInAggressiveMode) :
+                    (isDataflowRule ? WellKnownDiagnosticTagsExtensions.DataflowAndTelemetryEnabledInAggressiveMode : WellKnownDiagnosticTagsExtensions.TelemetryEnabledInAggressiveMode);
+                }
+                else
+                {
+                    return isPortedFxCopRule ?
+                    (isDataflowRule ? FxCopWellKnownDiagnosticTags.PortedFxCopDataflowRule : FxCopWellKnownDiagnosticTags.PortedFxCopRule) :
+                    (isDataflowRule ? WellKnownDiagnosticTagsExtensions.DataflowAndTelemetry : WellKnownDiagnosticTagsExtensions.Telemetry);
+                }
             }
         }
     }
