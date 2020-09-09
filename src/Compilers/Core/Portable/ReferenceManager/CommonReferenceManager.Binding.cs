@@ -782,6 +782,7 @@ namespace Microsoft.CodeAnalysis
                         var candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
 
                         // get the AssemblySymbols the candidate symbol refers to into candidateReferencedSymbols
+                        candidateReferencedSymbols.Clear();
                         GetActualBoundReferencesUsedBy(candidate.AssemblySymbol, candidateReferencedSymbols);
 
                         Debug.Assert(candidateReferenceBinding is object);
@@ -1028,7 +1029,9 @@ namespace Microsoft.CodeAnalysis
         /// resolved, null reference should be returned in the corresponding item. 
         /// </summary>
         /// <param name="assemblySymbol">The target AssemblySymbol instance.</param>
-        /// <param name="referencedAssemblySymbols">A list which should be cleared and then filled in with AssemblySymbols referenced by the input AssemblySymbol.
+        /// <param name="referencedAssemblySymbols">A list which will be filled in with
+        /// AssemblySymbols referenced by the input AssemblySymbol. The caller is expected to clear
+        /// the list before calling this method.
         /// Implementer may not cache the list; the caller may mutate it.</param>
         protected abstract void GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol, List<TAssemblySymbol?> referencedAssemblySymbols);
 

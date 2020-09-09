@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override void GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol, List<AssemblySymbol?> referencedAssemblySymbols)
             {
-                referencedAssemblySymbols.Clear();
-
+                Debug.Assert(referencedAssemblySymbols.IsEmpty());
                 foreach (var module in assemblySymbol.Modules)
                 {
                     referencedAssemblySymbols.AddRange(module.GetReferencedAssemblySymbols());
