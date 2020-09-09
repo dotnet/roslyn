@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class UnmanagedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class ManagedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public UnmanagedKeywordRecommender()
-            : base(SyntaxKind.UnmanagedKeyword)
+        public ManagedKeywordRecommender()
+            : base(SyntaxKind.ManagedKeyword)
         {
         }
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            return context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken) ||
-                   context.SyntaxTree.IsFunctionPointerCallingConventionContext(context.TargetToken);
+            return context.SyntaxTree.IsFunctionPointerCallingConventionContext(context.TargetToken);
         }
     }
 }
