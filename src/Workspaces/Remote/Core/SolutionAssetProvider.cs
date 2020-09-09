@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
-        public const string ServiceName = "RoslynSolutionAssetProvider";
+        public const string ServiceName = ServiceDescriptors.ServiceNamePrefix + "SolutionAssetProvider";
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName);
 

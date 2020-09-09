@@ -14,7 +14,7 @@
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
 
-      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
         <Content>
           <![CDATA[{
   "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
