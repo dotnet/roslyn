@@ -229,6 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                case ErrorCode.WRN_ParameterIsStaticClass:
+                case ErrorCode.WRN_ReturnTypeIsStaticClass:
                     // Warning level 5 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
                     return 5;
@@ -549,5 +551,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        internal static ErrorCode GetStaticClassParameterCode(bool useWarning)
+            => useWarning ? ErrorCode.WRN_ParameterIsStaticClass : ErrorCode.ERR_ParameterIsStaticClass;
+
+        internal static ErrorCode GetStaticClassReturnCode(bool useWarning)
+            => useWarning ? ErrorCode.WRN_ReturnTypeIsStaticClass : ErrorCode.ERR_ReturnTypeIsStaticClass;
     }
 }

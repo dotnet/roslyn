@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class CSharpSemanticFacts : ISemanticFacts
+    internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     {
         internal static readonly CSharpSemanticFacts Instance = new CSharpSemanticFacts();
 
@@ -48,9 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
             => (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
-
-        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
-            => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
 
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {

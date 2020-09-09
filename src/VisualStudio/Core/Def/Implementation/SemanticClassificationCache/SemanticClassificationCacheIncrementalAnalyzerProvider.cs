@@ -40,6 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
         {
             public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                // only process C# and VB.  OOP does not contain files for other languages.
+                if (document.Project.Language is not (LanguageNames.CSharp or LanguageNames.VisualBasic))
+                    return;
+
+                // Only cache classifications for open files.  This keeps our CPU/memory usage low, but hits the common
+                // case of ensuring we cache classifications for the files the user edits so that they're ready the next
+                // time they open VS.
                 if (!document.IsOpen())
                     return;
 

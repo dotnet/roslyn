@@ -12,12 +12,23 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract class AbstractSemanticFactsService : ISemanticFacts
+    internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISemanticFacts SemanticFacts { get; }
 
         protected abstract SyntaxToken ToIdentifierToken(string identifier);
+
+        // local name can be same as field or property. but that will hide
+        // those and can cause semantic change later in some context.
+        // so to be safe, we consider field and property in scope when
+        // creating unique name for local
+        private static readonly Func<ISymbol, bool> s_LocalNameFilter = s =>
+            s.Kind == SymbolKind.Local ||
+            s.Kind == SymbolKind.Parameter ||
+            s.Kind == SymbolKind.RangeVariable ||
+            s.Kind == SymbolKind.Field ||
+            s.Kind == SymbolKind.Property;
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
@@ -39,19 +50,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
             string baseName, CancellationToken cancellationToken)
         {
-            // local name can be same as field or property. but that will hide
-            // those and can cause semantic change later in some context.
-            // so to be safe, we consider field and property in scope when
-            // creating unique name for local
-            Func<ISymbol, bool> filter = s =>
-                s.Kind == SymbolKind.Local ||
-                s.Kind == SymbolKind.Parameter ||
-                s.Kind == SymbolKind.RangeVariable ||
-                s.Kind == SymbolKind.Field ||
-                s.Kind == SymbolKind.Property;
-
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, filter, usedNames: Enumerable.Empty<string>(), cancellationToken);
+                semanticModel, location, containerOpt, baseName, s_LocalNameFilter, usedNames: Enumerable.Empty<string>(), cancellationToken);
+        }
+
+        public SyntaxToken GenerateUniqueLocalName(
+            SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+            string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
+        {
+            return GenerateUniqueName(
+                semanticModel, location, containerOpt, baseName, s_LocalNameFilter, usedNames: usedNames, cancellationToken);
         }
 
         public SyntaxToken GenerateUniqueName(
@@ -109,9 +117,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
             => SemanticFacts.CanReplaceWithRValue(semanticModel, expression, cancellationToken);
-
-        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
-            => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);

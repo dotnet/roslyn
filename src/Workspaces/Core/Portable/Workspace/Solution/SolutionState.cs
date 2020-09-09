@@ -1417,7 +1417,12 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject);
+            var oldDocument = oldProject.GetAdditionalDocumentState(newDocument.Id);
+            Contract.ThrowIfNull(oldDocument);
+
+            return ForkProject(
+                newProject,
+                translate: new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument));
         }
 
         private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
