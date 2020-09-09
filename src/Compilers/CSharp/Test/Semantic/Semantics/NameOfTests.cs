@@ -1420,7 +1420,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilation(source, options: option).VerifyDiagnostics(
                 // (4,33): error CS0103: The name 'dynamic' does not exist in the current context
                 //     static string M() => nameof(dynamic);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 33)
@@ -1437,7 +1437,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+            CreateCompilation(source, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1450,7 +1450,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+            CreateCompilation(source, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1465,7 +1465,7 @@ class Program
     static string F3() => nameof(I<dynamic>);
 }";
             var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+            CreateCompilation(source, options: option).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1479,7 +1479,7 @@ class Program
     static string F3() => nameof(typeof(dynamic));
 }";
             var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilation(source, options: option).VerifyDiagnostics(
                 // (4,34): error CS8081: Expression does not have a name.
                 //     static string F1() => nameof(typeof(int));
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
@@ -1504,7 +1504,7 @@ public class C
     }
 }";
             var option = TestOptions.ReleaseDll;
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
+            CreateCompilation(source, options: option).VerifyDiagnostics();
         }
     }
 }
