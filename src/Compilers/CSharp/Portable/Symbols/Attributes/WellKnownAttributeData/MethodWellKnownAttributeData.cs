@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -115,6 +117,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifySealed(expected: true);
                 return _memberNotNullWhenFalseAttributeData;
+            }
+        }
+
+        private UnmanagedCallersOnlyAttributeData? _unmanagedCallersOnlyAttributeData;
+        public UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _unmanagedCallersOnlyAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _unmanagedCallersOnlyAttributeData = value;
+                SetDataStored();
             }
         }
     }
