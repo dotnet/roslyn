@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/47562")]
         public void BclMathCall()
         {
             VisualStudio.InteractiveWindow.SubmitText("Math.Sin(1)");
