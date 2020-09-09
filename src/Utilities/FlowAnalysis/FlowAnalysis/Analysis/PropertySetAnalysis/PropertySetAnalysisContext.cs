@@ -32,10 +32,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResult,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralPropertySetAnalysisData? interproceduralAnalysisDataOpt,
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralPropertySetAnalysisData? interproceduralAnalysisData,
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
@@ -51,13 +51,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                   pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
-                  copyAnalysisResultOpt: null,
+                  copyAnalysisResult: null,
                   pointsToAnalysisResult,
-                  valueContentAnalysisResultOpt,
+                  valueContentAnalysisResult,
                   tryGetOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt,
-                  interproceduralAnalysisPredicateOpt: null)
+                  parentControlFlowGraph,
+                  interproceduralAnalysisData,
+                  interproceduralAnalysisPredicate: null)
         {
             this.TypeToTrackMetadataNames = typeToTrackMetadataNames;
             this.ConstructorMapper = constructorMapper;
@@ -75,7 +75,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResult,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult?> tryGetOrComputeAnalysisResult,
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
@@ -91,10 +91,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
-                valueContentAnalysisResultOpt,
+                valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult,
-                parentControlFlowGraphOpt: null,
-                interproceduralAnalysisDataOpt: null,
+                parentControlFlowGraph: null,
+                interproceduralAnalysisData: null,
                 typeToTrackMetadataNames: typeToTrackMetadataNames,
                 constructorMapper: constructorMapper,
                 propertyMappers: propertyMappers,
@@ -105,14 +105,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public override PropertySetAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
-            IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralPropertySetAnalysisData? interproceduralAnalysisData)
         {
-            Debug.Assert(pointsToAnalysisResultOpt != null);
-            Debug.Assert(copyAnalysisResultOpt == null);
+            Debug.Assert(pointsToAnalysisResult != null);
+            Debug.Assert(copyAnalysisResult == null);
 
             return new PropertySetAnalysisContext(
                 ValueDomain,
@@ -122,8 +121,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 AnalyzerOptions,
                 InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis,
-                pointsToAnalysisResultOpt,
-                valueContentAnalysisResultOpt,
+                pointsToAnalysisResult,
+                valueContentAnalysisResult,
                 TryGetOrComputeAnalysisResult,
                 ControlFlowGraph,
                 interproceduralAnalysisData,

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected AbstractLocationDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
         {
-            Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
+            Debug.Assert(analysisContext.PointsToAnalysisResult != null);
         }
 
         protected abstract TAbstractAnalysisValue GetAbstractValue(AbstractLocation location);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void StopTrackingAbstractValue(AbstractLocation location);
         protected override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null);
+            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisData != null);
             if (parameter.RefKind == RefKind.None)
             {
                 foreach (var location in analysisEntity.InstanceLocation.Locations)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+            Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
             if (operation.Value.Type != null)
             {
@@ -89,13 +89,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue);
         protected abstract void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations);
 
-        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt)
+        protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValue)
         {
             // Only set the value for non-interprocedural case.
             // For interprocedural case, we have already initialized values for the underlying locations
             // of arguments from the input analysis data.
-            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
-            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null &&
+            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
+            if (DataFlowAnalysisContext.InterproceduralAnalysisData == null &&
                 TryGetPointsToAbstractValueAtEntryBlockEnd(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 SetValueForParameterPointsToLocationOnEntry(parameter, pointsToAbstractValue);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
+            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
             var escapedLocationsForParameter = GetEscapedLocations(analysisEntity);
             if (!escapedLocationsForParameter.IsEmpty)
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> coreDataAtException,
             DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> coreCurrentAnalysisData)
         {
-            base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(coreDataAtException, coreCurrentAnalysisData, predicateOpt: null);
+            base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(coreDataAtException, coreCurrentAnalysisData, predicate: null);
         }
 
         #region Visitor methods
@@ -181,6 +181,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
+
+        public override TAbstractAnalysisValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+        {
+            var value = base.VisitReDimClause(operation, argument);
+            PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
+            return HandleInstanceCreation(operation, instanceLocation, value);
+        }
+
         #endregion
     }
 }

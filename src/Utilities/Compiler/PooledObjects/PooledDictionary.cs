@@ -14,6 +14,7 @@ namespace Analyzer.Utilities.PooledObjects
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
     internal sealed class PooledDictionary<K, V> : Dictionary<K, V>, IDisposable
+        where K : notnull
     {
         private readonly ObjectPool<PooledDictionary<K, V>>? _pool;
 
@@ -35,6 +36,24 @@ namespace Analyzer.Utilities.PooledObjects
             else
             {
                 result = this.ToImmutableDictionary(Comparer);
+                this.Clear();
+            }
+
+            _pool?.Free(this, CancellationToken.None);
+            return result;
+        }
+
+        public ImmutableDictionary<TKey, TValue> ToImmutableDictionaryAndFree<TKey, TValue>(
+           Func<KeyValuePair<K, V>, TKey> keySelector, Func<KeyValuePair<K, V>, TValue> elementSelector, IEqualityComparer<TKey> comparer)
+        {
+            ImmutableDictionary<TKey, TValue> result;
+            if (Count == 0)
+            {
+                result = ImmutableDictionary<TKey, TValue>.Empty;
+            }
+            else
+            {
+                result = this.ToImmutableDictionary(keySelector, elementSelector, comparer);
                 this.Clear();
             }
 

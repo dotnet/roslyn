@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
-        "version": "2.9.10",
+        "version": "3.3.1",
         "language": "en-US"
       },
       "rules": {
@@ -141,13 +141,89 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0036": {
+          "id": "RS0036",
+          "shortDescription": "Annotate nullability of public types and members in the declared API",
+          "fullDescription": "All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0037": {
+          "id": "RS0037",
+          "shortDescription": "Enable tracking of nullability of reference types in the declared API",
+          "fullDescription": "PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0041": {
+          "id": "RS0041",
+          "shortDescription": "Public members should not use oblivious types",
+          "fullDescription": "All public members should use either nullable or non-nullable reference types, but no oblivious reference types.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0048": {
+          "id": "RS0048",
+          "shortDescription": "Missing shipped or unshipped public API file",
+          "fullDescription": "Public API file '{0}' is missing or not marked as an additional analyzer file",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes",
-        "version": "2.9.10",
+        "version": "3.3.1",
         "language": "en-US"
       },
       "rules": {

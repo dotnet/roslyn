@@ -13,26 +13,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         public ArgumentInfo(
             IOperation operation,
-            AnalysisEntity? analysisEntityOpt,
+            AnalysisEntity? analysisEntity,
             PointsToAbstractValue instanceLocation,
             TAbstractAnalysisValue value)
         {
             Operation = operation;
-            AnalysisEntityOpt = analysisEntityOpt;
+            AnalysisEntity = analysisEntity;
             InstanceLocation = instanceLocation;
             Value = value;
         }
 
         public IOperation Operation { get; }
         // Can be null for allocations.
-        public AnalysisEntity? AnalysisEntityOpt { get; }
+        public AnalysisEntity? AnalysisEntity { get; }
         public PointsToAbstractValue InstanceLocation { get; }
         public TAbstractAnalysisValue Value { get; }
 
         protected override void ComputeHashCodeParts(Action<int> addPart)
         {
             addPart(Operation.GetHashCode());
-            addPart(AnalysisEntityOpt.GetHashCodeOrDefault());
+            addPart(AnalysisEntity.GetHashCodeOrDefault());
             addPart(InstanceLocation.GetHashCode());
             addPart(Value.GetHashCodeOrDefault());
         }
