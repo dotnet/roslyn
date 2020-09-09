@@ -698,6 +698,9 @@ namespace Microsoft.CodeAnalysis
             Queue<AssemblyReferenceCandidate> candidatesToExamine = new Queue<AssemblyReferenceCandidate>();
             int totalAssemblies = assemblies.Length;
 
+            // A reusable buffer to contain the AssemblySymbols a candidate symbol refers to
+            List<TAssemblySymbol?> candidateReferencedSymbols = new List<TAssemblySymbol?>(1024);
+
             for (int i = 1; i < totalAssemblies; i++)
             {
                 // We could have a match already
@@ -778,12 +781,12 @@ namespace Microsoft.CodeAnalysis
                         // how we bound the candidate references for this compilation:
                         var candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
 
-                        // the AssemblySymbols the candidate symbol refers to:
-                        TAssemblySymbol?[] candidateReferencedSymbols = GetActualBoundReferencesUsedBy(candidate.AssemblySymbol);
+                        // get the AssemblySymbols the candidate symbol refers to into candidateReferencedSymbols
+                        GetActualBoundReferencesUsedBy(candidate.AssemblySymbol, candidateReferencedSymbols);
 
                         Debug.Assert(candidateReferenceBinding is object);
-                        Debug.Assert(candidateReferenceBinding.Length == candidateReferencedSymbols.Length);
-                        int referencesCount = candidateReferencedSymbols.Length;
+                        Debug.Assert(candidateReferenceBinding.Length == candidateReferencedSymbols.Count);
+                        int referencesCount = candidateReferencedSymbols.Count;
 
                         for (int k = 0; k < referencesCount; k++)
                         {
@@ -1019,17 +1022,15 @@ namespace Microsoft.CodeAnalysis
 
         // https://github.com/dotnet/roslyn/issues/40751 It should not be necessary to annotate this method to annotate overrides
         /// <summary>
-        /// Return AssemblySymbols referenced by the input AssemblySymbol. The AssemblySymbols must correspond 
+        /// Compute AssemblySymbols referenced by the input AssemblySymbol and fill in <paramref name="referencedAssemblySymbols"/> with the result.
+        /// The AssemblySymbols must correspond 
         /// to the AssemblyNames returned by AssemblyData.AssemblyReferences property. If reference is not 
         /// resolved, null reference should be returned in the corresponding item. 
         /// </summary>
-        /// <param name="assemblySymbol"></param>
-        /// The target AssemblySymbol instance.
-        /// <returns>
-        /// An array of AssemblySymbols referenced by the input AssemblySymbol.
-        /// Implementers may return cached array, Binder does not mutate it.
-        /// </returns>
-        protected abstract TAssemblySymbol?[] GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol);
+        /// <param name="assemblySymbol">The target AssemblySymbol instance.</param>
+        /// <param name="referencedAssemblySymbols">A list which should be cleared and then filled in with AssemblySymbols referenced by the input AssemblySymbol.
+        /// Implementer may not cache the list; the caller may mutate it.</param>
+        protected abstract void GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol, List<TAssemblySymbol?> referencedAssemblySymbols);
 
         /// <summary>
         /// Return collection of assemblies involved in canonical type resolution of
