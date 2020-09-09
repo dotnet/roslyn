@@ -1467,5 +1467,28 @@ class Program
             var option = TestOptions.ReleaseDll;
             CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestNameOfTypeOf()
+        {
+            var source = @"
+class Program
+{
+    static string F1() => nameof(typeof(int));
+    static string F2() => nameof(typeof(nint));
+    static string F3() => nameof(typeof(dynamic));
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
+                // (4,34): error CS8081: Expression does not have a name.
+                //     static string F1() => nameof(typeof(int));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
+                // (5,34): error CS8081: Expression does not have a name.
+                //     static string F2() => nameof(typeof(nint));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(nint)").WithLocation(5, 34),
+                // (6,34): error CS1962: The typeof operator cannot be used on the dynamic type
+                //     static string F3() => nameof(typeof(dynamic));
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(6, 34));
+        }
     }
 }
