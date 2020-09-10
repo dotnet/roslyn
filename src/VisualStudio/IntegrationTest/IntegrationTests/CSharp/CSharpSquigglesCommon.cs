@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -38,9 +37,10 @@ namespace ConsoleApplication1
         {
     }
 }");
+
             VisualStudio.Editor.Verify.ErrorTags(
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[286-287]",
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]",
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]");
         }
 

@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -24,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         Dim x = 1 +
       End Sub
 End Class");
-            VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[43-44]");
+            VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[43-44]");
         }
 
         public virtual void VerifySemanticErrorSquiggles()
