@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -18,16 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameTrackingCodeRefactoringProvider(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
-            _refactorNotifyServices = refactorNotifyServices;
         }
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -35,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             var (document, span, cancellationToken) = context;
 
             var (action, renameSpan) = RenameTrackingTaggerProvider.TryGetCodeAction(
-                document, span, _refactorNotifyServices, _undoHistoryRegistry, cancellationToken);
+                document, span, _undoHistoryRegistry, cancellationToken);
 
             if (action != null)
                 context.RegisterRefactoring(action, renameSpan);

@@ -10,6 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor
     /// Allows editors to listen to refactoring events and take appropriate action. For example, 
     /// when VS knows about a symbol rename, it asks the Xaml language service to update xaml files
     /// </summary>
+    /// <remarks>
+    /// In general code changes shouldn't worry about triggering notifications, it's handled by the workspace
+    /// on <see cref="Workspace.TryApplyChanges(Solution)"/>
+    /// </remarks>
     internal interface IRefactorNotifyService
     {
         /// <summary>

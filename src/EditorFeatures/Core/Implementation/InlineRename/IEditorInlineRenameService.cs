@@ -224,18 +224,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// locations to rename, as well as any time the rename options are changed by the user.
         /// </summary>
         Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Called before the rename is applied to the specified documents in the workspace.  Return 
-        /// <see langword="true"/> if rename should proceed, or <see langword="false"/> if it should be canceled.
-        /// </summary>
-        bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
-
-        /// <summary>
-        /// Called after the rename is applied to the specified documents in the workspace.  Return 
-        /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
-        /// </summary>
-        bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
     }
 
     internal interface IInlineRenameInfoWithFileRename : IInlineRenameInfo

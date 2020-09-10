@@ -10,8 +10,9 @@ using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,9 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()
@@ -1213,11 +1211,7 @@ namespace Microsoft.CodeAnalysis.Host
 ", new TestParameters(options: s_options.InterfaceNamesStartWithI));
         }
 
-#if CODE_STYLE
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
-#else
         [Fact]
-#endif
         [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
@@ -1229,21 +1223,30 @@ namespace Microsoft.CodeAnalysis.Host
             var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
 
             var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+            Assert.Equal(1, previewOperations.Length);
 
             var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
+            Assert.Equal(1, commitOperations.Length);
 
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("c", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("C", symbolRenamedOperation._newName);
+            var symbolRenamedOperation = commitOperations[0];
+
+            var solutionPair = await TestActionAsync(
+                workspace,
+                @"public class C { }",
+                action,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                testParameters);
+
+            var oldSolution = solutionPair.Item1;
+            var newSolution = solutionPair.Item2;
+
+            await RenameHelpers.AssertRenameAnnotationsAsync(oldSolution, newSolution, RenameHelpers.MakeSymbolPairs("c", "C"));
         }
 
-#if CODE_STYLE
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
-#else
         [Fact]
-#endif
         [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyInterfaceNamesStartWithI()
@@ -1255,21 +1258,28 @@ namespace Microsoft.CodeAnalysis.Host
             var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
 
             var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+            Assert.Equal(1, previewOperations.Length);
 
             var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
+            Assert.Equal(1, commitOperations.Length);
 
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("test", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("ITest", symbolRenamedOperation._newName);
+            var solutionPair = await TestActionAsync(
+                workspace,
+                @"public interface ITest { }",
+                action,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                testParameters);
+
+            var oldSolution = solutionPair.Item1;
+            var newSolution = solutionPair.Item2;
+
+            await RenameHelpers.AssertRenameAnnotationsAsync(oldSolution, newSolution, RenameHelpers.MakeSymbolPairs("test", "ITest"));
         }
 
-#if CODE_STYLE
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
-#else
         [Fact]
-#endif
         [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyTypeParameterNamesStartWithT()
@@ -1278,20 +1288,37 @@ namespace Microsoft.CodeAnalysis.Host
 {
     void DoOtherThing<[|arg|]>() { }
 }";
+
+            var expectedMarkup = @"public class A
+{
+    void DoOtherThing<TArg>() { }
+}";
+
             var testParameters = new TestParameters(options: s_options.TypeParameterNamesStartWithT);
 
             using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
             var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
 
             var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+            Assert.Equal(1, previewOperations.Length);
 
             var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
+            Assert.Equal(1, commitOperations.Length);
 
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("arg", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("TArg", symbolRenamedOperation._newName);
+            var solutionPair = await TestActionAsync(
+                workspace,
+                expectedMarkup,
+                action,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                ImmutableArray<TextSpan>.Empty,
+                testParameters);
+
+            var oldSolution = solutionPair.Item1;
+            var newSolution = solutionPair.Item2;
+
+            await RenameHelpers.AssertRenameAnnotationsAsync(oldSolution, newSolution, RenameHelpers.MakeSymbolPairs("arg", "TArg"));
         }
     }
 }

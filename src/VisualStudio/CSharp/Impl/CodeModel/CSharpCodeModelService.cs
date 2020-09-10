@@ -37,11 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     {
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            IEditorOptionsFactoryService editorOptionsFactoryService)
             : base(languageServiceProvider,
                    editorOptionsFactoryService,
-                   refactorNotifyServices,
                    BlankLineInGeneratedMethodFormattingRule.Instance,
                    EndRegionFormattingRule.Instance)
         {

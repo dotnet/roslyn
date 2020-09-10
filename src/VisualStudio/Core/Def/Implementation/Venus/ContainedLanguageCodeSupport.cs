@@ -311,7 +311,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ContainedLanguageRenameType clrt,
             string oldFullyQualifiedName,
             string newFullyQualifiedName,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             CancellationToken cancellationToken)
         {
             var symbol = FindSymbol(document, clrt, oldFullyQualifiedName, cancellationToken);
@@ -330,18 +329,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);
                 using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
                 {
-                    // Notify third parties about the coming rename operation on the workspace, and let
-                    // any exceptions propagate through
-                    refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
-
                     if (!workspace.TryApplyChanges(newSolution))
                     {
                         Exceptions.ThrowEFail();
                     }
-
-                    // Notify third parties about the completed rename operation on the workspace, and
-                    // let any exceptions propagate through
-                    refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
 
                     workspaceUndoTransaction.Commit();
                 }

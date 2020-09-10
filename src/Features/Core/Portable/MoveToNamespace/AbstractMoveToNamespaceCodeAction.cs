@@ -48,39 +48,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
                 if (moveToNamespaceResult.Succeeded)
                 {
-                    return CreateRenameOperations(moveToNamespaceResult);
+                    return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
                 }
             }
 
             return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-        }
-
-        private static ImmutableArray<CodeActionOperation> CreateRenameOperations(MoveToNamespaceResult moveToNamespaceResult)
-        {
-            Debug.Assert(moveToNamespaceResult.Succeeded);
-
-            using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
-            operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
-
-            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-
-            // It's possible we're not in a host context providing this service, in which case
-            // just provide a code action that won't notify of the symbol rename.
-            // Without the symbol rename operation, code generators (like WPF) may not
-            // know to regenerate code correctly.
-            if (symbolRenameCodeActionOperationFactory != null)
-            {
-                foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)
-                {
-                    operations.Add(symbolRenameCodeActionOperationFactory.CreateSymbolRenamedOperation(
-                        symbol,
-                        newName,
-                        moveToNamespaceResult.OriginalSolution,
-                        moveToNamespaceResult.UpdatedSolution));
-                }
-            }
-
-            return operations.ToImmutable();
         }
 
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)

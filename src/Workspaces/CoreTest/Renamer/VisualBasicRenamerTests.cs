@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Renamer
@@ -14,9 +15,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         [Fact]
         public Task VisualBasic_TestEmptyDocument()
         => TestRenameDocument(
-            "",
-            "",
-            newDocumentName: "NewDocumentName");
+            MakeSingleDocumentWithInfoArray(""),
+            MakeSingleDocumentWithInfoArray("", "NewDocumentName"));
 
         [Fact]
         public Task VisualBasic_RenameDocument_NoRenameType()
@@ -28,30 +28,41 @@ End Class",
         [Fact]
         public Task VisualBasic_RenameDocument_RenameType()
         => TestRenameDocument(
+            MakeSingleDocumentWithInfoArray(
 @"Class OriginalName
 End Class",
+                name: "OriginalName.vb"),
+            MakeSingleDocumentWithInfoArray(
 @"Class NewDocumentName
 End Class",
-            documentName: "OriginalName.vb",
-            newDocumentName: "NewDocumentName.vb");
+                name: "NewDocumentName.vb"),
+            RenameHelpers.MakeSymbolPairs("OriginalName", "NewDocumentName"));
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameInterface()
         => TestRenameDocument(
+            MakeSingleDocumentWithInfoArray(
 @"Interface IInterface
 End Interface",
+                name: "IInterface.vb"),
+            MakeSingleDocumentWithInfoArray(
 @"Interface IInterface2
 End Interface",
-            documentName: "IInterface.vb",
-            newDocumentName: "IInterface2.vb");
+                name: "IInterface2.vb"),
+            RenameHelpers.MakeSymbolPairs("IInterface", "IInterface2"));
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameEnum()
         => TestRenameDocument(
-            @"enum MyEnum {}",
-            @"enum MyEnum2 {}",
-            documentName: "MyEnum.vb",
-            newDocumentName: "MyEnum2.vb");
+            MakeSingleDocumentWithInfoArray(
+@"Enum MyEnum
+End Enum",
+                name: "MyEnum.vb"),
+            MakeSingleDocumentWithInfoArray(
+@"Enum MyEnum2
+End Enum",
+                name: "MyEnum2.vb"),
+            RenameHelpers.MakeSymbolPairs("MyEnum", "MyEnum2"));
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenamePartialClass()
@@ -108,7 +119,10 @@ End Namespace",
                 }
             };
 
-            return TestRenameDocument(originalDocuments, expectedDocuments);
+            return TestRenameDocument(
+                originalDocuments,
+                expectedDocuments,
+                RenameHelpers.MakeSymbolPairs("Test.C", "Test.C2"));
         }
 
         [Fact]

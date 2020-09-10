@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private InlineRenameSession? _activeRenameSession;
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             IFeatureServiceFactory featureServiceFactory,
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
@@ -51,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferFactoryService = textBufferFactoryService;
             _featureServiceFactory = featureServiceFactory;
-            _refactorNotifyServices = refactorNotifyServices;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
         }
 
@@ -90,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,
                 _featureServiceFactory,
-                _refactorNotifyServices,
                 _asyncListener);
 
             return new InlineRenameSessionInfo(ActiveSession);

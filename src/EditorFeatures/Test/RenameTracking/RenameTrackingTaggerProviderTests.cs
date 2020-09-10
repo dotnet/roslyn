@@ -729,84 +729,8 @@ class Cat$$
 }";
             using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp);
             state.EditorOperations.InsertText("s");
-            await state.AssertTag("Cat", "Cats", invokeAction: true);
-            Assert.Equal(1, state.RefactorNotifyService.OnBeforeSymbolRenamedCount);
-            Assert.Equal(1, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
 
-            var expectedCode = @"
-class Cats
-{
-    public Cats()
-    {
-    }
-}";
-            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
-
-            state.AssertNoNotificationMessage();
-            await state.AssertNoTag();
-        }
-
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public async Task RenameTrackingHonorsThirdPartyRequestsForCancellationBeforeRename()
-        {
-            var code = @"
-class Cat$$
-{
-    public Cat()
-    {
-    }
-}";
-            using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp, onBeforeGlobalSymbolRenamedReturnValue: false);
-            state.EditorOperations.InsertText("s");
-            await state.AssertTag("Cat", "Cats", invokeAction: true);
-            Assert.Equal(1, state.RefactorNotifyService.OnBeforeSymbolRenamedCount);
-
-            // Make sure the rename didn't proceed
-            Assert.Equal(0, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
-            await state.AssertNoTag();
-
-            var expectedCode = @"
-class Cat
-{
-    public Cat()
-    {
-    }
-}";
-            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
-
-            state.AssertNotificationMessage();
-        }
-
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public async Task RenameTrackingAlertsAboutThirdPartyRequestsForCancellationAfterRename()
-        {
-            var code = @"
-class Cat$$
-{
-    public Cat()
-    {
-    }
-}";
-            using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp, onAfterGlobalSymbolRenamedReturnValue: false);
-            state.EditorOperations.InsertText("s");
-            await state.AssertTag("Cat", "Cats", invokeAction: true);
-
-            Assert.Equal(1, state.RefactorNotifyService.OnBeforeSymbolRenamedCount);
-            Assert.Equal(1, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
-            state.AssertNotificationMessage();
-
-            // Make sure the rename completed            
-            var expectedCode = @"
-class Cats
-{
-    public Cats()
-    {
-    }
-}";
-            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
-            await state.AssertNoTag();
+            await state.AssertRenameAnnotationAsync("Cat", "Cats");
         }
 
         [WpfFact, WorkItem(530469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530469")]

@@ -186,9 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 allowCancel: false,
                 action: c =>
                     {
-                        var refactorNotifyServices = this.ComponentModel.DefaultExportProvider.GetExportedValues<IRefactorNotifyService>();
-
-                        if (!ContainedLanguageCodeSupport.TryRenameElement(GetThisDocument(), clrt, bstrOldID, bstrNewID, refactorNotifyServices, c.CancellationToken))
+                        if (!ContainedLanguageCodeSupport.TryRenameElement(GetThisDocument(), clrt, bstrOldID, bstrNewID, c.CancellationToken))
                         {
                             result = s_CONTAINEDLANGUAGE_CANNOTFINDITEM;
                         }

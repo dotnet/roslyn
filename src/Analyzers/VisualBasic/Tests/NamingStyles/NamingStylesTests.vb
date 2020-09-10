@@ -19,10 +19,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
             Return (New VisualBasicNamingStyleDiagnosticAnalyzer(), New NamingStyleCodeFixProvider())
         End Function
 
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService))
-        End Function
-
         ' TODO: everything else apart from locals
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>

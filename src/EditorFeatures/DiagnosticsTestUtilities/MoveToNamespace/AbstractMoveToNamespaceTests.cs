@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
+using Microsoft.CodeAnalysis.Test.Utilities.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
@@ -46,42 +48,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                         testState.TestInvocationDocument.SelectedSpans.Single(),
                         CancellationToken.None);
 
-                var operationTasks = actions
-                    .Cast<AbstractMoveToNamespaceCodeAction>()
-                    .Select(action => action.GetOperationsAsync(action.GetOptions(CancellationToken.None), CancellationToken.None));
-
-                foreach (var task in operationTasks)
+                foreach (var action in actions)
                 {
-                    var operations = await task;
-
                     if (optionCancelled || string.IsNullOrEmpty(targetNamespace))
                     {
-                        Assert.Empty(operations);
+                        Assert.Empty(await action.GetOperationsAsync(CancellationToken.None));
                     }
                     else
                     {
-                        Assert.NotEmpty(operations);
-                        var renamedCodeActionsOperations = operations
-                            .Where(operation => operation is TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)
-                            .Cast<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>()
-                            .ToImmutableArray();
-
-                        Assert.NotEmpty(renamedCodeActionsOperations);
-
                         Assert.NotNull(expectedSymbolChanges);
+                        Assert.NotNull(expectedMarkup);
 
-                        var checkedCodeActions = new HashSet<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>(renamedCodeActionsOperations.Length);
-                        foreach (var kvp in expectedSymbolChanges)
-                        {
-                            var originalName = kvp.Key;
-                            var newName = kvp.Value;
+                        var solutionPair = ApplyOperationsAndGetSolution(
+                            workspace,
+                            await action.GetOperationsAsync(CancellationToken.None));
 
-                            var codeAction = renamedCodeActionsOperations.FirstOrDefault(a => a._symbol.ToDisplayString() == originalName);
-                            Assert.Equal(newName, codeAction?._newName);
-                            Assert.False(checkedCodeActions.Contains(codeAction));
+                        var oldSolution = solutionPair.Item1;
+                        var newSolution = solutionPair.Item2;
 
-                            checkedCodeActions.Add(codeAction);
-                        }
+                        await RenameHelpers.AssertRenameAnnotationsAsync(oldSolution, newSolution, expectedSymbolChanges);
                     }
                 }
 

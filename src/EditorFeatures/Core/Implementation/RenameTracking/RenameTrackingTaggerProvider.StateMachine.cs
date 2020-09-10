@@ -282,7 +282,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
                 Document document, SourceText text, TextSpan userSpan,
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 CancellationToken cancellationToken)
             {
@@ -309,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                 snapshotSpan.GetText());
 
                             return (new RenameTrackingCodeAction(
-                                        document, title, refactorNotifyServices, undoHistoryRegistry),
+                                        document, title, undoHistoryRegistry),
                                     snapshotSpan.Span.ToTextSpan());
                         }
                     }

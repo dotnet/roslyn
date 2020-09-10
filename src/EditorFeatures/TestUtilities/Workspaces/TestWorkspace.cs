@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IEnumerable<Lazy<IRefactorNotifyService>> _refactorNotifyServices;
 
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
 
@@ -97,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+
+            _refactorNotifyServices = ExportProvider.GetExports<IRefactorNotifyService>();
 
             RegisterDocumentOptionProviders(ExportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
@@ -269,6 +273,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
             return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
+        internal override bool TryApplyChanges(
+           Solution newSolution,
+           IProgressTracker progressTracker)
+        {
+            var currentSolution = CurrentSolution;
+            if (base.TryApplyChanges(newSolution, progressTracker))
+            {
+                _refactorNotifyServices.TryNotifyChangesSynchronously(this, newSolution, currentSolution);
+                return true;
+            }
+
+            return false;
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)

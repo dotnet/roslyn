@@ -33,11 +33,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
-        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory)
+        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, commitBufferManagerFactory As CommitBufferManagerFactory)
             MyBase.New(
                 provider,
                 editorOptionsFactoryService,
-                refactorNotifyServices,
                 LineAdjustmentFormattingRule.Instance,
                 EndRegionFormattingRule.Instance)
 
