@@ -10,5 +10,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Name of the LSP method to handle.
         /// </summary>
         string MethodName { get; }
+
+        /// <summary>
+        /// Name of the language for LSP method to handle (optional).
+        /// </summary>
+        string LanguageName { get; }
     }
 }

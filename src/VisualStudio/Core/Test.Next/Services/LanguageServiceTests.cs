@@ -2,46 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
-using Roslyn.Test.Utilities.Remote;
-using StreamJsonRpc;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class LanguageServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
+
+        [Fact]
         public async Task CSharpLanguageServiceTest()
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var solution = workspace.CurrentSolution;
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
 
-                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, "met");
 
-                Assert.Equal(1, results.Count);
-                Assert.Equal(1, results[0].Symbols.Length);
-
-                Assert.Equal("Method", results[0].Symbols[0].Name);
-            }
+            Assert.Equal("Method", Assert.Single(results).Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task CSharpLanguageServiceTest_MultipleResults()
         {
             var code = @"class Test 
@@ -53,19 +52,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
     int methodProperty { get; }
 }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var solution = workspace.CurrentSolution;
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
+            var results = await GetVsSearchResultsAsync(workspace, "met");
 
-                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
-
-                Assert.Equal(1, results.Count);
-                Assert.Equal(4, results[0].Symbols.Length);
-            }
+            Assert.Equal(4, results.Length);
         }
 
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task VisualBasicLanguageServiceTest()
         {
             var code = @"Class Test
@@ -73,70 +66,72 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
     End Sub
 End Class";
 
-            using (var workspace = TestWorkspace.CreateVisualBasic(code))
-            {
-                var solution = workspace.CurrentSolution;
+            using var workspace = TestWorkspace.CreateVisualBasic(code, composition: s_composition);
 
-                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, "met");
 
-                Assert.Equal(1, results.Count);
-                Assert.Equal(1, results[0].Symbols.Length);
-
-                Assert.Equal("Method", results[0].Symbols[0].Name);
-            }
+            Assert.Equal("Method", Assert.Single(results).Name);
         }
 
-        private async Task<List<VSPublishSymbolParams>> GetVsSearchResultsAsync(Solution solution, string server, string query)
+        private async Task<ImmutableArray<SymbolInformation>> GetVsSearchResultsAsync(TestWorkspace workspace, string query)
         {
-            var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(solution.Workspace, runCacheCleanup: false));
+            var solution = workspace.CurrentSolution;
+
+            using var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
+            Assert.NotNull(client);
 
             var document = solution.Projects.First().Documents.First();
-            await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, @"c:\" + document.FilePath));
+            await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, Path.Combine(TempRoot.Root, document.FilePath)));
 
-            var callback = new Callback();
-            using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(server), callback))
+            var workspaceSymbolParams = new WorkspaceSymbolParams
             {
-                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>(
-                    Methods.InitializeName,
-                    new object[] { new InitializeParams() },
-                    CancellationToken.None);
+                Query = query,
+            };
 
-                Assert.True(result["capabilities"]["workspaceStreamingSymbolProvider"].ToObject<bool>());
+            var symbolResultsBuilder = ArrayBuilder<SymbolInformation>.GetInstance();
+            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
 
-                var symbolResult = await jsonRpc.InvokeWithCancellationAsync<VSBeginSymbolParams>(
-                    VSSymbolMethods.WorkspaceBeginSymbolName,
-                    new object[] { query, 0 },
-                    CancellationToken.None);
-            }
+            var awaitableProgress = new ProgressWithCompletion<SymbolInformation[]>(
+                symbols => symbolResultsBuilder.AddRange(symbols),
+                threadingContext.JoinableTaskFactory);
 
-            return callback.Results;
+            workspaceSymbolParams.PartialResultToken = awaitableProgress;
+
+            var result = await client.RunRemoteAsync<JObject>(
+                WellKnownServiceHubService.LanguageServer,
+                Methods.InitializeName,
+                solution: null,
+                new object[] { new InitializeParams() },
+                callbackTarget: null,
+                CancellationToken.None).ConfigureAwait(false);
+
+            Assert.True(result["capabilities"]["workspaceSymbolProvider"].ToObject<bool>());
+
+            _ = await client.RunRemoteAsync<SymbolInformation[]>(
+                WellKnownServiceHubService.LanguageServer,
+                Methods.WorkspaceSymbolName,
+                solution: null,
+                new object[] { workspaceSymbolParams },
+                callbackTarget: null,
+                CancellationToken.None).ConfigureAwait(false);
+
+            await awaitableProgress.WaitAsync(CancellationToken.None);
+
+            return symbolResultsBuilder.ToImmutableAndFree();
         }
 
         // make sure we always move remote workspace forward
         private int _solutionVersion = 0;
 
-        private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
+        private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            Assert.True(await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.RemoteHostService,
+            await client.RunRemoteAsync(
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
-                CancellationToken.None));
-        }
-
-        private class Callback
-        {
-            public List<VSPublishSymbolParams> Results = new List<VSPublishSymbolParams>();
-
-            [JsonRpcMethod(VSSymbolMethods.WorkspacePublishSymbolName)]
-            public Task WorkspacePublishSymbol(VSPublishSymbolParams symbols)
-            {
-                Results.Add(symbols);
-
-                return Task.CompletedTask;
-            }
+                CancellationToken.None);
         }
     }
 }

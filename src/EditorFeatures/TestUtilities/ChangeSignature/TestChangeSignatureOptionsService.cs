@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
-    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
         public AddedParameterOrExistingIndex[]? UpdatedSignature = null;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
             Document document,
-            int insertPosition,
+            int positionForTypeBinding,
             ISymbol symbol,
             ParameterConfiguration parameters)
         {

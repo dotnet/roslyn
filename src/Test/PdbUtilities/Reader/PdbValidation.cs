@@ -421,7 +421,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (RemoveElements(from e in pdb.DescendantsAndSelf()
                                   where e.Name == "scope" && !e.HasElements
-                                  select e)) ;
+                                  select e))
+                ;
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
@@ -509,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ValidateDebugDirectory(peStream, portable ? pdbStream : null, compilation.AssemblyName + ".pdb", emitOptions.PdbChecksumAlgorithm, hasEmbeddedPdb: false, isDeterministic: compilation.IsEmitDeterministic);
         }
 
-        public unsafe static byte[] GetSourceLinkData(Stream pdbStream)
+        public static unsafe byte[] GetSourceLinkData(Stream pdbStream)
         {
             pdbStream.Position = 0;
 
@@ -610,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(entries.Length, entryIndex);
         }
 
-        private unsafe static void ValidatePortablePdbId(MetadataReader pdbReader, uint stampInDebugDirectory, Guid guidInDebugDirectory)
+        private static unsafe void ValidatePortablePdbId(MetadataReader pdbReader, uint stampInDebugDirectory, Guid guidInDebugDirectory)
         {
             var expectedId = new BlobContentId(guidInDebugDirectory, stampInDebugDirectory);
             var actualId = new BlobContentId(pdbReader.DebugMetadataHeader.Id);

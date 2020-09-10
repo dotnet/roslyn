@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
-            var root = model.SyntaxTree.GetRoot();
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
 
             foreach (var diagnostic in diagnostics)

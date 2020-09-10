@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.RegularPreview);
+            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Regular9);
         }
 
         private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
@@ -124,7 +124,7 @@ class C
                 // (6,10): error CS1022: Type or namespace definition, or end-of-file expected
                 // sadasdasd]
                 Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(6, 10),
-                // (15,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (15,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // [a]fod;
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
                 // (16,3): error CS1003: Syntax error, ']' expected
@@ -591,7 +591,7 @@ using goo.bar;
                 // (1,10): error CS1513: } expected
                 // class c2 4
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "4").WithLocation(1, 10),
-                // (1,10): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (1,10): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class c2 4
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "4").WithLocation(1, 10),
                 // (1,11): error CS1002: ; expected
@@ -646,10 +646,10 @@ class Test : Itest
                 // (4,20): error CS8124: Tuple must contain at least two elements.
                 //    event D ITest.E()   // CS0071
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
-                // (5,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (5,4): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 4),
-                // (7,4): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (7,4): error CS8803: Top-level statements must precede namespace and type declarations.
                 //    public static int Main()
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"public static int Main()
    {
@@ -786,7 +786,7 @@ class Test : Itest
                 // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
-                // (2,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // {
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
 ").WithLocation(2, 1),
@@ -936,7 +936,7 @@ class Test : Itest
 partial delegate E { }
 ";
             UsingTree(test,
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
@@ -951,7 +951,7 @@ partial delegate E { }
                 // (2,20): error CS1002: ; expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
-                // (2,20): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20)
                 );
@@ -1165,7 +1165,7 @@ public class A
                 // (4,12): error CS1513: } expected
                 // 	int goo	{	void goo() {}	} // Error
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "void").WithLocation(4, 12),
-                // (5,2): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (5,2): error CS8803: Top-level statements must precede namespace and type declarations.
                 // 	static int Main() {	return 1;    }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "static int Main() {	return 1;    }").WithLocation(5, 2),
                 // (6,1): error CS1022: Type or namespace definition, or end-of-file expected

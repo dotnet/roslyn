@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Enum:
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
+                case DeclarationKind.Record:
                     return new SourceNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
                 case DeclarationKind.Script:

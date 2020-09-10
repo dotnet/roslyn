@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -86,6 +86,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.InterpolatedStringText);
                 {
                     N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp73()
+        {
+            UsingExpression("$@\"aaa{@$\"bbb\nccc\"}ddd\"", TestOptions.Regular7_3,
+                // (1,8): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
+                // $@"aaa{@$"bbb
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 8)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp8()
+        {
+            UsingExpression("$@\"aaa{@$\"bbb\nccc\"}ddd\"", TestOptions.Regular8);
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
                 }
                 N(SyntaxKind.InterpolatedStringEndToken);
             }
@@ -5235,6 +5308,119 @@ select t";
                 }
             }
             EOF();
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_01()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                // (7,31): error CS1001: Identifier expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                // (7,33): error CS1003: Syntax error, ')' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                // (7,33): error CS1003: Syntax error, ',' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                // (7,34): error CS1026: ) expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 34)
+                );
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_02()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}\F\G{H}_{I.J.K(""L"")}.M"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                    // (7,31): error CS1001: Identifier expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                    // (7,33): error CS1003: Syntax error, ')' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                    // (7,33): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                    // (7,34): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 34),
+                    // (7,35): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",", "").WithLocation(7, 35),
+                    // (7,36): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 36),
+                    // (7,37): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "G").WithArguments(",", "").WithLocation(7, 37),
+                    // (7,38): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 38),
+                    // (7,39): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "H").WithArguments(",", "").WithLocation(7, 39),
+                    // (7,40): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 40),
+                    // (7,41): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(7, 41),
+                    // (7,42): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 42),
+                    // (7,43): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments(",", "").WithLocation(7, 43),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,50): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "L").WithArguments(",", "").WithLocation(7, 50),
+                    // (7,51): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",", "").WithLocation(7, 51)
+                );
         }
     }
 }

@@ -11,13 +11,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     {
         public override void Fail(string message, string detailMessage)
         {
-            if (!string.IsNullOrEmpty(detailMessage))
+            if (string.IsNullOrEmpty(message))
             {
-                Exit(message + " " + detailMessage);
+                Exit("Assertion failed");
+            }
+            else if (string.IsNullOrEmpty(detailMessage))
+            {
+                Exit(message);
             }
             else
             {
-                Exit(message);
+                Exit(message + " " + detailMessage);
             }
         }
 

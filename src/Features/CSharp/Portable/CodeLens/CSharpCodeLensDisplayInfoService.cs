@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 return FeaturesResources.paren_Unknown_paren;
             }
 
-            if (CSharpSyntaxFacts.Instance.IsGlobalAttribute(node))
+            if (CSharpSyntaxFacts.Instance.IsGlobalAssemblyAttribute(node))
             {
                 return "assembly: " + node.ConvertToSingleLine();
             }

@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractVisualBasicSignatureHelpProvider
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetGenericName(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef genericName As GenericNameSyntax) As Boolean
+        Private Shared Function TryGetGenericName(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef genericName As GenericNameSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, genericName) Then
                 Return False
             End If
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim beforeDotExpression = If(genericName.IsRightSideOfDotOrBang(), genericName.GetLeftSideOfDot(), Nothing)
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(If(beforeDotExpression, genericName), cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(If(beforeDotExpression, genericName), cancellationToken).ConfigureAwait(False)
 
             Dim leftSymbol = If(beforeDotExpression Is Nothing, Nothing,
                                 TryCast(semanticModel.GetSymbolInfo(beforeDotExpression, cancellationToken).GetAnySymbol(), INamespaceOrTypeSymbol))
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
+        Private Overloads Shared Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = genericName.SpanStart
             Dim item As SignatureHelpItem
             If TypeOf symbol Is INamedTypeSymbol Then
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Shared ReadOnly s_minimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions Or SymbolDisplayGenericsOptions.IncludeVariance)
 
-        Private Overloads Function Convert(parameter As ITypeParameterSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpSymbolParameter
+        Private Overloads Shared Function Convert(parameter As ITypeParameterSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpSymbolParameter
             Dim parts = New List(Of SymbolDisplayPart)
             parts.AddRange(parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat))
             AddConstraints(parameter, parts, semanticModel, position)
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 displayParts:=parts)
         End Function
 
-        Private Function AddConstraints(typeParam As ITypeParameterSymbol,
+        Private Shared Function AddConstraints(typeParam As ITypeParameterSymbol,
                                         parts As List(Of SymbolDisplayPart),
                                         semanticModel As SemanticModel,
                                         position As Integer) As IList(Of SymbolDisplayPart)

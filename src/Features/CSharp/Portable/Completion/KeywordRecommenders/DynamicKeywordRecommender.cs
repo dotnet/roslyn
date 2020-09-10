@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        private bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             if (context.IsPreProcessorDirectiveContext)
             {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("dynamic")));
             }
 
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return SpecializedTasks.Null<IEnumerable<RecommendedKeyword>>();
         }
 
         protected static bool IsDynamicTypeContext(
@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsPossibleCastTypeContext(position, context.LeftToken, cancellationToken) ||
                 context.IsObjectCreationTypeContext ||
                 context.IsGenericTypeArgumentContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 context.IsIsOrAsTypeContext ||
                 syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }

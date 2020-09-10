@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new NewLineUserSettingFormattingRule(cachedOptions);
         }
 
-        private bool IsControlBlock(SyntaxNode node)
+        private static bool IsControlBlock(SyntaxNode node)
         {
             RoslynDebug.Assert(node != null);
 
@@ -183,6 +183,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
             {
                 if (!_options.NewLinesForBracesInLambdaExpressionBody)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -394,6 +403,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (_options.NewLinesForBracesInLambdaExpressionBody)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
                 else
                 {

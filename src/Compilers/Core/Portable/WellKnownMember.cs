@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis
         System_Type__GetTypeFromCLSID,
         System_Type__GetTypeFromHandle,
         System_Type__Missing,
+        System_Type__op_Equality,
 
         System_Reflection_AssemblyKeyFileAttribute__ctor,
         System_Reflection_AssemblyKeyNameAttribute__ctor,
@@ -507,6 +508,10 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+
+        System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendObject,
+        System_Text_StringBuilder__ctor,
 
         Count
 

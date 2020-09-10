@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis
             DefaultVisit(symbol);
         }
 
+        public virtual void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
         public virtual void VisitProperty(IPropertySymbol symbol)
         {
             DefaultVisit(symbol);

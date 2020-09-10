@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -305,6 +307,95 @@ enum F
             }
             builder.AppendLine("}");
             return builder.ToString();
+        }
+
+        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [Fact]
+        public void UseSiteError_01()
+        {
+            var sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "UseSiteError_sourceA");
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B<T>
+{
+    public enum E { F }
+}
+public class C
+{
+    public const B<A>.E F = default;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        const int x = (int)~C.F;
+        System.Console.WriteLine(x);
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB });
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         const int x = (int)~C.F;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F").WithArguments("A", "UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 31)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.BitwiseNotExpression);
+            var value = model.GetConstantValue(expr);
+            Assert.False(value.HasValue);
+        }
+
+        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [Fact]
+        public void UseSiteError_02()
+        {
+            var sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "UseSiteError_sourceA");
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B<T>
+{
+    public enum E { F }
+}
+public class C
+{
+    public const B<A>.E F = default;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        var x = ~C.F;
+        System.Console.WriteLine(x);
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB }, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var x = ~C.F;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F").WithArguments("A", "UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 20)
+                );
+
+            comp = CreateCompilation(sourceC, references: new[] { refB }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var x = ~C.F;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F").WithArguments("A", "UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 20)
+                );
         }
     }
 }

@@ -250,8 +250,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
-                    var description = string.Format(ServicesVSResources.Install_0, packageName);
-
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
@@ -361,25 +359,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
-            }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
 
             return null;
-        }
-
-        private bool IsKnownNugetIssue(ArgumentException exception)
-        {
-            // See https://github.com/NuGet/Home/issues/4706
-            // Nuget throws on legal projects.  We do not want to report this exception
-            // as it is known (and NFWs are expensive), but we do want to report if we 
-            // run into anything else.
-            return exception.Message.Contains("is not a valid version string");
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -517,7 +501,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             this.AssertIsForeground();
 
             // Remove anything we have associated with this project.
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var projectState);
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out _);
 
             var project = solution.GetProject(projectId);
             if (project == null)
@@ -561,12 +545,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 isEnabled = true;
             }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
-            }
-            catch (InvalidOperationException e) when (e.StackTrace.Contains("NuGet.PackageManagement.VisualStudio.NetCorePackageReferenceProject.GetPackageSpecsAsync"))
+            catch (InvalidOperationException)
             {
                 // NuGet throws an InvalidOperationException if details
                 // for the project fail to load. We don't need to report

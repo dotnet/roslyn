@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForFaultedTask()
             => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
 
-        private void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
+        private static void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
         {
             var synchronousComputationStartedEvent = new ManualResetEvent(initialState: false);
             var synchronousComputationShouldCompleteEvent = new ManualResetEvent(initialState: false);
@@ -184,7 +184,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var cancellationTokenSource = new CancellationTokenSource();
 
             // Create a task that will cancel the request once it's started
-            Task.Run(() => { computeFunctionRunning.WaitOne(); cancellationTokenSource.Cancel(); });
+            Task.Run(() =>
+            {
+                computeFunctionRunning.WaitOne();
+                cancellationTokenSource.Cancel();
+            });
 
             try
             {

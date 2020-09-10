@@ -1968,8 +1968,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
         [Fact]
+        [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
         public void PartialKickoffMethod()
         {
             string src = @"
@@ -2002,22 +2002,23 @@ public partial class C
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
+            Assert.True(result.Success);
 
             pdbStream.Position = 0;
-            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
-            {
-                var mdReader = provider.GetMetadataReader();
-                var writer = new StringWriter();
-                var visualizer = new MetadataVisualizer(mdReader, writer);
-                visualizer.WriteMethodDebugInformation();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+            var mdReader = provider.GetMetadataReader();
+            var writer = new StringWriter();
+            var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            visualizer.WriteMethodDebugInformation();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 20): 
 ==================================================
 1: nil
 2: nil
 3: nil
-4: #4
+4:
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -2029,8 +2030,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_002A: <hidden>
 }
 5: nil",
-                    writer.ToString());
-            }
+                writer.ToString());
         }
 
         [Fact]

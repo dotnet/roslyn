@@ -44,12 +44,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         private IntegrationService _service;
         private IpcServerChannel _serviceChannel;
+
+#pragma warning disable IDE0052 // Remove unread private members - used to hold the marshalled integration test service
         private ObjRef _marshalledService;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
-
 
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {

@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // span-like types are returnable in general
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                // Method or delegate cannot return type '{0}'
+                // The return type of a method, delegate, or function pointer cannot be '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
@@ -371,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
@@ -425,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
+
+                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, this.DeclaringCompilation, diagnostics, location);
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)

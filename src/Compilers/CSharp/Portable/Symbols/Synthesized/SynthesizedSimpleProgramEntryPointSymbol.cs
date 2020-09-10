@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return "$Main";
+                return WellKnownMemberNames.TopLevelStatementsEntryPointMethodName;
             }
         }
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var span = definedWithinSpan.GetValueOrDefault();
 
-                    foreach (var global in ((CompilationUnitSyntax)tree.GetRoot()).Members.OfType<GlobalStatementSyntax>())
+                    foreach (var global in ((CompilationUnitSyntax)tree.GetRoot(cancellationToken)).Members.OfType<GlobalStatementSyntax>())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 

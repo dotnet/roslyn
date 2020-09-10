@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tree;
         }
 
-        public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
+        public abstract TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
 
         public abstract void Accept(CSharpSyntaxVisitor visitor);
 
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
-        protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
+        protected internal override SyntaxNode? RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
         {
             return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }

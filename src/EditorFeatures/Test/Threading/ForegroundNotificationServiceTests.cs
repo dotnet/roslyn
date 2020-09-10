@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             {
                 if (_service is null)
                 {
-                    var threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IThreadingContext>();
+                    var threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue<IThreadingContext>();
                     _service = new ForegroundNotificationService(threadingContext);
                 }
 
@@ -42,7 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             Service.RegisterNotification(() => { Thread.Sleep(100); }, asyncToken, CancellationToken.None);
             Service.RegisterNotification(() => { /* do nothing */ }, asyncToken, CancellationToken.None);
-            Service.RegisterNotification(() => { ran = true; _done = true; }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() =>
+            {
+                ran = true;
+                _done = true;
+            }, asyncToken, CancellationToken.None);
 
             await PumpWait();
 

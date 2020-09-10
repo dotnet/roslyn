@@ -32,6 +32,11 @@
         <target state="translated">式/ブロック本体の基本設定を適用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="new">Apply file header preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
         <source>Apply implicit/explicit type preferences</source>
         <target state="translated">暗黙的/明示的な型の基本設定を適用します</target>
@@ -59,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Apply_using_directive_placement_preferences">
         <source>Apply preferred 'using' placement preferences</source>
-        <target state="new">Apply preferred 'using' placement preferences</target>
+        <target state="translated">優先する 'using' 配置設定を適用する</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
@@ -74,17 +79,17 @@
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">"{0}" に割り当て</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
-        <target state="new">Autoselect disabled due to potential pattern variable declaration.</target>
+        <target state="translated">パターン変数宣言の可能性があるため、自動選択は無効になっています。</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">"{0}" と比較</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -94,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">正規文字列に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -109,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
+        <target state="translated">逐語的文字列に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -142,9 +147,14 @@
         <target state="translated">'ref struct' を作成します</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">'in' キーワードを削除します</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
-        <target state="new">Remove 'new' modifier</target>
+        <target state="translated">'new' 修飾子の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -189,17 +199,7 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
-        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_is_not_null_here">
-        <source>'{0}' is not null here.</source>
-        <target state="translated">ここでは、'{0}' は null ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_may_be_null_here">
-        <source>'{0}' may be null here.</source>
-        <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
+        <target state="translated">警告: 一時変数をインライン化すると、コードの意味が変わる可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
-        <target state="new">&lt;pattern variable&gt;</target>
+        <target state="translated">&lt;pattern variable&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
-        <target state="translated">使用されていません</target>
+        <target state="translated">非推奨</target>
         <note />
       </trans-unit>
       <trans-unit id="extension">

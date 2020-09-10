@@ -12,6 +12,11 @@
         <target state="translated">Pro tuto možnost se musí zadat název jazyka.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">Změna verze odkazu na sestavení není povolená při ladění: {0} změnil(a) verzi na {1}.</target>
@@ -26,8 +31,23 @@
       </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
-        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <target state="translated">Pokud chcete tento analyzátor zakázat, potlačte následující diagnostiku: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
+        <target state="translated">Parametr hintName obsahuje neplatný znak {0} na pozici {1}.</target>
+        <note>{0}: the invalid character, {1} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName of the added source file must be unique within a generator.</source>
+        <target state="translated">Parametr hintName přidaného zdrojového souboru musí být jedinečný v rámci generátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">Další soubor nepatří do základního CompilationWithAnalyzers.</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
@@ -96,8 +116,13 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="new">Only a single {0} can be registered per generator.</target>
-        <note />
+        <target state="translated">Na jeden generátor je možné zaregistrovat jen jedno {0}.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -554,6 +579,16 @@
         <target state="translated">Neplatná závažnost v konfiguračním souboru analyzátoru</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">Několik konfiguračních souborů globálního analyzátoru nastavuje v části {1} stejný klíč {0}. Jeho nastavení se zrušilo. Klíč se nastavil v následujících souborech: {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">Několik konfiguračních souborů globálního analyzátoru nastavuje stejný klíč. Jeho nastavení se zrušilo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">U identity WindowsRuntime se nedá změnit cíl.</target>
@@ -586,7 +621,7 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">Chyba analyzátoru</target>
+        <target state="translated">Chyba analyzátoru</target>
         <note>{0}: Analyzer name
 {1}: Type name
 {2}: Localized exception message
@@ -595,7 +630,7 @@
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+        <target state="translated">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.
 {3}</target>
         <note />
       </trans-unit>

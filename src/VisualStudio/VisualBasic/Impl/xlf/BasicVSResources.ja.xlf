@@ -32,6 +32,11 @@
         <target state="translated">行わない</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="new">Prefer 'IsNot' expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">参照の等値性のチェックには 'Is Nothing' を優先する</target>
@@ -89,8 +94,8 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">'' が入力されたときに XML ドキュメント コメントを生成する(_G)</target>
-        <note />
+        <target state="translated">''' が入力されたときに XML ドキュメント コメントを生成する(_G)</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
@@ -114,7 +119,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">クイック ヒントに注釈を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">

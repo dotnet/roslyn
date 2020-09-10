@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
                 return projectId;
             }
 
-            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(projectName), VersionStamp.Default, projectName, projectName, StringConstants.CSharpLspLanguageName);
+            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(projectName), VersionStamp.Default, projectName, projectName, LanguageNames.CSharp);
 
             _remoteLanguageServiceWorkspaceHost.Workspace.OnProjectAdded(projectInfo);
 

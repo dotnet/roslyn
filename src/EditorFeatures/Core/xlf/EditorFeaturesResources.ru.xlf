@@ -37,6 +37,16 @@
         <target state="translated">Вы действительно хотите продолжить? Это может привести к появлению нерабочего кода.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">элементы из неимпортированных пространств имен</target>
@@ -65,6 +75,11 @@
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">Перейти к базовому</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Parameter_Name_Hints">
+        <source>Inline Parameter Name Hints</source>
+        <target state="new">Inline Parameter Name Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -112,11 +127,6 @@
         <target state="translated">Удаление документа не поддерживается</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">Переименовать фай_л</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Переименовать фай_л (тип не соответствует имени файла)</target>
@@ -126,6 +136,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">Переименовать фай_л (недопустимо для разделяемых типов)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="translated">Переименовать _файл с символом</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -384,12 +399,12 @@
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
         <source>You cannot rename this element because it is contained in a read-only file.</source>
-        <target state="new">You cannot rename this element because it is contained in a read-only file.</target>
+        <target state="translated">Невозможно переименовать этот элемент, так как он содержится в файле, доступном только для чтения.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
-        <target state="new">You cannot rename this element because it is in a location that cannot be navigated to.</target>
+        <target state="translated">Невозможно переименовать этот элемент, так как он находится в расположении, к которому невозможно перейти.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -404,7 +419,7 @@
       </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
-        <target state="new">'{0}' implemented members</target>
+        <target state="translated">Реализованные члены "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -649,7 +664,7 @@
       </trans-unit>
       <trans-unit id="external">
         <source>(external)</source>
-        <target state="new">(external)</target>
+        <target state="translated">(внешний)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -1192,11 +1207,6 @@ Do you want to proceed?</source>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">Завершение скобок</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Исправить все случаи в</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

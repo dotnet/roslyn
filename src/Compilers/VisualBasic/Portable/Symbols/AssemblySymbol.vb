@@ -310,6 +310,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(forwardingModule, emittedName, diagnosticInfo)
         End Function
 
+        Friend MustOverride Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+
         ''' <summary>
         ''' Lookup declaration for predefined CorLib type in this Assembly. Only valid if this 
         ''' assembly is the Cor Library
@@ -641,6 +643,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IAssemblySymbol_ResolveForwardedType(metadataName As String) As INamedTypeSymbol Implements IAssemblySymbol.ResolveForwardedType
             Return Me.ResolveForwardedType(metadataName)
+        End Function
+
+        Private Function IAssemblySymbol_GetForwardedTypes() As ImmutableArray(Of INamedTypeSymbol) Implements IAssemblySymbol.GetForwardedTypes
+            Return ImmutableArrayExtensions.AsImmutable(Of INamedTypeSymbol)(GetAllTopLevelForwardedTypes().OrderBy(Function(t) t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat)))
         End Function
 
         Private Function IAssemblySymbol_GetTypeByMetadataName(metadataName As String) As INamedTypeSymbol Implements IAssemblySymbol.GetTypeByMetadataName

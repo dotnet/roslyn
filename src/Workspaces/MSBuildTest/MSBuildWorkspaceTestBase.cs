@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         protected const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
 
-        protected void AssertFailures(MSBuildWorkspace workspace, params string[] expectedFailures)
+        protected static void AssertFailures(MSBuildWorkspace workspace, params string[] expectedFailures)
         {
             AssertEx.Equal(expectedFailures, workspace.Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message));
         }

@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 #if DEBUG
@@ -258,6 +259,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public static ImmutableArray<TResult> ZipAsArray<T1, T2, TArg, TResult>(this ImmutableArray<T1> self, ImmutableArray<T2> other, TArg arg, Func<T1, T2, int, TArg, TResult> map)
+        {
+            Debug.Assert(self.Length == other.Length);
+            if (self.IsEmpty)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+            for (int i = 0; i < self.Length; i++)
+            {
+                builder.Add(map(self[i], other[i], i, arg));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
         /// <summary>
         /// Creates a new immutable array based on filtered elements by the predicate. The array must not be null.
         /// </summary>
@@ -341,6 +358,54 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(none);
                 return ImmutableArray<T>.Empty;
             }
+        }
+
+        public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (predicate(a, arg))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static async Task<bool> AnyAsync<T>(this ImmutableArray<T> array, Func<T, Task<bool>> predicateAsync)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (await predicateAsync(a).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ImmutableArray<T> array, Func<T, Task<bool>> predicateAsync)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (await predicateAsync(a).ConfigureAwait(false))
+                {
+                    return a;
+                }
+            }
+
+            return default;
         }
 
         /// <summary>

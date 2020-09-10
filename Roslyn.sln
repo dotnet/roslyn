@@ -169,7 +169,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Services.Test.Utilit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf", "src\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj", "{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\DesktopHost\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\HostProcess\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost.UnitTests", "src\Interactive\HostTest\InteractiveHost.UnitTests.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}"
 EndProject
@@ -192,8 +192,6 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.VisualStudio.LanguageServices.UnitTests", "src\VisualStudio\Core\Test\Microsoft.VisualStudio.LanguageServices.UnitTests.vbproj", "{A1455D30-55FC-45EF-8759-3AEBDB13D940}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup", "src\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.InteractiveComponents", "src\VisualStudio\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.csproj", "{2169F526-8A88-435D-8732-486ACA095A6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.DiagnosticsWindow", "src\VisualStudio\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj", "{A486D7DE-F614-409D-BB41-0FFDF582E35C}"
 EndProject
@@ -292,8 +290,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeAnalysis", "src\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj", "{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.RemoteHostClientMock", "src\VisualStudio\RemoteHostClientMock\Roslyn.VisualStudio.RemoteHostClientMock.csproj", "{7259740A-FD0E-480F-A7D4-08BE90AC9051}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Next.UnitTests", "src\VisualStudio\Core\Test.Next\Roslyn.VisualStudio.Next.UnitTests.csproj", "{2E1658E2-5045-4F85-A64C-C0ECCD39F719}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10}"
@@ -309,8 +305,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.FunctionResolver", "src\ExpressionEvaluator\Core\Source\FunctionResolver\Microsoft.CodeAnalysis.FunctionResolver.csproj", "{6FC8E6F5-659C-424D-AEB5-331B95883E29}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.FunctionResolver.UnitTests", "src\ExpressionEvaluator\Core\Test\FunctionResolver\Microsoft.CodeAnalysis.FunctionResolver.UnitTests.csproj", "{DD317BE1-42A1-4795-B1D4-F370C40D649A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient", "src\VisualStudio\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj", "{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub", "src\Workspaces\Remote\Razor\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.csproj", "{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}"
 EndProject
@@ -341,6 +335,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Wpf", "src\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj", "{FFB00FB5-8C8C-4A02-B67D-262B9D28E8B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalyzerRunner", "src\Tools\AnalyzerRunner\AnalyzerRunner.csproj", "{60166C60-813C-46C4-911D-2411B4ABBC0F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2} = {B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}
+		{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD} = {49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}
+		{3CDEEAB7-2256-418A-BEB2-620B5CB16302} = {3CDEEAB7-2256-418A-BEB2-620B5CB16302}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debugging.Package", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.Package.csproj", "{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89}"
 EndProject
@@ -348,7 +347,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests", "src\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj", "{037F06F0-3BE8-42D0-801E-2F74FC380AB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\DesktopHost\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\HostProcess\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.IntegrationService", "src\VisualStudio\IntegrationTest\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj", "{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}"
 EndProject
@@ -829,10 +828,6 @@ Global
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -977,10 +972,6 @@ Global
 		{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7259740A-FD0E-480F-A7D4-08BE90AC9051}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7259740A-FD0E-480F-A7D4-08BE90AC9051}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7259740A-FD0E-480F-A7D4-08BE90AC9051}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7259740A-FD0E-480F-A7D4-08BE90AC9051}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2E1658E2-5045-4F85-A64C-C0ECCD39F719}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2E1658E2-5045-4F85-A64C-C0ECCD39F719}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E1658E2-5045-4F85-A64C-C0ECCD39F719}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1013,10 +1004,6 @@ Global
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1312,7 +1299,6 @@ Global
 		{91C574AD-0352-47E9-A019-EE02CC32A396} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A1455D30-55FC-45EF-8759-3AEBDB13D940} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{2169F526-8A88-435D-8732-486ACA095A6A} = {19148439-436F-4CDA-B493-70AF4FFC13E9}
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{B617717C-7881-4F01-AB6D-B1B6CC0483A0} = {4C81EBB2-82E1-4C81-80C4-84CC40FA281B}
 		{FD6BA96C-7905-4876-8BCC-E38E2CA64F31} = {913A4C08-898E-49C7-9692-0EF9DC56CF6E}
@@ -1358,7 +1344,6 @@ Global
 		{F822F72A-CC87-4E31-B57D-853F65CBEBF3} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{80FDDD00-9393-47F7-8BAF-7E87CE011068} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{7259740A-FD0E-480F-A7D4-08BE90AC9051} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{2E1658E2-5045-4F85-A64C-C0ECCD39F719} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{9C0660D9-48CA-40E1-BABA-8F6A1F11FE10} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{21A01C2D-2501-4619-8144-48977DD22D9C} = {38940C5F-97FD-4B2A-B2CD-C4E4EF601B05}
@@ -1367,7 +1352,6 @@ Global
 		{69F853E5-BD04-4842-984F-FC68CC51F402} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{6FC8E6F5-659C-424D-AEB5-331B95883E29} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{F040CEC5-5E11-4DBD-9F6A-250478E28177} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}

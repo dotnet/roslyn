@@ -67,5 +67,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
         }
+
+        [Fact]
+        public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
+        {
+            // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
+            var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException: null);
+        }
     }
 }

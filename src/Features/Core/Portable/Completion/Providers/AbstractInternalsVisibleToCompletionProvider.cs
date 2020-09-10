@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static async Task<bool> CheckTypeInfoOfAttributeAsync(Document document, SyntaxNode attributeNode, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeNode, cancellationToken).ConfigureAwait(false);
-            var typeInfo = semanticModel.GetTypeInfo(attributeNode);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attributeNode, cancellationToken).ConfigureAwait(false);
+            var typeInfo = semanticModel.GetTypeInfo(attributeNode, cancellationToken);
             var type = typeInfo.Type;
             if (type == null)
             {
@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return string.Empty;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
-            var constantCandidate = semanticModel.GetConstantValue(constructorArgument);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
+            var constantCandidate = semanticModel.GetConstantValue(constructorArgument, cancellationToken);
             if (constantCandidate.HasValue && constantCandidate.Value is string argument)
             {
                 if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))

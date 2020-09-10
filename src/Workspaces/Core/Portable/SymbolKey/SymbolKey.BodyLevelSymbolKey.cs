@@ -2,8 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -12,6 +18,25 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
+            public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
+
+                using var _ = ArrayBuilder<Location>.GetInstance(out var result);
+
+                foreach (var location in symbol.Locations)
+                {
+                    if (location.IsInSource)
+                        result.Add(location);
+                }
+
+                foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                    result.Add(syntaxRef.GetSyntax(cancellationToken).GetLocation());
+
+                return result.ToImmutable();
+            }
+
             public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
             {
                 // Store the body level symbol in two forms.  The first, a highly precise form that should find explicit
@@ -35,10 +60,10 @@ namespace Microsoft.CodeAnalysis
                 // write out the locations for precision
                 Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
 
-                var locations = symbol.Locations.Concat(
-                    symbol.DeclaringSyntaxReferences.SelectAsArray(r => r.GetSyntax(visitor.CancellationToken).GetLocation()));
+                var locations = GetBodyLevelSourceLocations(symbol, visitor.CancellationToken);
 
-                visitor.WriteLocationArray(locations);
+                Contract.ThrowIfFalse(locations.All(loc => loc.IsInSource));
+                visitor.WriteLocationArray(locations.Distinct());
 
                 // and the ordinal for resilience
                 visitor.WriteInteger(GetOrdinal());
@@ -52,9 +77,8 @@ namespace Microsoft.CodeAnalysis
 
                     // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
                     // compilation in the case of work done with a speculative model.
-                    if (Contains(compilation.SyntaxTrees, syntaxTree))
+                    if (TryGetSemanticModel(compilation, syntaxTree, out var semanticModel))
                     {
-                        var semanticModel = compilation.GetSemanticModel(syntaxTree);
                         foreach (var possibleSymbol in EnumerateSymbols(semanticModel, kind, localName, visitor.CancellationToken))
                         {
                             if (possibleSymbol.symbol.Equals(symbol))
@@ -66,43 +90,108 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            private static bool TryGetSemanticModel(
+                Compilation compilation, SyntaxTree? syntaxTree,
+                [NotNullWhen(true)] out SemanticModel? semanticModel)
+            {
+                // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                // compilation in the case of work done with a speculative model.
+                if (syntaxTree != null && Contains(compilation.SyntaxTrees, syntaxTree))
+                {
+                    semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    return true;
+                }
+
+                semanticModel = null;
+                return false;
+            }
+
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var name = reader.ReadString();
+                var name = reader.ReadString()!;
                 var kind = (SymbolKind)reader.ReadInteger();
-                var locations = reader.ReadLocationArray();
+#pragma warning disable IDE0007 // Use implicit type
+                PooledArrayBuilder<Location> locations = reader.ReadLocationArray(out var locationsFailureReason)!;
+#pragma warning restore IDE0007 // Use implicit type
                 var ordinal = reader.ReadInteger();
 
-                // First check if we can recover the symbol just through the original location.
-                foreach (var loc in locations)
+                if (locationsFailureReason != null)
                 {
-                    var resolutionOpt = reader.ResolveLocation(loc);
-                    if (resolutionOpt.HasValue)
+                    failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> {locationsFailureReason})";
+                    return default;
+                }
+
+                // First check if we can recover the symbol just through the original location.
+
+                string? totalFailureReason = null;
+                for (var i = 0; i < locations.Count; i++)
+                {
+                    var loc = locations[i];
+
+                    if (!TryResolveLocation(loc, i, out var resolution, out var reason))
                     {
-                        var resolution = resolutionOpt.Value;
-                        var symbol = resolution.GetAnySymbol();
-                        if (symbol?.Kind == kind &&
-                            SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
+                    }
+
+                    failureReason = null;
+                    return resolution;
+                }
+
+                // Couldn't recover.  See if we can still find a match across the textual drift.
+                if (ordinal != int.MaxValue &&
+                    TryGetSemanticModel(reader.Compilation, locations[0].SourceTree, out var semanticModel))
+                {
+                    foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
+                    {
+                        if (symbol.ordinal == ordinal)
                         {
-                            return resolution;
+                            failureReason = null;
+                            return new SymbolKeyResolution(symbol.symbol);
                         }
                     }
                 }
 
-                // Couldn't recover.  See if we can still find a match across the textual drift.
-                if (ordinal != int.MaxValue)
-                {
-                    var semanticModel = reader.Compilation.GetSemanticModel(locations[0].SourceTree);
-                    foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
-                    {
-                        if (symbol.ordinal == ordinal)
-                            return new SymbolKeyResolution(symbol.symbol);
-                    }
-                }
-
+                failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found -> {totalFailureReason})";
                 return default;
+
+                bool TryResolveLocation(Location loc, int index, out SymbolKeyResolution resolution, out string? reason)
+                {
+                    var resolutionOpt = reader.ResolveLocation(loc);
+                    if (resolutionOpt == null)
+                    {
+                        reason = $"location {index} failed to resolve";
+                        resolution = default;
+                        return false;
+                    }
+
+                    resolution = resolutionOpt.Value;
+                    var symbol = resolution.GetAnySymbol();
+                    if (symbol == null)
+                    {
+                        reason = $"location {index} did not produce any symbol";
+                        return false;
+                    }
+
+                    if (symbol.Kind != kind)
+                    {
+                        reason = $"location {index} did not match kind: {symbol.Kind} != {kind}";
+                        return false;
+                    }
+
+                    if (!SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                    {
+                        reason = $"location {index} did not match name: {symbol.Name} != {name}";
+                        return false;
+                    }
+
+                    reason = null;
+                    return true;
+                }
             }
 
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(

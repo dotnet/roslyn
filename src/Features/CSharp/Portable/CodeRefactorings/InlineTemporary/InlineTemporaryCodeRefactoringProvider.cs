@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 variableDeclarator.Span);
         }
 
-        private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
+        private static async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
             Document document,
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private static SyntaxAnnotation CreateConflictAnnotation()
             => ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
 
-        private async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
+        private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
 
                 // warn when inlining into a conditional expression, as the inlined expression will not be executed.
-                if (semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                if (semanticModel.GetSymbolInfo(o, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
                 {
                     node = node.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
         }
 
-        private SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)
+        private static SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)
         {
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
             var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return scope;
         }
 
-        private VariableDeclaratorSyntax FindDeclarator(SyntaxNode node)
+        private static VariableDeclaratorSyntax FindDeclarator(SyntaxNode node)
         {
             var annotatedNodesOrTokens = node.GetAnnotatedNodesAndTokens(DefinitionAnnotation).ToList();
             Debug.Assert(annotatedNodesOrTokens.Count == 1, "Only a single variable declarator should have been annotated.");
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return (VariableDeclaratorSyntax)annotatedNodesOrTokens.First().AsNode();
         }
 
-        private SyntaxNode RemoveDeclaratorFromVariableList(VariableDeclaratorSyntax variableDeclarator, VariableDeclarationSyntax variableDeclaration)
+        private static SyntaxNode RemoveDeclaratorFromVariableList(VariableDeclaratorSyntax variableDeclarator, VariableDeclarationSyntax variableDeclaration)
         {
             Debug.Assert(variableDeclaration.Variables.Count > 1);
             Debug.Assert(variableDeclaration.Variables.Contains(variableDeclarator));
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 newLocalDeclaration.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
-        private SyntaxNode RemoveDeclaratorFromScope(VariableDeclaratorSyntax variableDeclarator, SyntaxNode scope)
+        private static SyntaxNode RemoveDeclaratorFromScope(VariableDeclaratorSyntax variableDeclarator, SyntaxNode scope)
         {
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
 
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return newScope.RemoveNode(newLocalDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
         }
 
-        private ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
+        private static ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
         {
             while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
             {
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return expression;
         }
 
-        private async Task<ExpressionSyntax> CreateExpressionToInlineAsync(
+        private static async Task<ExpressionSyntax> CreateExpressionToInlineAsync(
             VariableDeclaratorSyntax variableDeclarator,
             Document document,
             CancellationToken cancellationToken)

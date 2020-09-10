@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     [UseExportProvider]
     public abstract class AbstractXmlTagCompletionTests
     {
-        internal abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
+        internal abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace testWorkspace);
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
         public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 var view = testDocument.GetTextView();
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                var commandHandler = CreateCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>());
+                var commandHandler = CreateCommandHandler(workspace);
 
                 var args = new TypeCharCommandArgs(view, view.TextBuffer, typeChar);
                 var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             }
         }
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {

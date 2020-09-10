@@ -17,7 +17,7 @@ Friend Class MockNamespaceSymbol
     Implements IMockSymbol
 
     Private _container As NamespaceSymbol
-    Private _extent As NamespaceExtent
+    Private ReadOnly _extent As NamespaceExtent
     Private _children As ImmutableArray(Of Symbol)
     Private ReadOnly _name As String
 
@@ -383,8 +383,8 @@ End Class
 Friend Class MockMethodSymbol
     Inherits MethodSymbol
 
-    Private _name As String
-    Private _container As Symbol
+    Private ReadOnly _name As String
+    Private ReadOnly _container As Symbol
 
     Public Sub New(name As String)
         _name = name
@@ -830,6 +830,10 @@ Friend Class MockAssemblySymbol
 
     Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
         Return Nothing
+    End Function
+
+    Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+        Throw New NotImplementedException()
     End Function
 
     Public Overrides Function GetMetadata() As AssemblyMetadata

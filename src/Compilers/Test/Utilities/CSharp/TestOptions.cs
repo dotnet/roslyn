@@ -24,9 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions RegularDefault = Regular.WithLanguageVersion(LanguageVersion.Default);
         public static readonly CSharpParseOptions RegularPreview = Regular.WithLanguageVersion(LanguageVersion.Preview);
         public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
+        public static readonly CSharpParseOptions Regular9 = Regular.WithLanguageVersion(LanguageVersion.CSharp9);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature("UseLegacyStrongNameProvider");
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
+        public static readonly CSharpParseOptions WithCovariantReturns = Regular.WithLanguageVersion(MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion());
+        public static readonly CSharpParseOptions WithoutCovariantReturns = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
+
+        public static readonly CSharpParseOptions RegularWithExtendedPartialMethods = RegularPreview;
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
@@ -70,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions SigningReleaseExe = ReleaseExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
         public static readonly CSharpCompilationOptions SigningReleaseModule = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
         public static readonly CSharpCompilationOptions SigningDebugDll = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
+
+        public static readonly CSharpCompilationOptions ReleaseDllWithWarningLevel5 = ReleaseDll.WithWarningLevel(5);
 
         public static readonly EmitOptions NativePdbEmit = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb);
 

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return false;
         }
 
-        private bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
+        private static bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
         {
             if (identifierName.IsKind(SyntaxKind.GenericName))
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
         }
 
-        private bool IsLegal(
+        private static bool IsLegal(
             SemanticDocument document,
             ExpressionSyntax expression,
             CancellationToken cancellationToken)

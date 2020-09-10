@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
         public static CSharpCommandLineParser Script { get; } = new CSharpCommandLineParser(isScriptCommandLineParser: true);
 
-        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
+        private static readonly char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptCommandLineParser = false)
             : base(CSharp.MessageProvider.Instance, isScriptCommandLineParser)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
             var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
-            int warningLevel = 4;
+            int warningLevel = Diagnostic.DefaultWarningLevel;
             bool highEntropyVA = false;
             bool printFullPaths = false;
             string? moduleAssemblyName = null;
@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
+            bool skipAnalyzers = false;
             ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo? preferredUILang = null;
             string? touchedFilesPath = null;
@@ -895,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
-                            else if (newWarningLevel < 0 || newWarningLevel > 4)
+                            else if (newWarningLevel < 0)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel, name);
                             }
@@ -1179,6 +1180,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             reportAnalyzer = true;
                             continue;
 
+                        case "skipanalyzers":
+                        case "skipanalyzers+":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = true;
+                            continue;
+
+                        case "skipanalyzers-":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = false;
+                            continue;
+
                         case "nostdlib":
                         case "nostdlib+":
                             if (value != null)
@@ -1441,7 +1457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 runtimeMetadataVersion: runtimeMetadataVersion,
                 instrumentationKinds: instrumentationKinds.ToImmutableAndFree(),
                 // TODO: set from /checksumalgorithm (see https://github.com/dotnet/roslyn/issues/24735)
-                pdbChecksumAlgorithm: HashAlgorithmName.SHA256
+                pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
+                defaultSourceFileEncoding: codepage
             );
 
             // add option incompatibility errors if any
@@ -1502,6 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
+                SkipAnalyzers = skipAnalyzers,
                 EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }

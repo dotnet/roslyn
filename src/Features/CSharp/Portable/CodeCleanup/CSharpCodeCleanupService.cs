@@ -84,8 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
-                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId })
-            );
+                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId }),
+
+                new DiagnosticSet(CSharpFeaturesResources.Apply_file_header_preferences,
+                    new[] { IDEDiagnosticIds.FileHeaderMismatch }));
 
         public async Task<Document> CleanupAsync(
             Document document,
@@ -94,7 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             CancellationToken cancellationToken)
         {
             // add one item for the 'format' action we'll do last
-            progressTracker.AddItems(1);
+            if (enabledDiagnostics.FormatDocument)
+            {
+                progressTracker.AddItems(1);
+            }
 
             // and one for 'remove/sort usings' if we're going to run that.
             var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled ||
@@ -119,16 +124,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 progressTracker.ItemCompleted();
             }
 
-            progressTracker.Description = FeaturesResources.Formatting_document;
-            using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+            if (enabledDiagnostics.FormatDocument)
             {
-                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
-                progressTracker.ItemCompleted();
-                return result;
+                progressTracker.Description = FeaturesResources.Formatting_document;
+                using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+                {
+                    document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    progressTracker.ItemCompleted();
+                }
             }
+
+            return document;
         }
 
-        private async Task<Document> RemoveSortUsingsAsync(
+        private static async Task<Document> RemoveSortUsingsAsync(
             Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled)
@@ -192,6 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public EnabledDiagnosticOptions GetAllDiagnostics()
-            => new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
+            => new EnabledDiagnosticOptions(formatDocument: true, s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

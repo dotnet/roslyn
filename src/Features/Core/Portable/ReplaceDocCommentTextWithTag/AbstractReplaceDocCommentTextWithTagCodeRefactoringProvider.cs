@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return true;
         }
 
-        private ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position);
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                if (semanticModel.GetDeclaredSymbol(node) is ISymbol declaration)
+                if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is ISymbol declaration)
                 {
                     return declaration;
                 }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return null;
         }
 
-        private void RegisterRefactoring(
+        private static void RegisterRefactoring(
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
             context.RegisterRefactoring(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 expandedSpan);
         }
 
-        private async Task<Document> ReplaceTextAsync(
+        private static async Task<Document> ReplaceTextAsync(
             Document document, TextSpan span, string replacement, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return document.WithText(newText);
         }
 
-        private TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
+        private static TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
         {
             if (span.Length != 0)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return TextSpan.FromBounds(startInclusive, endExclusive);
         }
 
-        private bool ShouldExpandSpanForwardOneCharacter(
+        private static bool ShouldExpandSpanForwardOneCharacter(
             SourceText sourceText, int endExclusive, bool fullyQualifiedName)
         {
             var currentChar = sourceText[endExclusive];
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return false;
         }
 
-        private bool ShouldExpandSpanBackwardOneCharacter(
+        private static bool ShouldExpandSpanBackwardOneCharacter(
             SourceText sourceText, int startInclusive, bool fullyQualifiedName)
         {
             Debug.Assert(startInclusive > 0);

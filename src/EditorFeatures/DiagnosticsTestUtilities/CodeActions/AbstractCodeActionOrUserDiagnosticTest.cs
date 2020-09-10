@@ -11,13 +11,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Composition;
+using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 #if CODE_STYLE
@@ -35,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public struct TestParameters
         {
             internal readonly OptionsCollection options;
-            internal readonly bool runProviderOutOfProc;
+            internal readonly TestHost testHost;
             internal readonly object fixProviderData;
             internal readonly ParseOptions parseOptions;
             internal readonly CompilationOptions compilationOptions;
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 bool retainNonFixableDiagnostics = false,
                 bool includeDiagnosticsOutsideSelection = false,
                 string title = null,
-                bool runProviderOutOfProc = false)
+                TestHost testHost = TestHost.InProcess)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -66,26 +72,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
                 this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
                 this.title = title;
-                this.runProviderOutOfProc = runProviderOutOfProc;
+                this.testHost = testHost;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
+
+            public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
 
             internal TestParameters WithOptions(OptionsCollection options)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
 
             public TestParameters WithIndex(int index)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
 
             public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
 
             public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost);
         }
 
         private const string AutoGeneratedAnalyzerConfigHeader = @"# auto-generated .editorconfig for code style options";
@@ -93,13 +102,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected internal abstract string GetLanguage();
         protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
         protected abstract ParseOptions GetScriptOptions();
+        protected virtual TestComposition GetComposition() => EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
-        protected TestWorkspace CreateWorkspaceFromOptions(
-            string initialMarkup, TestParameters parameters)
+        protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? TestWorkspace.Create(initialMarkup, openDocuments: false)
-                 : CreateWorkspaceFromFile(initialMarkup, parameters);
+        }
+
+        protected virtual TestParameters SetParameterDefaults(TestParameters parameters)
+            => parameters;
+
+        protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters)
+        {
+            var composition = GetComposition().WithTestHostParts(parameters.testHost);
+
+            parameters = SetParameterDefaults(parameters);
+
+            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode) ?
+                TestWorkspace.Create(workspaceMarkupOrCode, openDocuments: false, composition: composition) :
+                TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition);
+
+            InitializeWorkspace(workspace, parameters);
 
             // For CodeStyle layer testing, we create an .editorconfig at project root
             // to apply the options as workspace options are not available in CodeStyle layer.
@@ -160,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return;
         }
 
-        private void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, OptionsCollection options)
+        private static void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, OptionsCollection options)
         {
             Debug.Assert(options != null);
             var analyzerConfigText = GenerateAnalyzerConfigText(options);
@@ -195,9 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 #endif
 
-        protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
-
-        private TestParameters WithRegularOptions(TestParameters parameters)
+        private static TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
 
         private TestParameters WithScriptOptions(TestParameters parameters)
@@ -306,11 +328,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             OptionsCollection options = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
-            string title = null)
+            string title = null,
+            TestHost testHost = TestHost.InProcess)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title, testHost: testHost));
         }
 
         internal Task TestInRegularAndScript1Async(
@@ -328,22 +351,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             await TestAsync(initialMarkup, expectedMarkup, WithRegularOptions(parameters));
-            await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
+
+            // VB scripting is not supported:
+            if (GetLanguage() == LanguageNames.CSharp)
+            {
+                await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
+            }
         }
 
         internal Task TestAsync(
-            string initialMarkup, string expectedMarkup,
+            string initialMarkup,
+            string expectedMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions = null,
-            int index = 0, OptionsCollection options = null,
+            int index = 0,
+            OptionsCollection options = null,
             object fixProviderData = null,
-            CodeActionPriority? priority = null)
+            CodeActionPriority? priority = null,
+            TestHost testHost = TestHost.InProcess)
         {
             return TestAsync(
                 initialMarkup,
                 expectedMarkup,
-                new TestParameters(
-                    parseOptions, compilationOptions, options, fixProviderData, index, priority));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, testHost: testHost));
         }
 
         private async Task TestAsync(
@@ -377,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         .WithRetainNonFixableDiagnostics(true)
                         .WithIncludeDiagnosticsOutsideSelection(true));
 
-                    TestDiagnosticTags(allDiagnostics, unnecessarySpans, WellKnownDiagnosticTags.Unnecessary, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
+                    TestUnnecessarySpans(allDiagnostics, unnecessarySpans, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
                 }
 
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
@@ -388,28 +418,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private static void TestDiagnosticTags(
+        private static void TestUnnecessarySpans(
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableArray<TextSpan> expectedSpans,
-            string diagnosticTag,
             string markupKey,
             string initialMarkupWithoutSpans)
         {
-            var diagnosticsWithTag = diagnostics
-                .Where(d => d.Descriptor.CustomTags.Contains(diagnosticTag))
-                .OrderBy(s => s.Location.SourceSpan.Start)
-                .ToImmutableArray();
+            var unnecessaryLocations = diagnostics.SelectMany(GetUnnecessaryLocations)
+                .OrderBy(location => location.SourceSpan.Start)
+                .ThenBy(location => location.SourceSpan.End)
+                .ToArray();
 
-            if (expectedSpans.Length != diagnosticsWithTag.Length)
+            if (expectedSpans.Length != unnecessaryLocations.Length)
             {
-                AssertEx.Fail(BuildFailureMessage(expectedSpans, diagnosticTag, markupKey, initialMarkupWithoutSpans, diagnosticsWithTag));
+                AssertEx.Fail(BuildFailureMessage(expectedSpans, WellKnownDiagnosticTags.Unnecessary, markupKey, initialMarkupWithoutSpans, diagnostics));
             }
 
             for (var i = 0; i < expectedSpans.Length; i++)
             {
-                var actual = diagnosticsWithTag[i].Location.SourceSpan;
+                var actual = unnecessaryLocations[i].SourceSpan;
                 var expected = expectedSpans[i];
                 Assert.Equal(expected, actual);
+            }
+
+            static IEnumerable<Location> GetUnnecessaryLocations(Diagnostic diagnostic)
+            {
+                if (diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                    yield return diagnostic.Location;
+
+                if (!diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var additionalUnnecessaryLocationsString))
+                    yield break;
+
+                var locations = JArray.Parse(additionalUnnecessaryLocationsString);
+                foreach (var locationIndex in locations)
+                    yield return diagnostic.AdditionalLocations[(int)locationIndex];
             }
         }
 
@@ -431,7 +473,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 foreach (var diagnostic in diagnosticsWithTag)
                 {
                     var documentOffset = initialMarkupWithoutSpans.IndexOf(diagnosticsWithTag.First().Location.SourceTree.ToString());
-                    if (documentOffset == -1) continue;
+                    if (documentOffset == -1)
+                        continue;
 
                     segments.Add((documentOffset + diagnostic.Location.SourceSpan.Start, "{|" + markupKey + ":"));
                     segments.Add((documentOffset + diagnostic.Location.SourceSpan.End, "|}"));
@@ -482,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
+        protected static async Task<Tuple<Solution, Solution>> TestOperationsAsync(
             TestWorkspace workspace,
             string expectedText,
             ImmutableArray<CodeActionOperation> operations,
@@ -498,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             if (TestWorkspace.IsWorkspaceElement(expectedText))
             {
-                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolution);
+                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolution, workspace.ExportProvider);
                 return Tuple.Create(oldSolution, newSolution);
             }
 
@@ -563,9 +606,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return document;
         }
 
-        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
+        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, ExportProvider exportProvider)
         {
-            using (var expectedWorkspace = TestWorkspace.Create(expectedText))
+            using (var expectedWorkspace = TestWorkspace.Create(expectedText, exportProvider: exportProvider))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
@@ -577,7 +620,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     foreach (var doc in project.Documents)
                     {
                         var root = await doc.GetSyntaxRootAsync();
-                        var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
+                        var expectedDocuments = expectedProject.Documents.Where(d => d.Name == doc.Name);
+
+                        if (expectedDocuments.Any())
+                        {
+                            Assert.Single(expectedDocuments);
+                        }
+                        else
+                        {
+                            AssertEx.Fail($"Could not find document with name '{doc.Name}'");
+                        }
+
+                        var expectedDocument = expectedDocuments.Single();
+
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
                         VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
                     }
@@ -647,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return await action.GetOperationsAsync(CancellationToken.None);
         }
 
-        protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
+        protected static Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
             TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {
@@ -680,6 +735,60 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected virtual ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => actions;
 
+        internal static void VerifyCodeActionsRegisteredByProvider(CodeFixProvider provider, List<CodeFix> fixes)
+        {
+            if (provider.GetFixAllProvider() == null)
+            {
+                // Only require unique equivalence keys when the fixer supports FixAll
+                return;
+            }
+
+            var diagnosticsAndEquivalenceKeyToTitleMap = new Dictionary<(Diagnostic diagnostic, string equivalenceKey), string>();
+            foreach (var fix in fixes)
+            {
+                VerifyCodeAction(fix.Action, fix.Diagnostics, provider, diagnosticsAndEquivalenceKeyToTitleMap);
+            }
+
+            return;
+
+            static void VerifyCodeAction(
+                CodeAction codeAction,
+                ImmutableArray<Diagnostic> diagnostics,
+                CodeFixProvider provider,
+                Dictionary<(Diagnostic diagnostic, string equivalenceKey), string> diagnosticsAndEquivalenceKeyToTitleMap)
+            {
+                if (!codeAction.NestedCodeActions.IsEmpty)
+                {
+                    // Only validate leaf code actions.
+                    foreach (var nestedAction in codeAction.NestedCodeActions)
+                    {
+                        VerifyCodeAction(nestedAction, diagnostics, provider, diagnosticsAndEquivalenceKeyToTitleMap);
+                    }
+
+                    return;
+                }
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    var key = (diagnostic, codeAction.EquivalenceKey);
+                    var existingTitle = diagnosticsAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
+                    if (existingTitle != codeAction.Title)
+                    {
+                        var messageSuffix = codeAction.EquivalenceKey != null
+                            ? string.Empty
+                            : @"
+Consider using the title as the equivalence key instead of 'null'";
+
+                        Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
+- Name: '{provider.GetType().Name}'
+- Title 1: '{codeAction.Title}'
+- Title 2: '{existingTitle}'
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'{messageSuffix}");
+                    }
+                }
+            }
+        }
+
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
             return codeActions.SelectMany(a => a.NestedCodeActions.Length > 0
@@ -689,8 +798,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
-
-
 
         /// <summary>
         /// Tests all the code actions for the given <paramref name="input"/> string.  Each code

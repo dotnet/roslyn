@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Private Overloads Function GetAvailableInsertionIndices(destination As CompilationUnitSyntax, cancellationToken As CancellationToken) As IList(Of Boolean)
+        Private Overloads Shared Function GetAvailableInsertionIndices(destination As CompilationUnitSyntax, cancellationToken As CancellationToken) As IList(Of Boolean)
             Dim members = destination.Members
 
             Dim indices = New List(Of Boolean)
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function AddStatementsWorker(Of TDeclarationNode As SyntaxNode)(
+        Private Shared Function AddStatementsWorker(Of TDeclarationNode As SyntaxNode)(
                 destinationMember As TDeclarationNode,
                 statements As IEnumerable(Of SyntaxNode),
                 options As CodeGenerationOptions,
@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Using
         End Function
 
-        Private Function UpdateSimpleAsClause(asClause As SimpleAsClauseSyntax, newType As ITypeSymbol) As SimpleAsClauseSyntax
+        Private Shared Function UpdateSimpleAsClause(asClause As SimpleAsClauseSyntax, newType As ITypeSymbol) As SimpleAsClauseSyntax
             Dim newTypeSyntax = newType.GenerateTypeSyntax().
                 WithLeadingTrivia(asClause.GetLeadingTrivia()).
                 WithTrailingTrivia(asClause.GetTrailingTrivia())
@@ -636,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(asClause, SimpleAsClauseSyntax).WithType(newTypeSyntax)
         End Function
 
-        Private Function UpdateAsClause(asClause As AsClauseSyntax, newType As ITypeSymbol) As AsClauseSyntax
+        Private Shared Function UpdateAsClause(asClause As AsClauseSyntax, newType As ITypeSymbol) As AsClauseSyntax
             Dim newTypeSyntax = newType.GenerateTypeSyntax().
                 WithLeadingTrivia(asClause.GetLeadingTrivia()).
                 WithTrailingTrivia(asClause.GetTrailingTrivia())

@@ -256,7 +256,6 @@ Hello
                   <typeparam name=""T"">{multiLineText}</typeparam>
                   <remarks>{multiLineText}</remarks>";
 
-
             var expected = @"Hello
 World     .
 +

@@ -238,6 +238,45 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
             => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
 
+        /// <summary>
+        /// Gets the statement container node for the statement <paramref name="node"/>.
+        /// </summary>
+        /// <param name="syntaxFacts">The <see cref="ISyntaxFacts"/> implementation.</param>
+        /// <param name="node">The statement.</param>
+        /// <returns>The statement container for <paramref name="node"/>.</returns>
+        public static SyntaxNode? GetStatementContainer(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            for (var current = node; current is object; current = current.Parent)
+            {
+                if (syntaxFacts.IsStatementContainer(current.Parent))
+                {
+                    return current.Parent;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Similar to <see cref="ISyntaxFacts.GetStandaloneExpression(SyntaxNode)"/>, this gets the containing
+        /// expression that is actually a language expression and not just typed as an ExpressionSyntax for convenience.
+        /// However, this goes beyond that that method in that if this expression is the RHS of a conditional access
+        /// (i.e. <c>a?.b()</c>) it will also return the root of the conditional access expression tree.
+        /// <para/> The intuition here is that this will give the topmost expression node that could realistically be
+        /// replaced with any other expression.  For example, with <c>a?.b()</c> technically <c>.b()</c> is an
+        /// expression.  But that cannot be replaced with something like <c>(1 + 1)</c> (as <c>a?.(1 + 1)</c> is not
+        /// legal).  However, in <c>a?.b()</c>, then <c>a</c> itself could be replaced with <c>(1 + 1)?.b()</c> to form
+        /// a legal expression.
+        /// </summary>
+        public static SyntaxNode GetRootStandaloneExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            // First, make sure we're on a construct the language things is a standalone expression.
+            var standalone = syntaxFacts.GetStandaloneExpression(node);
+
+            // Then, if this is the RHS of a `?`, walk up to the top of that tree to get the final standalone expression.
+            return syntaxFacts.GetRootConditionalAccessExpression(standalone) ?? standalone;
+        }
+
         #region ISyntaxKinds forwarding methods
 
         #region trivia
@@ -401,19 +440,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region members/declarations
 
-        public static bool IsAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Attribute;
 
-        public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsGlobalAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => syntaxFacts.IsGlobalAssemblyAttribute(node) || syntaxFacts.IsGlobalModuleAttribute(node);
+
+        public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Parameter;
 
-        public static bool IsTypeConstraint(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsTypeConstraint(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeConstraint;
 
-        public static bool IsVariableDeclarator(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsVariableDeclarator(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.VariableDeclarator;
 
-        public static bool IsTypeArgumentList(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsTypeArgumentList(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeArgumentList;
 
         #endregion

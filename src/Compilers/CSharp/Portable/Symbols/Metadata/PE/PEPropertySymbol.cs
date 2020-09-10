@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -131,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isBad;
 
             _parameters = setMethodParams is null
-                ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
-                : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
+                ? GetParameters(moduleSymbol, this, getMethod, propertyParams, getMethodParams, out isBad)
+                : GetParameters(moduleSymbol, this, setMethod, propertyParams, setMethodParams, out isBad);
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
@@ -184,7 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
             bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams) ||
-                MustCallMethodsDirectlyCore();
+                MustCallMethodsDirectlyCore() ||
+                anyUnexpectedRequiredModifiers(propertyParams);
 
             if (!callMethodsDirectly)
             {
@@ -212,6 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((mdFlags & PropertyAttributes.RTSpecialName) != 0)
             {
                 _flags |= Flags.IsRuntimeSpecialName;
+            }
+
+            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams)
+            {
+                return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
+                                               p.CustomModifiers.AnyRequired());
             }
         }
 
@@ -662,9 +670,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static ImmutableArray<ParameterSymbol> GetParameters(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol property,
+            PEMethodSymbol accessor,
             ParamInfo<TypeSymbol>[] propertyParams,
             ParamInfo<TypeSymbol>[] accessorParams,
-            bool isPropertyVirtual,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;
@@ -683,11 +691,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // NOTE: this is a best guess at the Dev10 behavior.  The actual behavior is
                 // in the unmanaged helper code that Dev10 uses to load the metadata.
                 var propertyParam = propertyParams[i];
-                var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
+                ParameterHandle paramHandle;
+                Symbol nullableContext;
+                if (i < numAccessorParams)
+                {
+                    paramHandle = accessorParams[i].Handle;
+                    nullableContext = accessor;
+                }
+                else
+                {
+                    paramHandle = propertyParam.Handle;
+                    nullableContext = property;
+                }
                 var ordinal = i - 1;
                 bool isBad;
 
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, accessor.IsMetadataVirtual(), ordinal, paramHandle, propertyParam, nullableContext, out isBad);
 
                 if (isBad)
                 {

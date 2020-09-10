@@ -6,14 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-
-#if DEBUG
-using System.Diagnostics;
-#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -51,19 +47,12 @@ namespace Microsoft.CodeAnalysis
                 public TrackedGeneratorDriver GeneratorDriver { get; }
 
                 /// <summary>
-                /// Weak table of the assembly, module and dynamic symbols that this compilation tracker has created.
+                /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
                 /// This can be used to determine which project an assembly symbol came from after the fact.  This is
                 /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
                 /// compilation (or any of it's assemblies) may produce new assembly symbols.
                 /// </summary>
-                /// <remarks>
-                /// Ideally this would just be <c>ConditionalWeakSet&lt;ISymbol&gt;</c>.  Effectively we just want to
-                /// hold onto the symbols as long as someone else is keeping them alive.  And we don't actually need
-                /// them to map to anything.  We just use their existence to know if our project was the project it came
-                /// from.  However, ConditionalWeakTable is the best tool we have, so we simulate a set by just using a
-                /// table and mapping the keys to the <see langword="null"/> value.
-                /// </remarks>
-                public readonly ConditionalWeakTable<ISymbol, object?>? UnrootedSymbolSet;
+                public readonly UnrootedSymbolSet? UnrootedSymbolSet;
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
@@ -80,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
                     TrackedGeneratorDriver generatorDriver,
-                    ConditionalWeakTable<ISymbol, object?>? unrootedSymbolSet)
+                    UnrootedSymbolSet? unrootedSymbolSet)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -115,29 +104,28 @@ namespace Microsoft.CodeAnalysis
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
 
-                public static ConditionalWeakTable<ISymbol, object?> GetUnrootedSymbols(Compilation compilation)
+                public static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
                 {
-                    var result = new ConditionalWeakTable<ISymbol, object?>();
 
-                    var compAssembly = compilation.Assembly;
-                    result.Add(compAssembly, null);
+                    var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
 
                     // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
                     // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
                     // underlying compilation is GC'ed.
-                    if (compilation.Language == LanguageNames.CSharp)
-                        result.Add(compilation.DynamicType, null);
+                    var primaryDynamic = new WeakReference<ITypeSymbol?>(
+                        compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
 
+                    var secondarySymbols = new WeakSet<ISymbol>();
                     foreach (var reference in compilation.References)
                     {
                         var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
                         if (symbol == null)
                             continue;
 
-                        result.Add(symbol, null);
+                        secondarySymbols.Add(symbol);
                     }
 
-                    return result;
+                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols);
                 }
             }
 
@@ -217,16 +205,14 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedFiles,
                     TrackedGeneratorDriver generatorDriver,
                     bool hasSuccessfullyLoaded,
-                    ConditionalWeakTable<ISymbol, object?>? compilationAssemblies)
+                    UnrootedSymbolSet? unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatorDriver,
-                           compilationAssemblies)
+                           unrootedSymbolSet)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilation = finalCompilationSource;
-
-#if DEBUG
 
                     if (generatorDriver.GeneratorDriver == null)
                     {
@@ -235,8 +221,6 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilation));
                         Debug.Assert(object.ReferenceEquals(finalCompilation.Value, compilationWithoutGeneratedFiles));
                     }
-
-#endif
                 }
             }
         }

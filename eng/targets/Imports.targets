@@ -4,6 +4,18 @@
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
+  <!--
+    Work around .editorconfig evaluation bugs in command line builds.
+    https://github.com/dotnet/roslyn/issues/43371
+  -->
+  <Target Name="MapToAbsoluteFilePaths" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_AbsoluteCompile Include="@(Compile->'%(FullPath)')" />
+      <Compile Remove="@(Compile)" />
+      <Compile Include="@(_AbsoluteCompile)" />
+    </ItemGroup>
+  </Target>
+
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
@@ -11,7 +23,7 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
@@ -23,8 +35,10 @@
       Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+      We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
+      allow nullable warnings regardless of target framework.
     -->
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
 
     <!--
       Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
@@ -161,6 +175,34 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    Work around missing code fix references causing VBCSCompiler.exe to reject compilations.
+    https://github.com/dotnet/roslyn/issues/46684
+  -->
+  <Target Name="ExcludeCodeFixes"
+          BeforeTargets="CoreCompile"
+          Condition="'$(UseRoslynAnalyzers)' != 'false' AND '$(BuildingProject)' == 'true'">
+    <!--
+      Disable analyzers that only provide code fixes.
+    -->
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)"
+                Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
+                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
+    </ItemGroup>
+
+    <!--
+      Explicitly reference Humanizer prior to https://github.com/dotnet/roslyn/pull/47297
+    -->
+    <ItemGroup>
+      <Analyzer Include="$(NuGetPackageRoot)\humanizer.core\$(HumanizerCoreVersion)\lib\netstandard1.0\Humanizer.dll" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageDownload Include="Humanizer.Core" Version="[$(HumanizerCoreVersion)]" />
+  </ItemGroup>
+
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
     directory of the build. Useful when the referenced project is an EXE and the referencing 
@@ -184,6 +226,11 @@
   -->
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include BannedSymbols covering all projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
   </ItemGroup>
 
   <ItemGroup>

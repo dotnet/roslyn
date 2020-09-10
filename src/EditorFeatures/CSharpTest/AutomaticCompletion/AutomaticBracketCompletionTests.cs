@@ -247,7 +247,7 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        internal Holder CreateSession(string code)
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

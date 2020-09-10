@@ -28,11 +28,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
-            if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoSideEffects) == DkmEvaluationFlags.NoSideEffects)
-            {
-                return;
-            }
-
             if (InRange(startIndex, count, index))
             {
                 rows.Add(GetRow(inspectionContext, value, parent));

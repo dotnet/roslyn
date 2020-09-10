@@ -2007,7 +2007,7 @@ class Test
 
             CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
@@ -3486,7 +3486,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { MscorlibRef, SystemCoreRef },
+                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);

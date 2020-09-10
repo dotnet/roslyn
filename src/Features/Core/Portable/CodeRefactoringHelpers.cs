@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis
             return beginningNode.Span.End <= selection.Start || endNode.Span.Start >= selection.End;
         }
 
-
         /// <summary>
         /// Trims leading and trailing whitespace from <paramref name="span"/>.
         /// </summary>

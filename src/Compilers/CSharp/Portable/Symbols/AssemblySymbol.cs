@@ -382,6 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new MissingMetadataTypeSymbol.TopLevel(forwardingModule, ref emittedName, diagnosticInfo);
         }
 
+        internal abstract IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes();
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
@@ -422,7 +424,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
-            get => !(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is null);
+            get => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is object;
+        }
+
+        // https://github.com/dotnet/roslyn/issues/46676: Remove when we have a runtime that supports this to test with
+        private bool _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
+        internal void SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention()
+            => _overrideRuntimeSupportUnmanagedSignatureCallingConvention = true;
+
+        internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
+            => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention) is object
+               || _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
+
+        /// <summary>
+        /// True if the target runtime support covariant returns of methods declared in classes.
+        /// </summary>
+        internal bool RuntimeSupportsCovariantReturnsOfClasses
+        {
+            get
+            {
+                // check for the runtime feature indicator and the required attribute.
+                return
+                    GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is { } &&
+                    GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute) is { TypeKind: TypeKind.Class };
+            }
         }
 
         /// <summary>

@@ -167,8 +167,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        [Fact, WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixReturnType_LocalFunction_ArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -182,8 +181,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        [Fact, WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixLocalFunctionReturnType()
         {
             await TestInRegularAndScript1Async(
@@ -225,8 +223,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [Fact, WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixField()
         {
             await TestInRegularAndScript1Async(
@@ -417,8 +414,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [Fact, WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixPropertyDeclaration()
         {
             await TestInRegularAndScript1Async(
@@ -606,8 +602,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
@@ -629,8 +624,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixAllReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
@@ -682,8 +676,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        [Fact, WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
         public async Task FixAllReturnType_Invocation()
         {
             await TestInRegularAndScript1Async(
@@ -739,8 +732,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
+        [Fact, WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
         public async Task FixReturnType_TernaryExpression_Function()
         {
             await TestInRegularAndScript1Async(
@@ -762,8 +754,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        [Fact, WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_Default()
         {
             await TestInRegularAndScript1Async(
@@ -785,8 +776,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        [Fact, WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
         public async Task FixReturnType_DefaultWithNullableType()
         {
             await TestInRegularAndScript1Async(
@@ -832,6 +822,21 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
+        [Fact, WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        public async Task NoFixInvocationOfExternalMethod_NamedArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    void M()
+    {
+        var list = new System.Collections.Generic.List<string>();
+        list.Add(item: [|null|]);
+    }
+}", parameters: s_nullableFeature);
+        }
+
         [Fact]
         public async Task FixInvocation_NamedArgument_OutOfOrder()
         {
@@ -853,6 +858,21 @@ class Program
         M2(x: null, i: 1);
     }
     void M2(int i, string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        public async Task NoFixInvocationOfExternalMethod_NamedArgument_OutOfOrder()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    void M()
+    {
+        var dict = new System.Collections.Generic.Dictionary<string, int>();
+        dict.Add(value: 0, key: [|null|]);
+    }
 }", parameters: s_nullableFeature);
         }
 
@@ -893,6 +913,21 @@ class Program
         M2(null);
     }
     void M2(string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        public async Task NoFixInvocationOfExternalMethod_PositionArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    void M()
+    {
+        var list = new System.Collections.Generic.List<string>();
+        list.Add([|null|]);
+    }
 }", parameters: s_nullableFeature);
         }
 
@@ -968,6 +1003,112 @@ class C
     string? S { get; }
 }",
                 parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
+        public async Task FixFieldDeclaration_Unassigned()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+class C
+{
+    private string [|_value|];
+}",
+@"#nullable enable
+
+class C
+{
+    private string? _value;
+}",
+                parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
+        public async Task MultipleDeclarator_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    string [|s|], s2 = ""hello"";
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        public async Task FixTupleFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+  static void F1((string, string?) t)
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = [|null|];
+  }
+}",
+@"#nullable enable
+class Program
+{
+  static void F1((string?, string?) t)
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = null;
+  }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        public async Task FixTupleNamedFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+  static void F1((string Foo, string? Bar) t)
+  {
+    if (t.Bar == null) return;
+    t.Foo = [|null|];
+  }
+}",
+@"#nullable enable
+class Program
+{
+  static void F1((string? Foo, string? Bar) t)
+  {
+    if (t.Bar == null) return;
+    t.Foo = null;
+  }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact, WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        public async Task FixTupleGenericFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+  static void F1<T>((T, T?) t) where T : class
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = [|null|];
+    
+    var (a, b) = t;
+  }
+}",
+@"#nullable enable
+class Program
+{
+  static void F1<T>((T?, T?) t) where T : class
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = null;
+    
+    var (a, b) = t;
+  }
+}", parameters: s_nullableFeature);
         }
     }
 }

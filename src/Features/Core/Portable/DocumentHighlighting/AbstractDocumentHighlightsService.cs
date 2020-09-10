@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     solution,
                     new object[]
@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
-                }
+                return result.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -78,7 +75,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
@@ -165,22 +162,21 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Document startingDocument,
+            ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
-
             references = references.FilterToItemsToShow(options);
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
             if (symbol.IsConstructor())
             {
-                references = references.Where(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+                references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
             }
 
-            var additionalReferences = new List<Location>();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
             foreach (var currentDocument in documentsToSearch)
             {
@@ -209,7 +205,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
-            IEnumerable<Location> additionalReferences,
+            ArrayBuilder<Location> additionalReferences,
             IImmutableSet<Document> documentToSearch,
             CancellationToken cancellationToken)
         {
@@ -298,16 +294,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 case SymbolKind.NamedType:
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
-
-                case SymbolKind.Parameter:
-                    // If it's an indexer parameter, we will have also cascaded to the accessor
-                    // one that actually receives the references
-                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
-                    {
-                        return false;
-                    }
-
-                    break;
             }
 
             return true;

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
@@ -22,16 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private readonly string? _diagnosticsClientName;
         private readonly IDiagnosticService _diagnosticService;
-        private readonly LanguageServerProtocol _languageServerProtocol;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private InProcLanguageServer? _languageServer;
-
-        /// <summary>
-        /// Allows the implementation to specify if hover should be supported from this language client.
-        /// Can be removed as soon as LSP supports classifications in hover.
-        /// Tracking - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
-        /// </summary>
-        protected virtual bool SupportsHover => false;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -64,21 +59,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService, string? diagnosticsClientName)
+        public AbstractLanguageServerClient(AbstractRequestHandlerProvider requestHandlerProvider,
+            VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            string? diagnosticsClientName)
         {
-            _languageServerProtocol = languageServerProtocol;
+            _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
+            _listenerProvider = listenerProvider;
             _diagnosticsClientName = diagnosticsClientName;
         }
 
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
-            Contract.ThrowIfFalse(_languageServer == null, "This language server has already been initialized");
+            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: _diagnosticsClientName, SupportsHover);
+            _languageServer = new InProcLanguageServer(serverStream, serverStream, _requestHandlerProvider, _workspace,
+                _diagnosticService, _listenerProvider, clientName: _diagnosticsClientName);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 

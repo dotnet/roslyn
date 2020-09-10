@@ -14,8 +14,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -157,7 +157,6 @@ __234567890ABCDEF
 __|234567890ABCDEF
 1234567890ABCDEF");
         }
-
 
         [WpfFact]
         public void BottomLeftTopRightSymbolToSymbol()

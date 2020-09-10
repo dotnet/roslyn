@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// identifier that is always treated as being a special keyword, regardless of where it is
         /// found in the token stream.  Examples of this are tokens like <see langword="class"/> and
         /// <see langword="Class"/> in C# and VB respectively.
-        /// 
+        ///
         /// Importantly, this does *not* include contextual keywords.  If contextual keywords are
         /// important for your scenario, use <see cref="IsContextualKeyword"/> or <see
         /// cref="ISyntaxFactsExtensions.IsReservedOrContextualKeyword"/>.  Also, consider using
-        /// <see cref="ISyntaxFactsExtensions.IsWord"/> if all you need is the ability to know 
+        /// <see cref="ISyntaxFactsExtensions.IsWord"/> if all you need is the ability to know
         /// if this is effectively any identifier in the language, regardless of whether the language
         /// is treating it as a keyword or not.
         /// </summary>
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// 'contextual' keywords.  This is because they are not treated as keywords depending on
         /// the syntactic context around them.  Instead, the language always treats them identifiers
         /// that have special *semantic* meaning if they end up not binding to an existing symbol.
-        /// 
+        ///
         /// Importantly, if <paramref name="token"/> is not in the syntactic construct where the
         /// language thinks an identifier should be contextually treated as a keyword, then this
         /// will return <see langword="false"/>.
-        /// 
+        ///
         /// Or, in other words, the parser must be able to identify these cases in order to be a
         /// contextual keyword.  If identification happens afterwards, it's not contextual.
         /// </summary>
@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// preprocessor directive.  For example `if` or `pragma`.
         /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
+        bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
@@ -92,13 +93,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsUsingAliasDirective(SyntaxNode node);
-        bool IsGlobalAttribute(SyntaxNode node);
+        bool IsGlobalAssemblyAttribute(SyntaxNode node);
+        bool IsGlobalModuleAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
         bool IsElastic(SyntaxTrivia trivia);
+        bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         /// <summary>
-        /// Get the node on the left side of the dot if given a dotted expression. 
+        /// Get the node on the left side of the dot if given a dotted expression.
         /// </summary>
         /// <param name="allowImplicitTarget">
         /// In VB, we have a member access expression with a null expression, this may be one of the
@@ -182,10 +185,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
 #nullable enable
-        bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
 #nullable restore
-        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
+        /// <summary>
+        /// Gets the containing expression that is actually a language expression and not just typed
+        /// as an ExpressionSyntax for convenience. For example, NameSyntax nodes on the right side
+        /// of qualified names and member access expressions are not language expressions, yet the
+        /// containing qualified names or member access expressions are indeed expressions.
+        /// </summary>
+        SyntaxNode GetStandaloneExpression(SyntaxNode node);
+
+        /// <summary>
+        /// Call on the `.y` part of a `x?.y` to get the entire `x?.y` conditional access expression.  This also works
+        /// when there are multiple chained conditional accesses.  For example, calling this on '.y' or '.z' in
+        /// `x?.y?.z` will both return the full `x?.y?.z` node.  This can be used to effectively get 'out' of the RHS of
+        /// a conditional access, and commonly represents the full standalone expression that can be operated on
+        /// atomically.
+        /// </summary>
+        SyntaxNode GetRootConditionalAccessExpression(SyntaxNode node);
+
+        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
 
         /// <summary>
@@ -207,6 +229,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
+        bool IsParameterList(SyntaxNode node);
 
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
@@ -265,13 +288,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         /// <summary>
         /// Returns true for nodes that represent the body of a method.
-        /// 
-        /// For VB this will be 
+        ///
+        /// For VB this will be
         /// MethodBlockBaseSyntax.  This will be true for things like constructor, method, operator
         /// bodies as well as accessor bodies.  It will not be true for things like sub() function()
-        /// lambdas.  
-        /// 
-        /// For C# this will be the BlockSyntax or ArrowExpressionSyntax for a 
+        /// lambdas.
+        ///
+        /// For C# this will be the BlockSyntax or ArrowExpressionSyntax for a
         /// method/constructor/deconstructor/operator/accessor.  It will not be included for local
         /// functions.
         /// </summary>
@@ -333,14 +356,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
         /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
-        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
+#nullable enable
         /// <summary>
         /// A node that can host a list of statements or a single statement. In addition to
         /// every "executable block", this also includes C# embedded statement owners.
         /// </summary>
-        bool IsStatementContainer(SyntaxNode node);
+        bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
+
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
@@ -362,14 +388,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration(SyntaxNode node);
         bool IsNamespaceDeclaration(SyntaxNode node);
+        List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
-        int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
-        SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         /// <summary>
@@ -397,6 +422,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, that represents an attribute argument return the string representation of
+        /// that arguments name.
+        /// </summary>
+        string GetNameForAttributeArgument(SyntaxNode argument);
 
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
@@ -438,6 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction);
         bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
         bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement);
+        bool IsOnWhileStatementHeader(SyntaxNode root, int position, out SyntaxNode whileStatement);
         bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, out SyntaxNode typeDeclaration);
 
@@ -484,6 +516,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
 
         bool IsImplicitObjectCreation(SyntaxNode node);
+        SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
+        bool IsThrowStatement(SyntaxNode node);
+        bool IsLocalFunction(SyntaxNode node);
     }
 
     [Flags]

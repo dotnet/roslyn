@@ -716,5 +716,41 @@ class Program
     }
 }");
         }
+
+        [Fact]
+        public async Task TestInFunctionPointerType()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    delegate*<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterComma()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<int, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDelegateAsterisk()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    delegate*$$");
+        }
     }
 }

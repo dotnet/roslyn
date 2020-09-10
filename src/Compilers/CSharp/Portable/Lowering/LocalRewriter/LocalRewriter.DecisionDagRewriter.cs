@@ -117,10 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool MightAssignSomething(BoundExpression expr)
                 {
-                    if (expr == null || expr.ConstantValue != null)
-                    {
+                    if (expr == null)
                         return false;
-                    }
 
                     this._mightAssignSomething = false;
                     this.Visit(expr);
@@ -129,6 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode Visit(BoundNode node)
                 {
+                    // A constant expression cannot mutate anything
+                    if (node is BoundExpression { ConstantValue: { } })
+                        return null;
+
                     // Stop visiting once we determine something might get assigned
                     return this._mightAssignSomething ? null : base.Visit(node);
                 }
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
                 {
                     bool mightMutate =
-                        // We only need to check the get accessor because an assigment would cause _mightAssignSomething to be set to true in the caller
+                        // We only need to check the get accessor because an assignment would cause _mightAssignSomething to be set to true in the caller
                         MethodMayMutateReceiver(node.ReceiverOpt, node.PropertySymbol.GetMethod);
 
                     if (mightMutate)
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool mightMutate =
                         !node.ArgumentRefKindsOpt.IsDefault ||
-                        // We only need to check the get accessor because an assigment would cause _mightAssignSomething to be set to true in the caller
+                        // We only need to check the get accessor because an assignment would cause _mightAssignSomething to be set to true in the caller
                         MethodMayMutateReceiver(node.ReceiverOpt, node.Indexer.GetMethod);
 
                     if (mightMutate)
@@ -381,9 +383,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0, length = nodesToLower.Length; i < length; i++)
                 {
                     BoundDecisionDagNode node = nodesToLower[i];
-                    if (loweredNodes.Contains(node))
+                    // A node may have been lowered as part of a switch dispatch, but if it had a label, we'll need to lower it individually as well
+                    bool alreadyLowered = loweredNodes.Contains(node);
+                    if (alreadyLowered && !_dagNodeLabels.TryGetValue(node, out _))
                     {
-                        Debug.Assert(!_dagNodeLabels.TryGetValue(node, out _));
                         continue;
                     }
 
@@ -393,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // If we can generate an IL switch instruction, do so
-                    if (GenerateSwitchDispatch(node, loweredNodes))
+                    if (!alreadyLowered && GenerateSwitchDispatch(node, loweredNodes))
                     {
                         continue;
                     }

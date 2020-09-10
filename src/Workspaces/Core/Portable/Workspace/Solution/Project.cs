@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Compilation output file paths.
         /// </summary>
-        public CompilationOutputFilePaths CompilationOutputFilePaths => _projectState.CompilationOutputFilePaths;
+        public CompilationOutputInfo CompilationOutputInfo => _projectState.CompilationOutputInfo;
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -608,13 +608,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
-            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
+        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+            => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()
             => this.Name;
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(CancellationToken cancellationToken)
+            => _solution.State.GetGeneratorDriverRunResultAsync(_projectState, cancellationToken);
     }
 }

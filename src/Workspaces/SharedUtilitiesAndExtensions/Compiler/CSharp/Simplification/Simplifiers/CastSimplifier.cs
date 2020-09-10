@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -338,14 +339,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(Type)...` or `... as Type`
             var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
 
+            // If we don't understand the type, we must keep it.
+            if (castType == null)
+                return true;
+
             // The type in `(...)expr` or `expr as ...`
             var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
 
             var conversion = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
-
-            // If we don't understand the type, we must keep it.
-            if (castType == null)
-                return true;
 
             // If we've got an error for some reason, then we don't want to touch this at all.
             if (castType.IsErrorType())
@@ -676,17 +677,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             // We might have a nullable conversion on top of an integer constant. But only dig out
             // one level.
-
-#if !CODE_STYLE
-
             if (operation is IConversionOperation conversion &&
                 conversion.Conversion.IsImplicit &&
                 conversion.Conversion.IsNullable)
             {
                 operation = conversion.Operand;
             }
-
-#endif
 
             var constantValue = operation.ConstantValue;
             if (!constantValue.HasValue || constantValue.Value == null)
@@ -845,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
             {
                 // Identity fp conversion is safe if this is in an array initializer.
-                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer);
+                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);
                 return typeInfo.Type?.Kind == SymbolKind.ArrayType;
             }
             else if (castNode.Parent is EqualsValueClauseSyntax equalsValue &&
@@ -1259,6 +1255,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var parentExpression = (ExpressionSyntax)parentNode;
                 return GetOuterCastType(parentExpression, semanticModel, out parentIsIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
+            }
+
+            if (parentNode is InterpolationSyntax)
+            {
+                // $"{(x)y}"
+                //
+                // Regardless of the cast to 'x', being in an interpolation automatically casts the result to object
+                // since this becomes a call to: FormattableStringFactory.Create(string, params object[]).
+                return semanticModel.Compilation.ObjectType;
             }
 
             return null;

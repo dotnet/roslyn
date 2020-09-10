@@ -156,6 +156,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
+        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
+        {
+            Debug.Assert(node.ParameterList is object);
+
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
+            AddToMap(node, enclosing);
+            Visit(node.PrimaryConstructorBaseType, enclosing);
+        }
+
+        public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
+        {
+            Binder enclosing = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            AddToMap(node, enclosing);
+            VisitConstructorInitializerArgumentList(node, node.ArgumentList, enclosing);
+        }
+
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
             Visit(node.Body);
@@ -302,16 +318,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
             AddToMap(node, binder);
+            VisitConstructorInitializerArgumentList(node, node.ArgumentList, binder);
+        }
 
-            if (node.ArgumentList != null)
+        private void VisitConstructorInitializerArgumentList(CSharpSyntaxNode node, ArgumentListSyntax argumentList, Binder binder)
+        {
+            if (argumentList != null)
             {
                 if (_root == node)
                 {
-                    binder = new ExpressionVariableBinder(node.ArgumentList, binder);
-                    AddToMap(node.ArgumentList, binder);
+                    binder = new ExpressionVariableBinder(argumentList, binder);
+                    AddToMap(argumentList, binder);
                 }
 
-                Visit(node.ArgumentList, binder);
+                Visit(argumentList, binder);
             }
         }
 

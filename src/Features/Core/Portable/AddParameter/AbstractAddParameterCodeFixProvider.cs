@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
                     var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
-                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, candidates, root);
+                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, candidates);
                     RegisterFixForMethodOverloads(context, fixData.Arguments, argumentInsertPositionInMethodCandidates);
                     return;
                 }
@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
-            ImmutableArray<IMethodSymbol> methodCandidates,
-            SyntaxNode root)
+            ImmutableArray<IMethodSymbol> methodCandidates)
         {
             var comparer = syntaxFacts.StringComparer;
             var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
@@ -182,14 +181,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 if (method.IsNonImplicitAndFromSource())
                 {
-                    var methodNode = root.FindNode(method.Locations[0].SourceSpan);
-                    if (methodNode.RawKind == syntaxFacts.SyntaxKinds.GlobalStatement)
-                    {
-                        // AddParameter doesn't yet support local functions in top-level statements
-                        // https://github.com/dotnet/roslyn/issues/44271
-                        continue;
-                    }
-
                     var isNamedArgument = !string.IsNullOrWhiteSpace(syntaxFacts.GetNameForArgument(argumentOpt));
 
                     if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
@@ -222,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private void RegisterFixForMethodOverloads(
+        private static void RegisterFixForMethodOverloads(
             CodeFixContext context,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -309,7 +300,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
+        private static ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
             Document document,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -357,7 +348,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return title;
         }
 
-        private async Task<Solution> FixAsync(
+        private static async Task<Solution> FixAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
@@ -389,12 +380,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            var argumentType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
             var refKind = syntaxFacts.GetRefKindOfArgument(argument);
             return (argumentType, refKind);
         }
 
-        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
+        private static async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
             Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();

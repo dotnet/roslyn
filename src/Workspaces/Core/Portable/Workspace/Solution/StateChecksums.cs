@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Text))
             {
-                result[Text] = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -263,7 +263,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             checksum = (Checksum)result;
             return true;
         }
-
 
         public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
         {

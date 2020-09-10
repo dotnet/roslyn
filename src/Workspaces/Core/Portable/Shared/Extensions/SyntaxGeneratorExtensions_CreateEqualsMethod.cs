@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // return statement of 'Equals'.
             using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
-            if (factory.SupportsPatterns(parseOptions))
+            if (factory.SyntaxGeneratorInternal.SupportsPatterns(parseOptions))
             {
                 // If we support patterns then we can do "return obj is MyType myType && ..."
                 expressions.Add(
-                    factory.IsPatternExpression(objNameExpression,
-                        factory.DeclarationPattern(containingType, localName)));
+                    factory.SyntaxGeneratorInternal.IsPatternExpression(objNameExpression,
+                        factory.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
             }
             else if (containingType.IsValueType)
             {
@@ -382,7 +382,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                       !method.IsStatic &&
                       method.Parameters.Length == 1 &&
                       method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                      method.Parameters[0].Type.SpecialType == SpecialType.System_Object
+                      method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                      !method.IsAbstract
                 select method;
 
             return existingMethods.Any();

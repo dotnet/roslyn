@@ -4,13 +4,13 @@
 
 #nullable enable
 
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -25,14 +25,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// TODO - This can be removed once C# is using LSP for diagnostics.
     /// https://github.com/dotnet/roslyn/issues/42630
     /// </summary>
-    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
     internal class RazorLanguageClient : AbstractLanguageServerClient
     {
         public const string ClientName = "RazorCSharp";
-
-        protected override bool SupportsHover => true;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -41,8 +39,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorLanguageClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
-            : base(languageServerProtocol, workspace, diagnosticService, ClientName)
+        public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
+            VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, ClientName)
         {
         }
     }

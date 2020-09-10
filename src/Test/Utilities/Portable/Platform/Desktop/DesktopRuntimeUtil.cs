@@ -96,7 +96,6 @@ namespace Roslyn.Test.Utilities.Desktop
                 throw new Exception($"Exception loading {moduleName} reflectionOnly:{reflectionOnly}", ex);
             }
         }
-
     }
 }
 

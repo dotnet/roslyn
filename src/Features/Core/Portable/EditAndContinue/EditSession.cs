@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
+        internal readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
 
         private readonly ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
@@ -53,23 +54,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _analysesGuard = new object();
 
         /// <summary>
-        /// A <see cref="DocumentId"/> is added whenever <see cref="EditAndContinueDiagnosticAnalyzer"/> reports 
+        /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
         /// the documents to clean up the diagnostics.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new HashSet<DocumentId>();
         private readonly object _documentsWithReportedDiagnosticsGuard = new object();
 
+        private PendingSolutionUpdate? _pendingUpdate;
         private bool _changesApplied;
 
-        internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry)
+        internal EditSession(
+            DebuggingSession debuggingSession,
+            EditSessionTelemetry telemetry,
+            ActiveStatementProvider activeStatementProvider,
+            IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
+            DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
+
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
-            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true);
+            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(activeStatementProvider, cancellationToken), cacheResult: true);
         }
+
+        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
         internal void Cancel() => _cancellationSource.Cancel();
@@ -80,9 +90,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
-        public ImmutableArray<Diagnostic> GetModuleDiagnostics(Guid mvid, string projectDisplayName)
+        /// <returns><see langword="default"/> if the module is not loaded.</returns>
+        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
         {
-            if (DebuggingSession.DebugeeModuleMetadataProvider.IsEditAndContinueAvailable(mvid, out var errorCode, out var localizedMessage))
+            var availability = await DebugeeModuleMetadataProvider.GetEncAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+            if (availability == null)
+            {
+                return null;
+            }
+
+            var (errorCode, localizedMessage) = availability.Value;
+            if (errorCode == 0)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
@@ -91,12 +109,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, localizedMessage }));
         }
 
-        private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
+        private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(ActiveStatementProvider activeStatementProvider, CancellationToken cancellationToken)
         {
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-                return CreateActiveStatementsMap(await DebuggingSession.ActiveStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+                return CreateActiveStatementsMap(await activeStatementProvider(cancellationToken).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -171,8 +189,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (ArgumentException)
                 {
-                    throw new InvalidOperationException($"Multiple active statements with the same instruction id returned by " +
-                        $"{DebuggingSession.ActiveStatementProvider.GetType()}.{nameof(IActiveStatementProvider.GetActiveStatementsAsync)}");
+                    throw new InvalidOperationException($"Multiple active statements with the same instruction id returned by Active Statement Provider");
                 }
             }
 
@@ -222,7 +239,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
-                bool hasOutOfSyncDocuments = false;
+                var hasOutOfSyncDocuments = false;
 
                 foreach (var activeStatement in instructionMap.Values)
                 {
@@ -304,7 +321,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var documentId in changes.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
             {
                 var document = project.GetDocument(documentId)!;
-                if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
+                if (document.State.Attributes.DesignTimeOnly)
                 {
                     continue;
                 }
@@ -331,7 +348,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var documentId in changes.GetAddedDocuments())
             {
                 var document = project.GetDocument(documentId)!;
-                if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
+                if (document.State.Attributes.DesignTimeOnly)
                 {
                     continue;
                 }
@@ -341,10 +358,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> DocumentDiagnostics)> AnalyzeDocumentsAsync(
-            ArrayBuilder<Document> changedDocuments, ArrayBuilder<Document> addedDocuments, CancellationToken cancellationToken)
+            ArrayBuilder<Document> changedDocuments, ArrayBuilder<Document> addedDocuments, SolutionActiveStatementSpanProvider newDocumentActiveStatementSpanProvider, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
-            using var _2 = ArrayBuilder<(Document? Old, Document New)>.GetInstance(out var builder);
+            using var _2 = ArrayBuilder<(Document? Old, Document New, ImmutableArray<TextSpan> NewActiveStatementSpans)>.GetInstance(out var builder);
 
             foreach (var document in changedDocuments)
             {
@@ -365,7 +382,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Include the document regardless of whether the module it was built into has been loaded or not.
                         // If the module has been built it might get loaded later during the debugging session,
                         // at which point we apply all changes that have been made to the project so far.
-                        builder.Add((oldDocument, document));
+
+                        // Fetch the active statement spans for the new document snapshot.
+                        // These are the locations of the spans tracked by the editor from the base document to the current snapshot.
+                        var activeStatementSpans = await newDocumentActiveStatementSpanProvider(document.Id, cancellationToken).ConfigureAwait(false);
+
+                        builder.Add((oldDocument, document, activeStatementSpans));
                         break;
 
                     default:
@@ -375,7 +397,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var document in addedDocuments)
             {
-                builder.Add((null, document));
+                // No existing active statements are located in newly added documents.
+                builder.Add((null, document, ImmutableArray<TextSpan>.Empty));
             }
 
             var result = ImmutableArray<(Document, AsyncLazy<DocumentAnalysisResults>)>.Empty;
@@ -383,18 +406,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 lock (_analysesGuard)
                 {
-                    result = builder.SelectAsArray(change => (change.New, GetDocumentAnalysisNoLock(change.Old, change.New)));
+                    result = builder.SelectAsArray(change => (change.New, GetDocumentAnalysisNoLock(change.Old, change.New, change.NewActiveStatementSpans)));
                 }
             }
 
             return (result, documentDiagnostics.ToImmutable());
         }
 
-        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document)
+        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans)
         {
             lock (_analysesGuard)
             {
-                return GetDocumentAnalysisNoLock(baseDocument, document);
+                return GetDocumentAnalysisNoLock(baseDocument, document, activeStatementSpans);
             }
         }
 
@@ -403,7 +426,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <param name="baseDocument">Base document or null if the document did not exist in the baseline.</param>
         /// <param name="document">Document snapshot to analyze.</param>
-        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document? baseDocument, Document document)
+        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document? baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans)
         {
             if (_analyses.TryGetValue(document.Id, out var analysis) && analysis.Document == document)
             {
@@ -423,9 +446,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        var trackingService = DebuggingSession.Workspace.Services.GetService<IActiveStatementTrackingService>();
-
-                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
+                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, activeStatementSpans, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
@@ -461,7 +482,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Checks only projects containing a given <paramref name="sourceFilePath"/> or all projects of the solution if <paramref name="sourceFilePath"/> is null.
         /// Invoked by the debugger on every step. It is critical for stepping performance that this method returns as fast as possible in absence of changes.
         /// </summary>
-        public async Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
+        public async Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
@@ -508,7 +529,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedDocuments, addedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     if (documentDiagnostics.Any())
                     {
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: out-of-sync documents present (diagnostic: '{2}')",
@@ -536,12 +557,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
+        private static async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
             ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
             CancellationToken cancellationToken)
         {
-            bool hasChanges = false;
-            bool hasSignificantValidChanges = false;
+            var hasChanges = false;
+            var hasSignificantValidChanges = false;
 
             foreach (var analysis in documentAnalyses)
             {
@@ -642,7 +663,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
             {
@@ -655,7 +676,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var baseSolution = DebuggingSession.LastCommittedSolution;
 
-                bool isBlocked = false;
+                var isBlocked = false;
                 foreach (var project in solution.Projects)
                 {
                     await PopulateChangedAndAddedDocumentsAsync(baseSolution, project, changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
@@ -697,7 +718,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // e.g. the binary was built with an overload C.M(object), but a generator updated class C to also contain C.M(string),
                     // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object) 
                     // instead of the true C.M(string).
-                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedDocuments, addedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     if (documentDiagnostics.Any())
                     {
                         // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
@@ -710,8 +731,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
-                    var moduleDiagnostics = GetModuleDiagnostics(mvid, project.Name);
-                    if (!moduleDiagnostics.IsEmpty)
+                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, project.Name, cancellationToken).ConfigureAwait(false);
+
+                    var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
+                    if (isModuleEncBlocked)
                     {
                         diagnostics.Add((project.Id, moduleDiagnostics));
                         isBlocked = true;
@@ -723,9 +746,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         isBlocked = true;
                     }
 
-                    if (!moduleDiagnostics.IsEmpty || projectSummary != ProjectAnalysisSummary.ValidChanges)
+                    if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.SelectAsArray(d => d.Descriptor.Id));
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id));
                         continue;
                     }
 
@@ -767,7 +790,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 
-                        var baseline = DebuggingSession.GetOrCreateEmitBaseline(project.Id, mvid);
+                        // TODO: Use moduleLoaded to determine whether or not to create an initial baseline, once we move OOP.
+                        var baseline = DebuggingSession.GetOrCreateEmitBaseline(project.Id, mvid, DebugeeModuleMetadataProvider);
 
                         // The metadata blob is guaranteed to not be disposed while "continue" operation is being executed.
                         // If it is disposed it means it had been disposed when "continue" operation started.
@@ -800,8 +824,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
 
-                        // TODO: ! should not be required (https://github.com/dotnet/roslyn/issues/38548)
-                        var emitResult = currentCompilation!.EmitDifference(
+                        var emitResult = currentCompilation.EmitDifference(
                             baseline,
                             projectChanges.SemanticEdits,
                             projectChanges.AddedSymbols.Contains,
@@ -898,8 +921,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debugInfoReaderProvider = null;
             metadataReaderProvider = null;
 
-            bool success = false;
-            string fileBeingRead = compilationOutputs.PdbDisplayPath;
+            var success = false;
+            var fileBeingRead = compilationOutputs.PdbDisplayPath;
             try
             {
                 debugInfoReaderProvider = compilationOutputs.OpenPdb();
@@ -1072,6 +1095,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
+        }
+
+        internal void StorePendingUpdate(Solution solution, SolutionUpdate update)
+        {
+            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
+                solution,
+                update.EmitBaselines,
+                update.Deltas,
+                update.ModuleReaders));
+
+            // commit/discard was not called:
+            Contract.ThrowIfFalse(previousPendingUpdate == null);
+        }
+
+        internal PendingSolutionUpdate RetrievePendingUpdate()
+        {
+            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
+            Contract.ThrowIfNull(pendingUpdate);
+            return pendingUpdate;
         }
 
         internal void ChangesApplied()

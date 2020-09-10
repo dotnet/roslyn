@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
-                name: SimpleProgramNamedTypeSymbol.UnspeakableName,
+                name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
@@ -377,6 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, DeclarationKind.Interface);
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
+            => VisitTypeDeclaration(node, DeclarationKind.Record);
+
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
@@ -396,6 +399,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
+
+            // A record with parameters at least has a primary constructor
+            if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
+                node is RecordDeclarationSyntax { ParameterList: { } })
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+            }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
@@ -614,6 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

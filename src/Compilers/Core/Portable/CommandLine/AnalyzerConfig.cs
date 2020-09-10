@@ -16,14 +16,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a single EditorConfig file, see http://editorconfig.org for details about the format.
+    /// Represents a single EditorConfig file, see https://editorconfig.org for details about the format.
     /// </summary>
     public sealed partial class AnalyzerConfig
     {
-        // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
+        // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
-        // Matches EditorConfig property such as "indent_style = space", see http://editorconfig.org for details
+        // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
         private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Key that indicates if this config is a global config
+        /// </summary>
+        internal const string GlobalKey = "is_global";
 
         /// <summary>
         /// A set of keys that are reserved for special interpretation for the editorconfig specification.
@@ -78,7 +83,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
-        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string? val) && val == "true";
+
+        /// <summary>
+        /// Gets whether this editorconfig is a global editorconfig.
+        /// </summary>
+        internal bool IsGlobal => GlobalSection.Properties.ContainsKey(GlobalKey);
 
         private AnalyzerConfig(
             Section globalSection,
@@ -221,6 +231,12 @@ namespace Microsoft.CodeAnalysis
             /// be a case-sensitive comparison.
             /// </summary>
             public static StringComparison NameComparer { get; } = StringComparison.Ordinal;
+
+            /// <summary>
+            /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
+            /// be a case-sensitive comparison.
+            /// </summary>
+            public static IEqualityComparer<string> NameEqualityComparer { get; } = StringComparer.Ordinal;
 
             /// <summary>
             /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property

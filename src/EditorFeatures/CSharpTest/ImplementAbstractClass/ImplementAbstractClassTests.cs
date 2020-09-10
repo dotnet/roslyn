@@ -1847,5 +1847,61 @@ class B : A<int
     }
 }");
         }
+
+        [WorkItem(44907, "https://github.com/dotnet/roslyn/issues/44907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithRecords()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record [|B|] : A
+{
+
+}",
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record B : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [WorkItem(44907, "https://github.com/dotnet/roslyn/issues/44907")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithRecordsWithPositionalMembers()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record [|B|](int i) : A
+{
+
+}",
+@"abstract record A
+{
+    public abstract void AbstractMethod();
+}
+
+record B(int i) : A
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
     }
 }

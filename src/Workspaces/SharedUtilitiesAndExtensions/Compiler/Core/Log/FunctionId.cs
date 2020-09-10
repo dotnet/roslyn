@@ -365,15 +365,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeAnalysisService_GetDesignerAttributesAsync = 294,
 
         ServiceHubRemoteHostClient_CreateAsync = 295,
-        PinnedRemotableDataScope_GetRemotableData = 296,
+        // obsolete: PinnedRemotableDataScope_GetRemotableData = 296,
 
         RemoteHost_Connect = 297,
         RemoteHost_Disconnect = 298,
 
         // obsolete: RemoteHostClientService_AddGlobalAssetsAsync = 299,
         // obsolete: RemoteHostClientService_RemoveGlobalAssets = 300,
-        RemoteHostClientService_Enabled = 301,
-        RemoteHostClientService_Restarted = 302,
+        // obsolete: RemoteHostClientService_Enabled = 301,
+        // obsolete: RemoteHostClientService_Restarted = 302,
 
         RemoteHostService_SynchronizePrimaryWorkspaceAsync = 303,
         // obsolete: RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
@@ -395,8 +395,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ProjectState_ComputeChecksumsAsync = 316,
         DocumentState_ComputeChecksumsAsync = 317,
 
-        SolutionSynchronizationService_GetRemotableData = 318,
-        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
+        // obsolete: SolutionSynchronizationService_GetRemotableData = 318,
+        // obsolete: SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
 
         SolutionChecksumUpdater_SynchronizePrimaryWorkspace = 320,
 
@@ -493,5 +493,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DependentTypeFinder_FindAndCacheDerivedClassesAsync = 430,
         DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
         DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
+
+        LSPCompletion_MissingLSPCompletionTriggerKind = 433,
+
+        RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
     }
 }

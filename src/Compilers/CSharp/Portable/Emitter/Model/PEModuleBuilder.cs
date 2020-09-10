@@ -492,16 +492,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
+            Debug.Assert(OutputKind.IsNetModule() == sourceAssembly.DeclaringCompilation.Options.OutputKind.IsNetModule());
+            GetForwardedTypes(sourceAssembly, builder);
+
+            return builder.ToImmutableAndFree();
+        }
+
+#nullable enable
+        /// <summary>
+        /// Returns a set of top-level forwarded types
+        /// </summary>
+        internal static HashSet<NamedTypeSymbol> GetForwardedTypes(SourceAssemblySymbol sourceAssembly, ArrayBuilder<Cci.ExportedType>? builder)
+        {
             var seenTopLevelForwardedTypes = new HashSet<NamedTypeSymbol>();
             GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder);
 
-            if (!OutputKind.IsNetModule())
+            if (!sourceAssembly.DeclaringCompilation.Options.OutputKind.IsNetModule())
             {
                 GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder);
             }
 
-            return builder.ToImmutableAndFree();
+            return seenTopLevelForwardedTypes;
         }
+#nullable restore
 
         private void ReportExportedTypeNameCollisions(ImmutableArray<Cci.ExportedType> exportedTypes, DiagnosticBag diagnostics)
         {
@@ -568,10 +581,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
         private static void GetForwardedTypes(
             HashSet<NamedTypeSymbol> seenTopLevelTypes,
             CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData,
-            ArrayBuilder<Cci.ExportedType> builder)
+            ArrayBuilder<Cci.ExportedType>? builder)
         {
             if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
@@ -579,7 +593,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
                 // Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
-                var orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+                IEnumerable<NamedTypeSymbol> orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes;
+
+                if (builder is object)
+                {
+                    orderedForwardedTypes = orderedForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+                }
 
                 foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
@@ -590,34 +609,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // level, we need to de-dup the original definitions before emitting.
                     if (!seenTopLevelTypes.Add(originalDefinition)) continue;
 
-                    // Return all nested types.
-                    // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
-                    Debug.Assert(stack.Count == 0);
-                    stack.Push((originalDefinition, -1));
-
-                    while (stack.Count > 0)
+                    if (builder is object)
                     {
-                        var (type, parentIndex) = stack.Pop();
+                        // Return all nested types.
+                        // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
+                        Debug.Assert(stack.Count == 0);
+                        stack.Push((originalDefinition, -1));
 
-                        // In general, we don't want private types to appear in the ExportedTypes table.
-                        // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
-                        // to meet the bar Bug: Dev10/258038 and was left as-is.
-                        if (type.DeclaredAccessibility == Accessibility.Private)
+                        while (stack.Count > 0)
                         {
-                            // NOTE: this will also exclude nested types of type
-                            continue;
-                        }
+                            var (type, parentIndex) = stack.Pop();
 
-                        // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
+                            // In general, we don't want private types to appear in the ExportedTypes table.
+                            // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
+                            // to meet the bar Bug: Dev10/258038 and was left as-is.
+                            if (type.DeclaredAccessibility == Accessibility.Private)
+                            {
+                                // NOTE: this will also exclude nested types of type
+                                continue;
+                            }
 
-                        int index = builder.Count;
-                        builder.Add(new Cci.ExportedType(type, parentIndex, isForwarder: true));
+                            // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        // Iterate backwards so they get popped in forward order.
-                        ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
-                        for (int i = nested.Length - 1; i >= 0; i--)
-                        {
-                            stack.Push((nested[i], index));
+                            int index = builder.Count;
+                            builder.Add(new Cci.ExportedType(type, parentIndex, isForwarder: true));
+
+                            // Iterate backwards so they get popped in forward order.
+                            ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
+                            for (int i = nested.Length - 1; i >= 0; i--)
+                            {
+                                stack.Push((nested[i], index));
+                            }
                         }
                     }
                 }
@@ -625,6 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 stack.Free();
             }
         }
+#nullable restore
 
         internal IEnumerable<AssemblySymbol> GetReferencedAssembliesUsedSoFar()
         {
@@ -997,6 +1020,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
+
+                case SymbolKind.FunctionPointerType:
+                    return Translate((FunctionPointerTypeSymbol)typeSymbol);
             }
 
             throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
@@ -1364,6 +1390,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return symbol;
         }
 
+        internal static Cci.IFunctionPointerTypeReference Translate(FunctionPointerTypeSymbol symbol)
+        {
+            return symbol;
+        }
+
         /// <summary>
         /// Set the underlying implementation type for a given fixed-size buffer field.
         /// </summary>
@@ -1525,6 +1556,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
         }
 
+        internal SynthesizedAttributeData SynthesizePreserveBaseOverridesAttribute()
+        {
+            return Compilation.TrySynthesizeAttribute(SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor, isOptionalUse: true);
+        }
+
         internal SynthesizedAttributeData SynthesizeNativeIntegerAttribute(Symbol symbol, TypeSymbol type)
         {
             Debug.Assert((object)type != null);
@@ -1536,19 +1572,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            if (type.IsNativeIntegerType)
+            var builder = ArrayBuilder<bool>.GetInstance();
+            CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, type);
+
+            Debug.Assert(builder.Any());
+            Debug.Assert(builder.Contains(true));
+
+            SynthesizedAttributeData attribute;
+            if (builder.Count == 1 && builder[0])
             {
-                return SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor, ImmutableArray<TypedConstant>.Empty);
+                attribute = SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor, ImmutableArray<TypedConstant>.Empty);
             }
             else
             {
                 NamedTypeSymbol booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
-                var transformFlags = CSharpCompilation.NativeIntegerTransformsEncoder.Encode(type, booleanType);
+                var transformFlags = builder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
                 var arguments = ImmutableArray.Create(new TypedConstant(boolArray, transformFlags));
-                return SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags, arguments);
+                attribute = SynthesizeNativeIntegerAttribute(WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags, arguments);
             }
+
+            builder.Free();
+            return attribute;
         }
 
         internal virtual SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)

@@ -39,17 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     typeQualificationStyle:
                         SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
-            private static readonly SymbolDisplayFormat s_typeNameFormatWithoutGenerics =
-                new SymbolDisplayFormat(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
-                    genericsOptions: SymbolDisplayGenericsOptions.None,
-                    memberOptions:
-                        SymbolDisplayMemberOptions.IncludeContainingType,
-                    localOptions: SymbolDisplayLocalOptions.IncludeType,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandNullable,
-                    typeQualificationStyle:
-                        SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-
             private readonly SemanticModel _semanticModel;
             private readonly Func<SyntaxNode, bool> _expandInsideNode;
             private readonly CancellationToken _cancellationToken;
@@ -743,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return expression;
             }
 
-            private ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
+            private static ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
             {
                 if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
                 {
@@ -790,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return typeArgumentSymbols;
             }
 
-            private bool IsInvocationWithDynamicArguments(SimpleNameSyntax originalSimpleName, SemanticModel semanticModel)
+            private static bool IsInvocationWithDynamicArguments(SimpleNameSyntax originalSimpleName, SemanticModel semanticModel)
             {
                 var invocationExpression = originalSimpleName.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
 
@@ -869,14 +858,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
             }
 
-            private bool IsPropertyNameOfObjectInitializer(SimpleNameSyntax identifierName)
+            private static bool IsPropertyNameOfObjectInitializer(SimpleNameSyntax identifierName)
             {
                 SyntaxNode currentNode = identifierName;
                 SyntaxNode parent = identifierName;
 
                 while (parent != null)
                 {
-                    if (parent.Kind() == SyntaxKind.ObjectInitializerExpression)
+                    if (parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
                     {
                         return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
@@ -1074,37 +1063,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 IMethodSymbol reducedExtensionMethod)
             {
                 var originalMemberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
-                if (originalMemberAccess.GetParentConditionalAccessExpression() != null)
+
+                // Bail out on extension method invocations in conditional access expression.
+                // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
+                // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
+                if (originalMemberAccess.GetRootConditionalAccessExpression() == null)
                 {
-                    // Bail out on extension method invocations in conditional access expression.
-                    // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
-                    // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
-                    return rewrittenNode;
+                    var speculationPosition = originalNode.SpanStart;
+                    var expression = RewriteExtensionMethodInvocation(speculationPosition, rewrittenNode, thisExpression, reducedExtensionMethod);
+
+                    // Let's rebind this and verify the original method is being called properly
+                    var binding = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, expression, SpeculativeBindingOption.BindAsExpression);
+                    if (binding.Symbol != null)
+                        return expression;
                 }
 
-                var expression = RewriteExtensionMethodInvocation(rewrittenNode, thisExpression, reducedExtensionMethod, s_typeNameFormatWithoutGenerics);
-
-                // Let's rebind this and verify the original method is being called properly
-                var binding = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, expression, SpeculativeBindingOption.BindAsExpression);
-
-                if (binding.Symbol != null)
-                {
-                    return expression;
-                }
-
-                // We'll probably need generic type arguments as well
-                return RewriteExtensionMethodInvocation(rewrittenNode, thisExpression, reducedExtensionMethod, s_typeNameFormatWithGenerics);
+                return rewrittenNode;
             }
 
             private InvocationExpressionSyntax RewriteExtensionMethodInvocation(
+                int speculationPosition,
                 InvocationExpressionSyntax originalNode,
                 ExpressionSyntax thisExpression,
-                IMethodSymbol reducedExtensionMethod,
-                SymbolDisplayFormat symbolDisplayFormat)
+                IMethodSymbol reducedExtensionMethod)
             {
-                var containingType = reducedExtensionMethod.ContainingType.ToDisplayString(symbolDisplayFormat);
-                var newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseExpression(containingType), ((MemberAccessExpressionSyntax)originalNode.Expression).OperatorToken, ((MemberAccessExpressionSyntax)originalNode.Expression).Name)
-                    .WithLeadingTrivia(thisExpression.GetFirstToken().LeadingTrivia);
+                // It may be the case that this extension method cannot be called in static form.  For example, if the
+                // qualified name for the type containing the extension would be ambiguous.  In that case, just return
+                // the original call as is.
+                var containingTypeString = reducedExtensionMethod.ContainingType.ToDisplayString(s_typeNameFormatWithGenerics);
+
+                // We use .ParseExpression here, and not .GenerateTypeSyntax as we want this to be a property
+                // MemberAccessExpression, and not a QualifiedNameSyntax.
+                var containingTypeSyntax = SyntaxFactory.ParseExpression(containingTypeString);
+                var newContainingType = _semanticModel.GetSpeculativeSymbolInfo(speculationPosition, containingTypeSyntax, SpeculativeBindingOption.BindAsExpression).Symbol;
+                if (newContainingType == null || !newContainingType.Equals(reducedExtensionMethod.ContainingType))
+                    return originalNode;
+
+                var originalMemberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
+                var newMemberAccess = originalMemberAccess.WithExpression(containingTypeSyntax)
+                                                          .WithLeadingTrivia(thisExpression.GetFirstToken().LeadingTrivia);
 
                 // Copies the annotation for the member access expression
                 newMemberAccess = originalNode.Expression.CopyAnnotationsTo(newMemberAccess).WithAdditionalAnnotations(Simplifier.Annotation);
@@ -1112,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var thisArgument = SyntaxFactory.Argument(thisExpression).WithLeadingTrivia(SyntaxTriviaList.Empty);
 
                 // Copies the annotation for the left hand side of the member access expression to the first argument in the complexified form
-                thisArgument = ((MemberAccessExpressionSyntax)originalNode.Expression).Expression.CopyAnnotationsTo(thisArgument);
+                thisArgument = originalMemberAccess.Expression.CopyAnnotationsTo(thisArgument);
 
                 var arguments = originalNode.ArgumentList.Arguments.Insert(0, thisArgument);
                 var replacementNode = SyntaxFactory.InvocationExpression(
@@ -1120,7 +1117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     originalNode.ArgumentList.WithArguments(arguments));
 
                 // This Annotation copy is for the InvocationExpression
-                return originalNode.CopyAnnotationsTo(replacementNode).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                return originalNode.CopyAnnotationsTo(replacementNode)
+                                   .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
             }
         }
     }

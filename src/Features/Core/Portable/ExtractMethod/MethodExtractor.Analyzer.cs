@@ -6,11 +6,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
+                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
                 var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
@@ -229,7 +231,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
+            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
                 GetSignatureInformation(
                     DataFlowAnalysis dataFlowAnalysisData,
                     IDictionary<ISymbol, VariableInfo> variableInfoMap,
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            private Task<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
+            private static Task<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(variables.Count);
                 variables.Do(v => v.AddIdentifierTokenAnnotationPair(annotations, cancellationToken));
@@ -354,7 +356,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return symbolMap;
             }
 
-            private bool ContainsVariableUnsafeAddressTaken(DataFlowAnalysis dataFlowAnalysisData, IEnumerable<ISymbol> symbols)
+            private static bool ContainsVariableUnsafeAddressTaken(DataFlowAnalysis dataFlowAnalysisData, IEnumerable<ISymbol> symbols)
             {
                 // check whether the selection contains "&" over a symbol exist
                 var map = new HashSet<ISymbol>(dataFlowAnalysisData.UnsafeAddressTaken);
@@ -384,22 +386,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return analysis.EndPointIsReachable;
             }
 
-            private IList<VariableInfo> MarkVariableInfoToUseAsReturnValueIfPossible(IList<VariableInfo> variableInfo)
+            private ImmutableArray<VariableInfo> MarkVariableInfoToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
             {
-                var variableToUseAsReturnValueIndex = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo);
-                if (variableToUseAsReturnValueIndex >= 0)
-                {
-                    variableInfo[variableToUseAsReturnValueIndex] = VariableInfo.CreateReturnValue(variableInfo[variableToUseAsReturnValueIndex]);
-                }
+                var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo);
+                if (index < 0)
+                    return variableInfo;
 
-                return variableInfo;
+                return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
             }
 
-            private IList<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
+            private ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
             {
-                var list = new List<VariableInfo>(variableInfo);
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfo.Count, out var list);
+                list.AddRange(variableInfo);
+
                 VariableInfo.SortVariables(_semanticDocument.SemanticModel.Compilation, list);
-                return list;
+                return list.ToImmutable();
             }
 
             /// <param name="bestEffort">When false, variables whose data flow is not understood
@@ -509,7 +511,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
+            private static void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
                 => variableInfoMap.Add(localOrParameter, variableInfo);
 
             private bool TryGetVariableStyle(
@@ -611,7 +613,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return type.Equals(SelectionResult.GetContainingScopeType());
             }
 
-            private bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
+            private static bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
             {
                 if (!type.IsValueType || type.IsPointerType() || type.IsEnumType())
                 {
@@ -621,7 +623,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return type.OriginalDefinition.SpecialType == SpecialType.None && !WellKnownFrameworkValueType(compilation, type);
             }
 
-            private bool WellKnownFrameworkValueType(Compilation compilation, ITypeSymbol type)
+            private static bool WellKnownFrameworkValueType(Compilation compilation, ITypeSymbol type)
             {
                 if (!type.IsValueType)
                 {
@@ -646,7 +648,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
 
-            protected VariableStyle AlwaysReturn(VariableStyle style)
+            protected static VariableStyle AlwaysReturn(VariableStyle style)
             {
                 if (style == VariableStyle.InputOnly)
                 {
@@ -681,7 +683,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return parameter.IsThis;
             }
 
-            private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
+            private static bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
                 if (!(localOrParameter is IParameterSymbol parameter))
                 {
@@ -705,7 +707,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
             }
 
-            private void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var typeParameter in typeParameters)
                 {
@@ -713,7 +715,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 if (typeParameter == null ||
                     typeParameter.DeclaringMethod == null ||
@@ -753,7 +755,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 var typeParametersInConstraint = new List<ITypeParameterSymbol>();
 
@@ -780,7 +782,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AppendMethodTypeParameterUsedDirectly(IDictionary<ISymbol, List<SyntaxToken>> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendMethodTypeParameterUsedDirectly(IDictionary<ISymbol, List<SyntaxToken>> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.TypeParameter))
                 {
@@ -894,7 +896,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return typeParameters;
             }
 
-            private IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // add return type to the map
                 AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);
@@ -939,7 +941,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            protected VariableInfo CreateFromSymbolCommon<T>(
+            protected static VariableInfo CreateFromSymbolCommon<T>(
                 Compilation compilation,
                 ISymbol symbol,
                 ITypeSymbol type,

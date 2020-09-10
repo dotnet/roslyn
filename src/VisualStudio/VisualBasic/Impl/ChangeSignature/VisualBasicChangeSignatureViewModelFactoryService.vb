@@ -41,7 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
         End Function
 
         Public Overrides Function IsTypeNameValid(typeName As String) As Boolean
-            Return Not SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics
+            Static visualBasicParseOptions As New VisualBasicParseOptions(LanguageVersion.Latest)
+            Return Not SyntaxFactory.ParseTypeName(typeName, options:=visualBasicParseOptions).ContainsDiagnostics
         End Function
 
         Public Overrides Function GetTypeNode(typeName As String) As SyntaxNode

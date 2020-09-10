@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     VisitTypeReference(arg, context);
                 }
             }
+
+            if (typeReference is Cci.IFunctionPointerTypeReference functionPointer)
+            {
+                VisitSignature(functionPointer.Signature, context);
+            }
         }
 
         private static void VisitMethodReference(Cci.IMethodReference methodReference, EmitContext context)
@@ -123,23 +128,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 methodReference = specializedMethod.UnspecializedVersion;
             }
 
-            // Visit parameter types
-            VisitParameters(methodReference.GetParameters(context), context);
+            VisitSignature(methodReference, context);
 
             if (methodReference.AcceptsExtraArguments)
             {
                 VisitParameters(methodReference.ExtraParameters, context);
             }
+        }
+
+        internal static void VisitSignature(Cci.ISignature signature, EmitContext context)
+        {
+            // Visit parameter types
+            VisitParameters(signature.GetParameters(context), context);
 
             // Visit return value type
-            VisitTypeReference(methodReference.GetType(context), context);
+            VisitTypeReference(signature.GetType(context), context);
 
-            foreach (var typeModifier in methodReference.RefCustomModifiers)
+            foreach (var typeModifier in signature.RefCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);
             }
 
-            foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
+            foreach (var typeModifier in signature.ReturnValueCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);
             }

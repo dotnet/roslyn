@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return true;
         }
 
-        private void RegisterCodeFixes(
+        private static void RegisterCodeFixes(
             CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
         {
             var document = context.Document;
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private async Task<SyntaxNode> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            string equivalenceKey, CancellationToken cancellationToken)
+            string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
                 equivalenceKey == TakeTopEquivalenceKey ||

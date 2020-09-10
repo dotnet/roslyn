@@ -459,7 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-
             if (targetToken.Kind() == SyntaxKind.OpenParenToken ||
                 targetToken.Kind() == SyntaxKind.CommaToken)
             {

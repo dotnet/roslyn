@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             long INumericTC<long>.MaxValue => long.MaxValue;
 
+            long INumericTC<long>.Zero => 0;
+
             bool INumericTC<long>.Related(BinaryOperatorKind relation, long left, long right)
             {
                 switch (relation)
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            long INumericTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.Int64Value;
+            long INumericTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0L : constantValue.Int64Value;
 
             ConstantValue INumericTC<long>.ToConstantValue(long value) => ConstantValue.Create(value);
 

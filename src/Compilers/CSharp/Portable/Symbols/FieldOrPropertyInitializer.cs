@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal readonly FieldSymbol FieldOpt;
 
         /// <summary>
-        /// A reference to <see cref="EqualsValueClauseSyntax"/> or top-level <see cref="StatementSyntax"/> in script code.
+        /// A reference to <see cref="EqualsValueClauseSyntax"/>,
+        /// or top-level <see cref="StatementSyntax"/> in script code,
+        /// or <see cref="ParameterSyntax"/> for an initialization of a generated property based on record parameter.
         /// </summary>
         internal readonly SyntaxReference Syntax;
 
@@ -30,11 +32,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public FieldOrPropertyInitializer(FieldSymbol fieldOpt, SyntaxNode syntax, int precedingInitializersLength)
         {
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) && fieldOpt != null || syntax is StatementSyntax);
+            Debug.Assert(((syntax.IsKind(SyntaxKind.EqualsValueClause) || syntax.IsKind(SyntaxKind.Parameter)) && fieldOpt != null) || syntax is StatementSyntax);
 
             FieldOpt = fieldOpt;
             Syntax = syntax.GetReference();
             PrecedingInitializersLength = precedingInitializersLength;
+        }
+
+        internal struct Builder
+        {
+            /// <summary>
+            /// The field being initialized (possibly a backing field of a property), or null if this is a top-level statement in script code.
+            /// </summary>
+            internal readonly FieldSymbol FieldOpt;
+
+            /// <summary>
+            /// A reference to <see cref="EqualsValueClauseSyntax"/>,
+            /// or top-level <see cref="StatementSyntax"/> in script code,
+            /// or <see cref="ParameterSyntax"/> for an initialization of a generated property based on record parameter.
+            /// </summary>
+            internal readonly SyntaxNode Syntax;
+
+            public Builder(FieldSymbol fieldOpt, SyntaxNode syntax)
+            {
+                Debug.Assert(((syntax.IsKind(SyntaxKind.EqualsValueClause) || syntax.IsKind(SyntaxKind.Parameter)) && fieldOpt != null) || syntax is StatementSyntax);
+
+                FieldOpt = fieldOpt;
+                Syntax = syntax;
+            }
         }
     }
 }

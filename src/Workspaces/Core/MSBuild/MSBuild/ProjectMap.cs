@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private bool TryFindOutputFilePathInProjectIdSet(string outputFilePath, HashSet<ProjectId> set, out ProjectId result)
             => TryFindPathInProjectIdSet(outputFilePath, GetOutputFilePathById, set, out result);
 
-        private bool TryFindPathInProjectIdSet(string path, Func<ProjectId, string> getPathById, HashSet<ProjectId> set, out ProjectId result)
+        private static bool TryFindPathInProjectIdSet(string path, Func<ProjectId, string> getPathById, HashSet<ProjectId> set, out ProjectId result)
         {
             if (!string.IsNullOrEmpty(path))
             {

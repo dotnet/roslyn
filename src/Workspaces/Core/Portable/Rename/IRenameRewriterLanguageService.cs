@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         /// <param name="token">The token to get the complexification target for.</param>
         /// <returns></returns>
-        SyntaxNode GetExpansionTargetForLocation(SyntaxToken token);
+        SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token);
     }
 
     internal abstract class AbstractRenameRewriterLanguageService : IRenameRewriterLanguageService
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public abstract Task<ImmutableArray<Location>> ComputeDeclarationConflictsAsync(string replacementText, ISymbol renamedSymbol, ISymbol renameSymbol, IEnumerable<ISymbol> referencedSymbols, Solution baseSolution, Solution newSolution, IDictionary<Location, Location> reverseMappedLocations, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<Location>> ComputeImplicitReferenceConflictsAsync(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken);
         public abstract ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(ISymbol renamedSymbol, SemanticModel semanticModel, Location originalDeclarationLocation, int newDeclarationLocationStartingPosition, CancellationToken cancellationToken);
-        public abstract SyntaxNode GetExpansionTargetForLocation(SyntaxToken token);
+        public abstract SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token);
         public abstract bool IsIdentifierValid(string replacementText, ISyntaxFactsService syntaxFactsService);
         public abstract bool LocalVariableConflict(SyntaxToken token, IEnumerable<ISymbol> newReferencedSymbols);
         public abstract void TryAddPossibleNameConflicts(ISymbol symbol, string newName, ICollection<string> possibleNameConflicts);

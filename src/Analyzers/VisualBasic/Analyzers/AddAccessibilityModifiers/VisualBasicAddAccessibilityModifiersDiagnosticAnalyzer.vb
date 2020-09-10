@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
         Private Sub ProcessMember(context As SyntaxTreeAnalysisContext,
                               [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), member As StatementSyntax)
 
-
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
                 ProcessMembers(context, [option], namespaceBlock.Members)
@@ -94,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 properties:=Nothing))
         End Sub
 
-        Private Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
+        Private Shared Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
             ' Top level items in a namespace or file
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then

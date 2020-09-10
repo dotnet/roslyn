@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
             Return (New VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), New VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider())
         End Function
 
-        Friend Function GetRemoveUnnecessaryParenthesesDiagnostic(text As String, line As Integer, column As Integer) As DiagnosticDescription
+        Friend Shared Function GetRemoveUnnecessaryParenthesesDiagnostic(text As String, line As Integer, column As Integer) As DiagnosticDescription
             Return TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation:=New LinePosition(line, column))
         End Function
 

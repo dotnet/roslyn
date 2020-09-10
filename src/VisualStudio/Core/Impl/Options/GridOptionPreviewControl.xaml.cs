@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         File.WriteAllText(filePath, editorconfig.ToString());
                     });
                 }
-            };
+            }
         }
 
         private static string GetInitialDirectory()
