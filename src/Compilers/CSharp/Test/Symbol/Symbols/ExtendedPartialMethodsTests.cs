@@ -3057,34 +3057,34 @@ partial class C
     public partial string? M1() => null; // 1
     
     public partial string? M2();
-    public partial string M2() => ""hello"";
+    public partial string M2() => ""hello""; // 2
     
 #nullable disable
     public partial string M3();
-    public partial string? M3() => null; // 2
+    public partial string? M3() => null; // 3
     
-    public partial string? M4(); // 3
-    public partial string M4() => ""hello"";
+    public partial string? M4();
+    public partial string M4() => ""hello""; // 4
 
 #nullable enable
     public partial string M5();
-    public partial string M6() => null!;
+    public partial string M6() => null!; // 5
     public partial string M7();
-    public partial string M8() => null!;
+    public partial string M8() => null!; // 6
     public partial string? M9();
-    public partial string? M10() => null;
+    public partial string? M10() => null; // 7
     public partial string? M11();
     public partial string? M12() => null;
 
 #nullable disable
-    public partial string M5() => null;
+    public partial string M5() => null; // 8
     public partial string M6();
-    public partial string? M7() => null; // 4
-    public partial string? M8(); // 5
-    public partial string M9() => null;
+    public partial string? M7() => null; // 9
+    public partial string? M8();
+    public partial string M9() => null; // 10
     public partial string M10();
-    public partial string? M11() => null; // 6
-    public partial string? M12(); // 7
+    public partial string? M11() => null;
+    public partial string? M12();
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
@@ -3092,49 +3092,49 @@ partial class C
                 //     public partial string? M1() => null; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("string C.M1()", "string? C.M1()").WithLocation(6, 28),
                 // (9,27): error CS8824: Partial method declarations 'string? C.M2()' and 'string C.M2()' must have identical parameter types and identical return types.
-                //     public partial string M2() => "hello";
+                //     public partial string M2() => "hello"; // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("string? C.M2()", "string C.M2()").WithLocation(9, 27),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M3() => null; // 2
+                //     public partial string? M3() => null; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
                 // (13,28): error CS8824: Partial method declarations 'string C.M3()' and 'string? C.M3()' must have identical parameter types and identical return types.
-                //     public partial string? M3() => null; // 2
+                //     public partial string? M3() => null; // 3
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M3").WithArguments("string C.M3()", "string? C.M3()").WithLocation(13, 28),
                 // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M4(); // 3
+                //     public partial string? M4();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
                 // (16,27): error CS8824: Partial method declarations 'string? C.M4()' and 'string C.M4()' must have identical parameter types and identical return types.
-                //     public partial string M4() => "hello";
+                //     public partial string M4() => "hello"; // 4
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M4").WithArguments("string? C.M4()", "string C.M4()").WithLocation(16, 27),
                 // (20,27): error CS8824: Partial method declarations 'string C.M6()' and 'string C.M6()' must have identical parameter types and identical return types.
-                //     public partial string M6() => null!;
+                //     public partial string M6() => null!; // 5
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M6").WithArguments("string C.M6()", "string C.M6()").WithLocation(20, 27),
                 // (22,27): error CS8824: Partial method declarations 'string? C.M8()' and 'string C.M8()' must have identical parameter types and identical return types.
-                //     public partial string M8() => null!;
+                //     public partial string M8() => null!; // 6
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M8").WithArguments("string? C.M8()", "string C.M8()").WithLocation(22, 27),
                 // (24,28): error CS8824: Partial method declarations 'string C.M10()' and 'string? C.M10()' must have identical parameter types and identical return types.
-                //     public partial string? M10() => null;
+                //     public partial string? M10() => null; // 7
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M10").WithArguments("string C.M10()", "string? C.M10()").WithLocation(24, 28),
                 // (29,27): error CS8824: Partial method declarations 'string C.M5()' and 'string C.M5()' must have identical parameter types and identical return types.
-                //     public partial string M5() => null;
+                //     public partial string M5() => null; // 8
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M5").WithArguments("string C.M5()", "string C.M5()").WithLocation(29, 27),
                 // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M7() => null; // 4
+                //     public partial string? M7() => null; // 9
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
                 // (31,28): error CS8824: Partial method declarations 'string C.M7()' and 'string? C.M7()' must have identical parameter types and identical return types.
-                //     public partial string? M7() => null; // 4
+                //     public partial string? M7() => null; // 9
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M7").WithArguments("string C.M7()", "string? C.M7()").WithLocation(31, 28),
                 // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M8(); // 5
+                //     public partial string? M8();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
                 // (33,27): error CS8824: Partial method declarations 'string? C.M9()' and 'string C.M9()' must have identical parameter types and identical return types.
-                //     public partial string M9() => null;
+                //     public partial string M9() => null; // 10
                 Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M9").WithArguments("string? C.M9()", "string C.M9()").WithLocation(33, 27),
                 // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M11() => null; // 6
+                //     public partial string? M11() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
                 // (36,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M12(); // 7
+                //     public partial string? M12();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
         }
 
