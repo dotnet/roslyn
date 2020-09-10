@@ -6,9 +6,9 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IRemoteSymbolFinderService
     {

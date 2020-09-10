@@ -11,12 +11,27 @@ using Microsoft.CodeAnalysis.NavigateTo;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
+    internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
     {
-        public Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
+        internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService>
         {
-            return RunServiceAsync(async () =>
+            protected override IRemoteNavigateToSearchService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteNavigateToSearchService(arguments);
+        }
+
+        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+        }
+
+        public ValueTask<ImmutableArray<SerializableNavigateToSearchResult>> SearchDocumentAsync(
+            PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -31,10 +46,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
-            PinnedSolutionInfo solutionInfo, ProjectId projectId, DocumentId[] priorityDocumentIds, string searchPattern, string[] kinds, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<SerializableNavigateToSearchResult>> SearchProjectAsync(
+            PinnedSolutionInfo solutionInfo,
+            ProjectId projectId,
+            ImmutableArray<DocumentId> priorityDocumentIds,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -52,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private static IList<SerializableNavigateToSearchResult> Convert(
+        private static ImmutableArray<SerializableNavigateToSearchResult> Convert(
             ImmutableArray<INavigateToSearchResult> result)
         {
             return result.SelectAsArray(SerializableNavigateToSearchResult.Dehydrate);
