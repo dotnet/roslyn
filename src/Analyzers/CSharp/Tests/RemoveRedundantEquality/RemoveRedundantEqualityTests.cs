@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality
             var code = @"
 public class C
 {
-    public void M1(bool x)
+    public bool M1(bool x)
     {
         return x [|==|] true;
     }
@@ -30,7 +30,7 @@ public class C
             var fixedCode = @"
 public class C
 {
-    public voi M1(bool x)
+    public bool M1(bool x)
     {
         return x;
     }
@@ -45,7 +45,7 @@ public class C
             var code = @"
 public class C
 {
-    public void M1(bool x)
+    public bool M1(bool x)
     {
         return x == false;
     }
@@ -59,7 +59,7 @@ public class C
             var code = @"
 public class C
 {
-    public void M1(bool x)
+    public bool M1(bool x)
     {
         return x [|!=|] false;
     }
@@ -67,7 +67,7 @@ public class C
             var fixedCode = @"
 public class C
 {
-    public voi M1(bool x)
+    public bool M1(bool x)
     {
         return x;
     }
@@ -82,9 +82,56 @@ public class C
             var code = @"
 public class C
 {
-    public void M1(bool x)
+    public bool M1(bool x)
     {
         return x != true;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact]
+        public async Task TestNullable_NoDiagnostics()
+        {
+            var code = @"
+public class C
+{
+    public bool M1(bool? x)
+    {
+        return x == true;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact]
+        public async Task TestWhenConstant_NoDiagnostics()
+        {
+            var code = @"
+public class C
+{
+    public const bool MyTrueConstant = true;
+
+    public bool M1(bool x)
+    {
+        return x == MyTrueConstant;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact]
+        public async Task TestOverloadedOperator_NoDiagnostics()
+        {
+            var code = @"
+public class C
+{
+    public static bool operator ==(C a, bool b) => false;
+    public static bool operator !=(C a, bool b) => true;
+
+    public bool M1(C x)
+    {
+        return x == true;
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(code);
