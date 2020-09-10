@@ -34,8 +34,7 @@ public class C
     {
         return x;
     }
-}
-";
+}";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
@@ -71,8 +70,7 @@ public class C
     {
         return x;
     }
-}
-";
+}";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
