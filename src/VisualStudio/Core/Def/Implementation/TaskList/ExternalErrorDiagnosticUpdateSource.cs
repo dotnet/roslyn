@@ -510,7 +510,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // 
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
-                    return !string.IsNullOrEmpty(diagnoaticData.DataLocation.OriginalFilePath) &&
+                    return !string.IsNullOrEmpty(diagnoaticData.DataLocation?.OriginalFilePath) &&
                             (diagnoaticData.DataLocation.OriginalStartLine > 0 ||
                              diagnoaticData.DataLocation.OriginalStartColumn > 0);
                 }
