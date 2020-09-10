@@ -12,6 +12,11 @@
         <target state="translated">提案を収集しています - ソリューションが完全に読み込まれるのを待機しています</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lines_0_to_1">
+        <source>Lines {0} to {1}</source>
+        <target state="new">Lines {0} to {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">正規表現 - コメント</target>

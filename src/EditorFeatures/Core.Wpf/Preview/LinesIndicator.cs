@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private readonly IDifferenceViewer _viewer;
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IEditorFormatMap _editorFormatMap;
-        private readonly IClassificationType _lineNumberClassificaiton;
+        private readonly IClassificationType _lineNumberClassification;
         private readonly LinesIndicatorTextViewCreationListener _factory;
 
         public LinesIndicator(IWpfTextView view, IDifferenceTextViewModel model, LinesIndicatorTextViewCreationListener factory)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             _factory = factory;
             _classificationFormatMap = factory.ClassificationFormatMapService.GetClassificationFormatMap(view);
             _editorFormatMap = factory.EditorFormatMapService.GetEditorFormatMap(view);
-            _lineNumberClassificaiton = factory.ClassificationTypeRegistryService.GetClassificationType("line number");
+            _lineNumberClassification = factory.ClassificationTypeRegistryService.GetClassificationType("line number");
 
             view.Closed += this.OnClosed;
             view.LayoutChanged += this.OnLayoutChanged;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
         private void CreateVisuals(ITextViewLine line)
         {
-            if ((line.Extent.Length == PreviewFactoryService.Ellipsis.Length) && (line.Extent.GetText() == PreviewFactoryService.Ellipsis))
+            if (this.IsSpanAnInsertedElipse(line.Extent))
             {
                 var snapshot = _viewer.DifferenceBuffer.CurrentSnapshotDifference;
                 if ((snapshot != null) && (snapshot.InlineBufferSnapshot == _view.TextSnapshot))
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                         for (var i = leftSnapshotLine.LineNumber + 1; i < leftSnapshotLine.Snapshot.LineCount; ++i)
                         {
                             var nextExtent = leftSnapshotLine.Snapshot.GetLineFromLineNumber(i).Extent;
-                            if ((nextExtent.Length == PreviewFactoryService.Ellipsis.Length) && (nextExtent.GetText() == PreviewFactoryService.Ellipsis))
+                            if (this.IsSpanAnInsertedElipse(nextExtent))
                             {
                                 break;
                             }
@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                             ++endLine;
                         }
 
-                        var properties = _classificationFormatMap.GetTextProperties(_lineNumberClassificaiton);
+                        var properties = _classificationFormatMap.GetTextProperties(_lineNumberClassification);
                         var block = new TextBlock
                         {
-                            Text = string.Format(EditorFeaturesWpfResources.LinesIndicator, startLine + 1, endLine + 1), // Displayed line numbers are 1-based.
+                            Text = string.Format(EditorFeaturesWpfResources.Lines_0_to_1, startLine + 1, endLine + 1), // Displayed line numbers are 1-based.
                             FontSize = properties.FontRenderingEmSize,
                             FontFamily = properties.Typeface.FontFamily,
                             Foreground = properties.ForegroundBrush,
@@ -153,6 +153,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     _layer.AddAdornment(AdornmentPositioningBehavior.TextRelative, line.Extent, null, adornment, null);
                 }
             }
+        }
+
+        private bool IsSpanAnInsertedElipse(SnapshotSpan span)
+        {
+            if ((span.Length == PreviewFactoryService.Ellipsis.Length) && (span.GetText() == PreviewFactoryService.Ellipsis))
+            {
+                // The span is an ellipsis but we need to verify that it is sourced to the inert buffer.
+                while (true)
+                {
+                    if (span.Snapshot is IProjectionSnapshot projection)
+                    {
+                        var sources = projection.MapToSourceSnapshots(span);
+                        if (sources.Count == 1)
+                        {
+                            span = sources[0];
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        return span.Snapshot.ContentType == _factory.TextBufferFactoryService.InertContentType;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private ITextSnapshot GetSourceSnapshot(ITextSnapshot snapshot)

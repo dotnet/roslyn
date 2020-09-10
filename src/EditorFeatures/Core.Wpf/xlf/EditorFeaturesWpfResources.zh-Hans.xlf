@@ -12,6 +12,11 @@
         <target state="translated">正在收集建议 - 正在等待解决方案完全加载</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lines_0_to_1">
+        <source>Lines {0} to {1}</source>
+        <target state="new">Lines {0} to {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">正则表达式 - 注释</target>

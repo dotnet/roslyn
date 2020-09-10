@@ -12,6 +12,11 @@
         <target state="translated">제안을 수집하는 중 - 솔루션이 완전히 로드될 때까지 기다리는 중</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lines_0_to_1">
+        <source>Lines {0} to {1}</source>
+        <target state="new">Lines {0} to {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">Regex - 주석</target>

@@ -150,7 +150,7 @@
   <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
     <value>Gathering Suggestions - Waiting for the solution to fully load</value>
   </data>
-  <data name="LinesIndicator" xml:space="preserve">
+  <data name="Lines_0_to_1" xml:space="preserve">
     <value>Lines {0} to {1}</value>
   </data>
 </root>
