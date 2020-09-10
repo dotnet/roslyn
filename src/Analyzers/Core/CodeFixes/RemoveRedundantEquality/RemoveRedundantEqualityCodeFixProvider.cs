@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                     c => FixAsync(context.Document, diagnostic, c)),
                     diagnostic);
             }
-            
+
             return Task.CompletedTask;
         }
 
