@@ -30,11 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool IsExpandedCompletion { get; set; } = true;
 
+        private bool HideAdvancedMembers { get; set; } = false;
+
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
         protected override TestComposition GetComposition()
@@ -1721,6 +1724,165 @@ namespace NS1
                 glyph: (int)Glyph.ExtensionMethodPublic,
                 inlineDescription: "NS2",
                 expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
+        }
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        public async Task TestBrowsableAlways(ReferenceType refType)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+            var refDoc = @"
+public class Goo
+{
+}
+
+namespace Foo
+{
+    public static class GooExtensions
+    {
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+        public static void Bar(this Goo goo, int x)
+        {
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                    markup,
+                    "Bar",
+                    glyph: (int)Glyph.ExtensionMethodPublic,
+                    inlineDescription: "Foo");
+        }
+
+        [InlineData(ReferenceType.Project, true)]
+        [InlineData(ReferenceType.Metadata, false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        public async Task TestBrowsableNever(ReferenceType refType, bool shouldContainItem)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+            var refDoc = @"
+public class Goo
+{
+}
+
+namespace Foo
+{
+    public static class GooExtensions
+    {
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+        public static void Bar(this Goo goo, int x)
+        {
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyImportItemExistsAsync(
+                        markup,
+                        "Bar",
+                        glyph: (int)Glyph.ExtensionMethodPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyImportItemIsAbsentAsync(
+                        markup,
+                        "Bar",
+                        inlineDescription: "Foo");
+            }
+        }
+
+        [InlineData(ReferenceType.Project, true, true)]
+        [InlineData(ReferenceType.Project, false, true)]
+        [InlineData(ReferenceType.Metadata, true, false)]
+        [InlineData(ReferenceType.Metadata, false, true)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced, bool shouldContainItem)
+        {
+            HideAdvancedMembers = hideAdvanced;
+
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+            var refDoc = @"
+public class Goo
+{
+}
+
+namespace Foo
+{
+    public static class GooExtensions
+    {
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        public static void Bar(this Goo goo, int x)
+        {
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyImportItemExistsAsync(
+                        markup,
+                        "Bar",
+                        glyph: (int)Glyph.ExtensionMethodPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyImportItemIsAbsentAsync(
+                        markup,
+                        "Bar",
+                        inlineDescription: "Foo");
+            }
         }
 
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
