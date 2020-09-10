@@ -5,17 +5,14 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.RemoveRedundantEquality;
 using Xunit;
-
-using VerifyCS = CSharpCodeFixVerifier<
-    CSharpRemoveRedundantEqualityDiagnosticAnalyzer,
-    RemoveRedundantEqualityCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+       CSharpRemoveRedundantEqualityDiagnosticAnalyzer,
+       RemoveRedundantEqualityCodeFixProvider>;
 
     public class RemoveRedundantEqualityTests
     {
@@ -27,7 +24,7 @@ public class C
 {
     public void M1(bool x)
     {
-        return x == true;
+        return x [|==|] true;
     }
 }";
             var fixedCode = @"
@@ -64,7 +61,7 @@ public class C
 {
     public void M1(bool x)
     {
-        return x != false;
+        return x [|!=|] false;
     }
 }";
             var fixedCode = @"

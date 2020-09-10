@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
+                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true).NormalizeWhitespace();
                 editor.ReplaceNode(node, replacementNode);
             }
         }
