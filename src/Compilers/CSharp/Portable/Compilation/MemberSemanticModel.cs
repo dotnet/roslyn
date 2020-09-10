@@ -1978,7 +1978,7 @@ done:
                 if (root is CompilationUnitSyntax)
                 {
                     // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
-                    // then that means the start of the span of the top-level statement is the same as the start as the local
+                    // then that means the start of the span of the top-level statement is the same as the start of the local
                     // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
                     // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
                     // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
