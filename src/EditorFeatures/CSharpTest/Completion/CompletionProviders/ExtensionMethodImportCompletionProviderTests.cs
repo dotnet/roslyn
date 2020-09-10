@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -1771,11 +1772,11 @@ namespace Foo
                     inlineDescription: "Foo");
         }
 
-        [InlineData(ReferenceType.Project, true)]
-        [InlineData(ReferenceType.Metadata, false)]
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
-        public async Task TestBrowsableNever(ReferenceType refType, bool shouldContainItem)
+        public async Task TestBrowsableNever(ReferenceType refType)
         {
             var srcDoc = @"
 class Program
@@ -1802,11 +1803,11 @@ namespace Foo
     }
 }";
 
-            var markup = refType switch
+            var (markup, shouldContainItem) = refType switch
             {
-                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
-                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
-                _ => null,
+                ReferenceType.Project => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                ReferenceType.Metadata => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             if (shouldContainItem)
@@ -1826,13 +1827,13 @@ namespace Foo
             }
         }
 
-        [InlineData(ReferenceType.Project, true, true)]
-        [InlineData(ReferenceType.Project, false, true)]
-        [InlineData(ReferenceType.Metadata, true, false)]
-        [InlineData(ReferenceType.Metadata, false, true)]
+        [InlineData(ReferenceType.Project, true)]
+        [InlineData(ReferenceType.Project, false)]
+        [InlineData(ReferenceType.Metadata, true)]
+        [InlineData(ReferenceType.Metadata, false)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
-        public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced, bool shouldContainItem)
+        public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced)
         {
             HideAdvancedMembers = hideAdvanced;
 
@@ -1861,11 +1862,12 @@ namespace Foo
     }
 }";
 
-            var markup = refType switch
+            var (markup, shouldContainItem) = (refType, hideAdvanced) switch
             {
-                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
-                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
-                _ => null,
+                (ReferenceType.Project, _) => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                (ReferenceType.Metadata, true) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
+                (ReferenceType.Metadata, false) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             if (shouldContainItem)
