@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         static ServiceBase()
         {
+            WatsonReporter.InitializeFatalErrorHandlers();
+
             // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
             WatsonTraceListener.Install();
         }

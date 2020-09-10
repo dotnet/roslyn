@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         private BackgroundCompiler? _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
+
+        static VisualStudioWorkspace()
+        {
+            WatsonReporter.InitializeFatalErrorHandlers();
+        }
 
         internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
