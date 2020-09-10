@@ -1180,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
             VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
 
-            if (!callsAreOmitted && node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
             {
                 VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
