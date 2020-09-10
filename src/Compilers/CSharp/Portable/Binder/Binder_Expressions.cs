@@ -1481,14 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = null;
                 if (node is IdentifierNameSyntax identifier)
                 {
-                    // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.
-                    // The check for ArgumentSyntax is to allow the binding for something like nameof(nint.Equals).
-                    var type = IsInsideNameof && identifier.Parent is ArgumentSyntax &&
-                        identifier.Parent?.Parent?.Parent is InvocationExpressionSyntax invocation &&
-                        (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword
-                        ? null
-                        : BindNativeIntegerSymbolIfAny(identifier, diagnostics);
-
+                    var type = BindNativeIntegerSymbolIfAny(identifier, diagnostics);
                     if (type is { })
                     {
                         expression = new BoundTypeExpression(node, null, type);

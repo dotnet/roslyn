@@ -1494,7 +1494,7 @@ class Program
         [Fact]
         public void TestNameOfNintWhenTheyAreIdentifierNames()
         {
-            var source @"
+            var source = @"
 public class C 
 {
     public string nint;
