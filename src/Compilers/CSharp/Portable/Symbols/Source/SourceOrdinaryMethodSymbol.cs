@@ -610,10 +610,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkNullableMethodOverride = false;
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
             }
-            else if (!(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(constructedDefinition, implementation))
+            else if (!(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(definition, implementation))
             {
                 checkNullableMethodOverride = false;
-                diagnostics.Add(ErrorCode.ERR_PartialMethodSignatureDifference, implementation.Locations[0], getFormattedSymbol(constructedDefinition), getFormattedSymbol(implementation));
+                diagnostics.Add(ErrorCode.ERR_PartialMethodSignatureDifference, implementation.Locations[0], getFormattedSymbol(definition), getFormattedSymbol(implementation));
                 static FormattedSymbol getFormattedSymbol(Symbol symbol) => new FormattedSymbol(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
             }
 
