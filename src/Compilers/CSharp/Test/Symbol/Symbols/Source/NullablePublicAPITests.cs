@@ -4712,5 +4712,24 @@ class C
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Type.NullableAnnotation);
             Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
+
+        [Theory, WorkItem(47467, "https://github.com/dotnet/roslyn/issues/47467")]
+        [InlineData("void M() {}")]
+        [InlineData(@"void M() {}
+M();")]
+        [InlineData(@"
+// Comment
+void M() {}
+M();")]
+        public void GetDeclaredSymbolTopLevelStatementsWithLocalFunctionFirst(string code)
+        {
+            var comp = CreateCompilation(code, options: TestOptions.ReleaseExe.WithNullableContextOptions(NullableContextOptions.Enable));
+
+            var tree = comp.SyntaxTrees[0];
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+
+            AssertEx.Equal("void M()", model.GetDeclaredSymbol(localFunction).ToTestDisplayString());
+        }
     }
 }
