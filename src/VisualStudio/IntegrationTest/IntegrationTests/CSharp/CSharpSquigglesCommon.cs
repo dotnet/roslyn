@@ -33,7 +33,7 @@ namespace ConsoleApplication1
             Console.WriteLine(""Hello World"")
         }
 
-        private void Sub()
+        private static void Sub()
         {
     }
 }");
@@ -41,7 +41,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.Verify.ErrorTags(
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]");
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[354-355]");
         }
 
         public virtual void VerifySemanticErrorSquiggles()
