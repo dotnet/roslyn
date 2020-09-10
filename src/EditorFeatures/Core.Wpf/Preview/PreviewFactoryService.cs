@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [Export(typeof(IPreviewFactoryService)), Shared]
     internal class PreviewFactoryService : ForegroundThreadAffinitizedObject, IPreviewFactoryService
     {
+        public const string Ellipsis = "...";
+
         private const double DefaultZoomLevel = 0.75;
         private readonly ITextViewRoleSet _previewRoleSet;
 
@@ -642,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _contentTypeRegistryService,
                 _editorOptionsFactoryService.GlobalOptions,
                 oldBuffer.CurrentSnapshot,
-                "...",
+                Ellipsis,
                 description,
                 originalSpans.ToArray());
 
@@ -650,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _contentTypeRegistryService,
                 _editorOptionsFactoryService.GlobalOptions,
                 newBuffer.CurrentSnapshot,
-                "...",
+                Ellipsis,
                 description,
                 changedSpans.ToArray());
 
