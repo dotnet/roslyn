@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> UnsafeAddressTaken { get; }
 
         /// <summary>
-        /// The set of local functions that are called.
+        /// The set of local functions that are used.
         /// </summary>
         public abstract ImmutableArray<IMethodSymbol> UsedLocalFunctions { get; }
 
