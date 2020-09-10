@@ -2836,21 +2836,39 @@ partial class C
                 // (7,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(7, 20),
+                // (7,26): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial ERROR M1() => throw null!; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(7, 26),
                 // (10,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(10, 32),
+                // (10,39): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(10, 39),
                 // (13,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(13, 32),
+                // (13,39): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M3").WithLocation(13, 39),
                 // (15,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M4(); // 4
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(15, 20),
+                // (16,24): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial int M4() => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M4").WithLocation(16, 24),
                 // (18,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M5(); // 5
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(18, 32),
+                // (19,37): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<int> M5() => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M5").WithLocation(19, 37),
                 // (21,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M6(); // 6
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(21, 32),
+                // (22,24): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial int M6() => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M6").WithLocation(22, 24),
                 // (24,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M7(); // 7
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(24, 20),
@@ -3198,29 +3216,33 @@ partial class C
             var source =
 @"partial class C
 {
-    partial void F1((int x, int y) t); // 1
-    partial void F1((int, int) t) { }
-    partial void F2((dynamic, object) t); // 2
-    partial void F2((object x, dynamic y) t) { }
-    internal partial void F3((int x, int y) t); // 3
-    internal partial void F3((int, int) t) { }
-    internal partial (int, int) F4(); // 4
-    internal partial (int x, int y) F4() => default;
+    partial void F1<T, U>((T x, U y) t) { }
+    partial void F1<T, U>((T x, U y) t);
+    partial void F2<T, U>((T x, U y) t) { } // 1
+    partial void F2<T, U>((T, U) t);
+    partial void F3((dynamic, object) t);
+    partial void F3((object x, dynamic y) t) { } // 2
+    internal partial void F4<T, U>((T x, U y) t);
+    internal partial void F4<T, U>((T, U) t) { } // 3
+    internal partial (T, U) F5<T, U>() => default;
+    internal partial (T, U) F5<T, U>();
+    internal partial (T, U) F6<T, U>() => default; // 4
+    internal partial (T x, U y) F6<T, U>();
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (3,18): error CS8142: Both partial method declarations, 'C.F1((int x, int y))' and 'C.F1((int, int))', must use the same tuple element names.
-                //     partial void F1((int x, int y) t); // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F1").WithArguments("C.F1((int x, int y))", "C.F1((int, int))").WithLocation(3, 18),
-                // (5,18): error CS8142: Both partial method declarations, 'C.F2((dynamic, object))' and 'C.F2((object x, dynamic y))', must use the same tuple element names.
-                //     partial void F2((dynamic, object) t); // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F2").WithArguments("C.F2((dynamic, object))", "C.F2((object x, dynamic y))").WithLocation(5, 18),
-                // (7,27): error CS8142: Both partial method declarations, 'C.F3((int x, int y))' and 'C.F3((int, int))', must use the same tuple element names.
-                //     internal partial void F3((int x, int y) t); // 3
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F3").WithArguments("C.F3((int x, int y))", "C.F3((int, int))").WithLocation(7, 27),
-                // (9,33): error CS8142: Both partial method declarations, 'C.F4()' and 'C.F4()', must use the same tuple element names.
-                //     internal partial (int, int) F4(); // 4
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F4").WithArguments("C.F4()", "C.F4()").WithLocation(9, 33));
+                // (5,18): error CS8142: Both partial method declarations, 'C.F2<T, U>((T, U))' and 'C.F2<T, U>((T x, U y))', must use the same tuple element names.
+                //     partial void F2<T, U>((T x, U y) t) { } // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F2").WithArguments("C.F2<T, U>((T, U))", "C.F2<T, U>((T x, U y))").WithLocation(5, 18),
+                // (8,18): error CS8142: Both partial method declarations, 'C.F3((dynamic, object))' and 'C.F3((object x, dynamic y))', must use the same tuple element names.
+                //     partial void F3((object x, dynamic y) t) { } // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F3").WithArguments("C.F3((dynamic, object))", "C.F3((object x, dynamic y))").WithLocation(8, 18),
+                // (10,27): error CS8142: Both partial method declarations, 'C.F4<T, U>((T x, U y))' and 'C.F4<T, U>((T, U))', must use the same tuple element names.
+                //     internal partial void F4<T, U>((T, U) t) { } // 3
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F4").WithArguments("C.F4<T, U>((T x, U y))", "C.F4<T, U>((T, U))").WithLocation(10, 27),
+                // (13,29): error CS8142: Both partial method declarations, 'C.F6<T, U>()' and 'C.F6<T, U>()', must use the same tuple element names.
+                //     internal partial (T, U) F6<T, U>() => default; // 4
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F6").WithArguments("C.F6<T, U>()", "C.F6<T, U>()").WithLocation(13, 29));
         }
 
         // Errors reported for all differences.

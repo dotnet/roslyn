@@ -603,12 +603,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool checkNullableMethodOverride = true;
             MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
-            if (!constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions)
-                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
-                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(definition.ReturnType))
+            if (!constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
             {
                 checkNullableMethodOverride = false;
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
+            }
+            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
             }
             else if (!(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(definition, implementation))
             {
@@ -670,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     constructedDefinition,
                     implementation,
                     diagnostics,
-                    (diagnostics, implementedMethod, implementingMethod, topLevel, checkNullableMethodOverride) =>
+                    (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                     {
                         // Should have reported ERR_PartialMethodSignatureDifference above.
                         Debug.Assert(false);
