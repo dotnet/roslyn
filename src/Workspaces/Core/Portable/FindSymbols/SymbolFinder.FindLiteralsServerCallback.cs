@@ -22,14 +22,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _progress = progress;
             }
 
-            public Task AddItemsAsync(int count)
+            public ValueTask AddItemsAsync(int count)
                 => _progress.ProgressTracker.AddItemsAsync(count);
 
-            public Task ItemCompletedAsync()
+            public ValueTask ItemCompletedAsync()
                 => _progress.ProgressTracker.ItemCompletedAsync();
 
-            public async Task OnReferenceFoundAsync(
-                DocumentId documentId, TextSpan span)
+            public async ValueTask OnReferenceFoundAsync(DocumentId documentId, TextSpan span)
             {
                 var document = _solution.GetDocument(documentId);
                 await _progress.OnReferenceFoundAsync(document, span).ConfigureAwait(false);

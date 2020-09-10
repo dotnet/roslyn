@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <summary>
         /// Report a message to be displayed to the user.
         /// </summary>
-        Task ReportMessageAsync(string message);
+        ValueTask ReportMessageAsync(string message);
 
         /// <summary>
         /// Set the title of the window that results are displayed in.
         /// </summary>
-        Task SetSearchTitleAsync(string title);
+        ValueTask SetSearchTitleAsync(string title);
 
-        Task OnDefinitionFoundAsync(DefinitionItem definition);
-        Task OnReferenceFoundAsync(SourceReferenceItem reference);
+        ValueTask OnDefinitionFoundAsync(DefinitionItem definition);
+        ValueTask OnReferenceFoundAsync(SourceReferenceItem reference);
 
         [Obsolete("Use ProgressTracker instead", error: false)]
-        Task ReportProgressAsync(int current, int maximum);
+        ValueTask ReportProgressAsync(int current, int maximum);
     }
 }

@@ -13,23 +13,23 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IRemoteFindUsagesService
     {
-        Task FindReferencesAsync(
+        ValueTask FindReferencesAsync(
             PinnedSolutionInfo solutionInfo,
-            SerializableSymbolAndProjectId symbolAndProjectIdArg,
+            SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableFindReferencesSearchOptions options,
             CancellationToken cancellationToken);
 
-        Task FindImplementationsAsync(
+        ValueTask FindImplementationsAsync(
             PinnedSolutionInfo solutionInfo,
-            SerializableSymbolAndProjectId symbolAndProjectIdArg,
+            SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken);
     }
 
-    internal class FindUsagesServerCallback
+    internal sealed class FindUsagesServerCallback
     {
         private readonly Solution _solution;
         private readonly IFindUsagesContext _context;
@@ -41,23 +41,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             _context = context;
         }
 
-        public Task AddItemsAsync(int count)
+        public ValueTask AddItemsAsync(int count)
             => _context.ProgressTracker.AddItemsAsync(count);
 
-        public Task ItemCompletedAsync()
+        public ValueTask ItemCompletedAsync()
             => _context.ProgressTracker.ItemCompletedAsync();
 
-        public Task ReportMessageAsync(string message)
+        public ValueTask ReportMessageAsync(string message)
             => _context.ReportMessageAsync(message);
 
         [Obsolete]
-        public Task ReportProgressAsync(int current, int maximum)
+        public ValueTask ReportProgressAsync(int current, int maximum)
             => _context.ReportProgressAsync(current, maximum);
 
-        public Task SetSearchTitleAsync(string title)
+        public ValueTask SetSearchTitleAsync(string title)
             => _context.SetSearchTitleAsync(title);
 
-        public Task OnDefinitionFoundAsync(SerializableDefinitionItem definition)
+        public ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition)
         {
             var id = definition.Id;
             var rehydrated = definition.Rehydrate(_solution);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return _context.OnDefinitionFoundAsync(rehydrated);
         }
 
-        public Task OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
+        public ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
             => _context.OnReferenceFoundAsync(reference.Rehydrate(_solution, GetDefinition(reference.DefinitionId)));
 
         private DefinitionItem GetDefinition(int definitionId)

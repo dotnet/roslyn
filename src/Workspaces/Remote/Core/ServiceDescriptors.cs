@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EncapsulateField;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -46,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteEncapsulateFieldService)),
             CreateDescriptors(typeof(IRemoteRenamerService)),
             CreateDescriptors(typeof(IRemoteConvertTupleToStructCodeRefactoringService)),
+            CreateDescriptors(typeof(IRemoteSymbolFinderService)),
+            CreateDescriptors(typeof(IRemoteFindUsagesService)),
         });
 
         private static string GetServiceName(Type serviceInterface)

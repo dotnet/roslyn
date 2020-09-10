@@ -6,30 +6,30 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.Remote
 {
-    internal interface IRemoteSymbolFinder
+    internal interface IRemoteSymbolFinderService
     {
-        Task FindReferencesAsync(PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs,
+        ValueTask FindReferencesAsync(PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,
             SerializableFindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        Task FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, object value, TypeCode typeCode, CancellationToken cancellationToken);
+        ValueTask FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, object value, TypeCode typeCode, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo, ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo, ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
+        ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
             PinnedSolutionInfo solutionInfo, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             PinnedSolutionInfo solutionInfo, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
     }
 }
