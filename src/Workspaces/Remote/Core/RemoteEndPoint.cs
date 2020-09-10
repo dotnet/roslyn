@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters);
             }
 
-            ServiceDescriptor.ConfigureFormatter(jsonFormatter);
+            jsonFormatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
             {

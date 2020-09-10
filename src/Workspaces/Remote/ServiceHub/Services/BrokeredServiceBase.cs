@@ -23,12 +23,11 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal abstract partial class BrokeredServiceBase : IDisposable
     {
-
         private readonly TraceSource _logger;
         protected readonly RemoteWorkspaceManager WorkspaceManager;
 
         protected readonly SolutionAssetSource SolutionAssetSource;
-        protected readonly CancellationTokenSource? ClientDisconnectedSource;
+        protected readonly CancellationTokenSource ClientDisconnectedSource;
         protected readonly ServiceBrokerClient ServiceBrokerClient;
 
         // test data are only available when running tests:
@@ -103,11 +102,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private CancellationTokenSource? LinkToken(ref CancellationToken cancellationToken)
         {
-            if (ClientDisconnectedSource is null)
-            {
-                return null;
-            }
-
             var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ClientDisconnectedSource.Token);
             cancellationToken = source.Token;
             return source;
