@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 #elif NETCOREAPP
         internal static bool IsDesktopRuntime => false;
 
-        private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
         private static bool IsDotNetHost(out string? pathToDotNet)
         {

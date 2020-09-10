@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private readonly object _lastTaskGuard = new object();
             private Task<EvaluationState> _lastTask;
 
-            private static InteractiveHostPlatformInfo s_currentPlatformInfo = InteractiveHostPlatformInfo.GetCurrentPlatformInfo();
+            private static readonly InteractiveHostPlatformInfo s_currentPlatformInfo = InteractiveHostPlatformInfo.GetCurrentPlatformInfo();
 
             private sealed class ServiceState : IDisposable
             {

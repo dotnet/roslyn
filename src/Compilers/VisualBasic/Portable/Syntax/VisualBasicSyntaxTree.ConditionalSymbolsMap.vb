@@ -10,7 +10,7 @@ Imports PreprocessorState = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSy
 Imports Scanner = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Scanner
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Public Partial Class VisualBasicSyntaxTree
+    Partial Public Class VisualBasicSyntaxTree
         ''' <summary>
         ''' Map containing information about all conditional symbol definitions in the source file corresponding to a parsed syntax tree.
         ''' </summary>

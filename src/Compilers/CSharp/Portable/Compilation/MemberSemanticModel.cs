@@ -2131,7 +2131,7 @@ done:
         }
 
         // some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does
-        internal protected virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
+        protected internal virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             switch (node.Kind())
             {

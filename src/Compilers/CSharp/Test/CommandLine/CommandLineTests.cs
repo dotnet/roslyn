@@ -12883,7 +12883,7 @@ dotnet_diagnostic.Warning01.severity = error;
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal abstract class CompilationStartedAnalyzer : DiagnosticAnalyzer
     {
-        public override abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public abstract override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
         public abstract void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context);
 
         public override void Initialize(AnalysisContext context)

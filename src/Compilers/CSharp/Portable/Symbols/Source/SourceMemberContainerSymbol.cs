@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        static internal void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
+        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
         {
             if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
                 compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())

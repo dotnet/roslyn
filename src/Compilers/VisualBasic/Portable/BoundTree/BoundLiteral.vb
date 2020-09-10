@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundLiteral
+    Partial Friend Class BoundLiteral
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
             Get
                 Return Me.Value

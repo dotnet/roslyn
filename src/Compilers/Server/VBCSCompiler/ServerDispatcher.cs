@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private Task? _timeoutTask;
         private Task? _gcTask;
         private Task<IClientConnection>? _listenTask;
-        private List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
+        private readonly List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
         private TimeSpan? _keepAlive;
         private bool _keepAliveIsDefault;
 
