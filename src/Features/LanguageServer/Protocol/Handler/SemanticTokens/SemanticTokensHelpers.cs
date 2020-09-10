@@ -79,75 +79,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.XmlLiteralText
         };
 
-        // TO-DO: Change this mapping once support for custom token types is added:
+        // TO-DO: Expand this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
         private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
             new Dictionary<string, string>
             {
                 [ClassificationTypeNames.ClassName] = LSP.SemanticTokenTypes.Class,
                 [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
-                [ClassificationTypeNames.ConstantName] = ClassificationTypeNames.ConstantName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.ControlKeyword] = ClassificationTypeNames.ControlKeyword, // TO-DO: Change to custom type
-                [ClassificationTypeNames.DelegateName] = ClassificationTypeNames.DelegateName, // TO-DO: Change to custom type
                 [ClassificationTypeNames.EnumMemberName] = LSP.SemanticTokenTypes.EnumMember,
                 [ClassificationTypeNames.EnumName] = LSP.SemanticTokenTypes.Enum,
                 [ClassificationTypeNames.EventName] = LSP.SemanticTokenTypes.Event,
-                [ClassificationTypeNames.ExcludedCode] = ClassificationTypeNames.ExcludedCode, // TO-DO: Change to custom type
-                [ClassificationTypeNames.ExtensionMethodName] = ClassificationTypeNames.ExtensionMethodName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.FieldName] = ClassificationTypeNames.FieldName, // TO-DO: Change to custom type
                 [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
                 [ClassificationTypeNames.InterfaceName] = LSP.SemanticTokenTypes.Interface,
                 [ClassificationTypeNames.Keyword] = LSP.SemanticTokenTypes.Keyword,
-                [ClassificationTypeNames.LabelName] = ClassificationTypeNames.LabelName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.LocalName] = ClassificationTypeNames.LocalName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.MethodName] = ClassificationTypeNames.MethodName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.ModuleName] = ClassificationTypeNames.ModuleName, // TO-DO: Change to custom type
                 [ClassificationTypeNames.NamespaceName] = LSP.SemanticTokenTypes.Namespace,
                 [ClassificationTypeNames.NumericLiteral] = LSP.SemanticTokenTypes.Number,
                 [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
-                [ClassificationTypeNames.OperatorOverloaded] = ClassificationTypeNames.OperatorOverloaded, // TO-DO: Change to custom type
                 [ClassificationTypeNames.ParameterName] = LSP.SemanticTokenTypes.Parameter,
-                [ClassificationTypeNames.PreprocessorKeyword] = ClassificationTypeNames.PreprocessorKeyword, // TO-DO: Change to custom type
-                [ClassificationTypeNames.PreprocessorText] = ClassificationTypeNames.PreprocessorText, // TO-DO: Change to custom type
                 [ClassificationTypeNames.PropertyName] = LSP.SemanticTokenTypes.Property,
-                [ClassificationTypeNames.Punctuation] = ClassificationTypeNames.Punctuation, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexAlternation] = ClassificationTypeNames.RegexAlternation, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexAnchor] = ClassificationTypeNames.RegexAnchor, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexCharacterClass] = ClassificationTypeNames.RegexCharacterClass, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexComment] = ClassificationTypeNames.RegexComment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexGrouping] = ClassificationTypeNames.RegexGrouping, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexOtherEscape] = ClassificationTypeNames.RegexOtherEscape, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexQuantifier] = ClassificationTypeNames.RegexQuantifier, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexSelfEscapedCharacter] = ClassificationTypeNames.RegexSelfEscapedCharacter, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexText] = ClassificationTypeNames.RegexText, // TO-DO: Change to custom type
-                [ClassificationTypeNames.StringEscapeCharacter] = ClassificationTypeNames.StringEscapeCharacter, // TO-DO: Change to custom type
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
                 [ClassificationTypeNames.StructName] = LSP.SemanticTokenTypes.Struct,
-                [ClassificationTypeNames.Text] = ClassificationTypeNames.Text, // TO-DO: Change to custom type
                 [ClassificationTypeNames.TypeParameterName] = LSP.SemanticTokenTypes.TypeParameter,
-                [ClassificationTypeNames.VerbatimStringLiteral] = ClassificationTypeNames.VerbatimStringLiteral, // TO-DO: Change to custom type
-                [ClassificationTypeNames.WhiteSpace] = ClassificationTypeNames.WhiteSpace, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentAttributeName] = ClassificationTypeNames.XmlDocCommentAttributeName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentAttributeQuotes] = ClassificationTypeNames.XmlDocCommentAttributeQuotes, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentAttributeValue] = ClassificationTypeNames.XmlDocCommentAttributeValue, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentCDataSection] = ClassificationTypeNames.XmlDocCommentCDataSection, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentComment] = ClassificationTypeNames.XmlDocCommentComment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentDelimiter] = ClassificationTypeNames.XmlDocCommentDelimiter, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentEntityReference] = ClassificationTypeNames.XmlDocCommentEntityReference, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentName] = ClassificationTypeNames.XmlDocCommentName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentProcessingInstruction] = ClassificationTypeNames.XmlDocCommentProcessingInstruction, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentText] = ClassificationTypeNames.XmlDocCommentText, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralAttributeName] = ClassificationTypeNames.XmlLiteralAttributeName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralAttributeQuotes] = ClassificationTypeNames.XmlLiteralAttributeQuotes, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralAttributeValue] = ClassificationTypeNames.XmlLiteralAttributeValue, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralCDataSection] = ClassificationTypeNames.XmlLiteralCDataSection, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralComment] = ClassificationTypeNames.XmlLiteralComment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralDelimiter] = ClassificationTypeNames.XmlLiteralDelimiter, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralEmbeddedExpression] = ClassificationTypeNames.XmlLiteralEmbeddedExpression, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralEntityReference] = ClassificationTypeNames.XmlLiteralEntityReference, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralName] = ClassificationTypeNames.XmlLiteralName, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralProcessingInstruction] = ClassificationTypeNames.XmlLiteralProcessingInstruction, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralText] = ClassificationTypeNames.XmlLiteralText, // TO-DO: Change to custom type
             };
 
         /// <summary>
@@ -285,8 +237,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
-            s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr);
-            Contract.ThrowIfNull(tokenTypeStr, "tokenTypeStr is null.");
+            if (!s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
+            {
+                tokenTypeStr = classificationType;
+            }
+
             Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
         }
