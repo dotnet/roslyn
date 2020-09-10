@@ -5600,6 +5600,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ParameterDisallowsNull_Title" xml:space="preserve">
     <value>Parameter must have a non-null value when exiting.</value>
   </data>
+  <data name="WRN_ParameterNotNullIfNotNull" xml:space="preserve">
+    <value>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</value>
+  </data>
+  <data name="WRN_ParameterNotNullIfNotNull_Title" xml:space="preserve">
+    <value>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</value>
+  </data>
+  <data name="WRN_ReturnNotNullIfNotNull" xml:space="preserve">
+    <value>Return value must be non-null because parameter '{0}' is non-null.</value>
+  </data>
+  <data name="WRN_ReturnNotNullIfNotNull_Title" xml:space="preserve">
+    <value>Return value must be non-null because parameter is non-null.</value>
+  </data>
   <data name="WRN_MemberNotNull" xml:space="preserve">
     <value>Member '{0}' must have a non-null value when exiting.</value>
   </data>

@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
             nullableWarnings.Add(getId(ErrorCode.WRN_ParameterDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterNotNullIfNotNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ReturnNotNullIfNotNull));
 
             NullableWarnings = nullableWarnings.ToImmutable();
 
@@ -478,6 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                case ErrorCode.WRN_ReturnNotNullIfNotNull:
                     return 1;
                 default:
                     return 0;
