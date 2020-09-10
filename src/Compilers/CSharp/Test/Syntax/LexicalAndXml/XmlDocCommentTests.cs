@@ -3292,7 +3292,7 @@ public class Program
 
             tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(eol: Environment.NewLine), tree.Options);
 
-            // NormalizeWhitespace didn't change the full text, but it moved whitespace into the documentation comment
+            // NormalizeWhitespace didn't change the full text, but it moved whitespace from the following whitespace trivia to the end of the documentation comment
             Assert.Equal(text, tree.ToString());
             Assert.Equal(@"/// <summary>
     /// This is Foo.Bar
