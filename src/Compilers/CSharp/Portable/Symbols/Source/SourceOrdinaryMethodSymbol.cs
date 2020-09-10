@@ -608,6 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkNullableMethodOverride = false;
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
             }
+            else if (definition.RefKind != implementation.RefKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
+            }
             else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
@@ -619,10 +623,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 static FormattedSymbol getFormattedSymbol(Symbol symbol) => new FormattedSymbol(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
             }
 
-            if (definition.RefKind != implementation.RefKind)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
-            }
 
             if (definition.IsStatic != implementation.IsStatic)
             {

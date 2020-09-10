@@ -2957,9 +2957,9 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,35): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
-                //     public partial (int x, int y) M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(4, 35));
+                // (5,37): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
+                //     public partial (int x1, int y1) M1() => default; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(5, 37));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
