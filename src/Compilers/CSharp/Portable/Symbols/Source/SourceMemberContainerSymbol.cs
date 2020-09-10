@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
             private const int FlattenedMembersIsSortedBit = 1 << FlattenedMembersIsSortedOffset;
 
+
             public SpecialType SpecialType
             {
                 get { return (SpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
@@ -2643,21 +2644,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (SourceOrdinaryMethodSymbol method in methodsBySignature.Values)
                 {
-                    if (method.OtherPartOfPartial is null)
+                    // partial implementations not paired with a definition
+                    if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
                     {
-                        if (method.IsPartialImplementation)
-                        {
-                            // partial implementations not paired with a definition
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
-                        }
-                        else if (method.IsPartialDefinition && method.HasExplicitAccessModifier)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
-                        }
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
                     }
-                    else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
+                    else if (!(method.OtherPartOfPartial is null) && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
+                    }
+                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                     }
                 }
             }
