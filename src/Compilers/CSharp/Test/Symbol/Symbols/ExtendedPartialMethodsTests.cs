@@ -2687,7 +2687,13 @@ partial class C
     public partial IEnumerable<string> M2() => null!;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8824: Partial method declarations 'string? C.M1()' and 'string C.M1()' must have identical parameter types and identical return types.
+                //     public partial string M1() => "hello";
+                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(8, 27),
+                // (11,40): error CS8824: Partial method declarations 'IEnumerable<string?> C.M2()' and 'IEnumerable<string> C.M2()' must have identical parameter types and identical return types.
+                //     public partial IEnumerable<string> M2() => null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("IEnumerable<string?> C.M2()", "IEnumerable<string> C.M2()").WithLocation(11, 40));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2967,7 +2973,13 @@ partial class C
     public partial object M2() => null;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,28): error CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' must have identical parameter types and identical return types.
+                //     public partial dynamic M1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
+                // (8,27): error CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' must have identical parameter types and identical return types.
+                //     public partial object M2() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2985,7 +2997,13 @@ partial class C
     public partial IntPtr M2() => default;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,25): error CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' must have identical parameter types and identical return types.
+                //     public partial nint M1() => 0;
+                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
+                // (10,27): error CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' must have identical parameter types and identical return types.
+                //     public partial IntPtr M2() => default;
+                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
