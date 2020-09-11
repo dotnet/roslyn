@@ -82,31 +82,48 @@ try {
     if ($Squash) {
         $originalCommitId = git rev-parse HEAD
         git reset --soft $(git rev-list --max-parents=0 HEAD)
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         git commit --amend -qm "Initial template from https://github.com/AArnott/Library.Template" -m "Original commit from template $originalCommitId"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
     # Rename project directories and solution
     git mv Library.sln "$LibraryName.sln"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv src/Library/Library.csproj "src/Library/$LibraryName.csproj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv src/Library "src/$LibraryName"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv test/Library.Tests/Library.Tests.csproj "test/Library.Tests/$LibraryName.Tests.csproj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv test/Library.Tests "test/$LibraryName.Tests"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Refresh solution file both to update paths and give the projects unique GUIDs
     dotnet sln remove src/Library/Library.csproj
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet sln remove test/Library.Tests/Library.Tests.csproj
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet sln add "src/$LibraryName"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet sln add "test/$LibraryName.Tests"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git add "$LibraryName.sln"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Update project reference in test project. Add before removal to keep the same ItemGroup in place.
     dotnet add "test/$LibraryName.Tests" reference "src/$LibraryName"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet remove "test/$LibraryName.Tests" reference src/Library/Library.csproj
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git add "test/$LibraryName.Tests/$LibraryName.Tests.csproj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Establish a new strong-name key
     & $sn.Path -k 2048 strongname.snk
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git add strongname.snk
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Replace placeholders in source files
     Replace-Placeholders -Path "src/$LibraryName/Calculator.cs" -Replacements @{
@@ -153,7 +170,9 @@ try {
 
     # Self destruct
     git rm Expand-Template.*
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git rm :/azure-pipelines/expand-template.yml
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Self-integrity check
     Get-ChildItem -Recurse -File -Exclude bin,obj,README.md,Expand-Template.* |? { -not $_.FullName.Contains("obj") } |% {
@@ -165,6 +184,7 @@ try {
 
     # Commit the changes
     git commit -qm "Expanded template for $LibraryName" -m "This expansion done by the (now removed) Expand-Template.ps1 script."
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host -ForegroundColor Green "Template successfully expanded."
 
