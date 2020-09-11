@@ -1261,13 +1261,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeWithAnnotations getNotNullIfNotNullOutputType(TypeWithAnnotations outputType, ImmutableHashSet<string> notNullIfParameterNotNull)
             {
-                for (var i = 0; i < overriddenParameters.Length; i++)
+                if (!notNullIfParameterNotNull.IsEmpty)
                 {
-                    var overridingParam = overridingParameters[i + overridingMethodOffset];
-                    var overriddenParam = overriddenParameters[i];
-                    if (notNullIfParameterNotNull.Contains(overridingParam.Name) && !overriddenParam.TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                    for (var i = 0; i < overriddenParameters.Length; i++)
                     {
-                        return outputType.AsNotAnnotated();
+                        var overridingParam = overridingParameters[i + overridingMethodOffset];
+                        if (notNullIfParameterNotNull.Contains(overridingParam.Name) && !overriddenParameters[i].TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                        {
+                            return outputType.AsNotAnnotated();
+                        }
                     }
                 }
 
