@@ -3157,6 +3157,25 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 27));
         }
 
+        [Fact]
+        public void DifferentReturnTypes_19()
+        {
+            var source =
+@"partial class C
+{
+    public partial ref (int x, int y) F1();
+    public partial (int, int) F1() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,31): error CS8818: Partial method declarations must have matching ref return values.
+                //     public partial (int, int) F1() => default;
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31),
+                // (4,31): error CS8824: Partial method declarations 'ref (int x, int y) C.F1()' and '(int, int) C.F1()' must have identical parameter types and return types.
+                //     public partial (int, int) F1() => default;
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F1").WithArguments("ref (int x, int y) C.F1()", "(int, int) C.F1()").WithLocation(4, 31));
+        }
+
         // Errors reported for differences in extended partial methods, warnings for differences in other partial methods.
         [Fact]
         [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
