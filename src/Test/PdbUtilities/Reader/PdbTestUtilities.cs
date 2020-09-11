@@ -26,7 +26,7 @@ namespace Roslyn.Test.Utilities
             return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
         }
 
-        public unsafe static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
+        public static unsafe EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
         {
             const int S_OK = 0;
 

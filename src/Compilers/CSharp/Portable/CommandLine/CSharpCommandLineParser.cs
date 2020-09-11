@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
         public static CSharpCommandLineParser Script { get; } = new CSharpCommandLineParser(isScriptCommandLineParser: true);
 
-        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
+        private static readonly char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptCommandLineParser = false)
             : base(CSharp.MessageProvider.Instance, isScriptCommandLineParser)

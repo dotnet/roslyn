@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis
         /// access to assembly <paramref name="compilationName"/>. It does not make a conclusive
         /// determination of visibility because the compilation's strong name key is not supplied.
         /// </summary>
-        static internal bool InternalsMayBeVisibleToAssemblyBeingCompiled(string compilationName, PEAssembly assembly)
+        internal static bool InternalsMayBeVisibleToAssemblyBeingCompiled(string compilationName, PEAssembly assembly)
         {
             return !assembly.GetInternalsVisibleToPublicKeys(compilationName).IsEmpty();
         }

@@ -26,6 +26,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 diagnostic.GetMessage(culture));
         }
 
-        internal static readonly new DebuggerDiagnosticFormatter Instance = new DebuggerDiagnosticFormatter();
+        internal static new readonly DebuggerDiagnosticFormatter Instance = new DebuggerDiagnosticFormatter();
     }
 }

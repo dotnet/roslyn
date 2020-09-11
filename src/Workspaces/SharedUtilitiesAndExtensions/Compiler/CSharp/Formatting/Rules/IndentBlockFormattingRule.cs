@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AnonymousMethodExpressionSyntax anonymousMethod:
                     SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
                     return;
-                case ObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+                case BaseObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
                     return;
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:

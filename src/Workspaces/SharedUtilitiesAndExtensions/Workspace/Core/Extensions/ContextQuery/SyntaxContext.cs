@@ -73,7 +73,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public SyntaxTree SyntaxTree { get; }
         public int Position { get; }
 
+        /// <summary>
+        /// The token to the left of <see cref="Position"/>. This token may be touching the position.
+        /// </summary>
         public SyntaxToken LeftToken { get; }
+
+        /// <summary>
+        /// The first token to the left of <see cref="Position"/> that we're not touching. Equal to <see cref="LeftToken"/>
+        /// if we aren't touching <see cref="LeftToken" />.
+        /// </summary>
         public SyntaxToken TargetToken { get; }
 
         public bool IsTypeContext { get; }

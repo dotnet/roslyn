@@ -329,7 +329,8 @@ namespace Roslyn.Test.Utilities
             object[] arguments = null,
             LinePosition? startLocation = null,
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
-            bool argumentOrderDoesNotMatter = false)
+            bool argumentOrderDoesNotMatter = false,
+            bool isSuppressed = false)
         {
             return TestHelpers.Diagnostic(
                 code,
@@ -337,7 +338,8 @@ namespace Roslyn.Test.Utilities
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter);
+                argumentOrderDoesNotMatter,
+                isSuppressed: isSuppressed);
         }
 
         internal static DiagnosticDescription Diagnostic(
@@ -346,7 +348,8 @@ namespace Roslyn.Test.Utilities
            object[] arguments = null,
            LinePosition? startLocation = null,
            Func<SyntaxNode, bool> syntaxNodePredicate = null,
-           bool argumentOrderDoesNotMatter = false)
+           bool argumentOrderDoesNotMatter = false,
+           bool isSuppressed = false)
         {
             return TestHelpers.Diagnostic(
                 code,
@@ -354,7 +357,8 @@ namespace Roslyn.Test.Utilities
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter);
+                argumentOrderDoesNotMatter,
+                isSuppressed: isSuppressed);
         }
 
         #endregion

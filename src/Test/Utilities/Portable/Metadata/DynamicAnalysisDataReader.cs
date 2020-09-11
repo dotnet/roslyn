@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal unsafe sealed class DynamicAnalysisDataReader
+    internal sealed unsafe class DynamicAnalysisDataReader
     {
         public ImmutableArray<DynamicAnalysisDocument> Documents { get; }
         public ImmutableArray<DynamicAnalysisMethod> Methods { get; }
