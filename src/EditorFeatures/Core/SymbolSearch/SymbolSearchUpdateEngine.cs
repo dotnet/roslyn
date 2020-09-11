@@ -66,20 +66,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _reportAndSwallowException = reportAndSwallowException;
         }
 
-        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return new(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return new(ImmutableArray<PackageWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -102,16 +102,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return new(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+                return new(ImmutableArray<PackageWithAssemblyResult>.Empty);
             }
 
             var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
@@ -143,24 +143,24 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return new(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            return Task.FromResult(results.ToImmutableAndFree());
+            return new(results.ToImmutableAndFree());
         }
 
         private static List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)

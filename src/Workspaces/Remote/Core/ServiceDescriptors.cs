@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteFindUsagesService), callbackInterface: typeof(IRemoteFindUsagesService.ICallback)),
             CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
             CreateDescriptors(typeof(IRemoteAddImportService), callbackInterface: typeof(IRemoteAddImportService.ICallback)),
+            CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
         });
 
         private static string GetServiceName(Type serviceInterface)

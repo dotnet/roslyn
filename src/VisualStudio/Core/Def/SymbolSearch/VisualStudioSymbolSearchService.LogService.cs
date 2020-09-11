@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -26,23 +25,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 _activityLog = activityLog;
             }
 
-            public Task LogInfoAsync(string text)
+            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken)
                 => LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
 
-            public Task LogExceptionAsync(string exception, string text)
+            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
                 => LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
 
-            private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
+            private ValueTask LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {
                 Log(text, type);
-                return Task.CompletedTask;
+                return default;
             }
 
             private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {
-                if (!this.IsForeground())
+                if (!IsForeground())
                 {
-                    this.InvokeBelowInputPriorityAsync(() => Log(text, type));
+                    InvokeBelowInputPriorityAsync(() => Log(text, type));
                     return;
                 }
 
