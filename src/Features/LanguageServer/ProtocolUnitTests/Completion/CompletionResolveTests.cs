@@ -28,13 +28,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
             var completionParams = CreateCompletionParams(locations["caret"].Single(), "\0", LSP.CompletionTriggerKind.Invoked);
+            var commitCharacters = new string[]
+                {
+                    " ", "{", "}", "[", "]", "(", ")", ".", ",", ":",
+                    ";", "+", "-", "*", "/", "%", "&", "|", "^", "!",
+                    "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\"
+                };
             var completionItem = CreateCompletionItem
-                ("A", LSP.CompletionItemKind.Class, tags, completionParams);
+                ("A", LSP.CompletionItemKind.Class, tags, completionParams, commitCharacters: commitCharacters);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var expected = CreateResolvedCompletionItem(
-                "A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
+                "A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null, commitCharacters);
 
             var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(workspace.CurrentSolution, completionItem, clientCapabilities);
             AssertJsonEquals(expected, results);
