@@ -1843,7 +1843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
 
-        // Available = 8851,
+        WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined = 8851,
 
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,

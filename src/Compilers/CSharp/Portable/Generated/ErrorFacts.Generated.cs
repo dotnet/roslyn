@@ -261,6 +261,7 @@
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                 case ErrorCode.WRN_ParameterIsStaticClass:
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                case ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined:
                     return true;
                 default:
                     return false;

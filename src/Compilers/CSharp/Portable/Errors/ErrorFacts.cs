@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MissingXMLComment:
                 case ErrorCode.WRN_MissingTypeParamTag:
                 case ErrorCode.WRN_InvalidVersionFormat:
+                case ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined:
                     return 4;
                 case ErrorCode.WRN_UnreferencedEvent:
                 case ErrorCode.WRN_DuplicateUsing:

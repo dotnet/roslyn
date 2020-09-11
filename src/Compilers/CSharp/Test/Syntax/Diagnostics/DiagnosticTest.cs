@@ -406,6 +406,7 @@ class X
                     ErrorCode.WRN_ParameterIsStaticClass,
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
+                    ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

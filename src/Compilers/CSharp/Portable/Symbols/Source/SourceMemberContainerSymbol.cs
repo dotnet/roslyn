@@ -1501,6 +1501,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
             }
+
+            var targetEqualsMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectEquals,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                                TypeWithAnnotations.Create(this),
+                                                                ImmutableArray<CustomModifier>.Empty,
+                                                                isParams: false,
+                                                                RefKind.None
+                                                                )),
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+
+            var targetGetHashCodeMethod = new SignatureOnlyMethodSymbol(
+                WellKnownMemberNames.ObjectGetHashCode,
+                this,
+                MethodKind.Ordinary,
+                Cci.CallingConvention.HasThis,
+                ImmutableArray<TypeParameterSymbol>.Empty,
+                ImmutableArray<ParameterSymbol>.Empty,
+                RefKind.None,
+                isInitOnly: false,
+                TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)),
+                ImmutableArray<CustomModifier>.Empty,
+                ImmutableArray<MethodSymbol>.Empty);
+
+            var userDefinedGetHashCode = getNonSynthesizedRecordMethod(targetGetHashCodeMethod);
+            var userDefinedEquals = getNonSynthesizedRecordMethod(targetEqualsMethod);
+
+            if (userDefinedGetHashCode is null ^ userDefinedEquals is null)
+            {
+                var declared = userDefinedGetHashCode is null ? userDefinedEquals : userDefinedGetHashCode;
+                // `declared` can't be null. It looks like flow analysis doesn't detect from the XOR that only one can be null.
+                // Remove the suppression if that's fixed.
+                diagnostics.Add(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, declared!.Locations[0], declared);
+            }
+
+            Symbol? getNonSynthesizedRecordMethod(Symbol targetMethod)
+            {
+                var members = GetMembers(targetMethod.Name);
+                foreach (var member in members)
+                {
+                    if (MemberSignatureComparer.RecordAPISignatureComparer.Equals(member, targetMethod) && member is not SynthesizedRecordOrdinaryMethod)
+                    {
+                        return member;
+                    }
+                }
+                return null;
+            }
         }
 
         private void CheckMemberNameConflicts(DiagnosticBag diagnostics)

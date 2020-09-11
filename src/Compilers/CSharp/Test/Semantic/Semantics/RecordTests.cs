@@ -1968,6 +1968,64 @@ class C : Base<S>
                 );
         }
 
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void BothGetHashCodeAndEqualsAreDefined()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+    public bool Equals(C c) { return false; }
+    public override int GetHashCode() { return 0; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void BothGetHashCodeAndEqualsAreNotDefined()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void GetHashCodeIsDefinedButEqualsIsNot()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+    public override int GetHashCode() { return 0; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.GetHashCode()' was found.
+                //     public override int GetHashCode() { return 0; }
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode", isSuppressed: false).WithArguments("C.GetHashCode()").WithLocation(5, 25));
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void EqualsIsDefinedButGetHashCodeIsNot()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+    public bool Equals(C c) { return false; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,17): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.Equals(C)' was found.
+                //     public bool Equals(C c) { return false; }
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals", isSuppressed: false).WithArguments("C.Equals(C)").WithLocation(5, 17));
+        }
+
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord()
         {
