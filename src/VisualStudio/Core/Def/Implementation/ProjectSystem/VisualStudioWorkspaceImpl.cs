@@ -681,58 +681,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void ApplyChangesForMappedDocuments(ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
         {
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
-            var mappedSpansPerDocument = GetTextChangesAndMappedSpans(projectChanges, changedMappedDocuments).WaitAndGetResult(CancellationToken.None);
+            // Create mapped text changes using the mapped spans and original text changes' text.
+            var mappedChanges = GetMappedTextChanges(projectChanges, changedMappedDocuments).Result;
 
-            // Create mapped text changes using the mapped spans and original text changes.
-            using var _ = ArrayBuilder<(string FileName, TextChange TextChange)>.GetInstance(out var mappedChangesBuilder);
-            foreach (var mappedSpans in mappedSpansPerDocument)
-            {
-                var newDoc = projectChanges.NewProject.GetDocument(mappedSpans.Key)!;
-                MapTextChanges(newDoc, mappedSpans.Value.MappedSpans, mappedSpans.Value.OriginalTextChanges, mappedChangesBuilder);
-            }
-
-            var mappedChanges = mappedChangesBuilder.ToImmutable();
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
-            foreach (var changesForFile in mappedChanges.GroupBy(change => change.FileName))
+            foreach (var changesForFile in mappedChanges)
             {
                 using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectChanges.ProjectId), needsSave: true, needsUndoDisabled: false);
-                TextEditApplication.UpdateText(changesForFile.Select(change => change.TextChange).ToImmutableArray(), invisibleEditor.TextBuffer, EditOptions.None);
+                TextEditApplication.UpdateText(changesForFile.Value.ToImmutableArray(), invisibleEditor.TextBuffer, EditOptions.None);
             }
 
             return;
 
-            static async Task<Dictionary<DocumentId, (ImmutableArray<MappedSpanResult> MappedSpans, ImmutableArray<TextChange> OriginalTextChanges)>> GetTextChangesAndMappedSpans(
-                ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
+            static async Task<MultiDictionary<string, TextChange>> GetMappedTextChanges(ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
             {
-                var mappedSpansPerDocument = new Dictionary<DocumentId, (ImmutableArray<MappedSpanResult> MappedSpans, ImmutableArray<TextChange> OriginalTextChanges)>();
+                var filePathToMappedTextChanges = new MultiDictionary<string, TextChange>();
                 foreach (var changedDocumentId in changedMappedDocuments)
                 {
-                    var oldDocument = projectChanges.OldProject.GetDocument(changedDocumentId)!;
-                    var newDocument = projectChanges.NewProject.GetDocument(changedDocumentId)!;
+                    var oldDocument = projectChanges.OldProject.GetRequiredDocument(changedDocumentId);
+                    var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
 
                     var mappingService = newDocument.Services.GetService<ISpanMappingService>();
                     var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(true)).ToImmutableArray();
                     var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(true);
 
-                    mappedSpansPerDocument[changedDocumentId] = (mappedSpanResults, textChanges);
-                }
-
-                return mappedSpansPerDocument;
-            }
-
-            static void MapTextChanges(CodeAnalysis.Document newDocument, ImmutableArray<MappedSpanResult> mappedSpanResults, ImmutableArray<TextChange> originalTextChanges, ArrayBuilder<(string, TextChange)> builder)
-            {
-                Contract.ThrowIfFalse(mappedSpanResults.Length == originalTextChanges.Length);
-
-                for (var i = 0; i < mappedSpanResults.Length; i++)
-                {
-                    // Only include changes that could be mapped.
-                    var newText = originalTextChanges[i].NewText;
-                    if (!mappedSpanResults[i].IsDefault && newText != null)
+                    Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
+                    for (var i = 0; i < mappedSpanResults.Length; i++)
                     {
-                        builder.Add((mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, newText)));
+                        // Only include changes that could be mapped.
+                        var newText = textChanges[i].NewText;
+                        if (!mappedSpanResults[i].IsDefault && newText != null)
+                        {
+                            filePathToMappedTextChanges.Add(mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, newText));
+                        }
                     }
                 }
+
+                return filePathToMappedTextChanges;
             }
         }
 
