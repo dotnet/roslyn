@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10732,6 +10731,25 @@ class C
         $$
     }
 }", "Local");
+        }
+
+        [WorkItem(44862, "https://github.com/dotnet/roslyn/issues/44862")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestPreselectOffInRangeExpression()
+        {
+            var markup = @"
+class C
+{
+    private static void M()
+    {
+        var i = 1;
+        var arr = new int[3];
+        var x = arr[i.$$];
+    }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "CompareTo", usePreviousCharAsTrigger: true);
         }
     }
 }

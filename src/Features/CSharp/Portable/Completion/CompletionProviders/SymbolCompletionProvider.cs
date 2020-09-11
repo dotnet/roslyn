@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -50,6 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
                     position > 0 &&
                     await IsTriggerInArgumentListAsync(document, position - 1, CancellationToken.None).ConfigureAwait(false) == true)
+                {
+                    return false;
+                }
+            }
+
+            if (completionContext.Trigger.Character == '.' && syntaxContext.LeftToken.Parent is MemberAccessExpressionSyntax memberAccessExpression)
+            {
+                var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+                var type = semanticModel.GetTypeInfo(memberAccessExpression.Expression).Type;
+                if (type != null && type.SpecialType.IsIntegralType())
                 {
                     return false;
                 }
