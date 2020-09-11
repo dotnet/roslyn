@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
         {
             MethodOrPropertyOverloadResolution(
                 methods, typeArguments, receiver, arguments, result,
                 isMethodGroupConversion, allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic,
-                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution, callingConvention);
+                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution, in callingConventionInfo);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
@@ -146,7 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             MethodOrPropertyOverloadResolution(
                 indexers, typeArguments, receiverOpt, arguments, result, isMethodGroupConversion: false,
-                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                callingConventionInfo: default);
             typeArguments.Free();
         }
 
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
                 results, members, typeArguments, receiver, arguments, completeResults: false, isMethodGroupConversion,
-                returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
+                returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
                 ref useSiteDiagnostics, inferWithDynamic, allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PerformMemberOverloadResolution(
                     results, members, typeArguments, receiver, arguments,
                     completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
-                    allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
+                    allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
                     ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol returnType,
             bool allowRefOmittedArguments,
             bool isFunctionPointerResolution,
-            Cci.CallingConvention callingConvention,
+            in CallingConventionInfo callingConventionInfo,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isFunctionPointerResolution)
             {
-                RemoveCallingConventionMismatches(results, callingConvention);
+                RemoveCallingConventionMismatches(results, callingConventionInfo);
                 RemoveMethodsNotDeclaredStatic(results);
             }
 
@@ -431,12 +432,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void RemoveCallingConventionMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, Cci.CallingConvention expectedConvention) where TMember : Symbol
+        private void RemoveCallingConventionMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, in CallingConventionInfo expectedConvention) where TMember : Symbol
         {
             if (typeof(TMember) != typeof(MethodSymbol))
             {
                 return;
             }
+
+            Debug.Assert(expectedConvention.CallingConventionTypes is not null);
 
             for (int i = 0; i < results.Count; i++)
             {
@@ -444,15 +447,101 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = (MethodSymbol)(Symbol)result.Member;
                 if (result.Result.IsValid)
                 {
-                    if (!member.CallingConvention.IsCallingConvention(expectedConvention)
-                        || member.CallingConvention.HasUnknownCallingConventionAttributeBits())
+                    if (member.CallingConvention.HasUnknownCallingConventionAttributeBits())
                     {
-                        results[i] = new MemberResolutionResult<TMember>(
-                            result.Member, result.LeastOverriddenMember,
-                            MemberAnalysisResult.WrongCallingConvention());
+                        results[i] = makeWrongCallingConvention(result);
+                        continue;
+                    }
+
+                    var unmanagedCallersOnlyData = member.UnmanagedCallersOnlyAttributeData;
+                    if (ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound)
+                        || ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized))
+                    {
+                        // If we're at a location where the unmanaged data has actually not yet been bound, it cannot be
+                        // valid code anyway, as the only place that can occur is when we're actually doing an address of
+                        // in an attribute.
+                        continue;
+                    }
+
+                    if (unmanagedCallersOnlyData is null)
+                    {
+                        if (!member.CallingConvention.IsCallingConvention(expectedConvention.CallKind)
+                            || !expectedConvention.CallingConventionTypes.IsEmpty)
+                        {
+                            results[i] = makeWrongCallingConvention(result);
+                        }
+
+                        continue;
+                    }
+
+                    Debug.Assert(unmanagedCallersOnlyData.CallingConventionTypes.All(
+                        u => FunctionPointerTypeSymbol.IsCallingConventionModifier((NamedTypeSymbol)u)));
+
+                    // If there is only one type in the unmanagedData, and that type is one of the 4 special names known to the
+                    // compiler, then we treat the CallKind of the method as if it were that calling convention. Otherwise, we
+                    // treat the CallKind as Unmanaged and do comparison from the calling convention types expected in the function
+                    // pointer.
+                    if (unmanagedCallersOnlyData.CallingConventionTypes.Count == 1)
+                    {
+                        switch (unmanagedCallersOnlyData.CallingConventionTypes.Single().Name)
+                        {
+                            case "CallConvCdecl":
+                                _ = checkConventionAgainstActual(Cci.CallingConvention.CDecl, in expectedConvention);
+                                continue;
+                            case "CallConvStdcall":
+                                _ = checkConventionAgainstActual(Cci.CallingConvention.Standard, in expectedConvention);
+                                continue;
+                            case "CallConvThiscall":
+                                _ = checkConventionAgainstActual(Cci.CallingConvention.ThisCall, in expectedConvention);
+                                continue;
+                            case "CallConvFastcall":
+                                _ = checkConventionAgainstActual(Cci.CallingConvention.FastCall, in expectedConvention);
+                                continue;
+                        }
+                    }
+
+                    if (!checkConventionAgainstActual(Cci.CallingConvention.Unmanaged, in expectedConvention))
+                    {
+                        return;
+                    }
+
+                    // Now, we make sure that the actual expected types match up
+                    switch (expectedConvention.CallingConventionTypes, unmanagedCallersOnlyData.CallingConventionTypes)
+                    {
+                        case ({ IsEmpty: true }, { IsEmpty: true }):
+                            return;
+
+                        case ({ IsEmpty: true }, _) or (_, { IsEmpty: true }):
+                        case ({ Count: var expectedCount }, { Count: var actualCount }) when expectedCount != actualCount:
+                            results[i] = makeWrongCallingConvention(result);
+                            return;
+
+                    }
+
+                    foreach (var expectedModifier in expectedConvention.CallingConventionTypes)
+                    {
+                        if (!unmanagedCallersOnlyData.CallingConventionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
+                        {
+                            results[i] = makeWrongCallingConvention(result);
+                            break;
+                        }
+                    }
+
+                    bool checkConventionAgainstActual(Cci.CallingConvention resultConvention, in CallingConventionInfo expectedConvention)
+                    {
+                        if (!expectedConvention.CallKind.IsCallingConvention(resultConvention))
+                        {
+                            results[i] = makeWrongCallingConvention(result);
+                            return false;
+                        }
+
+                        return true;
                     }
                 }
             }
+
+            static MemberResolutionResult<TMember> makeWrongCallingConvention(MemberResolutionResult<TMember> result)
+                => new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongCallingConvention());
         }
 #nullable restore
 

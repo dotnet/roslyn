@@ -411,19 +411,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return UnmanagedCallersOnlyAttributeData.Uninitialized;
                 }
 
+                var earlyData = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                 if (lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed)
                 {
-                    var data = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+                    var lateData = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+                    if (earlyData is { UnmanagedCallersOnlyAttributePresent: true } && lateData is null or { UnmanagedCallersOnlyAttributeData: null })
+                    {
+                        // Binding error occurred in the attribute arguments. Treat it as default unmanaged, with errors
+                        return UnmanagedCallersOnlyAttributeData.Invalid;
+                    }
+
 #if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
-                    verifyDataConsistent((CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, data);
+                    verifyDataConsistent(earlyData, lateData);
 #endif
-                    return data?.UnmanagedCallersOnlyAttributeData;
+                    return lateData?.UnmanagedCallersOnlyAttributeData;
                 }
 
                 if (lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
-                    var data = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data?.UnmanagedCallersOnlyAttributePresent == true
+                    return earlyData?.UnmanagedCallersOnlyAttributePresent == true
                         ? UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound
                         : null;
                 }
@@ -433,8 +439,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
                 static void verifyDataConsistent(CommonMethodEarlyWellKnownAttributeData? earlyData, MethodWellKnownAttributeData? lateData)
                 {
-                    Debug.Assert((earlyData, lateData) is ((null or { UnmanagedCallersOnlyAttributePresent: false }), (null or { UnmanagedCallersOnlyAttributeData: null }))
-                                                          or ({ UnmanagedCallersOnlyAttributePresent: true }, { UnmanagedCallersOnlyAttributeData: not null }));
+                    if (lateData is { UnmanagedCallersOnlyAttributeData: not null })
+                    {
+                        // We can't verify the symmetric case here. Error conditions (such as if a bad expression was provided to the array initializer)
+                        // can cause the attribute to be entirely unbound during regular attribute binding. Early binding doesn't know that though, so
+                        // it still gets marked as present.
+                        Debug.Assert(earlyData is { UnmanagedCallersOnlyAttributePresent: true });
+                    }
+                    else if (earlyData is null or { UnmanagedCallersOnlyAttributePresent: false })
+                    {
+                        Debug.Assert(lateData is null or { UnmanagedCallersOnlyAttributeData: null });
+                    }
                 }
 #endif
             }
