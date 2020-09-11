@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return "Item" & position
         End Function
 
-        Private Shared ForbiddenNames As HashSet(Of String) = New HashSet(Of String)(
+        Private Shared ReadOnly ForbiddenNames As HashSet(Of String) = New HashSet(Of String)(
             {"CompareTo", "Deconstruct", "Equals", "GetHashCode", "Rest", "ToString"},
             IdentifierComparison.Comparer)
 

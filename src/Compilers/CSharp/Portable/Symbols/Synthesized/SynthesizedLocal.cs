@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
         private static int _nextSequence = 0;
         // Produce a token that helps distinguish one variable from another when debugging
-        private int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
+        private readonly int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
 
         internal string DumperString()
         {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #endif
 
-        override internal string GetDebuggerDisplay()
+        internal override string GetDebuggerDisplay()
         {
             var builder = new StringBuilder();
             builder.Append('<');

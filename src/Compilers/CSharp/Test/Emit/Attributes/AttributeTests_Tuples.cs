@@ -95,7 +95,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
     }
 }";
 
-        private static MetadataReference[] s_attributeRefs =
+        private static readonly MetadataReference[] s_attributeRefs =
         {
             ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef
         };

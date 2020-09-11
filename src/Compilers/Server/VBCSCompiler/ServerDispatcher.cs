@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private Task? _timeoutTask;
         private Task? _gcTask;
         private Task<IClientConnection>? _listenTask;
-        private List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
+        private readonly List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
         private TimeSpan? _keepAlive;
         private bool _keepAliveIsDefault;
 
@@ -102,20 +102,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     _clientConnectionHost.EndListening();
                 }
 
-                // This type is responsible for cleaning up resources associated with _listenTask. Once EndListening
-                // is complete this task is guaranteed to be completed. If it ran to completion we need to 
-                // dispose of the value.
-                Console.WriteLine(_listenTask?.Status);
-                Debug.Assert(_listenTask is null || _listenTask.IsCompleted);
-                if (_listenTask?.Status == TaskStatus.RanToCompletion)
+                if (_listenTask is not null)
                 {
-                    try
+                    // This type is responsible for cleaning up resources associated with _listenTask. Once EndListening
+                    // is complete this task is guaranteed to be either completed or have a task scheduled to complete
+                    // it. If it ran to completion we need to dispose of the value.
+                    if (!_listenTask.IsCompleted)
                     {
-                        _listenTask.Result.Dispose();
+                        // Wait for the task to complete
+                        _listenTask.ContinueWith(_ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default)
+                            .Wait(CancellationToken.None);
                     }
-                    catch (Exception ex)
+
+                    if (_listenTask.Status == TaskStatus.RanToCompletion)
                     {
-                        CompilerServerLogger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                        try
+                        {
+                            _listenTask.Result.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            CompilerServerLogger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                        }
                     }
                 }
             }
