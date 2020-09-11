@@ -3774,5 +3774,218 @@ class Program
             var setter = (RetargetingMethodSymbol)property.SetMethod;
             Assert.True(setter.IsInitOnly);
         }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyStruct_AutoProp()
+        {
+            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public readonly struct S
+{
+    public int I { get; init; }
+}
+" }, expectedOutput: "1"); ;
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyStruct_ManualProp()
+        {
+            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public readonly struct S
+{
+    private readonly int i;
+    public int I { get => i; init => i = value; }
+}
+" }, expectedOutput: "1"); ;
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyProperty_AutoProp()
+        {
+            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    public readonly int I { get; init; }
+}
+" }, expectedOutput: "1"); ;
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""readonly void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyProperty_ManualProp()
+        {
+            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    private readonly int i;
+    public readonly int I { get => i; init => i = value; }
+}
+" }, expectedOutput: "1"); ;
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""readonly void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_AutoProp()
+        {
+            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    public int I { get; readonly init; }
+}
+" }, expectedOutput: "1"); ;
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""readonly void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_ManualProp()
+        {
+            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    private readonly int i;
+    public int I { get => i; readonly init => i = value; }
+}
+" }, expectedOutput: "1"); ;
+
+            comp.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""readonly void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
     }
 }

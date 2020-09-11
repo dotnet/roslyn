@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 bool isGetterOnly = hasGetAccessor && !hasSetAccessor;
 
-                if (isAutoPropertyWithGetSyntax && !IsStatic && !isGetterOnly)
+                if (isAutoPropertyWithGetSyntax && !IsStatic && !isGetterOnly && !isInitOnly)
                 {
                     if (ContainingType.IsReadOnly)
                     {
