@@ -29,10 +29,12 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         /// <summary>
-        /// Returns classified spans in ascending <see cref="ClassifiedSpan"/> order. Classified spans will not overlap. However, contiguous
+        /// Returns classified spans in ascending <see cref="ClassifiedSpan"/> order.
         /// <see cref="ClassifiedSpan"/>s may have the same <see cref="ClassifiedSpan.TextSpan"/>. This occurs when there are multiple
-        /// <see cref="ClassifiedSpan.ClassificationType"/>s for the same region of code. For example, a reference to a static method will
-        /// have two spans, one that designates it as a method, and one that designates it as static.
+        /// <see cref="ClassifiedSpan.ClassificationType"/>s for the same region of code. For example, a reference to a static method
+        /// will have two spans, one that designates it as a method, and one that designates it as static.
+        /// <see cref="ClassifiedSpan"/>s may also have overlapping <see cref="ClassifiedSpan.TextSpan"/>s. This occurs when there are
+        /// strings containing regex and/or escape characters.
         /// </summary>
         public static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             SemanticModel semanticModel,

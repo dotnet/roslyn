@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             int[] oldSemanticTokens,
             int[] newSemanticTokens)
         {
+            if (oldSemanticTokens.SequenceEqual(newSemanticTokens))
+            {
+                return Array.Empty<SemanticTokensEdit>();
+            }
+
             // We use Roslyn's version of the Myers' Diff Algorithm to compute the minimal edits
             // between the old and new tokens.
             // Edits are computed by token (i.e. in sets of five integers), so if one value in the token
