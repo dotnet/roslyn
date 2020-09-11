@@ -2007,7 +2007,7 @@ public sealed record C
             comp.VerifyDiagnostics(
                 // (5,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.GetHashCode()' was found.
                 //     public override int GetHashCode() { return 0; }
-                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode", isSuppressed: false).WithArguments("C.GetHashCode()").WithLocation(5, 25));
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode".WithArguments("C.GetHashCode()").WithLocation(5, 25));
         }
 
         [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
@@ -2023,7 +2023,7 @@ public sealed record C
             comp.VerifyDiagnostics(
                 // (5,17): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.Equals(C)' was found.
                 //     public bool Equals(C c) { return false; }
-                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals", isSuppressed: false).WithArguments("C.Equals(C)").WithLocation(5, 17));
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals".WithArguments("C.Equals(C)").WithLocation(5, 17));
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
@@ -14593,7 +14593,10 @@ public record C : B {
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 25),
+                // (3,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
+                //     public override int GetHashCode() => 0;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
 
             comp = CreateCompilationWithIL(new[] { source1 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
@@ -14732,7 +14735,10 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
                 //     public override int GetHashCode() => throw null;
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "GetHashCode".WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25),
+                // (3,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
+                //     public override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
         }
 
@@ -14843,7 +14849,10 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
                 //     public override int GetHashCode() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(3, 25)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode".WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(3, 25),
+                // (3,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
+                //     public override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 25)                
                 );
         }
 
@@ -15091,7 +15100,10 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 //     public override int GetHashCode() => throw null;
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25)
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25),
+                // (3,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
+                //     public override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
         }
 
@@ -15192,7 +15204,10 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override A GetHashCode() => default;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 23),
+                // (3,23): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
+                //     public override A GetHashCode() => default;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode".WithArguments("B.GetHashCode()").WithLocation(3, 23)
                 );
         }
 
@@ -16476,7 +16491,10 @@ record A
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
                 // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     { accessibility } virtual bool Equals(A x)
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
+                // (4,...): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'A.Equals(A)' was found.
+                //      virtual bool Equals(A x)
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals".WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
                 );
         }
 
@@ -18299,7 +18317,11 @@ True True False False
 Equals(A other)
 Equals(A other)
 False False True True
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+    // (6,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'A.Equals(A)' was found.
+    //     public virtual bool Equals(A other)
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals".WithArguments("A.Equals(A)").WithLocation(6, 25)
+);
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
