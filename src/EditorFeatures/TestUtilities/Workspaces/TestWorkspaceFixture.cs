@@ -31,12 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null, string workspaceKind = null)
         {
-            if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
+            // If it looks like XML, we'll treat it as XML; any parse error would be rejected and will throw.
+            // We'll do a case insensitive search here so if somebody has a lowercase W it'll be tried (and
+            // rejected by the XML parser) rather than treated as regular text.
+            if (markup.TrimStart().StartsWith("<Workspace>", StringComparison.OrdinalIgnoreCase))
             {
                 CloseTextView();
                 _workspace?.Dispose();
 
-                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
+                _workspace = TestWorkspace.CreateWorkspace(XElement.Parse(markup), exportProvider: exportProvider, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
                 Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
@@ -127,20 +130,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
             existingProperties.Clear();
-        }
-
-        private static bool TryParseXElement(string input, out XElement output)
-        {
-            try
-            {
-                output = XElement.Parse(input);
-                return true;
-            }
-            catch (XmlException)
-            {
-                output = null;
-                return false;
-            }
         }
     }
 }

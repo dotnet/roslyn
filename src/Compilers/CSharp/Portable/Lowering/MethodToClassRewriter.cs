@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
-        public override abstract BoundNode VisitScope(BoundScope node);
+        public abstract override BoundNode VisitScope(BoundScope node);
 
         public override BoundNode VisitSequence(BoundSequence node)
         {

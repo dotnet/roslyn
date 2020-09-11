@@ -104,8 +104,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _reported_ERR_CannotUseOnErrorGotoWithClosure As Boolean
 
+#Disable Warning IDE0044 ' Add readonly modifier - The field is assigned in "#If DEBUG"
         ''' <summary> WARNING: used ONLY in DEBUG </summary>
         Private _rewrittenNodes As HashSet(Of BoundNode) = Nothing
+#Enable Warning IDE0044 ' Add readonly modifier
 
         Private Sub New(analysis As Analysis,
                         method As MethodSymbol,
@@ -1446,4 +1448,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 End Namespace
-
