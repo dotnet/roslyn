@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal abstract class AbstractCSharpSignatureHelpProvider : AbstractSignatureHelpProvider
     {
-        private static SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
+        private static readonly SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
             .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
         protected AbstractCSharpSignatureHelpProvider()
