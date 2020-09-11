@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
             CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
             CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
+            CreateDescriptors(typeof(IRemoteGlobalNotificationDeliveryService)),
         });
 
         private static string GetServiceName(Type serviceInterface)

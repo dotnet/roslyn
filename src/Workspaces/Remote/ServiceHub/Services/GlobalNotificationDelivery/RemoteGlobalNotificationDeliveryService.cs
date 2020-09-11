@@ -6,35 +6,49 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Services;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : IRemoteGlobalNotificationDeliveryService
+    internal sealed class RemoteGlobalNotificationDeliveryService : BrokeredServiceBase, IRemoteGlobalNotificationDeliveryService
     {
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public void OnGlobalOperationStarted()
+        internal sealed class Factory : FactoryBase<IRemoteGlobalNotificationDeliveryService>
         {
-            RunService(() =>
-            {
-                var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStarted();
-            }, CancellationToken.None);
+            protected override IRemoteGlobalNotificationDeliveryService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteGlobalNotificationDeliveryService(arguments);
+        }
+
+        public RemoteGlobalNotificationDeliveryService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+        public ValueTask OnGlobalOperationStartedAsync(CancellationToken cancellationToken)
         {
-            RunService(() =>
+            return RunServiceAsync(cancellationToken =>
+            {
+                var globalOperationNotificationService = GetGlobalOperationNotificationService();
+                globalOperationNotificationService?.OnStarted();
+                return default;
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask OnGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStopped(operations, cancelled);
-            }, CancellationToken.None);
+                return default;
+            }, cancellationToken);
         }
 
         private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
