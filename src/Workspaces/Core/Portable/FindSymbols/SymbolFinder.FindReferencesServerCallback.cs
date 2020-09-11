@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        internal sealed class FindReferencesServerCallback : IEqualityComparer<SerializableSymbolAndProjectId>
+        internal sealed class FindReferencesServerCallback : IRemoteSymbolFinderService.ICallback, IEqualityComparer<SerializableSymbolAndProjectId>
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
@@ -97,6 +99,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
                 => obj.SymbolKeyData.GetHashCode();
+
+            public ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span)
+                => throw ExceptionUtilities.Unreachable;
         }
     }
 }

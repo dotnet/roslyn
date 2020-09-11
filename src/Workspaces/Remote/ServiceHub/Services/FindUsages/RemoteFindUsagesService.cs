@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -14,15 +15,15 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteFindUsagesService : BrokeredServiceBase, IRemoteFindUsagesService
     {
-        internal sealed class Factory : FactoryBase<IRemoteFindUsagesService, FindUsagesServerCallback>
+        internal sealed class Factory : FactoryBase<IRemoteFindUsagesService, IRemoteFindUsagesService.ICallback>
         {
-            protected override IRemoteFindUsagesService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<FindUsagesServerCallback> callback)
+            protected override IRemoteFindUsagesService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
                 => new RemoteFindUsagesService(arguments, callback);
         }
 
-        private readonly RemoteCallback<FindUsagesServerCallback> _callback;
+        private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
 
-        public RemoteFindUsagesService(in ServiceConstructionArguments arguments, RemoteCallback<FindUsagesServerCallback> callback)
+        public RemoteFindUsagesService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask FindReferencesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
-            SerializableFindReferencesSearchOptions options,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var context = new RemoteFindUsageContext(_callback, cancellationToken);
                     await AbstractFindUsagesService.FindReferencesAsync(
-                        context, symbol, project, options.Rehydrate()).ConfigureAwait(false);
+                        context, symbol, project, options).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -80,12 +81,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private sealed class RemoteFindUsageContext : IFindUsagesContext, IStreamingProgressTracker
         {
-            private readonly RemoteCallback<FindUsagesServerCallback> _callback;
+            private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
             private readonly Dictionary<DefinitionItem, int> _definitionItemToId = new Dictionary<DefinitionItem, int>();
 
             public CancellationToken CancellationToken { get; }
 
-            public RemoteFindUsageContext(RemoteCallback<FindUsagesServerCallback> callback, CancellationToken cancellationToken)
+            public RemoteFindUsageContext(RemoteCallback<IRemoteFindUsagesService.ICallback> callback, CancellationToken cancellationToken)
             {
                 _callback = callback;
                 CancellationToken = cancellationToken;

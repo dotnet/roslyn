@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteEncapsulateFieldService)),
             CreateDescriptors(typeof(IRemoteRenamerService)),
             CreateDescriptors(typeof(IRemoteConvertTupleToStructCodeRefactoringService)),
-            CreateDescriptors(typeof(IRemoteSymbolFinderService)),
-            CreateDescriptors(typeof(IRemoteFindUsagesService)),
+            CreateDescriptors(typeof(IRemoteSymbolFinderService), callbackInterface: typeof(IRemoteSymbolFinderService.ICallback)),
+            CreateDescriptors(typeof(IRemoteFindUsagesService), callbackInterface: typeof(IRemoteFindUsagesService.ICallback)),
             CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
         });
 

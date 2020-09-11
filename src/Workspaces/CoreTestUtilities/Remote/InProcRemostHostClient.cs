@@ -247,6 +247,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
                 RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
+                RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }

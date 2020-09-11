@@ -7,13 +7,27 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IRemoteSymbolFinderService
     {
+        internal interface ICallback
+        {
+            ValueTask AddItemsAsync(int count);
+            ValueTask ItemCompletedAsync();
+            ValueTask OnStartedAsync();
+            ValueTask OnCompletedAsync();
+            ValueTask OnFindInDocumentStartedAsync(DocumentId documentId);
+            ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId);
+            ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition);
+            ValueTask OnReferenceFoundAsync(SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference);
+            ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span);
+        }
+
         ValueTask FindReferencesAsync(PinnedSolutionInfo solutionInfo, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,
-            SerializableFindReferencesSearchOptions options, CancellationToken cancellationToken);
+            FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         ValueTask FindLiteralReferencesAsync(PinnedSolutionInfo solutionInfo, object value, TypeCode typeCode, CancellationToken cancellationToken);
 

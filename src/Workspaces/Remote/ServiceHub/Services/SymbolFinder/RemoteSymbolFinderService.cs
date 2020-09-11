@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteSymbolFinderService : BrokeredServiceBase, IRemoteSymbolFinderService
     {
-        internal sealed class Factory : FactoryBase<IRemoteSymbolFinderService, object>
+        internal sealed class Factory : FactoryBase<IRemoteSymbolFinderService, IRemoteSymbolFinderService.ICallback>
         {
-            protected override IRemoteSymbolFinderService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<object> callback)
+            protected override IRemoteSymbolFinderService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteSymbolFinderService.ICallback> callback)
                 => new RemoteSymbolFinderService(arguments, callback);
         }
 
-        private readonly RemoteCallback<object> _callback;
+        private readonly RemoteCallback<IRemoteSymbolFinderService.ICallback> _callback;
 
-        public RemoteSymbolFinderService(in ServiceConstructionArguments arguments, RemoteCallback<object> callback)
+        public RemoteSymbolFinderService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteSymbolFinderService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectIdArg,
             ImmutableArray<DocumentId> documentArgs,
-            SerializableFindReferencesSearchOptions options,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
                         solution, cancellationToken).ConfigureAwait(false);
 
-                    var progressCallback = new FindReferencesProgressCallback(solution, _callback.CastTo<SymbolFinder.FindReferencesServerCallback>(), cancellationToken);
+                    var progressCallback = new FindReferencesProgressCallback(solution, _callback, cancellationToken);
 
                     if (symbol == null)
                     {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     await SymbolFinder.FindReferencesInCurrentProcessAsync(
                         symbol, solution, progressCallback,
-                        documents, options.Rehydrate(), cancellationToken).ConfigureAwait(false);
+                        documents, options, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var convertedType = System.Convert.ChangeType(value, typeCode);
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var progressCallback = new FindLiteralReferencesProgressCallback(_callback.CastTo<SymbolFinder.FindLiteralsServerCallback>(), cancellationToken);
+                    var progressCallback = new FindLiteralReferencesProgressCallback(_callback, cancellationToken);
                     await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
                         convertedType, solution, progressCallback, cancellationToken).ConfigureAwait(false);
                 }
@@ -201,12 +201,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private sealed class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress, IStreamingProgressTracker
         {
-            private readonly RemoteCallback<SymbolFinder.FindLiteralsServerCallback> _callback;
+            private readonly RemoteCallback<IRemoteSymbolFinderService.ICallback> _callback;
             private readonly CancellationToken _cancellationToken;
 
             public IStreamingProgressTracker ProgressTracker { get; }
 
-            public FindLiteralReferencesProgressCallback(RemoteCallback<SymbolFinder.FindLiteralsServerCallback> callback, CancellationToken cancellationToken)
+            public FindLiteralReferencesProgressCallback(RemoteCallback<IRemoteSymbolFinderService.ICallback> callback, CancellationToken cancellationToken)
             {
                 _callback = callback;
                 _cancellationToken = cancellationToken;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public ValueTask OnReferenceFoundAsync(Document document, TextSpan span)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferenceFoundAsync(document.Id, span), _cancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnLiteralReferenceFoundAsync(document.Id, span), _cancellationToken);
 
             public ValueTask AddItemsAsync(int count)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.AddItemsAsync(count), _cancellationToken);
@@ -226,12 +226,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private sealed class FindReferencesProgressCallback : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
             private readonly Solution _solution;
-            private readonly RemoteCallback<SymbolFinder.FindReferencesServerCallback> _callback;
+            private readonly RemoteCallback<IRemoteSymbolFinderService.ICallback> _callback;
             private readonly CancellationToken _cancellationToken;
 
             public IStreamingProgressTracker ProgressTracker { get; }
 
-            public FindReferencesProgressCallback(Solution solution, RemoteCallback<SymbolFinder.FindReferencesServerCallback> callback, CancellationToken cancellationToken)
+            public FindReferencesProgressCallback(Solution solution, RemoteCallback<IRemoteSymbolFinderService.ICallback> callback, CancellationToken cancellationToken)
             {
                 _solution = solution;
                 _callback = callback;

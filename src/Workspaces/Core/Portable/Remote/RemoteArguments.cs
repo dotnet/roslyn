@@ -16,36 +16,14 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     #region FindReferences
 
-    internal class SerializableFindReferencesSearchOptions
-    {
-        public bool AssociatePropertyReferencesWithSpecificAccessor;
-        public bool Cascade;
-
-        public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
-        {
-            return new SerializableFindReferencesSearchOptions
-            {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
-                Cascade = options.Cascade,
-            };
-        }
-
-        public FindReferencesSearchOptions Rehydrate()
-        {
-            return new FindReferencesSearchOptions(
-                associatePropertyReferencesWithSpecificAccessor: AssociatePropertyReferencesWithSpecificAccessor,
-                cascade: Cascade);
-        }
-    }
-
     [DataContract]
-    internal class SerializableSymbolAndProjectId
+    internal sealed class SerializableSymbolAndProjectId
     {
         [DataMember(Order = 0)]
-        public string SymbolKeyData;
+        public readonly string SymbolKeyData;
 
         [DataMember(Order = 1)]
-        public ProjectId ProjectId;
+        public readonly ProjectId ProjectId;
 
         public SerializableSymbolAndProjectId(string symbolKeyData, ProjectId projectId)
         {
@@ -130,89 +108,35 @@ namespace Microsoft.CodeAnalysis.Remote
     }
 
     [DataContract]
-    internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
+    internal readonly struct SerializableReferenceLocation
     {
         [DataMember(Order = 0)]
-        public bool IsValueUsageInfo;
+        public readonly DocumentId Document;
 
         [DataMember(Order = 1)]
-        public int UsageInfoUnderlyingValue;
-
-        public SerializableSymbolUsageInfo(bool isValueUsageInfo, int usageInfoUnderlyingValue)
-        {
-            IsValueUsageInfo = isValueUsageInfo;
-            UsageInfoUnderlyingValue = usageInfoUnderlyingValue;
-        }
-
-        public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
-        {
-            bool isValueUsageInfo;
-            int usageInfoUnderlyingValue;
-            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
-            {
-                isValueUsageInfo = true;
-                usageInfoUnderlyingValue = (int)symbolUsageInfo.ValueUsageInfoOpt.Value;
-            }
-            else
-            {
-                isValueUsageInfo = false;
-                usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
-            }
-
-            return new SerializableSymbolUsageInfo(isValueUsageInfo, usageInfoUnderlyingValue);
-        }
-
-        public SymbolUsageInfo Rehydrate()
-        {
-            return IsValueUsageInfo
-                ? SymbolUsageInfo.Create((ValueUsageInfo)UsageInfoUnderlyingValue)
-                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)UsageInfoUnderlyingValue);
-        }
-
-        public bool Equals(SerializableSymbolUsageInfo other)
-        {
-            return other != null &&
-                IsValueUsageInfo == other.IsValueUsageInfo &&
-                UsageInfoUnderlyingValue == other.UsageInfoUnderlyingValue;
-        }
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableSymbolUsageInfo);
-
-        public override int GetHashCode()
-            => Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
-    }
-
-    [DataContract]
-    internal class SerializableReferenceLocation
-    {
-        [DataMember(Order = 0)]
-        public DocumentId Document { get; set; }
-
-        [DataMember(Order = 1)]
-        public SerializableSymbolAndProjectId Alias { get; set; }
+        public readonly SerializableSymbolAndProjectId Alias;
 
         [DataMember(Order = 2)]
-        public TextSpan Location { get; set; }
+        public readonly TextSpan Location;
 
         [DataMember(Order = 3)]
-        public bool IsImplicit { get; set; }
+        public readonly bool IsImplicit;
 
         [DataMember(Order = 4)]
-        public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
+        public readonly SymbolUsageInfo SymbolUsageInfo;
 
         [DataMember(Order = 5)]
-        public ImmutableDictionary<string, string> AdditionalProperties { get; set; }
+        public readonly ImmutableDictionary<string, string> AdditionalProperties;
 
         [DataMember(Order = 6)]
-        public CandidateReason CandidateReason { get; set; }
+        public readonly CandidateReason CandidateReason;
 
         public SerializableReferenceLocation(
             DocumentId document,
             SerializableSymbolAndProjectId alias,
             TextSpan location,
             bool isImplicit,
-            SerializableSymbolUsageInfo symbolUsageInfo,
+            SymbolUsageInfo symbolUsageInfo,
             ImmutableDictionary<string, string> additionalProperties,
             CandidateReason candidateReason)
         {
@@ -233,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
                 referenceLocation.Location.SourceSpan,
                 referenceLocation.IsImplicit,
-                SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
+                referenceLocation.SymbolUsageInfo,
                 referenceLocation.AdditionalProperties,
                 referenceLocation.CandidateReason);
         }
@@ -250,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
-                symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
+                symbolUsageInfo: SymbolUsageInfo,
                 additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
                 candidateReason: CandidateReason);
         }

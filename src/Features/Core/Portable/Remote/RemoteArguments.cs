@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -114,8 +115,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    /// <summary>
+    /// Note: this is intentionally a class, not struct, to avoid hitting .NET Framework loader bug
+    /// that fails to load a struct S declaring a field of type ImmutableArray of S.
+    /// </summary>
     [DataContract]
-    internal readonly struct SerializableNavigableItem
+    internal sealed class SerializableNavigableItem
     {
         [DataMember(Order = 0)]
         public readonly Glyph Glyph;
