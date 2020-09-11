@@ -608,13 +608,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
-            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
+        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+            => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()
             => this.Name;
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(CancellationToken cancellationToken)
+            => _solution.State.GetGeneratorDriverRunResultAsync(_projectState, cancellationToken);
     }
 }

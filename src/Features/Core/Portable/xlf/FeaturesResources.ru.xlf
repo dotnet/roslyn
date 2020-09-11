@@ -345,6 +345,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Примеры:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="new">Extract base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Извлечение интерфейса…</target>
@@ -493,6 +498,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
         <target state="translated">Создать отступы для свернутых параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_0">
+        <source>Inline '{0}'</source>
+        <target state="new">Inline '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="new">Inline and keep '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">

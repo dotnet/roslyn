@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework, Action<SyntaxNode> faultInjector = null)
         {
             _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
-            _analyzer = new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker(), faultInjector);
+            _analyzer = new CSharpEditAndContinueAnalyzer(faultInjector);
         }
 
         internal static CSharpEditAndContinueTestHelpers CreateInstance(Action<SyntaxNode> faultInjector = null)

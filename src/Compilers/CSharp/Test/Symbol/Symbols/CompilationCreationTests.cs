@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
                 NamedTypeSymbol type = c1.GetSpecialType((SpecialType)i);
-                if (i == (int)SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                if (i == (int)SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
+                    i == (int)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
                 {
                     Assert.True(type.IsErrorType()); // Not available
                 }

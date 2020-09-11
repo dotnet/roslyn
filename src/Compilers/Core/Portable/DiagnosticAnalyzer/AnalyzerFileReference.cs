@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -60,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
-            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages);
-            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages);
+            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
+            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages, allowNetFramework: false);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators.AddExtensions(builder, language);
         }
 
-        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeNameOpt = null)
+        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
             // unwrap:
             e = (e as TargetInvocationException) ?? e;
@@ -196,11 +197,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // remove all line breaks from the exception message
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
-            var errorCode = (typeNameOpt != null) ?
+            var errorCode = (typeName != null) ?
                 AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer :
                 AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer;
 
-            return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
+            return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeName);
         }
 
         internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
@@ -311,15 +312,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly AnalyzerFileReference _reference;
             private readonly AttributePredicate _attributePredicate;
             private readonly AttributeLanguagesFunc _languagesFunc;
+            private readonly bool _allowNetFramework;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
             private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
+            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
             {
                 _reference = reference;
                 _attributePredicate = attributePredicate;
                 _languagesFunc = languagesFunc;
+                _allowNetFramework = allowNetFramework;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
@@ -495,6 +498,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     Debug.Assert(type != null);
+
+                    // check if this references net framework, and issue a diagnostic that this isn't supported
+                    if (!_allowNetFramework)
+                    {
+                        var targetFrameworkAttribute = analyzerAssembly.GetCustomAttribute<TargetFrameworkAttribute>();
+                        if (targetFrameworkAttribute is object && targetFrameworkAttribute.FrameworkName.StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
+                                AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
+                                string.Format(CodeAnalysisResources.AssemblyReferencesNetFramework, typeName),
+                                typeNameOpt: typeName));
+                        }
+                    }
 
                     TExtension? analyzer;
                     try

@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
                 document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
-            var nonAliasReferences = FindReferencesInTokens(symbol,
+            var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
                 document,
                 semanticModel,
                 tokens,
                 t => syntaxFactsService.TextMatch(t.ValueText, identifierName),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 

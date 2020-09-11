@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
@@ -39,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly SourceGeneratedFileManager _sourceGeneratedFileManager;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
@@ -50,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var componentModel = _serviceProvider.GetService<SComponentModel, IComponentModel>();
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
+            _sourceGeneratedFileManager = componentModel.GetService<SourceGeneratedFileManager>();
         }
 
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
@@ -75,6 +78,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
+                }
+                else
+                {
+                    // This may be a file from a source generator; if so let's go to it instead
+                    var generatorRunResult = project.GetGeneratorDriverRunResultAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    if (generatorRunResult.TryGetGeneratorAndHint(sourceLocation.SourceTree!, out var generator, out var hintName))
+                    {
+                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, generator, hintName, sourceLocation.SourceSpan);
+                        return true;
+                    }
                 }
             }
 

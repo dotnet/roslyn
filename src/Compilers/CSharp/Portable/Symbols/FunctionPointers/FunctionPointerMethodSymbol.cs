@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (returnType.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, returnTypeParameter.Location, returnType);
+                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(useWarning: false), returnTypeParameter.Location, returnType);
                 }
                 else if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
@@ -824,6 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal sealed override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData => null;
 
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;

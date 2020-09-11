@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";
             public const string CodeActionsImplementInterface = "CodeActions.ImplementInterface";
             public const string CodeActionsInitializeParameter = "CodeActions.InitializeParameter";
+            public const string CodeActionsInlineMethod = "CodeActions.InlineMethod";
             public const string CodeActionsInlineDeclaration = "CodeActions.InlineDeclaration";
             public const string CodeActionsInlineTemporary = "CodeActions.InlineTemporary";
             public const string CodeActionsInlineTypeCheck = "CodeActions.InlineTypeCheck";
@@ -276,6 +277,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SmartIndent = nameof(SmartIndent);
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
+            public const string SourceGenerators = nameof(SourceGenerators);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);

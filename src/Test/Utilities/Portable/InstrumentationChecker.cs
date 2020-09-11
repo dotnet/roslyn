@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Runtime
     /// </summary>
     public sealed class VBInstrumentationChecker : BaseInstrumentationChecker
     {
-        private string tab = "    ";
+        private readonly string tab = "    ";
 
         public XCData ExpectedOutput { get { return new XCData(_consoleExpectations.ToString()); } }
 
@@ -274,7 +274,7 @@ End Namespace
     public abstract class BaseInstrumentationChecker
     {
         protected StringBuilder _consoleExpectations = new StringBuilder();
-        private Dictionary<int /*method*/, MethodChecker> _spanExpectations = new Dictionary<int, MethodChecker>();
+        private readonly Dictionary<int /*method*/, MethodChecker> _spanExpectations = new Dictionary<int, MethodChecker>();
 
         protected BaseInstrumentationChecker()
         {
@@ -358,8 +358,8 @@ End Namespace
 
         public class MethodChecker
         {
-            private List<string> _snippetExpectations;
-            private BaseInstrumentationChecker _checker;
+            private readonly List<string> _snippetExpectations;
+            private readonly BaseInstrumentationChecker _checker;
 
             public MethodChecker(BaseInstrumentationChecker checker, bool noSnippets = false)
             {

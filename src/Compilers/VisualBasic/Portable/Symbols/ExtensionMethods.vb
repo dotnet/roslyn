@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class MethodSymbol
+    Partial Friend Class MethodSymbol
 
         Protected Function ValidateGenericConstraintsOnExtensionMethodDefinition() As Boolean
 

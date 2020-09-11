@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
         // regular C# contexts.  We will need to remove this and implement a new "CSharp Script" Content type
         // in order to fix #load completion in .csx files (https://github.com/dotnet/roslyn/issues/5325).
         Roles = new[] { PredefinedInteractiveTextViewRoles.InteractiveTextViewRole })]
-    [ExtensionOrder(After = nameof(EmbeddedLanguageCompletionProvider))]
+    [ExtensionOrder(After = nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider))]
     [Shared]
     internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCompletionProvider
     {

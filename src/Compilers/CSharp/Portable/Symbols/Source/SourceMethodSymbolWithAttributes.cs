@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -332,20 +333,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return null;
                 }
-                else
+                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData boundAttribute, out ObsoleteAttributeData obsoleteData))
                 {
-                    CSharpAttributeData boundAttribute;
-                    ObsoleteAttributeData obsoleteData;
-
-                    if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+                    if (obsoleteData != null)
                     {
-                        if (obsoleteData != null)
-                        {
-                            arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                        }
-
-                        return boundAttribute;
+                        arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                     }
+
+                    return boundAttribute;
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
+                {
+                    arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().UnmanagedCallersOnlyAttributePresent = true;
+                    // We can't actually decode this attribute yet: CallConvs is an array, and it cannot be bound yet or we could hit a cycle
+                    // in error cases. We only detect whether or not the attribute is present for use in ensuring that we create as few lazily-computed
+                    // diagnostics that might later get thrown away as possible when binding method calls.
+                    return null;
                 }
             }
 
@@ -390,6 +393,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ObsoleteAttributeData.Uninitialized;
             }
         }
+
+#nullable enable
+        internal sealed override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                if (syntaxReferenceOpt is null)
+                {
+                    // no references -> no attributes
+                    return null;
+                }
+
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                if (lazyCustomAttributesBag is null)
+                {
+                    return UnmanagedCallersOnlyAttributeData.Uninitialized;
+                }
+
+                if (lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
+                    verifyDataConsistent((CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, data);
+#endif
+                    return data?.UnmanagedCallersOnlyAttributeData;
+                }
+
+                if (lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+                    return data?.UnmanagedCallersOnlyAttributePresent == true
+                        ? UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound
+                        : null;
+                }
+
+                return UnmanagedCallersOnlyAttributeData.Uninitialized;
+
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
+                static void verifyDataConsistent(CommonMethodEarlyWellKnownAttributeData? earlyData, MethodWellKnownAttributeData? lateData)
+                {
+                    Debug.Assert((earlyData, lateData) is ((null or { UnmanagedCallersOnlyAttributePresent: false }), (null or { UnmanagedCallersOnlyAttributeData: null }))
+                                                          or ({ UnmanagedCallersOnlyAttributePresent: true }, { UnmanagedCallersOnlyAttributeData: not null }));
+                }
+#endif
+            }
+        }
+#nullable restore
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
@@ -491,6 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 DecodeModuleInitializerAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
+            {
+                DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
             else
             {
@@ -803,9 +857,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasError = true;
             }
 
+            // If this is an UnmanagedCallersOnly method, it means that this cannot be called by managed code, including the attempt by the CLR
+            // to run the module initializer.
+            if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is CommonMethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributePresent: true })
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
+                hasError = true;
+            }
+
             if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
+            }
+        }
+
+        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt != null);
+            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            {
+                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
+            }
+
+            arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
+                DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
+
+            var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
+            {
+                MethodDeclarationSyntax m => (m.ReturnType, m.TypeParameterList),
+                LocalFunctionStatementSyntax l => (l.ReturnType, l.TypeParameterList),
+                _ => default
+            };
+
+            if (returnTypeSyntax is null)
+            {
+                // We already issued an error for these above. We don't immediately bail out so we can error on invalid
+                // calling convention types as well, but erroring on parameter or return types will likely just be noise.
+                Debug.Assert(MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction));
+                return;
+            }
+
+            if (isGenericMethod(this) || ContainingType.IsGenericType)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, arguments.AttributeSyntaxOpt.Name.Location);
+            }
+
+            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
+            foreach (var param in Parameters)
+            {
+                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
+            }
+
+            static bool isGenericMethod([DisallowNull] MethodSymbol? method)
+            {
+                do
+                {
+                    if (method.IsGenericMethod)
+                    {
+                        return true;
+                    }
+
+                    method = method.ContainingSymbol as MethodSymbol;
+                } while (method is not null);
+
+                return false;
+            }
+
+            static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, DiagnosticBag diagnostics)
+            {
+                // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
+                // in reporting managed types being used
+                switch (type.ManagedKindNoUseSiteDiagnostics)
+                {
+                    case ManagedKind.Unmanaged:
+                    case ManagedKind.UnmanagedWithGenerics:
+                        // Note that this will let through some things that are technically unmanaged, but not
+                        // actually blittable. However, we don't have a formal concept of blittable in C#
+                        // itself, so checking for purely unmanaged types is the best we can do here.
+                        return;
+
+                    case ManagedKind.Managed:
+                        // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
+                        diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
+                        return;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.ManagedKindNoUseSiteDiagnostics);
+                }
             }
         }
 #nullable restore

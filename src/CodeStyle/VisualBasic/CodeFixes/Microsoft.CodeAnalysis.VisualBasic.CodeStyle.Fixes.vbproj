@@ -22,16 +22,17 @@
 
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
 
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/vb/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
   <ItemGroup Label="Project References">
@@ -49,6 +50,9 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.props" />
   </ItemGroup>
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" Label="Shared" />

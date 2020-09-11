@@ -147,11 +147,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
 #nullable enable
-        public bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+
+        public bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
-            return name.IsMemberAccessExpressionName();
+            return name.IsSimpleMemberAccessExpressionName();
         }
+
+        public bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node;
+
+        public bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        {
+            var name = node as SimpleNameSyntax;
+            return name.IsMemberBindingExpressionName();
+        }
+
+        public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
+            => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
+
+        public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
+            => node.GetRootConditionalAccessExpression();
+
 #nullable restore
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
@@ -279,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.Kind() == SyntaxKind.ThrowExpression;
 
         public bool IsPredefinedType(SyntaxToken token)
-            => TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
+            => TryGetPredefinedType(token, out _);
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
             => TryGetPredefinedType(token, out var actualType) && actualType == type;
@@ -1005,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             {
                 var parent = node.Parent;
 
-                // If this node is on the left side of a member access expression, don't ascend 
+                // If this node is on the left side of a member access expression, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is MemberAccessExpressionSyntax memberAccess)
                 {
@@ -1015,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
 
-                // If this node is on the left side of a qualified name, don't ascend 
+                // If this node is on the left side of a qualified name, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is QualifiedNameSyntax qualifiedName)
                 {
@@ -1025,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
 
-                // If this node is on the left side of a alias-qualified name, don't ascend 
+                // If this node is on the left side of a alias-qualified name, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is AliasQualifiedNameSyntax aliasQualifiedName)
                 {
@@ -1284,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             //    type-declaration
             switch (node.Kind())
             {
-                // Because fields declarations can define multiple symbols "public int a, b;" 
+                // Because fields declarations can define multiple symbols "public int a, b;"
                 // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 case SyntaxKind.VariableDeclarator:
                     return node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) ||
@@ -2106,5 +2123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsImplicitObjectCreation(SyntaxNode node)
             => node.IsKind(SyntaxKind.ImplicitObjectCreationExpression);
+
+        public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression)
+            => ((ThrowExpressionSyntax)throwExpression).Expression;
+
+        public bool IsThrowStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ThrowStatement);
+
+        public bool IsLocalFunction(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement);
     }
 }

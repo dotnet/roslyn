@@ -901,8 +901,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     driver = await GetAnalyzerDriverAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var compilationEvents = dequeueGeneratedCompilationEvents();
-                    await _analysisState.OnCompilationEventsGeneratedAsync(compilationEvents, driver, cancellationToken).ConfigureAwait(false);
+                    Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents =
+                        (eventQueue, additionalFiles) => dequeueGeneratedCompilationEvents(eventQueue, additionalFiles);
+                    var additionalFiles = _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
+                    await _analysisState.OnCompilationEventsGeneratedAsync(getCompilationEvents, _compilation.EventQueue, additionalFiles, driver, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -910,16 +912,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            ImmutableArray<CompilationEvent> dequeueGeneratedCompilationEvents()
+            static ImmutableArray<CompilationEvent> dequeueGeneratedCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, ImmutableArray<AdditionalText> additionalFiles)
             {
                 var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
 
-                while (_compilation.EventQueue.TryDequeue(out CompilationEvent compilationEvent))
+                while (eventQueue.TryDequeue(out CompilationEvent compilationEvent))
                 {
                     if (compilationEvent is CompilationStartedEvent compilationStartedEvent &&
-                        _analysisOptions.Options?.AdditionalFiles.Length > 0)
+                        !additionalFiles.IsEmpty)
                     {
-                        compilationEvent = compilationStartedEvent.WithAdditionalFiles(_analysisOptions.Options.AdditionalFiles);
+                        compilationEvent = compilationStartedEvent.WithAdditionalFiles(additionalFiles);
                     }
 
                     builder.Add(compilationEvent);
@@ -1285,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (diagnostic != null)
                 {
-                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
+                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic, CancellationToken.None);
                     if (effectiveDiagnostic != null)
                     {
                         yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);

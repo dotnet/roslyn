@@ -177,6 +177,11 @@
         <target state="new">The type of a local declared in a fixed statement cannot be a function pointer type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseManagedTypeInUnmanagedCallersOnly">
+        <source>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</target>
+        <note>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
         <target state="new">Cannot use an extension method with a receiver as the target of a '&amp;' operator.</target>
@@ -301,6 +306,11 @@
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' でステートメントを開始することはできません。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
@@ -482,6 +492,11 @@
         <target state="translated">"無効な次元指定子です: ']' を指定してください</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidUnmanagedCallersOnlyCallConv">
+        <source>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</source>
+        <target state="new">'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_InvalidWithReceiverType">
         <source>The receiver of a `with` expression must have a non-void type.</source>
         <target state="new">The receiver of a `with` expression must have a non-void type.</target>
@@ -516,6 +531,11 @@
         <source>Pattern missing</source>
         <target state="translated">パターンがありません</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
         <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
@@ -877,6 +897,36 @@
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="new">discards</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SyncAndAsyncEntryPoints">
+        <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
+        <target state="new">Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="new">Type '{0}' is not defined.</target>
@@ -911,6 +961,16 @@
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">'{0}': 制約クラスと 'unmanaged' 制約の両方を指定することはできません</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric">
+        <source>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</source>
+        <target state="new">Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
@@ -1558,6 +1618,16 @@
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="translated">オーバーライドおよび明示的なインターフェイスの実装メソッドの制約</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Parameter">
+        <source>parameter</source>
+        <target state="new">parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Return">
+        <source>return</source>
+        <target state="new">return</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -2285,13 +2355,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">'{1}' のパラメーター '{0}' 型における参照型の Null 許容性が、対象のデリゲート '{2}' と一致しません。</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">'{1}' のパラメーター '{0}' 型における参照型の Null 許容性が、対象のデリゲート '{2}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">パラメーターの型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">パラメーターの型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2335,13 +2405,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">'{0}' 戻り値の型における参照型の Null 許容性が、対象のデリゲート '{1}' と一致しません。</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">'{0}' 戻り値の型における参照型の Null 許容性が、対象のデリゲート '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">戻り値の型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">戻り値の型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
@@ -2484,6 +2554,16 @@
         <target state="new">Parameter must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass">
+        <source>'{0}': static types cannot be used as parameters</source>
+        <target state="new">'{0}': static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="new">Static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrecedenceInversion">
         <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
         <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
@@ -2502,6 +2582,16 @@
       <trans-unit id="WRN_PatternNotPublicOrNotInstance_Title">
         <source>Type does not implement the collection pattern; member is is not a public instance or extension method.</source>
         <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass">
+        <source>'{0}': static types cannot be used as return types</source>
+        <target state="new">'{0}': static types cannot be used as return types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="new">Static types cannot be used as return types</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
