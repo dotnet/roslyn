@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Remote
             EnumFormatters.TypeOrNamespaceUsageInfo,
             EnumFormatters.TypeOrNamespaceUsageInfo.CreateNullable(),
             EnumFormatters.AddImportFixKind,
-            EnumFormatters.CodeActionPriority);
+            EnumFormatters.CodeActionPriority,
+            EnumFormatters.DependentTypesKind);
 
         // TODO: remove https://github.com/neuecc/MessagePack-CSharp/issues/1025
         internal static class EnumFormatters
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public static readonly EnumFormatter<TypeOrNamespaceUsageInfo> TypeOrNamespaceUsageInfo = new(value => (int)value, value => (TypeOrNamespaceUsageInfo)value);
             public static readonly EnumFormatter<AddImportFixKind> AddImportFixKind = new(value => (int)value, value => (AddImportFixKind)value);
             public static readonly EnumFormatter<CodeActionPriority> CodeActionPriority = new(value => (int)value, value => (CodeActionPriority)value);
+            public static readonly EnumFormatter<DependentTypesKind> DependentTypesKind = new(value => (int)value, value => (DependentTypesKind)value);
         }
 
         internal sealed class SolutionIdFormatter : IMessagePackFormatter<SolutionId?>

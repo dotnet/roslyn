@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
                 RegisterRemoteBrokeredService(new RemoteAddImportService.Factory());
                 RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
