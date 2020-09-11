@@ -153,6 +153,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.ConsiderEverything);
 
         /// <summary>
+        /// This instance is used to determine if an extended partial method implementation matches the definition,
+        /// including differences ignored by the runtime other than nullability.
+        /// </summary>
+        public static readonly MemberSignatureComparer ExtendedPartialMethodsStrictIgnoreNullabilityComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.AllNullableIgnoreOptions);
+
+        /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
         /// </summary>
         public static readonly MemberSignatureComparer CSharpOverrideComparer = new MemberSignatureComparer(

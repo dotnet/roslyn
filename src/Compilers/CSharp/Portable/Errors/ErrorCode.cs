@@ -1833,7 +1833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
-        ERR_PartialMethodSignatureDifference = 8824,
+        ERR_PartialMethodTypeDifference = 8824,
+        ERR_PartialMethodNullabilityDifference = 8825,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,

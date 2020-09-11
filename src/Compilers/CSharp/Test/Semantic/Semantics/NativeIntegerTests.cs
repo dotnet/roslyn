@@ -3318,12 +3318,12 @@ class C2 : IA, IB
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,25): error CS8824: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' must have identical parameter types and identical return types.
+                // (4,25): error CS8824: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' must have identical parameter types and return types.
                 //     static partial void F2(System.UIntPtr x) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F2").WithArguments("void Program.F2(nuint x)", "void Program.F2(UIntPtr x)").WithLocation(4, 25),
-                // (5,25): error CS8824: Partial method declarations 'void Program.F1(IntPtr x)' and 'void Program.F1(nint x)' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F2").WithArguments("void Program.F2(nuint x)", "void Program.F2(UIntPtr x)").WithLocation(4, 25),
+                // (5,25): error CS8824: Partial method declarations 'void Program.F1(IntPtr x)' and 'void Program.F1(nint x)' must have identical parameter types and return types.
                 //     static partial void F1(nint x) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F1").WithArguments("void Program.F1(IntPtr x)", "void Program.F1(nint x)").WithLocation(5, 25));
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F1").WithArguments("void Program.F1(IntPtr x)", "void Program.F1(nint x)").WithLocation(5, 25));
         }
 
         [Fact]

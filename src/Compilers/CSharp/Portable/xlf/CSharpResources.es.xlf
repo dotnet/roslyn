@@ -677,6 +677,11 @@
         <target state="new">Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodNullabilityDifference">
+        <source>Partial method declarations '{0}' and '{1}' must have identical nullability for parameter types and return types.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' must have identical nullability for parameter types and return types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">Ambas declaraciones de métodos parciales deben ser de solo lectura o ninguna de ellas puede ser de solo lectura</target>
@@ -692,9 +697,9 @@
         <target state="new">Both partial method declarations must have the same return type.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodSignatureDifference">
-        <source>Partial method declarations '{0}' and '{1}' must have identical parameter types and identical return types.</source>
-        <target state="new">Partial method declarations '{0}' and '{1}' must have identical parameter types and identical return types.</target>
+      <trans-unit id="ERR_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' must have identical parameter types and return types.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' must have identical parameter types and return types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">

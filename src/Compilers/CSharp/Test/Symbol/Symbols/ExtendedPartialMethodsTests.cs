@@ -2688,12 +2688,12 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (8,27): error CS8824: Partial method declarations 'string? C.M1()' and 'string C.M1()' must have identical parameter types and identical return types.
+                // (8,27): error CS8825: Partial method declarations 'string? C.M1()' and 'string C.M1()' must have identical nullability for parameter types and return types.
                 //     public partial string M1() => "hello";
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(8, 27),
-                // (11,40): error CS8824: Partial method declarations 'IEnumerable<string?> C.M2()' and 'IEnumerable<string> C.M2()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(8, 27),
+                // (11,40): error CS8825: Partial method declarations 'IEnumerable<string?> C.M2()' and 'IEnumerable<string> C.M2()' must have identical nullability for parameter types and return types.
                 //     public partial IEnumerable<string> M2() => null!;
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("IEnumerable<string?> C.M2()", "IEnumerable<string> C.M2()").WithLocation(11, 40));
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M2").WithArguments("IEnumerable<string?> C.M2()", "IEnumerable<string> C.M2()").WithLocation(11, 40));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2713,12 +2713,12 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (8,28): error CS8824: Partial method declarations 'string C.M1()' and 'string? C.M1()' must have identical parameter types and identical return types.
+                // (8,28): error CS8825: Partial method declarations 'string C.M1()' and 'string? C.M1()' must have identical nullability for parameter types and return types.
                 //     public partial string? M1() => null; // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("string C.M1()", "string? C.M1()").WithLocation(8, 28),
-                // (11,41): error CS8824: Partial method declarations 'IEnumerable<string> C.M2()' and 'IEnumerable<string?> C.M2()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M1").WithArguments("string C.M1()", "string? C.M1()").WithLocation(8, 28),
+                // (11,41): error CS8825: Partial method declarations 'IEnumerable<string> C.M2()' and 'IEnumerable<string?> C.M2()' must have identical nullability for parameter types and return types.
                 //     public partial IEnumerable<string?> M2() => null!; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("IEnumerable<string> C.M2()", "IEnumerable<string?> C.M2()").WithLocation(11, 41));
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M2").WithArguments("IEnumerable<string> C.M2()", "IEnumerable<string?> C.M2()").WithLocation(11, 41));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2992,12 +2992,12 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,28): error CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' must have identical parameter types and identical return types.
+                // (5,28): error CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' must have identical parameter types and return types.
                 //     public partial dynamic M1() => null;
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
-                // (8,27): error CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
+                // (8,27): error CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' must have identical parameter types and return types.
                 //     public partial object M2() => null;
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3016,12 +3016,12 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (7,25): error CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' must have identical parameter types and identical return types.
+                // (7,25): error CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' must have identical parameter types and return types.
                 //     public partial nint M1() => 0;
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
-                // (10,27): error CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
+                // (10,27): error CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' must have identical parameter types and return types.
                 //     public partial IntPtr M2() => default;
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3088,48 +3088,48 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (6,28): error CS8824: Partial method declarations 'string C.M1()' and 'string? C.M1()' must have identical parameter types and identical return types.
+                // (6,28): error CS8825: Partial method declarations 'string C.M1()' and 'string? C.M1()' must have identical nullability for parameter types and return types.
                 //     public partial string? M1() => null; // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M1").WithArguments("string C.M1()", "string? C.M1()").WithLocation(6, 28),
-                // (9,27): error CS8824: Partial method declarations 'string? C.M2()' and 'string C.M2()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M1").WithArguments("string C.M1()", "string? C.M1()").WithLocation(6, 28),
+                // (9,27): error CS8825: Partial method declarations 'string? C.M2()' and 'string C.M2()' must have identical nullability for parameter types and return types.
                 //     public partial string M2() => "hello"; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M2").WithArguments("string? C.M2()", "string C.M2()").WithLocation(9, 27),
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M2").WithArguments("string? C.M2()", "string C.M2()").WithLocation(9, 27),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M3() => null; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
-                // (13,28): error CS8824: Partial method declarations 'string C.M3()' and 'string? C.M3()' must have identical parameter types and identical return types.
+                // (13,28): error CS8825: Partial method declarations 'string C.M3()' and 'string? C.M3()' must have identical nullability for parameter types and return types.
                 //     public partial string? M3() => null; // 3
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M3").WithArguments("string C.M3()", "string? C.M3()").WithLocation(13, 28),
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M3").WithArguments("string C.M3()", "string? C.M3()").WithLocation(13, 28),
                 // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M4();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
-                // (16,27): error CS8824: Partial method declarations 'string? C.M4()' and 'string C.M4()' must have identical parameter types and identical return types.
+                // (16,27): error CS8825: Partial method declarations 'string? C.M4()' and 'string C.M4()' must have identical nullability for parameter types and return types.
                 //     public partial string M4() => "hello"; // 4
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M4").WithArguments("string? C.M4()", "string C.M4()").WithLocation(16, 27),
-                // (20,27): error CS8824: Partial method declarations 'string C.M6()' and 'string C.M6()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M4").WithArguments("string? C.M4()", "string C.M4()").WithLocation(16, 27),
+                // (20,27): error CS8825: Partial method declarations 'string C.M6()' and 'string C.M6()' must have identical nullability for parameter types and return types.
                 //     public partial string M6() => null!; // 5
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M6").WithArguments("string C.M6()", "string C.M6()").WithLocation(20, 27),
-                // (22,27): error CS8824: Partial method declarations 'string? C.M8()' and 'string C.M8()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M6").WithArguments("string C.M6()", "string C.M6()").WithLocation(20, 27),
+                // (22,27): error CS8825: Partial method declarations 'string? C.M8()' and 'string C.M8()' must have identical nullability for parameter types and return types.
                 //     public partial string M8() => null!; // 6
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M8").WithArguments("string? C.M8()", "string C.M8()").WithLocation(22, 27),
-                // (24,28): error CS8824: Partial method declarations 'string C.M10()' and 'string? C.M10()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M8").WithArguments("string? C.M8()", "string C.M8()").WithLocation(22, 27),
+                // (24,28): error CS8825: Partial method declarations 'string C.M10()' and 'string? C.M10()' must have identical nullability for parameter types and return types.
                 //     public partial string? M10() => null; // 7
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M10").WithArguments("string C.M10()", "string? C.M10()").WithLocation(24, 28),
-                // (29,27): error CS8824: Partial method declarations 'string C.M5()' and 'string C.M5()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M10").WithArguments("string C.M10()", "string? C.M10()").WithLocation(24, 28),
+                // (29,27): error CS8825: Partial method declarations 'string C.M5()' and 'string C.M5()' must have identical nullability for parameter types and return types.
                 //     public partial string M5() => null; // 8
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M5").WithArguments("string C.M5()", "string C.M5()").WithLocation(29, 27),
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M5").WithArguments("string C.M5()", "string C.M5()").WithLocation(29, 27),
                 // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M7() => null; // 9
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
-                // (31,28): error CS8824: Partial method declarations 'string C.M7()' and 'string? C.M7()' must have identical parameter types and identical return types.
+                // (31,28): error CS8825: Partial method declarations 'string C.M7()' and 'string? C.M7()' must have identical nullability for parameter types and return types.
                 //     public partial string? M7() => null; // 9
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M7").WithArguments("string C.M7()", "string? C.M7()").WithLocation(31, 28),
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M7").WithArguments("string C.M7()", "string? C.M7()").WithLocation(31, 28),
                 // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M8();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
-                // (33,27): error CS8824: Partial method declarations 'string? C.M9()' and 'string C.M9()' must have identical parameter types and identical return types.
+                // (33,27): error CS8825: Partial method declarations 'string? C.M9()' and 'string C.M9()' must have identical nullability for parameter types and return types.
                 //     public partial string M9() => null; // 10
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "M9").WithArguments("string? C.M9()", "string C.M9()").WithLocation(33, 27),
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "M9").WithArguments("string? C.M9()", "string C.M9()").WithLocation(33, 27),
                 // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M11() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
@@ -3155,12 +3155,12 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8824: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' must have identical parameter types and identical return types.
+                // (6,27): error CS8824: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' must have identical parameter types and return types.
                 //     internal partial void F2(dynamic o) { } // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F2").WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
-                // (8,29): error CS8824: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
+                // (8,29): error CS8824: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' must have identical parameter types and return types.
                 //     internal partial object F3() => null; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F3").WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F3").WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
         }
 
         // Errors reported for differences in extended partial methods, warnings for differences in other partial methods.
@@ -3194,18 +3194,18 @@ partial class C
                 // (8,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
                 //     partial void F2(IEnumerable<string> s) { } // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F2").WithArguments("s").WithLocation(8, 18),
-                // (10,27): error CS8824: Partial method declarations 'void C.F3(string? s)' and 'void C.F3(string s)' must have identical parameter types and identical return types.
+                // (10,27): error CS8825: Partial method declarations 'void C.F3(string? s)' and 'void C.F3(string s)' must have identical nullability for parameter types and return types.
                 //     internal partial void F3(string s) { } // 3
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F3").WithArguments("void C.F3(string? s)", "void C.F3(string s)").WithLocation(10, 27),
-                // (12,27): error CS8824: Partial method declarations 'void C.F4(IEnumerable<string?> s)' and 'void C.F4(IEnumerable<string> s)' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "F3").WithArguments("void C.F3(string? s)", "void C.F3(string s)").WithLocation(10, 27),
+                // (12,27): error CS8825: Partial method declarations 'void C.F4(IEnumerable<string?> s)' and 'void C.F4(IEnumerable<string> s)' must have identical nullability for parameter types and return types.
                 //     internal partial void F4(IEnumerable<string> s) { } // 4
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F4").WithArguments("void C.F4(IEnumerable<string?> s)", "void C.F4(IEnumerable<string> s)").WithLocation(12, 27),
-                // (14,29): error CS8824: Partial method declarations 'string? C.F5()' and 'string C.F5()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "F4").WithArguments("void C.F4(IEnumerable<string?> s)", "void C.F4(IEnumerable<string> s)").WithLocation(12, 27),
+                // (14,29): error CS8825: Partial method declarations 'string? C.F5()' and 'string C.F5()' must have identical nullability for parameter types and return types.
                 //     internal partial string F5() => null!; // 5
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F5").WithArguments("string? C.F5()", "string C.F5()").WithLocation(14, 29),
-                // (16,43): error CS8824: Partial method declarations 'IEnumerable<string> C.F6()' and 'IEnumerable<string?> C.F6()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "F5").WithArguments("string? C.F5()", "string C.F5()").WithLocation(14, 29),
+                // (16,43): error CS8825: Partial method declarations 'IEnumerable<string> C.F6()' and 'IEnumerable<string?> C.F6()' must have identical nullability for parameter types and return types.
                 //     internal partial IEnumerable<string?> F6() => null!; // 6
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F6").WithArguments("IEnumerable<string> C.F6()", "IEnumerable<string?> C.F6()").WithLocation(16, 43));
+                Diagnostic(ErrorCode.ERR_PartialMethodNullabilityDifference, "F6").WithArguments("IEnumerable<string> C.F6()", "IEnumerable<string?> C.F6()").WithLocation(16, 43));
         }
 
         // Errors reported for all differences.
@@ -3265,18 +3265,18 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,18): error CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' must have identical parameter types and identical return types.
+                // (5,18): error CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' must have identical parameter types and return types.
                 //     partial void F1(System.IntPtr i) { } // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F1").WithArguments("void C.F1(nint i)", "void C.F1(IntPtr i)").WithLocation(5, 18),
-                // (7,18): error CS8824: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F1").WithArguments("void C.F1(nint i)", "void C.F1(IntPtr i)").WithLocation(5, 18),
+                // (7,18): error CS8824: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' must have identical parameter types and return types.
                 //     partial void F2(object x, System.IntPtr y) { } // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F2").WithArguments("void C.F2(dynamic x, nint y)", "void C.F2(object x, IntPtr y)").WithLocation(7, 18),
-                // (9,27): error CS8824: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(dynamic x, nint y)", "void C.F2(object x, IntPtr y)").WithLocation(7, 18),
+                // (9,27): error CS8824: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' must have identical parameter types and return types.
                 //     internal partial void F3(System.IntPtr i) { } // 3
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F3").WithArguments("void C.F3(nint i)", "void C.F3(IntPtr i)").WithLocation(9, 27),
-                // (11,40): error CS8824: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' must have identical parameter types and identical return types.
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F3").WithArguments("void C.F3(nint i)", "void C.F3(IntPtr i)").WithLocation(9, 27),
+                // (11,40): error CS8824: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' must have identical parameter types and return types.
                 //     internal partial IEnumerable<nint> F4() => null; // 4
-                Diagnostic(ErrorCode.ERR_PartialMethodSignatureDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
+                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
         }
     }
 }

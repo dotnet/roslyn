@@ -6293,8 +6293,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
     <value>Partial method declarations must have matching ref return values.</value>
   </data>
-  <data name="ERR_PartialMethodSignatureDifference" xml:space="preserve">
-    <value>Partial method declarations '{0}' and '{1}' must have identical parameter types and identical return types.</value>
+  <data name="ERR_PartialMethodTypeDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' must have identical parameter types and return types.</value>
+  </data>
+  <data name="ERR_PartialMethodNullabilityDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' must have identical nullability for parameter types and return types.</value>
   </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>

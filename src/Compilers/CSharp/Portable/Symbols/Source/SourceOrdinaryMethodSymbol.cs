@@ -612,17 +612,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
             }
-            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
-            }
             else if (!(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(definition, implementation))
             {
                 checkNullableMethodOverride = false;
-                diagnostics.Add(ErrorCode.ERR_PartialMethodSignatureDifference, implementation.Locations[0], getFormattedSymbol(definition), getFormattedSymbol(implementation));
-                static FormattedSymbol getFormattedSymbol(Symbol symbol) => new FormattedSymbol(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+                if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
+                }
+                else
+                {
+                    var errorCode = definition.HasExplicitAccessModifier && MemberSignatureComparer.ExtendedPartialMethodsStrictIgnoreNullabilityComparer.Equals(definition, implementation) ?
+                        ErrorCode.ERR_PartialMethodNullabilityDifference :
+                        ErrorCode.ERR_PartialMethodTypeDifference;
+                    diagnostics.Add(errorCode, implementation.Locations[0], getFormattedSymbol(definition), getFormattedSymbol(implementation));
+                    static FormattedSymbol getFormattedSymbol(Symbol symbol) => new FormattedSymbol(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+                }
             }
-
 
             if (definition.IsStatic != implementation.IsStatic)
             {
@@ -674,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics,
                     (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                     {
-                        // Should have reported ERR_PartialMethodSignatureDifference above.
+                        // Should have reported ERR_PartialMethodNullabilityDifference above.
                         Debug.Assert(false);
                     },
                     (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
