@@ -601,20 +601,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
-            bool checkNullableMethodOverride = true;
+            bool hasSignatureDifferences = false;
             MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
             if (!constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
             {
-                checkNullableMethodOverride = false;
+                hasSignatureDifferences = true;
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
             }
-            else if (definition.RefKind != implementation.RefKind)
+
+            if (definition.RefKind != implementation.RefKind)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
             }
-            else if (!(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(definition, implementation))
+            else if (!hasSignatureDifferences &&
+                !(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(definition, implementation))
             {
-                checkNullableMethodOverride = false;
+                hasSignatureDifferences = true;
                 if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
@@ -624,8 +626,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var errorCode = definition.HasExplicitAccessModifier && MemberSignatureComparer.ExtendedPartialMethodsStrictIgnoreNullabilityComparer.Equals(definition, implementation) ?
                         ErrorCode.ERR_PartialMethodNullabilityDifference :
                         ErrorCode.ERR_PartialMethodTypeDifference;
-                    diagnostics.Add(errorCode, implementation.Locations[0], getFormattedSymbol(definition), getFormattedSymbol(implementation));
-                    static FormattedSymbol getFormattedSymbol(Symbol symbol) => new FormattedSymbol(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+                    diagnostics.Add(errorCode, implementation.Locations[0],
+                        new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                        new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
             }
 
@@ -670,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
-            if (checkNullableMethodOverride)
+            if (!hasSignatureDifferences)
             {
                 SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                     implementation.DeclaringCompilation,

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition
-        /// including differences ignored by the runtime other than dynamic/object and nullability.
+        /// including differences ignored by the runtime other than dynamic/object and nullability (for instance, nint/System.IntPtr).
         /// </summary>
         public static readonly MemberSignatureComparer PartialMethodsStrictComparer = new MemberSignatureComparer(
             considerName: true,

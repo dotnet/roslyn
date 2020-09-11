@@ -3138,6 +3138,25 @@ partial class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
         }
 
+        [Fact]
+        public void DifferentReturnTypes_18()
+        {
+            var source =
+@"partial class C
+{
+    public partial ref int F1();
+    public partial string F1() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial string F1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "F1").WithLocation(4, 27),
+                // (4,27): error CS8818: Partial method declarations must have matching ref return values.
+                //     public partial string F1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 27));
+        }
+
         // Errors reported for differences in extended partial methods, warnings for differences in other partial methods.
         [Fact]
         [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
