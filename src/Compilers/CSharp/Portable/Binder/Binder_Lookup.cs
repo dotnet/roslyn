@@ -461,23 +461,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (resultWithoutSuffixIsViable)
             {
                 // single viable lookup symbol only found without Attribute suffix, return result.
+                if (!Compilation.LanguageVersion.AllowGenericAttributes())
+                {
+                    var noAliasSymbolWithoutSuffix = (NamedTypeSymbol)UnwrapAliasNoDiagnostics(symbolWithoutSuffix);
+                    if (noAliasSymbolWithoutSuffix.IsGenericType)
+                    {
+                        var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithoutSuffix);
+                        result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithoutSuffix, diagInfo));
+                    }
+                }
             }
             else if (resultWithSuffixIsViable)
             {
                 Debug.Assert(resultWithSuffix != null);
 
-                // Single viable lookup symbol only found with Attribute suffix, return resultWithSuffix.
-                result.SetFrom(resultWithSuffix);
+                if (!Compilation.LanguageVersion.AllowGenericAttributes())
+                {
+                    var noAliasSymbolWithSuffix = (NamedTypeSymbol)UnwrapAliasNoDiagnostics(symbolWithSuffix);
+                    if (noAliasSymbolWithSuffix.IsGenericType)
+                    {
+                        var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithSuffix);
+                        result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithSuffix, diagInfo));
+                    }
+                    else
+                    {
+                        // Single viable lookup symbol only found with Attribute suffix, return resultWithSuffix.
+                        result.SetFrom(resultWithSuffix);
+                    }
+                }
+                else
+                {
+                    // Single viable lookup symbol only found with Attribute suffix, return resultWithSuffix.
+                    result.SetFrom(resultWithSuffix);
+                }
             }
             else
             {
+                if (!Compilation.LanguageVersion.AllowGenericAttributes())
+                {
+                    if (symbolWithoutSuffix != null)
+                    {
+                        var noAliasSymbolWithoutSuffix = UnwrapAliasNoDiagnostics(symbolWithoutSuffix);
+                        if (noAliasSymbolWithoutSuffix.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)noAliasSymbolWithoutSuffix).IsGenericType)
+                        {
+                            var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithoutSuffix);
+                            result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithoutSuffix, diagInfo));
+                        }
+                    }
+                    else if (symbolWithSuffix != null && symbolWithSuffix.Kind == SymbolKind.NamedType)
+                    {
+                        var noAliasSymbolWithSuffix = UnwrapAliasNoDiagnostics(symbolWithSuffix);
+                        if (noAliasSymbolWithSuffix.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)noAliasSymbolWithSuffix).IsGenericType)
+                        {
+                            var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithSuffix);
+                            result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithSuffix, diagInfo));
+                        }
+                    }
+                }
+
                 // Both results are clear, non-viable or ambiguous.
 
                 if (!result.IsClear)
                 {
                     if ((object)symbolWithoutSuffix != null) // was not ambiguous, but not viable
                     {
-                        result.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithoutSuffix, result.Error, diagnose));
+                        result.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithoutSuffix, result.Error));
                     }
                 }
 
@@ -487,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)symbolWithSuffix != null)
                         {
-                            resultWithSuffix.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithSuffix, resultWithSuffix.Error, diagnose));
+                            resultWithSuffix.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithSuffix, resultWithSuffix.Error));
                         }
                     }
 
@@ -595,12 +643,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckAttributeTypeViability(UnwrapAliasNoDiagnostics(symbol), diagnose: false, diagInfo: ref discarded);
         }
 
-        private SingleLookupResult GenerateNonViableAttributeTypeResult(Symbol symbol, DiagnosticInfo diagInfo, bool diagnose)
+        private SingleLookupResult GenerateNonViableAttributeTypeResult(Symbol symbol, DiagnosticInfo diagInfo)
         {
             Debug.Assert((object)symbol != null);
 
             symbol = UnwrapAliasNoDiagnostics(symbol);
-            CheckAttributeTypeViability(symbol, diagnose, ref diagInfo);
+            if (diagInfo == null)
+                CheckAttributeTypeViability(symbol, true, ref diagInfo);
+
             return LookupResult.NotAnAttributeType(symbol, diagInfo);
         }
 
@@ -623,7 +673,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (Compilation.IsEqualOrDerivedFromWellKnownClass(namedType, WellKnownType.System_Attribute, ref useSiteDiagnostics))
                     {
-                        // Reuse existing diagnostic info.
                         return true;
                     }
 

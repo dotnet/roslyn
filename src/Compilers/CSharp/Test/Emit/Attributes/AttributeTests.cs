@@ -7147,9 +7147,9 @@ public class Test<U>
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
             compilation.VerifyDiagnostics(
-                    // (6,2): error CS0616: 'Gen<T>' is not an attribute class
+                    // (6,2): error CS0305: Using the generic type 'Gen<T>' requires 1 type arguments
                     // [Gen]
-                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(6, 2),
+                    Diagnostic(ErrorCode.ERR_BadArity, "Gen").WithArguments("Gen<T>", "type", "1").WithLocation(6, 2),
                     // (7,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                     // [Gen2]
                     Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(7, 2),
@@ -7217,9 +7217,9 @@ public class Test
             var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
-                // (2,2): error CS0404: error CS0616: 'Gen<T>' is not an attribute class
+                // (2,2): error CS0305: Using the generic type 'Gen<T>' requires 1 type arguments
                 // [Gen]
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>"),
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen").WithArguments("Gen<T>", "type", "1"),
                 // (3,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2]
                 Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1"));
@@ -8320,13 +8320,13 @@ class Test
             comp.VerifyDiagnostics(
                 // (4,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias").WithArguments("C<int>"),
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias").WithArguments("C<int>").WithLocation(4, 2),
                 // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<>").WithArguments("C<int>"),
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<>").WithArguments("C<int>").WithLocation(5, 2),
                 // (6,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"));
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>").WithLocation(6, 2));
         }
 
         [Fact]
