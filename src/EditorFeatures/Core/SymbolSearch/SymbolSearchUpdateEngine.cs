@@ -132,10 +132,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         // Ignore any reference assembly results.
                         if (symbol.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                         {
+                            var version = database.GetPackageVersion(symbol.Index).ToString();
+
                             result.Add(new PackageWithAssemblyResult(
                                 symbol.PackageName.ToString(),
-                                database.GetPackageVersion(symbol.Index).ToString(),
-                                GetRank(symbol)));
+                                GetRank(symbol),
+                                string.IsNullOrWhiteSpace(version) ? null : version));
                         }
                     }
                 }
@@ -211,9 +213,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             return new PackageWithTypeResult(
                 packageName: packageName,
-                typeName: type.Name.ToString(),
-                version: version,
                 rank: GetRank(type),
+                typeName: type.Name.ToString(),
+                version: string.IsNullOrWhiteSpace(version) ? null : version,
                 containingNamespaceNames: nameParts.ToImmutableAndFree());
         }
 

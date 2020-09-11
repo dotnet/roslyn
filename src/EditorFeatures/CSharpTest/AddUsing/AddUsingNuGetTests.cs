@@ -280,8 +280,8 @@ class C
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
-                packageName: packageName, typeName: typeName, version: null,
-                rank: 0, containingNamespaceNames: containingNamespaceNames));
+                packageName: packageName, rank: 0, typeName: typeName,
+                version: null, containingNamespaceNames: containingNamespaceNames));
         }
 
         private static Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)

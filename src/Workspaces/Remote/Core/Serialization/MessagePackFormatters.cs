@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -42,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Remote
             EnumFormatters.ValueUsageInfo,
             EnumFormatters.ValueUsageInfo.CreateNullable(),
             EnumFormatters.TypeOrNamespaceUsageInfo,
-            EnumFormatters.TypeOrNamespaceUsageInfo.CreateNullable());
+            EnumFormatters.TypeOrNamespaceUsageInfo.CreateNullable(),
+            EnumFormatters.AddImportFixKind,
+            EnumFormatters.CodeActionPriority);
 
         // TODO: remove https://github.com/neuecc/MessagePack-CSharp/issues/1025
         internal static class EnumFormatters
@@ -57,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public static readonly EnumFormatter<TaggedTextStyle> TaggedTextStyle = new(value => (int)value, value => (TaggedTextStyle)value);
             public static readonly EnumFormatter<ValueUsageInfo> ValueUsageInfo = new(value => (int)value, value => (ValueUsageInfo)value);
             public static readonly EnumFormatter<TypeOrNamespaceUsageInfo> TypeOrNamespaceUsageInfo = new(value => (int)value, value => (TypeOrNamespaceUsageInfo)value);
+            public static readonly EnumFormatter<AddImportFixKind> AddImportFixKind = new(value => (int)value, value => (AddImportFixKind)value);
+            public static readonly EnumFormatter<CodeActionPriority> CodeActionPriority = new(value => (int)value, value => (CodeActionPriority)value);
         }
 
         internal sealed class SolutionIdFormatter : IMessagePackFormatter<SolutionId?>

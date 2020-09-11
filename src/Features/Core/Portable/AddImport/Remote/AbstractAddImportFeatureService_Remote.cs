@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -24,39 +25,21 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// back to VS, which will then bounce back out to OOP to perform the Nuget/ReferenceAssembly
         /// portion of the search.  Ideally we could keep this all OOP.
         /// </summary>
-        private sealed class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
+        private sealed class RemoteAddImportServiceCallback : IRemoteAddImportService.ICallback
         {
             private readonly ISymbolSearchService _symbolSearchService;
 
-            public RemoteSymbolSearchService(ISymbolSearchService symbolSearchService)
+            public RemoteAddImportServiceCallback(ISymbolSearchService symbolSearchService)
                 => _symbolSearchService = symbolSearchService;
 
-            public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
-            {
-                // Remote side should never call this.
-                throw new NotImplementedException();
-            }
+            public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+                => _symbolSearchService.FindPackagesWithTypeAsync(source, name, arity, cancellationToken);
 
-            public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-                string source, string name, int arity, CancellationToken cancellationToken)
-            {
-                return _symbolSearchService.FindPackagesWithTypeAsync(
-                    source, name, arity, cancellationToken);
-            }
+            public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string name, CancellationToken cancellationToken)
+                => _symbolSearchService.FindPackagesWithAssemblyAsync(source, name, cancellationToken);
 
-            public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-                string source, string name, CancellationToken cancellationToken)
-            {
-                return _symbolSearchService.FindPackagesWithAssemblyAsync(
-                    source, name, cancellationToken);
-            }
-
-            public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-                string name, int arity, CancellationToken cancellationToken)
-            {
-                return _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, cancellationToken);
-            }
+            public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+                => _symbolSearchService.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken);
         }
     }
 }

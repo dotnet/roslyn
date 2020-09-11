@@ -59,26 +59,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
+                var callbackTarget = new RemoteAddImportServiceCallback(symbolSearchService);
 
-                var result = await client.RunRemoteAsync<IList<AddImportFixData>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                var result = await client.TryInvokeAsync<IRemoteAddImportService, ImmutableArray<AddImportFixData>>(
                     document.Project.Solution,
-                    new object[]
-                    {
-                        document.Id,
-                        span,
-                        diagnosticId,
-                        maxResults,
-                        placeSystemNamespaceFirst,
-                        searchReferenceAssemblies,
-                        packageSources
-                    },
+                    (service, solutionInfo, cancellationToken) => service.GetFixesAsync(solutionInfo, document.Id, span, diagnosticId, maxResults, placeSystemNamespaceFirst, searchReferenceAssemblies, packageSources, cancellationToken),
                     callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                return result.ToImmutableArray();
+                return result.HasValue ? result.Value : ImmutableArray<AddImportFixData>.Empty;
             }
 
             return await GetFixesInCurrentProcessAsync(

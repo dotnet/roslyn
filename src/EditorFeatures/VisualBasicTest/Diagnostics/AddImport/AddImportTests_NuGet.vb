@@ -260,9 +260,9 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
         Private Shared Function CreateSearchResult(packageName As String, typeName As String, nameParts As ImmutableArray(Of String)) As Task(Of IList(Of PackageWithTypeResult))
             Return CreateSearchResult(New PackageWithTypeResult(
                 packageName:=packageName,
+                rank:=0,
                 typeName:=typeName,
                 version:=Nothing,
-                rank:=0,
                 containingNamespaceNames:=nameParts))
         End Function
 
