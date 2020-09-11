@@ -6473,8 +6473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
-                case ConversionKind.SwitchExpression:
                 case ConversionKind.ObjectCreation:
+                case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
                     return operandType;
 

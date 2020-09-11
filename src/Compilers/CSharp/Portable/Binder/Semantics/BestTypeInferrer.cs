@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var type in types)
             {
 #if DEBUG
-                Debug.Assert(!type.HasType || !example.HasType || type.Equals(example, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(!type.HasType || (example.HasType && type.Equals(example, TypeCompareKind.AllIgnoreOptions)));
 #endif
 
                 // This uses the covariant merging rules.
