@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
             CreateDescriptors(typeof(IRemoteAddImportService), callbackInterface: typeof(IRemoteAddImportService.ICallback)),
             CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
+            CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
         });
 
         private static string GetServiceName(Type serviceInterface)

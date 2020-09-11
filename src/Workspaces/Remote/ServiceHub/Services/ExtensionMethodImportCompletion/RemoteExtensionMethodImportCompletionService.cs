@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -14,18 +15,29 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : IRemoteExtensionMethodImportCompletionService
+    internal sealed class RemoteExtensionMethodImportCompletionService : BrokeredServiceBase, IRemoteExtensionMethodImportCompletionService
     {
-        public Task<(IList<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsAsync(
+        internal sealed class Factory : FactoryBase<IRemoteExtensionMethodImportCompletionService>
+        {
+            protected override IRemoteExtensionMethodImportCompletionService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteExtensionMethodImportCompletionService(arguments);
+        }
+
+        public RemoteExtensionMethodImportCompletionService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+        }
+
+        public ValueTask<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             int position,
             string receiverTypeSymbolKeyData,
-            string[] namespaceInScope,
+            ImmutableArray<string> namespaceInScope,
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async cancellationToken =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -39,12 +51,11 @@ namespace Microsoft.CodeAnalysis.Remote
                         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                         var namespaceInScopeSet = new HashSet<string>(namespaceInScope, syntaxFacts.StringComparer);
 
-                        var (items, counter) = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                        return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
                             document, position, receiverTypeSymbol, namespaceInScopeSet, forceIndexCreation, cancellationToken).ConfigureAwait(false);
-                        return ((IList<SerializableImportCompletionItem>)items, counter);
                     }
 
-                    return (Array.Empty<SerializableImportCompletionItem>(), new StatisticCounter());
+                    return new SerializableUnimportedExtensionMethods(ImmutableArray<SerializableImportCompletionItem>.Empty, isPartialResult: false, getSymbolsTicks: 0, createItemsTicks: 0);
                 }
             }, cancellationToken);
         }
