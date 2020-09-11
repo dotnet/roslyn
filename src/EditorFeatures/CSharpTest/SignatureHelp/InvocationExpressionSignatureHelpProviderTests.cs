@@ -963,6 +963,7 @@ class C
         #region "Trigger tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(47364, "https://github.com/dotnet/roslyn/issues/47364")]
         public async Task TestInvocationOnTriggerParens_OptionalDefaultStruct()
         {
             var markup = @"
