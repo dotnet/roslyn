@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
 
-        // available
+        IDS_FeatureDiscards = MessageBase + 12688,
 
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
@@ -417,6 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureOutVar:
                 case MessageID.IDS_FeatureExpressionBodiedAccessor:
                 case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
+                case MessageID.IDS_FeatureDiscards:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.
