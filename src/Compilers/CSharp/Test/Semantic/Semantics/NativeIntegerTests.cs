@@ -3613,25 +3613,21 @@ class Program
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,34): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
                 //         Console.WriteLine(nameof(nint));
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(6, 34),
-                // (7,34): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
                 //         Console.WriteLine(nameof(nuint));
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
-@"nint
-nuint");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().First(n => n is IdentifierNameSyntax { Identifier: { ValueText: "nint" } });
-            var symbol = (ITypeSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.Equal("nint", symbol.ToTestDisplayString());
-            Assert.True(symbol.IsNativeIntegerType);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
+                //         Console.WriteLine(nameof(nint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
+                //         Console.WriteLine(nameof(nuint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
         }
 
         [Fact]
@@ -3652,12 +3648,15 @@ nuint");
                 // (3,19): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     static void F(nint nint)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(3, 19),
-                // (6,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
                 //         _ = nameof(nuint);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
         }
 
         [Fact]
@@ -3707,6 +3706,28 @@ nuint");
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_05()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = nameof(nint.Equals);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = nameof(nint.Equals);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(5, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
@@ -4179,9 +4200,12 @@ False
     }
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -4288,9 +4312,9 @@ False
     }
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
 
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -4353,6 +4377,33 @@ False
   IL_008d:  pop
   IL_008e:  ret
 }");
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = -F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (7,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = -F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 13),
+                // (8,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 13),
+                // (9,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F1").WithArguments("native-sized integers", "9.0").WithLocation(9, 13),
+                // (10,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F2 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2 / F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 13),
+                // (11,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F3 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3 * F1").WithArguments("native-sized integers", "9.0").WithLocation(11, 13),
+                // (12,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F4 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4 / F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 13));
         }
 
         [Fact]
@@ -4590,11 +4641,9 @@ class A
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
-        [InlineData(false, false)]
-        [InlineData(true, false)]
-        [InlineData(false, true)]
-        [InlineData(true, true)]
-        public void BuiltInOperators_NativeIntegers(bool useCompilationReference, bool useLatest)
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInOperators_NativeIntegers(bool useCompilationReference)
         {
             var sourceA =
 @"public class A
@@ -4606,6 +4655,7 @@ class A
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
 
             var sourceB =
 @"class B : A
@@ -4622,9 +4672,7 @@ class A
         F4 = F4 / F2;
     }
 }";
-            // https://github.com/dotnet/csharplang/blob/master/meetings/2020/LDM-2020-03-25.md: Errors should
-            // be reported for uses of native integer operators with -langversion:8.
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -4713,6 +4761,580 @@ class A
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
 }");
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F1 = -F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 14),
+                // (6,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F2 = +F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 14),
+                // (7,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F3 = -F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 14),
+                // (8,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F4 = +F4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 14),
+                // (9,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F1 = F1 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F1").WithArguments("native-sized integers", "9.0").WithLocation(9, 14),
+                // (10,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F2 = F2 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2 / F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 14),
+                // (11,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F3 = F3 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3 * F1").WithArguments("native-sized integers", "9.0").WithLocation(11, 14),
+                // (12,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F4 = F4 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4 / F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 14));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_01(bool useCompilationReference, bool lifted)
+        {
+            string typeSuffix = lifted ? "?" : "";
+            var sourceA =
+$@"public class A
+{{
+    public static nint{typeSuffix} F1;
+    public static nuint{typeSuffix} F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = +F1;
+        _ = -F1;
+        _ = ~F1;
+        _ = +F2;
+        _ = ~F2;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = -F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (7,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = ~F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "~F1").WithArguments("native-sized integers", "9.0").WithLocation(7, 13),
+                // (8,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(8, 13),
+                // (9,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = ~F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "~F2").WithArguments("native-sized integers", "9.0").WithLocation(9, 13));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_02(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        ++F;
+        F++;
+        --F;
+        F--;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         ++F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "++F").WithArguments("native-sized integers", "9.0").WithLocation(5, 9),
+                // (6,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F++;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F++").WithArguments("native-sized integers", "9.0").WithLocation(6, 9),
+                // (7,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         --F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "--F").WithArguments("native-sized integers", "9.0").WithLocation(7, 9),
+                // (8,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F--").WithArguments("native-sized integers", "9.0").WithLocation(8, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_03(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1, F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = F1 + F2;
+        _ = F1 - F2;
+        _ = F1 * F2;
+        _ = F1 / F2;
+        _ = F1 % F2;
+        _ = F1 < F2;
+        _ = F1 <= F2;
+        _ = F1 > F2;
+        _ = F1 >= F2;
+        _ = F1 == F2;
+        _ = F1 != F2;
+        _ = F1 & F2;
+        _ = F1 | F2;
+        _ = F1 ^ F2;
+        _ = F1 << 1;
+        _ = F1 >> 1;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 + F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 + F2").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 - F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 - F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (7,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 * F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F2").WithArguments("native-sized integers", "9.0").WithLocation(7, 13),
+                // (8,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 / F2").WithArguments("native-sized integers", "9.0").WithLocation(8, 13),
+                // (9,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 % F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 % F2").WithArguments("native-sized integers", "9.0").WithLocation(9, 13),
+                // (10,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 < F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 < F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 13),
+                // (11,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 <= F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 <= F2").WithArguments("native-sized integers", "9.0").WithLocation(11, 13),
+                // (12,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 > F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 > F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 13),
+                // (13,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 >= F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 >= F2").WithArguments("native-sized integers", "9.0").WithLocation(13, 13),
+                // (14,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 == F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 == F2").WithArguments("native-sized integers", "9.0").WithLocation(14, 13),
+                // (15,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 != F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 != F2").WithArguments("native-sized integers", "9.0").WithLocation(15, 13),
+                // (16,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 & F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 & F2").WithArguments("native-sized integers", "9.0").WithLocation(16, 13),
+                // (17,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 | F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 | F2").WithArguments("native-sized integers", "9.0").WithLocation(17, 13),
+                // (18,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 ^ F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 ^ F2").WithArguments("native-sized integers", "9.0").WithLocation(18, 13),
+                // (19,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 << 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 << 1").WithArguments("native-sized integers", "9.0").WithLocation(19, 13),
+                // (20,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 >> 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 >> 1").WithArguments("native-sized integers", "9.0").WithLocation(20, 13));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_04(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1, F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = (F1, F1) == (F2, F2);
+        _ = (F1, F1) != (F2, F2);
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) == (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) == (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) == (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) == (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) != (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) != (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) != (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) != (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(6, 13));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_05(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        F += 1;
+        F -= 1;
+        F *= 1;
+        F /= 1;
+        F %= 1;
+        F &= 1;
+        F |= 1;
+        F ^= 1;
+        F <<= 1;
+        F >>= 1;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F += 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F += 1").WithArguments("native-sized integers", "9.0").WithLocation(5, 9),
+                // (6,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F -= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F -= 1").WithArguments("native-sized integers", "9.0").WithLocation(6, 9),
+                // (7,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F *= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F *= 1").WithArguments("native-sized integers", "9.0").WithLocation(7, 9),
+                // (8,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F /= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F /= 1").WithArguments("native-sized integers", "9.0").WithLocation(8, 9),
+                // (9,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F %= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F %= 1").WithArguments("native-sized integers", "9.0").WithLocation(9, 9),
+                // (10,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F &= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F &= 1").WithArguments("native-sized integers", "9.0").WithLocation(10, 9),
+                // (11,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F |= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F |= 1").WithArguments("native-sized integers", "9.0").WithLocation(11, 9),
+                // (12,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F ^= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F ^= 1").WithArguments("native-sized integers", "9.0").WithLocation(12, 9),
+                // (13,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F <<= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F <<= 1").WithArguments("native-sized integers", "9.0").WithLocation(13, 9),
+                // (14,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F >>= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F >>= 1").WithArguments("native-sized integers", "9.0").WithLocation(14, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_01(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1;
+    public static {type}? F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        F1 = sbyte.MaxValue;
+        F1 = byte.MaxValue;
+        F1 = char.MaxValue;
+        F1 = short.MaxValue;
+        F1 = ushort.MaxValue;
+        F1 = int.MaxValue;
+        F2 = sbyte.MaxValue;
+        F2 = byte.MaxValue;
+        F2 = char.MaxValue;
+        F2 = short.MaxValue;
+        F2 = ushort.MaxValue;
+        F2 = int.MaxValue;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_02(bool useCompilationReference, bool signed)
+        {
+            string type = signed ? "nint" : "nuint";
+            string underlyingType = signed ? "System.IntPtr" : "System.UIntPtr";
+
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1;
+    public static {type}? F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+$@"class B : A
+{{
+    static T F<T>() => throw null;
+    static void Main()
+    {{
+        F1 = F<byte>();
+        F1 = F<char>();
+        F1 = F<ushort>();
+        F1 = F<{underlyingType}>();
+        F2 = F<byte>();
+        F2 = F<char>();
+        F2 = F<ushort>();
+        F2 = F<byte?>();
+        F2 = F<char?>();
+        F2 = F<ushort?>();
+        F2 = F<{underlyingType}>();
+        F2 = F<{underlyingType}?>();
+    }}
+}}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_03(bool useCompilationReference, bool signed)
+        {
+            string type = signed ? "nint" : "nuint";
+            string underlyingType = signed ? "System.IntPtr" : "System.UIntPtr";
+
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1;
+    public static {type}? F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+$@"class B : A
+{{
+    static void M0()
+    {{
+        object o;
+        o = F1;
+        o = (object)F1;
+        o = F2;
+        o = (object)F2;
+    }}
+    static void M1()
+    {{
+        {underlyingType} ptr;
+        sbyte sb;
+        byte b;
+        char c;
+        short s;
+        ushort us;
+        int i;
+        uint u;
+        long l;
+        ulong ul;
+        float f;
+        double d;
+        decimal dec;
+        ptr = F1;
+        f = F1;
+        d = F1;
+        dec = F1;
+        ptr = ({underlyingType})F1;
+        sb = (sbyte)F1;
+        b = (byte)F1;
+        c = (char)F1;
+        s = (short)F1;
+        us = (ushort)F1;
+        i = (int)F1;
+        u = (uint)F1;
+        l = (long)F1;
+        ul = (ulong)F1;
+        f = (float)F1;
+        d = (double)F1;
+        dec = (decimal)F1;
+        ptr = ({underlyingType})F2;
+        sb = (sbyte)F2;
+        b = (byte)F2;
+        c = (char)F2;
+        s = (short)F2;
+        us = (ushort)F2;
+        i = (int)F2;
+        u = (uint)F2;
+        l = (long)F2;
+        ul = (ulong)F2;
+        f = (float)F2;
+        d = (double)F2;
+        dec = (decimal)F2;
+    }}
+    static void M2()
+    {{
+        {underlyingType}? ptr;
+        sbyte? sb;
+        byte? b;
+        char? c;
+        short? s;
+        ushort? us;
+        int? i;
+        uint? u;
+        long? l;
+        ulong? ul;
+        float? f;
+        double? d;
+        decimal? dec;
+        ptr = F1;
+        f = F1;
+        d = F1;
+        dec = F1;
+        ptr = ({underlyingType}?)F1;
+        sb = (sbyte?)F1;
+        b = (byte?)F1;
+        c = (char?)F1;
+        s = (short?)F1;
+        us = (ushort?)F1;
+        i = (int?)F1;
+        u = (uint?)F1;
+        l = (long?)F1;
+        ul = (ulong?)F1;
+        f = (float?)F1;
+        d = (double?)F1;
+        dec = (decimal?)F1;
+        ptr = F2;
+        f = F2;
+        d = F2;
+        dec = F2;
+        ptr = ({underlyingType}?)F2;
+        sb = (sbyte?)F2;
+        b = (byte?)F2;
+        c = (char?)F2;
+        s = (short?)F2;
+        us = (ushort?)F2;
+        i = (int?)F2;
+        u = (uint?)F2;
+        l = (long?)F2;
+        ul = (ulong?)F2;
+        f = (float?)F2;
+        d = (double?)F2;
+        dec = (decimal?)F2;
+    }}
+}}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_04(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1, F2;
+    public static {type}? F3, F4;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+$@"class B : A
+{{
+    static void Main()
+    {{
+        F2 = F1;
+        F4 = F1;
+        F4 = F3;
+    }}
+}}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]

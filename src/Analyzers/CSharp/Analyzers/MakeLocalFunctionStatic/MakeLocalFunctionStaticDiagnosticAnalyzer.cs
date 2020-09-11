@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var semanticModel = context.SemanticModel;
-            if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) && captures.Length == 0)
+            if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticBecauseNoCaptures(localFunction, semanticModel))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,

@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -16,28 +17,32 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteEndPoint _endPoint;
+        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
+        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteCallback<IDesignerAttributeListener> callback)
             : base(workspace)
         {
-            _endPoint = endPoint;
+            _callback = callback;
         }
 
-        protected override Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        protected override async ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            return _endPoint.InvokeAsync(
-                nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
-                new object[] { projectId },
-                cancellationToken);
+            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
+            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
+
+            await _callback.InvokeAsync(
+                (callback, cancellationToken) => callback.OnProjectRemovedAsync(projectId, cancellationToken),
+                linkedSource.Token).ConfigureAwait(false);
         }
 
-        protected override Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+        protected override async ValueTask ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            return _endPoint.InvokeAsync(
-                nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
-                new object[] { data },
-                cancellationToken);
+            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
+            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
+
+            await _callback.InvokeAsync(
+               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken),
+               linkedSource.Token).ConfigureAwait(false);
         }
     }
 }

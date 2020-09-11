@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         #endregion
 
-
         #region C# Runtime and System.Core sources
 
         private const string CSharpBinderTemplate = @"
@@ -1068,7 +1067,7 @@ class C
   IL_0069:  ldarg.0
   IL_006a:  ldfld      ""T C.<>c__DisplayClass0_0<T>.a""
   IL_006f:  ldarg.0
-  IL_0070:  ldfld      """"
+  IL_0070:  ldfld      ""dynamic C.<>c__DisplayClass0_0<T>.b""
   IL_0075:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, T, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, T, object)""
   IL_007a:  ret
 }

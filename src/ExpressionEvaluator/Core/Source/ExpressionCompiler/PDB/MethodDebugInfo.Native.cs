@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal const int E_NOTIMPL = unchecked((int)0x80004001);
         private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
 
-        public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
+        public static unsafe MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3? symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol>? symbolProvider, // TODO: only null in DTEE case where we looking for default namesapace
             int methodToken,

@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        private static ObjectPool<HashSet<SourceText>> s_uniqueSourcesPool
+        private static readonly ObjectPool<HashSet<SourceText>> s_uniqueSourcesPool
             = new ObjectPool<HashSet<SourceText>>(() => new HashSet<SourceText>(), 5);
 
         /// <summary>

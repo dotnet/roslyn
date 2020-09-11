@@ -29,7 +29,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        internal unsafe static void CopyQualifiedTypeName(char* qualifiedName, int qualifiedNameBufferLength, int* qualifiedNameLength, string namespaceStr, string nameStr)
+        internal static unsafe void CopyQualifiedTypeName(char* qualifiedName, int qualifiedNameBufferLength, int* qualifiedNameLength, string namespaceStr, string nameStr)
         {
             Debug.Assert(nameStr != null);
 

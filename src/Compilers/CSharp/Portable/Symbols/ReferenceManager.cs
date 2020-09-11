@@ -124,24 +124,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AssemblyIdentityComparer.CultureComparer.Equals(identity1.CultureName, identity2.CultureName);
             }
 
-            protected override AssemblySymbol?[] GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol)
+            protected override void GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol, List<AssemblySymbol?> referencedAssemblySymbols)
             {
-                var refs = new List<AssemblySymbol?>();
-
+                Debug.Assert(referencedAssemblySymbols.IsEmpty());
                 foreach (var module in assemblySymbol.Modules)
                 {
-                    refs.AddRange(module.GetReferencedAssemblySymbols());
+                    referencedAssemblySymbols.AddRange(module.GetReferencedAssemblySymbols());
                 }
 
-                for (int i = 0; i < refs.Count; i++)
+                for (int i = 0; i < referencedAssemblySymbols.Count; i++)
                 {
-                    if (refs[i]!.IsMissing)
+                    if (referencedAssemblySymbols[i]!.IsMissing)
                     {
-                        refs[i] = null; // Do not expose missing assembly symbols to ReferenceManager.Binder
+                        referencedAssemblySymbols[i] = null; // Do not expose missing assembly symbols to ReferenceManager.Binder
                     }
                 }
-
-                return refs.ToArray();
             }
 
             protected override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies(AssemblySymbol candidateAssembly)

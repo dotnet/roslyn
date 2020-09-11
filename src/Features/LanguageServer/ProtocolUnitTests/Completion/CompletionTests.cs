@@ -28,13 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(), triggerCharacter: "\0", triggerKind: LSP.CompletionTriggerKind.Invoked);
-            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, commitCharacters: new string[]
-                {
-                    " ", "{", "}", "[", "]", "(", ")", ".", ",", ":",
-                    ";", "+", "-", "*", "/", "%", "&", "|", "^", "!",
-                    "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\"
-                });
+            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, completionParams);
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -98,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(locations["caret"].Single(), triggerCharacter: "\0", LSP.CompletionTriggerKind.Invoked);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, preselect: true, commitCharacters: new string[] { "", "(", "[", "{" });
+                completionParams, preselect: true);
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
