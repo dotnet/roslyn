@@ -640,8 +640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
         {
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-
             // Build the state machine underlying the decision dag
             DecisionDag decisionDag = MakeDecisionDag(cases);
 
@@ -651,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Compute the bound decision dag corresponding to each node of decisionDag, and store
             // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
             ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
@@ -683,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We found an existing state that matches.  Update its set of possible remaining values
                     // of each temp by taking the union of the sets on each incoming edge.
-                    var newRemainingValues = ImmutableDictionary<BoundDagTemp, IValueSet>.Empty;
+                    var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
                         // If one incoming edge does not have a set of possible values for the temp,
@@ -691,13 +690,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
                         {
                             var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            newRemainingValues = newRemainingValues.SetItem(dagTemp, newExistingValuesForTemp);
+                            newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
                         }
                     }
 
-                    existingState.UpdateRemainingValues(newRemainingValues);
-                    if (!workList.Contains(existingState))
-                        workList.Push(existingState);
+                    if (existingState.RemainingValues.Count != newRemainingValues.Count ||
+                        !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
+                    {
+                        existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
+                        if (!workList.Contains(existingState))
+                            workList.Push(existingState);
+                    }
 
                     return existingState;
                 }
