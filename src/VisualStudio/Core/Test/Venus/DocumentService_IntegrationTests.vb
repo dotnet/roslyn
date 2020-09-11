@@ -400,15 +400,13 @@ class { }
             Public Sub AddCommandTarget(target As IOleCommandTarget, ByRef [next] As IOleCommandTarget) Implements IFindAllReferencesWindow.AddCommandTarget
                 Throw New NotImplementedException()
             End Sub
+#End Region
 
             Public Sub SetProgress(progress As Double) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
 
             Public Sub SetProgress(completed As Integer, maximum As Integer) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
-#End Region
         End Class
 
         Private Class TableDataSink
