@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_LineEnd = "Edit.LineEnd";
         public const string Edit_LineStartExtend = "Edit.LineStartExtend";
         public const string Edit_LineEndExtend = "Edit.LineEndExtend";
+        public const string Edit_NextHighlightedReference = "Edit.NextHighlightedReference";
         public const string Edit_SelectAll = "Edit.SelectAll";
         public const string Edit_Copy = "Edit.Copy";
         public const string Edit_Cut = "Edit.Cut";

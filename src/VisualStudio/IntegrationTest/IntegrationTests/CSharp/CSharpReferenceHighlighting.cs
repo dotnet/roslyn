@@ -79,8 +79,7 @@ class C
 }";
             VisualStudio.Editor.SetText(text);
             VisualStudio.Editor.PlaceCaret("x");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
