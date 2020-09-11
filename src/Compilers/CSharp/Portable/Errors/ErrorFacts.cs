@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MissingXMLComment:
                 case ErrorCode.WRN_MissingTypeParamTag:
                 case ErrorCode.WRN_InvalidVersionFormat:
-                case ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined:
                     return 4;
                 case ErrorCode.WRN_UnreferencedEvent:
                 case ErrorCode.WRN_DuplicateUsing:
@@ -479,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined:
                     return 1;
                 default:
                     return 0;

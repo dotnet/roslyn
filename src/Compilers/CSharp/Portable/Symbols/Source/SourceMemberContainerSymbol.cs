@@ -1540,8 +1540,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (userDefinedGetHashCode is null ^ userDefinedEquals is null)
             {
                 var declared = userDefinedGetHashCode is null ? userDefinedEquals : userDefinedGetHashCode;
-                // `declared` can't be null. It looks like flow analysis doesn't detect from the XOR that only one can be null.
-                // Remove the suppression if that's fixed.
                 diagnostics.Add(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, declared!.Locations[0], declared);
             }
 

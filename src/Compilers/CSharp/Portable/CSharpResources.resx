@@ -6530,6 +6530,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Both 'GetHashCode' and 'Equals' was expected to be declared. Only '{0}' was found.</value>
     <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
   </data>
+    <data name="WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined_Title" xml:space="preserve">
+    <value>Records defining 'GetHashCode' or 'Equals' are expected to define both, not only one of them.</value>
+    <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
+  </data>
   <data name="IDS_FeatureDiscards" xml:space="preserve">
     <value>discards</value>
   </data>

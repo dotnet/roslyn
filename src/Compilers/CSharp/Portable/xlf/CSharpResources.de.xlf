@@ -917,6 +917,11 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined_Title">
+        <source>Records defining 'GetHashCode' or 'Equals' are expected to define both, not only one of them.</source>
+        <target state="new">Records defining 'GetHashCode' or 'Equals' are expected to define both, not only one of them.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
