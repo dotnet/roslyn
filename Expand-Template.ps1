@@ -15,7 +15,7 @@ The `/{guid}` path to the Azure Pipelines artifact feed to push your nuget packa
 .PARAMETER Squash
 A switch that causes all of git history to be squashed to just one initial commit for the template, and one for its expansion.
 #>
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
 Param(
     [Parameter(Mandatory=$true)]
     [string]$LibraryName,
@@ -66,6 +66,15 @@ if (-not $sn) {
     } else {
         Write-Error "sn command not found on PATH and SDK could not be found."
         exit(1)
+    }
+}
+
+if (-not (& "$PSScriptRoot\tools\Check-DotNetSdk.ps1")) {
+    if ($PSCmdlet.ShouldProcess('Install .NET Core SDK?')) {
+        & "$PSScriptRoot\tools\Install-DotNetSdk.ps1"
+    } else {
+        Write-Error "Matching .NET Core SDK version not found. Install now?"
+        exit 1
     }
 }
 
