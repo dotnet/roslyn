@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal abstract class AbstractCSharpSignatureHelpProvider : AbstractSignatureHelpProvider
     {
+        private static SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
+            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+
         protected AbstractCSharpSignatureHelpProvider()
         {
         }
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
-                parameter.ToMinimalDisplayParts(semanticModel, position, SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral)));
+                parameter.ToMinimalDisplayParts(semanticModel, position, s_allowDefaultLiteralFormat));
         }
 
         /// <summary>
