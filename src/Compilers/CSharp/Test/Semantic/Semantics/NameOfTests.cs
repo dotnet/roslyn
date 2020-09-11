@@ -1409,5 +1409,102 @@ public static class Extensions
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
+
+        [Fact]
+        public void TestDynamicWhenNotDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics(
+                // (4,33): error CS0103: The name 'dynamic' does not exist in the current context
+                //     static string M() => nameof(dynamic);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 33)
+            );
+        }
+
+        [Fact]
+        public void TestNintWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object nint) => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestDynamicWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object dynamic) => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestTypeArguments()
+        {
+            var source = @"
+interface I<T> { }
+class Program
+{
+    static string F1() => nameof(I<int>);
+    static string F2() => nameof(I<nint>);
+    static string F3() => nameof(I<dynamic>);
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestNameOfTypeOf()
+        {
+            var source = @"
+class Program
+{
+    static string F1() => nameof(typeof(int));
+    static string F2() => nameof(typeof(nint));
+    static string F3() => nameof(typeof(dynamic));
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics(
+                // (4,34): error CS8081: Expression does not have a name.
+                //     static string F1() => nameof(typeof(int));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
+                // (5,34): error CS8081: Expression does not have a name.
+                //     static string F2() => nameof(typeof(nint));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(nint)").WithLocation(5, 34),
+                // (6,34): error CS1962: The typeof operator cannot be used on the dynamic type
+                //     static string F3() => nameof(typeof(dynamic));
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void TestNameOfNintWhenTheyAreIdentifierNames()
+        {
+            var source = @"
+public class C 
+{
+    public string nint;
+    public void nameof(string x)
+    {
+        nameof(nint);
+    }
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
     }
 }
