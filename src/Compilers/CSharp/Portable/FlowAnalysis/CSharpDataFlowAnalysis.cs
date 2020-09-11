@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<ISymbol> _readOutside;
         private ImmutableArray<ISymbol> _writtenOutside;
         private ImmutableArray<ISymbol> _captured;
+        private ImmutableArray<IMethodSymbol> _usedLocalFunctions;
         private ImmutableArray<ISymbol> _capturedInside;
         private ImmutableArray<ISymbol> _capturedOutside;
         private ImmutableArray<ISymbol> _unsafeAddressTaken;
@@ -249,17 +250,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AnalyzeReadWrite()
         {
             IEnumerable<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken, capturedInside, capturedOutside;
+            IEnumerable<MethodSymbol> usedLocalFunctions;
             if (Succeeded)
             {
                 ReadWriteWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
                     readInside: out readInside, writtenInside: out writtenInside,
                     readOutside: out readOutside, writtenOutside: out writtenOutside,
                     captured: out captured, unsafeAddressTaken: out unsafeAddressTaken,
-                    capturedInside: out capturedInside, capturedOutside: out capturedOutside);
+                    capturedInside: out capturedInside, capturedOutside: out capturedOutside, usedLocalFunctions: out usedLocalFunctions);
             }
             else
             {
                 readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = Enumerable.Empty<Symbol>();
+                usedLocalFunctions = Enumerable.Empty<MethodSymbol>();
             }
 
             ImmutableInterlocked.InterlockedInitialize(ref _readInside, Normalize(readInside));
@@ -270,6 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableInterlocked.InterlockedInitialize(ref _capturedInside, Normalize(capturedInside));
             ImmutableInterlocked.InterlockedInitialize(ref _capturedOutside, Normalize(capturedOutside));
             ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, Normalize(unsafeAddressTaken));
+            ImmutableInterlocked.InterlockedInitialize(ref _usedLocalFunctions, Normalize(usedLocalFunctions));
         }
 
         /// <summary>
@@ -335,6 +339,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override ImmutableArray<IMethodSymbol> UsedLocalFunctions
+        {
+            get
+            {
+                if (_usedLocalFunctions.IsDefault)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _usedLocalFunctions;
+            }
+        }
+
         private HashSet<PrefixUnaryExpressionSyntax> UnassignedVariableAddressOfSyntaxes
         {
             get
@@ -371,6 +388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static ImmutableArray<ISymbol> Normalize(IEnumerable<Symbol> data)
         {
             return ImmutableArray.CreateRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).GetPublicSymbols());
+        }
+
+        private static ImmutableArray<IMethodSymbol> Normalize(IEnumerable<MethodSymbol> data)
+        {
+            return ImmutableArray.CreateRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).Select(p => p.GetPublicSymbol()));
         }
     }
 }

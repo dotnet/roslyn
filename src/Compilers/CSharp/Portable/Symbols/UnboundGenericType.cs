@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
-        static public NamedTypeSymbol AsUnboundGenericType(this NamedTypeSymbol type)
+        public static NamedTypeSymbol AsUnboundGenericType(this NamedTypeSymbol type)
         {
             if (!type.IsGenericType)
             {

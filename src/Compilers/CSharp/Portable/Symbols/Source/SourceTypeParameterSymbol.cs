@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableAnnotationExtensions.ObliviousAttributeValue;
         }
 
-        internal override sealed void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 

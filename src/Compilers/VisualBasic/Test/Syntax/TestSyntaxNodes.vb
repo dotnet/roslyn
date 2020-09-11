@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class TestSyntaxNodes
         Inherits BasicTestBase
 
-        Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-        Private _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
+        Private ReadOnly _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+        Private ReadOnly _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
 
         Private Function CreateIntegerLiteral(value As ULong) As LiteralExpressionSyntax
             Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(value.ToString(), LiteralBase.Decimal, TypeCharacter.None, value))

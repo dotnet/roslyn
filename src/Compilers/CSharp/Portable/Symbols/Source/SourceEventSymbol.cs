@@ -76,15 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _state.DefaultForceComplete(this, cancellationToken);
         }
 
-        public override abstract string Name { get; }
+        public abstract override string Name { get; }
 
-        public override abstract MethodSymbol? AddMethod { get; }
+        public abstract override MethodSymbol? AddMethod { get; }
 
-        public override abstract MethodSymbol? RemoveMethod { get; }
+        public abstract override MethodSymbol? RemoveMethod { get; }
 
-        public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
+        public abstract override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public override abstract TypeWithAnnotations TypeWithAnnotations { get; }
+        public abstract override TypeWithAnnotations TypeWithAnnotations { get; }
 
         public sealed override Symbol ContainingSymbol
         {

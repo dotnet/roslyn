@@ -12,7 +12,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class SourceNamedTypeSymbol
+    Partial Friend Class SourceNamedTypeSymbol
 
         ''' <summary>
         ''' Encapsulates ComClass specific data and analysis.

@@ -2396,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            override internal int MetadataArity
+            internal override int MetadataArity
             {
                 get
                 {

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class VisualBasicAttributeData
+    Partial Friend Class VisualBasicAttributeData
         Implements Cci.ICustomAttribute
 
         Private Function GetArguments1(context As EmitContext) As ImmutableArray(Of Cci.IMetadataExpression) Implements Cci.ICustomAttribute.GetArguments

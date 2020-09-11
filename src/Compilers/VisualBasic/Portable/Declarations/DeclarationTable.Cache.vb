@@ -5,7 +5,7 @@
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class DeclarationTable
+    Partial Friend Class DeclarationTable
         ' The structure of the DeclarationTable provides us with a set of 'old' declarations that
         ' stay relatively unchanged and a 'new' declaration that is repeatedly added and removed.
         ' This mimics the expected usage pattern of a user repeatedly typing in a single file.

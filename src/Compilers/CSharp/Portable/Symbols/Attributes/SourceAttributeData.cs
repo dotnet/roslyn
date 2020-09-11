@@ -169,12 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal protected sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get { return _constructorArguments; }
         }
 
-        internal protected sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get { return _namedArguments; }
         }
