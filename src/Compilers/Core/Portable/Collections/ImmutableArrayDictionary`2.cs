@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public IEqualityComparer<TValue> ValueComparer => _valueComparer;
 
+        public bool IsDefault => _dictionary is null;
+
+        public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
+
         public int Count => _dictionary.Count;
 
         public bool IsEmpty => _dictionary.Count == 0;
