@@ -134,5 +134,91 @@ public class C
 }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [Fact]
+        public async Task TestOnLeftHandSide()
+        {
+            var code = @"
+public class C
+{
+    public bool M1(bool x)
+    {
+        return true [|==|] x;
+    }
+}";
+            var fixedCode = @"
+public class C
+{
+    public bool M1(bool x)
+    {
+        return x;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestInArgument()
+        {
+            var code = @"
+public class C
+{
+    public bool M1(bool x)
+    {
+        return M1(x [|==|] true);
+    }
+}";
+            var fixedCode = @"
+public class C
+{
+    public bool M1(bool x)
+    {
+        return M1(x);
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestFixAll()
+        {
+            var code = @"
+public class C
+{
+    public bool M1(bool x)
+    {
+        return true {|FixAllInDocument:==|} x;
+    }
+
+    public bool M2(bool x)
+    {
+        return x != false;
+    }
+
+    public bool M3(bool x)
+    {
+        return x == true == true;
+    }
+}";
+            var fixedCode = @"
+public class C
+{
+    public bool M1(bool x)
+    {
+        return x;
+    }
+
+    public bool M2(bool x)
+    {
+        return x;
+    }
+
+    public bool M3(bool x)
+    {
+        return x;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
     }
 }
