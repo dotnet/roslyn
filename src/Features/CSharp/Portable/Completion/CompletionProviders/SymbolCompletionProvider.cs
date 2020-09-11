@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // expr. -> ((type)expr).
                 var newNode =
                     ParenthesizedExpression(
-                        CastExpression(Token(SyntaxKind.OpenParenToken), IdentifierName(typeName), Token(SyntaxKind.CloseParenToken), memberAccess.Expression));
+                        CastExpression(IdentifierName(typeName), memberAccess.Expression.WithoutTrivia()));
                 var newNodeText = newNode.ToFullString();
                 var textChange = new TextChange(memberAccess.Expression.Span, newNodeText);
                 return CompletionChange.Create(textChange);
