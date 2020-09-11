@@ -613,8 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
             }
-
-            if (!hasSignatureDifferences &&
+            else if (!hasSignatureDifferences &&
                 !(definition.HasExplicitAccessModifier ? MemberSignatureComparer.ExtendedPartialMethodsStrictComparer : MemberSignatureComparer.PartialMethodsStrictComparer).Equals(definition, implementation))
             {
                 hasSignatureDifferences = true;

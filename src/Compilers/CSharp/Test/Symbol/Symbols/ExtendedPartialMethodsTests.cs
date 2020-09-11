@@ -3170,10 +3170,7 @@ partial class C
             comp.VerifyDiagnostics(
                 // (4,31): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial (int, int) F1() => default;
-                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31),
-                // (4,31): error CS8824: Partial method declarations 'ref (int x, int y) C.F1()' and '(int, int) C.F1()' must have identical parameter types and return types.
-                //     public partial (int, int) F1() => default;
-                Diagnostic(ErrorCode.ERR_PartialMethodTypeDifference, "F1").WithArguments("ref (int x, int y) C.F1()", "(int, int) C.F1()").WithLocation(4, 31));
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31));
         }
 
         // Errors reported for differences in extended partial methods, warnings for differences in other partial methods.
