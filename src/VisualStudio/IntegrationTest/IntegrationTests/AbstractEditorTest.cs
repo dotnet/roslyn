@@ -15,6 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         private readonly string _solutionName;
         private readonly string _projectTemplate;
+        private readonly string _templateParameters;
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
@@ -29,11 +30,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected AbstractEditorTest(
             VisualStudioInstanceFactory instanceFactory,
             string solutionName,
-            string projectTemplate)
+            string projectTemplate,
+            string templateParameters = null)
            : base(instanceFactory)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
+            _templateParameters = templateParameters;
         }
 
         protected abstract string LanguageName { get; }
@@ -45,14 +48,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
             if (_solutionName != null)
             {
                 VisualStudio.SolutionExplorer.CreateSolution(_solutionName);
-                VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), _projectTemplate, LanguageName);
+                VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), _projectTemplate, LanguageName, _templateParameters);
                 VisualStudio.SolutionExplorer.RestoreNuGetPackages(new ProjectUtils.Project(ProjectName));
 
-                // Winforms and XAML do not open text files on creation
+                // Some project types do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
                 if (_projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
                     _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary &&
+                    _projectTemplate != WellKnownProjectTemplates.BlazorApplication)
                 {
                     VisualStudio.Editor.SetUseSuggestionMode(false);
                     ClearEditor();

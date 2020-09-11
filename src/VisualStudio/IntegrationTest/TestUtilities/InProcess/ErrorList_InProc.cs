@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     var message = new StringBuilder();
                     message.AppendLine("Unexpected errors in error list:");
-                    foreach (var error in GetErrorListContents())
+                    foreach (var error in GetErrorListContents(includeProject: true))
                     {
                         message.Append("  ").AppendLine(error.ToString());
                     }
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public ErrorListItem[] GetErrorListContents(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
+        public ErrorListItem[] GetErrorListContents(bool includeProject, __VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
         {
             var errorItems = GetErrorItems();
             try
@@ -89,14 +89,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return errorItems
                     .AsEnumerable()
                     .Where(e => ((IVsErrorItem)e).GetCategory() <= minimumSeverity)
-                    .Select(e => new ErrorListItem(e.GetSeverity(), e.GetDescription(), e.GetProject(), e.GetFileName(), e.GetLine(), e.GetColumn()))
+                    .Select(e => new ErrorListItem(e.GetSeverity(), e.GetDescription(), includeProject ? e.GetProject() : null, e.GetFileName(), e.GetLine(), e.GetColumn()))
                     .ToArray();
             }
             catch (IndexOutOfRangeException)
             {
                 // It is entirely possible that the items in the error list are modified
                 // after we start iterating, in which case we want to try again.
-                return GetErrorListContents(minimumSeverity);
+                return GetErrorListContents(includeProject, minimumSeverity);
             }
         }
 

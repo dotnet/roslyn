@@ -42,13 +42,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public int GetErrorListErrorCount()
             => _inProc.GetErrorCount();
 
-        public ErrorListItem[] GetErrorListContents()
+        public ErrorListItem[] GetErrorListContents(bool includeProject = true)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ErrorSquiggles);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ErrorList);
-            return _inProc.GetErrorListContents();
+            return _inProc.GetErrorListContents(includeProject: includeProject);
         }
 
         public ErrorListItem NavigateToErrorListItem(int itemIndex)

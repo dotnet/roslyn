@@ -20,5 +20,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string VisualBasicNetStandardClassLibrary = "Microsoft.VisualBasic.NETStandard.ClassLibrary";
         public const string CSharpNetCoreUnitTest = "Microsoft.CSharp.NETCore.UnitTest";
         public const string CSharpNetCoreXUnitTest = "Microsoft.CSharp.NETCore.XUnitTest";
+        public const string BlazorApplication = "BlazorTemplate.vstemplate";
+
+        /// <summary>
+        /// Combined with <see cref="BlazorApplication"/> to create a blazor application.
+        /// </summary>
+        public const string BlazorTemplateParameters = "|$groupid$=Microsoft.Web.Blazor.Wasm|$platformversion$=3.1";
     }
 }

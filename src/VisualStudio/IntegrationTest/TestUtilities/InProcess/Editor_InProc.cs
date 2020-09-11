@@ -702,7 +702,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            var caretBuffer = view.GetBufferContainingCaret();
+            var caretBuffer = view.GetBufferContainingCaret(StandardContentTypeNames.Code);
             if (caretBuffer is null)
             {
                 throw new InvalidOperationException($"Unable to find the buffer containing the caret. Ensure the Editor is activated berfore calling.");

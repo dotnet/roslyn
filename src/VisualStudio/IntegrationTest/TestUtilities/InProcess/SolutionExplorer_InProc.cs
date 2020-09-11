@@ -342,11 +342,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void AddProject(string projectName, string projectTemplate, string languageName)
+        public void AddProject(string projectName, string projectTemplate, string languageName, string templateParameters)
         {
             var projectPath = Path.Combine(DirectoryName, projectName);
 
             var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
+
+            if (templateParameters != null)
+            {
+                projectTemplatePath += templateParameters;
+            }
 
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
         }

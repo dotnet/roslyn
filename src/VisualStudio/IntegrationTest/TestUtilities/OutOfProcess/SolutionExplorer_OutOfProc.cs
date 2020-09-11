@@ -45,9 +45,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
-        public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
+        public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName, string templateParameters = null)
         {
-            _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+            _inProc.AddProject(projectName.Name, projectTemplate, languageName, templateParameters);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
