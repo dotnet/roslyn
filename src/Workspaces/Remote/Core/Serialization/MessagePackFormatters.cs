@@ -221,7 +221,6 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly Func<TEnum, int> _toInt;
             private readonly Func<int, TEnum> _toEnum;
 
-
             static EnumFormatter()
             {
                 Debug.Assert(typeof(TEnum).GetEnumUnderlyingType() != typeof(long));

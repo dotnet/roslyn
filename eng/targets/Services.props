@@ -11,7 +11,6 @@
     Note that brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
   -->
   <ItemGroup>
-    <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticClassification" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationService+Factory" IsBrokered="true" />

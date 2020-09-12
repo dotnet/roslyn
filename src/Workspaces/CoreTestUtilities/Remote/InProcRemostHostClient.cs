@@ -234,7 +234,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceBroker = new InProcServiceBroker(this);
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
-                RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDesignerAttributeService.Factory());

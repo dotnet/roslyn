@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 else
                 {
-                    IMessagePackFormatter<T> formatter = options.Resolver.GetFormatterWithVerify<T>();
+                    var formatter = options.Resolver.GetFormatterWithVerify<T>();
 
                     writer.WriteArrayHeader(value.Length);
 
-                    foreach (T item in value)
+                    foreach (var item in value)
                     {
                         formatter.Serialize(ref writer, item, options);
                     }
@@ -114,15 +114,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 else
                 {
-                    IMessagePackFormatter<T> formatter = options.Resolver.GetFormatterWithVerify<T>();
+                    var formatter = options.Resolver.GetFormatterWithVerify<T>();
 
                     var len = reader.ReadArrayHeader();
 
-                    ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(len);
+                    var builder = ImmutableArray.CreateBuilder<T>(len);
                     options.Security.DepthStep(ref reader);
                     try
                     {
-                        for (int i = 0; i < len; i++)
+                        for (var i = 0; i < len; i++)
                         {
                             builder.Add(formatter.Deserialize(ref reader, options));
                         }

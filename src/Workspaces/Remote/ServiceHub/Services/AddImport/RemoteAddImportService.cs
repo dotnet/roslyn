@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Provides an implementation of the ISymbolSearchService on the remote side so that
+        /// Provides an implementation of the <see cref="ISymbolSearchService"/> on the remote side so that
         /// Add-Import can find results in nuget packages/reference assemblies.  This works
         /// by remoting *from* the OOP server back to the host, which can then forward this 
-        /// appropriately to wherever the real ISymbolSearchService is running.  This is necessary
-        /// because it's not guaranteed that the real ISymbolSearchService will be running in 
-        /// the same process that is supplying the <see cref="CodeAnalysisService"/>.
+        /// appropriately to wherever the real <see cref="ISymbolSearchService"/> is running.  This is necessary
+        /// because it's not guaranteed that the real <see cref="ISymbolSearchService"/> will be running in 
+        /// the same process that is supplying the <see cref="RemoteAddImportService"/>.
         /// 
         /// Ideally we would not need to bounce back to the host for this.
         /// </summary>
