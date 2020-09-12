@@ -202,6 +202,57 @@ class MyClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
+        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderConstructorParametersAndArguments_TargetTypedNew()
+        {
+            var markup = @"
+using System;
+
+class MyClass2 : MyClass
+{
+    public MyClass2() : base(5, ""test2"")
+    {
+    }
+}
+
+class MyClass
+{
+    public MyClass() : this(2, ""test"")
+    {
+    }
+
+    public MyClass(int x, string y)
+    {
+        MyClass t = new$$(x, y);
+    }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+using System;
+
+class MyClass2 : MyClass
+{
+    public MyClass2() : base(""test2"", 5)
+    {
+    }
+}
+
+class MyClass
+{
+    public MyClass() : this(""test"", 2)
+    {
+    }
+
+    public MyClass(string y, int x)
+    {
+        MyClass t = new(y, x);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderAttributeConstructorParametersAndArguments()
         {

@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SyntaxKind.ThisConstructorInitializer,
                 SyntaxKind.BaseConstructorInitializer,
                 SyntaxKind.ObjectCreationExpression,
+                SyntaxKind.ImplicitObjectCreationExpression,
                 SyntaxKind.Attribute,
                 SyntaxKind.NameMemberCref));
 
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ThisConstructorInitializer,
             SyntaxKind.BaseConstructorInitializer,
             SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.ImplicitObjectCreationExpression,
             SyntaxKind.Attribute,
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.NameMemberCref,
@@ -410,6 +412,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         cancellationToken).ConfigureAwait(false));
             }
 
+            if (updatedNode.IsKind(SyntaxKind.ImplicitObjectCreationExpression, out ImplicitObjectCreationExpressionSyntax? implicitObjCreation))
+            {
+                if (implicitObjCreation.ArgumentList == null)
+                {
+                    return updatedNode;
+                }
+
+                var symbolInfo = semanticModel.GetSymbolInfo((ImplicitObjectCreationExpressionSyntax)originalNode, cancellationToken);
+
+                return implicitObjCreation.WithArgumentList(
+                    await UpdateArgumentListAsync(
+                        declarationSymbol,
+                        signaturePermutation,
+                        implicitObjCreation.ArgumentList,
+                        isReducedExtensionMethod: false,
+                        IsParamsArrayExpanded(semanticModel, implicitObjCreation, symbolInfo, cancellationToken),
+                        document,
+                        originalNode.SpanStart,
+                        cancellationToken).ConfigureAwait(false));
+            }
+
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) ||
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
@@ -569,13 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
             else
             {
-#pragma warning disable IDE0007 // Use implicit type - Using 'var' causes "error CS8506: No best type was found for the switch expression"
-                // TODO: File a bug on IDE0007 analyzer
                 BaseArgumentListSyntax? argumentList = node switch
-#pragma warning restore IDE0007 // Use implicit type
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
                     ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
+                    ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.ArgumentList,
                     ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                     ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList,
                     _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
