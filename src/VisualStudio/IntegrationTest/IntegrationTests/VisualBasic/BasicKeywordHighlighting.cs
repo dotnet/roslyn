@@ -34,7 +34,7 @@ Class C
     End Sub
 End Class");
 
-            Verify("To", 3);
+            Verify("To", 4);
             VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
             VisualStudio.Editor.Verify.CurrentLineText("For a = 0 To 1 Step$$ 1", assertCaretPosition: true, trimWhitespace: true);
         }
