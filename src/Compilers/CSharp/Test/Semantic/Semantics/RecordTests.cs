@@ -14855,7 +14855,7 @@ public record B : A {
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(3, 25),
                 // (3,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
                 //     public override int GetHashCode() => throw null;
-                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)                
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
         }
 
