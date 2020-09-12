@@ -27,6 +27,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMethodImportCompletion" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMethodImportCompletionService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DependentTypeFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDependentTypeFinderService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.GlobalNotificationDelivery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteGlobalNotificationDeliveryService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CodeLensReferences" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCodeLensReferencesService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttribute" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProjectTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolSearchUpdate" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateService+Factory" IsBrokered="true" />

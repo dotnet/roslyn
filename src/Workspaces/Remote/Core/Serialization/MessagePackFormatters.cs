@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             EnumFormatters.SearchKind,
             EnumFormatters.NavigateToMatchKind,
             EnumFormatters.Glyph,
+            EnumFormatters.Glyph.CreateNullable(),
             EnumFormatters.TaggedTextStyle,
             EnumFormatters.ValueUsageInfo,
             EnumFormatters.ValueUsageInfo.CreateNullable(),

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -23,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-        private static async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
-            int searchCap, CancellationToken cancellationToken) where T : class
+            int searchCap, CancellationToken cancellationToken) where T : struct
         {
             var document = solution.GetDocument(documentId);
             if (document == null)
             {
-                return null;
+                return default;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
             if (symbol == null)
             {
-                return null;
+                return default;
             }
 
             using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
-        public Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        public Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
         {
             return FindAsync(solution, documentId, syntaxNode,
                 progress => Task.FromResult(new ReferenceCount(
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return langServices.GetDisplayNode(node);
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
             return await FindAsync(solution, documentId, syntaxNode,
                 async progress =>
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
                     var result = await Task.WhenAll(referenceTasks).ConfigureAwait(false);
 
-                    return (IEnumerable<ReferenceLocationDescriptor>)result;
+                    return result.ToImmutableArray();
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath, document.Project.OutputFilePath) : null;
         }
 
-        public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
             return FindAsync(solution, documentId, syntaxNode,
                 async progress =>
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
                     var result = await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
-                    return result.OfType<ReferenceMethodDescriptor>();
+                    return result.OfType<ReferenceMethodDescriptor>().ToImmutableArray();
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 

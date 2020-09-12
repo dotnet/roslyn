@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.DesignerAttribute;
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
             CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
             CreateDescriptors(typeof(IRemoteGlobalNotificationDeliveryService)),
+            CreateDescriptors(typeof(IRemoteCodeLensReferencesService)),
         });
 
         private static string GetServiceName(Type serviceInterface)
