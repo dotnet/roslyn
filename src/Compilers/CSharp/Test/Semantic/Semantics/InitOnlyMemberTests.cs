@@ -3779,7 +3779,7 @@ class Program
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyStruct_AutoProp()
         {
-            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I = 1 };
 System.Console.Write(s.I);
 
@@ -3787,9 +3787,11 @@ public readonly struct S
 {
     public int I { get; init; }
 }
-" }, expectedOutput: "1"); ;
+" }, expectedOutput: "1");
 
-            comp.VerifyIL("<top-level-statements-entry-point>", @"
+
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3814,7 +3816,7 @@ public readonly struct S
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyStruct_ManualProp()
         {
-            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I = 1 };
 System.Console.Write(s.I);
 
@@ -3823,9 +3825,13 @@ public readonly struct S
     private readonly int i;
     public int I { get => i; init => i = value; }
 }
-" }, expectedOutput: "1"); ;
+" }, expectedOutput: "1");
 
-            comp.VerifyIL("<top-level-statements-entry-point>", @"
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3850,7 +3856,7 @@ public readonly struct S
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyProperty_AutoProp()
         {
-            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I = 1 };
 System.Console.Write(s.I);
 
@@ -3858,9 +3864,13 @@ public struct S
 {
     public readonly int I { get; init; }
 }
-" }, expectedOutput: "1"); ;
+" }, expectedOutput: "1");
 
-            comp.VerifyIL("<top-level-statements-entry-point>", @"
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3885,7 +3895,7 @@ public struct S
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyProperty_ManualProp()
         {
-            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I = 1 };
 System.Console.Write(s.I);
 
@@ -3894,9 +3904,13 @@ public struct S
     private readonly int i;
     public readonly int I { get => i; init => i = value; }
 }
-" }, expectedOutput: "1"); ;
+" }, expectedOutput: "1");
 
-            comp.VerifyIL("<top-level-statements-entry-point>", @"
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3921,7 +3935,7 @@ public struct S
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyInit_AutoProp()
         {
-            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I = 1 };
 System.Console.Write(s.I);
 
@@ -3929,9 +3943,13 @@ public struct S
 {
     public int I { get; readonly init; }
 }
-" }, expectedOutput: "1"); ;
+" }, expectedOutput: "1");
 
-            comp.VerifyIL("<top-level-statements-entry-point>", @"
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3956,7 +3974,7 @@ public struct S
         [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
         public void InitOnlyOnReadonlyInit_ManualProp()
         {
-            var comp = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
 var s = new S { I = 1 };
 System.Console.Write(s.I);
 
@@ -3965,9 +3983,13 @@ public struct S
     private readonly int i;
     public int I { get => i; readonly init => i = value; }
 }
-" }, expectedOutput: "1"); ;
+" }, expectedOutput: "1");
 
-            comp.VerifyIL("<top-level-statements-entry-point>", @"
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
