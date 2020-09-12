@@ -4009,5 +4009,63 @@ public struct S
 }
 ");
         }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_ReassignsSelf()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I1 = 1, I2 = 2 };
+System.Console.WriteLine($""I1 is {s.I1}"");
+
+public readonly struct S
+{
+    private readonly int i;
+    public int I1 { get => i; readonly init => i = value; }
+    public int I2
+    { 
+        get => throw null;
+        init
+        {
+            System.Console.WriteLine($""I1 was {I1}"");
+            this = default;
+        }
+    }
+}
+" }, expectedOutput: @"I1 was 1
+I1 is 0");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i1 = s.GetMember<IPropertySymbol>("I1");
+            Assert.False(i1.SetMethod.IsReadOnly);
+            var i2 = s.GetMember<IPropertySymbol>("I2");
+            Assert.False(i2.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I1.init""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""void S.I2.init""
+  IL_0018:  ldloc.1
+  IL_0019:  stloc.0
+  IL_001a:  ldstr      ""I1 is {0}""
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""int S.I1.get""
+  IL_0026:  box        ""int""
+  IL_002b:  call       ""string string.Format(string, object)""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
+}
+");
+        }
     }
 }
