@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
             {
-                return analyzer.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation);
+                return await analyzer.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false);
             }
 
             return false;

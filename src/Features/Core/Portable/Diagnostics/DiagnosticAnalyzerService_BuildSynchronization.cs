@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// no cancellationToken since this can't be cancelled
         /// </summary>
-        public Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics)
+        public Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics, bool onBuildCompleted)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.SynchronizeWithBuildAsync(diagnostics);
+                return analyzer.SynchronizeWithBuildAsync(diagnostics, onBuildCompleted);
             }
 
             return Task.CompletedTask;

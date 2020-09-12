@@ -28,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return solution.GetDocumentIdsWithFilePath(document.FilePath);
         }
 
+        protected bool IsSolutionCrawlerRunning { get; private set; }
+
         private void ConnectToSolutionCrawlerService(Workspace workspace)
         {
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
@@ -59,8 +61,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void SolutionCrawlerProgressChanged(bool running)
         {
-            IsStable = !running;
-            ChangeStableState(IsStable);
+            IsSolutionCrawlerRunning = running;
+            ChangeStableStateIfRequired(newIsStable: !IsSolutionCrawlerRunning);
+        }
+
+        protected void ChangeStableStateIfRequired(bool newIsStable)
+        {
+            var oldIsStable = IsStable;
+            if (oldIsStable != newIsStable)
+            {
+                IsStable = newIsStable;
+                ChangeStableState(newIsStable);
+            }
         }
     }
 }

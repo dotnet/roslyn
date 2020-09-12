@@ -84,6 +84,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Check whether given <see cref="DiagnosticAnalyzer"/> is compilation end analyzer
         /// By compilation end analyzer, it means compilation end analysis here
         /// </summary>
-        bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer, Project project, Compilation compilation);
+        Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer analyzer, Project project, CancellationToken cancellationToken);
     }
 }
