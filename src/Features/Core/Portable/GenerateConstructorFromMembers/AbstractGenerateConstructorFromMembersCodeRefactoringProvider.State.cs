@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     return false;
                 }
+                
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(containingType);
 
                 var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
