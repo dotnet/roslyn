@@ -308,6 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return queryInfo.OperationInfo;
+                case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
+                    return semanticModel.GetSymbolInfo(baseType, cancellationToken);
             }
 
             //Only in the orderby clause a comma can bind to a symbol.
