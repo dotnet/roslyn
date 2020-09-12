@@ -14610,7 +14610,10 @@ public record C : B {
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
+                // (5,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.GetHashCode()' was found.
+                //     public override int GetHashCode() => 0;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode").WithArguments("C.GetHashCode()").WithLocation(5, 25)
                 );
 
             comp = CreateCompilationWithIL(new[] { source2 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
@@ -15314,7 +15317,10 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8830: 'B.GetHashCode()': Target runtime doesn't support covariant return types in overrides. Return type must be 'A' to match overridden member 'A.GetHashCode()'
                 //     public override B GetHashCode() => default;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "A").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "A").WithLocation(3, 23),
+                // (3,23): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.GetHashCode()' was found.
+                //     public override B GetHashCode() => default;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 23)
                 );
         }
 
@@ -16227,7 +16233,11 @@ class Program
 @"
 B.Equals(B)
 False
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+    // (9,33): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.Equals(B)' was found.
+    //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 33)
+);
 
             var copyCtor = comp.GetMember<NamedTypeSymbol>("A").InstanceConstructors.Where(c => c.ParameterCount == 1).Single();
             Assert.Equal(Accessibility.Protected, copyCtor.DeclaredAccessibility);
@@ -16465,7 +16475,10 @@ record A
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     { accessibility } virtual bool Equals(A x)
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
+                // (4,...): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'A.Equals(A)' was found.
+                //     { accessibility } virtual bool Equals(A x)
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
                 );
         }
 
@@ -18507,7 +18520,10 @@ record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)", "bool").WithLocation(2, 8),
                 // (4,27): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
                 //     public virtual string Equals(A other)
-                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 27),
+                // (4,27): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'A.Equals(A)' was found.
+                //     public virtual string Equals(A other)
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 27)
                 );
         }
 
@@ -20663,7 +20679,11 @@ True
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (8,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.Equals(B)' was found.
+    //     public virtual bool Equals(B b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B.Equals(B)").WithLocation(8, 25)
+);
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -20935,7 +20955,11 @@ True
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (15,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.Equals(B)' was found.
+    //     public virtual bool Equals(B b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B.Equals(B)").WithLocation(15, 25)
+);
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -21350,7 +21374,14 @@ class Program
             CompileAndVerify(comp, expectedOutput:
 @"True
 False
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (8,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B1.Equals(B1)' was found.
+    //     public virtual bool Equals(B1 b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B1.Equals(B1)").WithLocation(8, 25),
+    // (15,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B2.Equals(B2)' was found.
+    //     public virtual bool Equals(B2 b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B2.Equals(B2)").WithLocation(15, 25)
+);
         }
 
         [Fact]
@@ -21679,7 +21710,14 @@ B.Equals(B)
 B.Equals(B)
 A<T>.Equals(A<T>)
 B.Equals(B)
-B.Equals(B)").VerifyDiagnostics();
+B.Equals(B)").VerifyDiagnostics(
+    // (5,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'A<T>.Equals(A<T>)' was found.
+    //     public virtual bool Equals(A<T> other) => Report("A<T>.Equals(A<T>)");
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("A<T>.Equals(A<T>)").WithLocation(5, 25),
+    // (9,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.Equals(B)' was found.
+    //     public virtual bool Equals(B other) => Report("B.Equals(B)");
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 25)
+);
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
@@ -21737,7 +21775,14 @@ B.Equals(B)",
                     Assert.Equal("B.Equals(B)", b.FindImplementationForInterfaceMember(b.InterfacesNoUseSiteDiagnostics()[1].GetMember("Equals")).ToDisplayString());
                     var c = m.GlobalNamespace.GetTypeMember("C");
                     Assert.Equal("C.Equals(C?)", c.FindImplementationForInterfaceMember(c.InterfacesNoUseSiteDiagnostics()[1].GetMember("Equals")).ToDisplayString());
-                }).VerifyDiagnostics();
+                }).VerifyDiagnostics(
+                    // (5,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'A<T>.Equals(A<T>)' was found.
+                    //     public virtual bool Equals(A<T> other) => Report("A<T>.Equals(A<T>)");
+                    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("A<T>.Equals(A<T>)").WithLocation(5, 25),
+                    // (9,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'B.Equals(B)' was found.
+                    //     public virtual bool Equals(B other) => Report("B.Equals(B)");
+                    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 25)
+                    );
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
