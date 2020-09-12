@@ -10733,5 +10733,23 @@ class C
     }
 }", "Local");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1152109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1152109")]
+        public async Task NoItemWithEmptyDisplayName()
+        {
+            var markup = @"
+class C
+{
+    static void M()
+    {
+        int$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(
+                markup, "",
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
+        }
     }
 }

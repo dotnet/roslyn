@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
+                               where !string.IsNullOrWhiteSpace(texts.displayText)
                                group symbol by texts into g
                                select g;
 
