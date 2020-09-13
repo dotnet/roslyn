@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
+        protected internal override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             switch (node.Kind())
             {

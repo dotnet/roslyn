@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
 
+        private const int AddReferenceDatabaseTextFileFormatVersion = 1;
+
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 _source = source;
 
                 _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
-                    localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabase.TextFileFormatVersion}"))));
+                    localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabaseTextFileFormatVersion}"))));
             }
 
             /// <summary>
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
             {
-                var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
+                var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/Latest.xml");
 
                 await _service.LogInfoAsync($"Downloading and processing full database: {serverPath}").ConfigureAwait(false);
 
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
 
                 // Now attempt to download and apply patch file.
-                var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
+                var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
                 await _service.LogInfoAsync("Downloading and processing patch file: " + serverPath).ConfigureAwait(false);
 

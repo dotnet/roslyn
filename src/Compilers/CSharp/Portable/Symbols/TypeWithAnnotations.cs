@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Boxed
         {
-            internal readonly static Boxed Sentinel = new Boxed(default);
+            internal static readonly Boxed Sentinel = new Boxed(default);
 
             internal readonly TypeWithAnnotations Value;
             internal Boxed(TypeWithAnnotations value)

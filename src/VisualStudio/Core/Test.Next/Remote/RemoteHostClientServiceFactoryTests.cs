@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // register local service
             TestService testService = null;
-            client.RegisterService(serviceName, (s, p) =>
+            client.RegisterService(serviceName, (s, p, o) =>
             {
                 testService = new TestService(s, p);
                 return testService;

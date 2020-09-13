@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
-        internal protected Binder? Next { get; }
+        protected internal Binder? Next { get; }
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).

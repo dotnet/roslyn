@@ -751,7 +751,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             }
         }
 
-        private unsafe static object Dereference(IntPtr ptr, Type elementType)
+        private static unsafe object Dereference(IntPtr ptr, Type elementType)
         {
             // Only handling a subset of types currently.
             switch (Metadata.Type.GetTypeCode(elementType))

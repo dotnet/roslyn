@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
@@ -1135,6 +1136,23 @@ unsafe class C
   IL_001e:  pop
   IL_001f:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        public void FixedSizeBufferRetargeting()
+        {
+            var source = @"
+public unsafe struct FixedBuffer
+{
+    public fixed byte buffer[256];
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Mscorlib40, assemblyName: "fixedBuffer");
+            comp.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
+            Assert.True(retargetingField.IsFixedSizeBuffer);
         }
     }
 }
