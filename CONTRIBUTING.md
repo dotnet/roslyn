@@ -16,6 +16,8 @@ with any additional questions or comments.
 
 All dependencies can be installed by running the `init.ps1` script at the root of the repository
 using Windows PowerShell or [PowerShell Core][pwsh] (on any OS).
+Some dependencies installed by `init.ps1` may only be discoverable from the same command line environment the init script was run from due to environment variables, so be sure to launch Visual Studio or build the repo from that same environment.
+Alternatively, run `init.ps1 -InstallLocality Machine` (which may require elevation) in order to install dependencies at machine-wide locations so Visual Studio and builds work everywhere.
 
 The only prerequisite for building, testing, and deploying from this repository
 is the [.NET SDK](https://get.dot.net/).

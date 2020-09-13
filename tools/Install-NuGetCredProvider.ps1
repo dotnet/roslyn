@@ -19,6 +19,8 @@ Param (
     [string]$AccessToken
 )
 
+$envVars = @{}
+
 $toolsPath = & "$PSScriptRoot\..\azure-pipelines\Get-TempToolsPath.ps1"
 
 if ($IsMacOS -or $IsLinux) {
@@ -66,9 +68,9 @@ if ($AccessToken) {
     Add-Member -InputObject $auth -MemberType NoteProperty -Name endpointCredentials -Value $endpoints
 
     $authJson = ConvertTo-Json -InputObject $auth
-    $envVars = @{
+    $envVars += @{
         'VSS_NUGET_EXTERNAL_FEED_ENDPOINTS'=$authJson;
     }
-
-    & "$PSScriptRoot\..\azure-pipelines\Set-EnvVars.ps1" -Variables $envVars | Out-Null
 }
+
+& "$PSScriptRoot/Set-EnvVars.ps1" -Variables $envVars | Out-Null

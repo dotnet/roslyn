@@ -13,7 +13,7 @@ but can be added later by editing the Azure Pipelines YAML file.
 .PARAMETER Squash
 A switch that causes all of git history to be squashed to just one initial commit for the template, and one for its expansion.
 #>
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
 Param(
     [Parameter(Mandatory=$true)]
     [string]$LibraryName,
@@ -52,12 +52,25 @@ function Replace-Placeholders {
 # Try to find sn.exe if it isn't on the PATH
 $sn = Get-Command sn -ErrorAction SilentlyContinue
 if (-not $sn) {
+    if ($IsMacOS -or $IsLinux) {
+        Write-Error "sn command not found on PATH. Install mono and/or vote up this issue: https://github.com/dotnet/sdk/issues/13560"
+        exit(1)
+    }
     $snExes = Get-ChildItem -Recurse "${env:ProgramFiles(x86)}\Microsoft SDKs\Windows\sn.exe"
     if ($snExes) {
         $sn = Get-Command $snExes[0].FullName
     } else {
         Write-Error "sn command not found on PATH and SDK could not be found."
         exit(1)
+    }
+}
+
+if (-not (& "$PSScriptRoot\tools\Check-DotNetSdk.ps1")) {
+    if ($PSCmdlet.ShouldProcess('Install .NET Core SDK?')) {
+        & "$PSScriptRoot\tools\Install-DotNetSdk.ps1"
+    } else {
+        Write-Error "Matching .NET Core SDK version not found. Install now?"
+        exit 1
     }
 }
 
@@ -74,27 +87,42 @@ try {
     if ($Squash) {
         $originalCommitId = git rev-parse HEAD
         git reset --soft $(git rev-list --max-parents=0 HEAD)
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         git commit --amend -qm "Initial template from https://github.com/AArnott/Library.Template" -m "Original commit from template $originalCommitId"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
     # Rename project directories and solution
     git mv Library.sln "$LibraryName.sln"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv src/Library/Library.csproj "src/Library/$LibraryName.csproj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv src/Library "src/$LibraryName"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv test/Library.Tests/Library.Tests.csproj "test/Library.Tests/$LibraryName.Tests.csproj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv test/Library.Tests "test/$LibraryName.Tests"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Refresh solution file both to update paths and give the projects unique GUIDs
     dotnet sln remove src/Library/Library.csproj
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet sln remove test/Library.Tests/Library.Tests.csproj
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet sln add "src/$LibraryName"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet sln add "test/$LibraryName.Tests"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git add "$LibraryName.sln"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Update project reference in test project. Add before removal to keep the same ItemGroup in place.
     dotnet add "test/$LibraryName.Tests" reference "src/$LibraryName"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     dotnet remove "test/$LibraryName.Tests" reference src/Library/Library.csproj
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git add "test/$LibraryName.Tests/$LibraryName.Tests.csproj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Replace placeholders in source files
     Replace-Placeholders -Path "src/$LibraryName/Calculator.cs" -Replacements @{
@@ -148,7 +176,9 @@ try {
 
     # Self destruct
     git rm Expand-Template.*
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git rm :/azure-pipelines/expand-template.yml
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Self-integrity check
     Get-ChildItem -Recurse -File -Exclude bin,obj,README.md,Expand-Template.* |? { -not $_.FullName.Contains("obj") } |% {
@@ -160,6 +190,7 @@ try {
 
     # Commit the changes
     git commit -qm "Expanded template for $LibraryName" -m "This expansion done by the (now removed) Expand-Template.ps1 script."
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host -ForegroundColor Green "Template successfully expanded."
 
