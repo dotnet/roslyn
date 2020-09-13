@@ -17,8 +17,10 @@ if (!$dotnet) {
 Push-Location "$PSScriptRoot\.."
 try {
     dotnet -h 2>&1 | Out-Null
-    if ($LASTEXITCODE -eq 129) {
-        # This error code indicates no matching SDK exists.
+    if (($LASTEXITCODE -eq 129) -or      # On Linux
+        ($LASTEXITCODE -eq -2147450751)  # On Windows
+        ) {
+        # These exit codes indicate no matching SDK exists.
         Write-Output $false
         exit 2
     }
@@ -26,6 +28,10 @@ try {
     # The required SDK is already installed!
     Write-Output $true
     exit 0
+} catch {
+    # I don't know why, but on some build agents (e.g. MicroBuild), an exception is thrown from the `dotnet` invocation when a match is not found.
+    Write-Output $false
+    exit 3
 } finally {
     Pop-Location
 }
