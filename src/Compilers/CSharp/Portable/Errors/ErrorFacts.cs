@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_UnboxPossibleNull:

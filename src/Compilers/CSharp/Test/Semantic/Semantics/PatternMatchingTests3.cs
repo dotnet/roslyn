@@ -5564,7 +5564,7 @@ enum Color { Red, Greed, Blue }
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_04()
+        public void NonexhaustiveWithUnnamedEnumValue_01()
         {
             var source =
 @"
@@ -5581,9 +5581,84 @@ enum Color { Red, Greed, Blue }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
-                    // (4,33): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Color)3' is not covered.
-                    //     int M(Color color) => color switch
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Color)3").WithLocation(4, 33)
+                // (4,33): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Color)3' is not covered.
+                //     int M(Color color) => color switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("(Color)3").WithLocation(4, 33)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveWithUnnamedEnumValue_02()
+        {
+            var source =
+@"
+class C
+{
+    int M() => this switch
+    {
+        (_, Color.Red) => 0,
+        (_, Color.Greed) => 1,
+        (_, Color.Blue) => 2,
+    };
+    public void Deconstruct(out int X, out Color Color) => throw null;
+}
+enum Color { Red, Greed, Blue }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
+                //     int M() => this switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("(_, (Color)3)").WithLocation(4, 21)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveWithUnnamedEnumValue_03()
+        {
+            var source =
+@"
+class C
+{
+    int M() => this switch
+    {
+        { X: _, Color: Color.Red } => 0,
+        { X: _, Color: Color.Greed } => 1,
+        { X: _, Color: Color.Blue } => 2,
+    };
+    public int X => 1;
+    public Color Color => Color.Red;
+}
+enum Color { Red, Greed, Blue }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{ Color: (Color)3 }' is not covered.
+                //     int M() => this switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("{ Color: (Color)3 }").WithLocation(4, 21)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveWithUnnamedEnumValue_04()
+        {
+            var source =
+@"
+class C
+{
+    int M(int i, Color c) => (i, c) switch
+    {
+        (_, Color.Red) => 0,
+        (_, Color.Greed) => 1,
+        (_, Color.Blue) => 2,
+    };
+}
+enum Color { Red, Greed, Blue }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp30);
+            compilation.VerifyDiagnostics(
+                // (4,37): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
+                //     int M(int i, Color c) => (i, c) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("(_, (Color)3)").WithLocation(4, 37)
                 );
         }
 
@@ -5609,7 +5684,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_06()
+        public void NonexhaustiveSwitchDiagnostic_06()
         {
             var source =
 @"#nullable enable
@@ -5649,7 +5724,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_07()
+        public void NonexhaustiveSwitchDiagnostic_07()
         {
             var source =
 @"#nullable enable
@@ -5681,7 +5756,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_08()
+        public void NonexhaustiveSwitchDiagnostic_08()
         {
             var source =
 @"
@@ -5719,7 +5794,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_09()
+        public void NonexhaustiveSwitchDiagnostic_09()
         {
             var source =
 @"
