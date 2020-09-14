@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InitializeHandler([ImportMany] IEnumerable<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> completionProviders)
+        public InitializeHandler(
+            [ImportMany] IEnumerable<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
                 .Where(lz => lz.Metadata.Language == LanguageNames.CSharp || lz.Metadata.Language == LanguageNames.VisualBasic)

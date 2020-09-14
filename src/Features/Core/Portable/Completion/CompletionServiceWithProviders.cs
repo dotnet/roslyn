@@ -125,10 +125,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
-            Document document, ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
+            Project project, ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
         {
             var allCompletionProviders = FilterProviders(GetProviders(roles, trigger), trigger, options);
-            var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(document?.Project), trigger, options);
+            var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
             return allCompletionProviders.ConcatFast(projectCompletionProviders);
         }
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var providers = GetFilteredProviders(document, roles, trigger, options);
+            var providers = GetFilteredProviders(document.Project, roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
 
@@ -276,9 +276,9 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case CompletionTriggerKind.Insertion:
                 case CompletionTriggerKind.Deletion:
-                    if (ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
+                    if (ShouldTriggerCompletion(document.Project, text, caretPosition, trigger, roles, options))
                     {
-                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
+                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
                         Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition));
                         if (triggeredProviders.Length == 0)
                         {
@@ -553,8 +553,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 : Task.FromResult(CompletionDescription.Empty);
         }
 
-        public override bool ShouldTriggerCompletion(
-            SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
+        {
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            return ShouldTriggerCompletion(document?.Project, text, caretPosition, trigger, roles, options);
+        }
+
+        internal override bool ShouldTriggerCompletion(
+            Project project, SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
         {
             options ??= _workspace.Options;
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, Language))
@@ -567,9 +573,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            var providers = GetFilteredProviders(document, roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
+            var providers = GetFilteredProviders(project, roles, trigger, options);
+            return providers.Any(p => p.ShouldTriggerCompletion(project?.LanguageServices, text, caretPosition, trigger, options));
         }
 
         internal virtual bool SupportsTriggerOnDeletion(OptionSet options)
