@@ -269,7 +269,11 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c));
     }
     public virtual bool Equals(C c) => false;
-}", expectedOutput: "False").VerifyDiagnostics();
+}", expectedOutput: "False").VerifyDiagnostics(
+    // (10,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.Equals(C)' was found.
+    //     public virtual bool Equals(C c) => false;
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("C.Equals(C)").WithLocation(10, 25)
+);
         }
 
         [Fact]
