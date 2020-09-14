@@ -143,6 +143,16 @@ namespace IOperationGenerator
                     }
 
                     WriteEndNamespace();
+
+                    if (@namespace == "Operations")
+                    {
+                        Blank();
+                        WriteStartNamespace("SourceGeneration");
+                        WriteUsing("Microsoft.CodeAnalysis.Operations");
+                        WriteCodeGenerators();
+                        WriteEndNamespace();
+                    }
+
                     _writer.Flush();
                 }
             }
@@ -706,6 +716,108 @@ namespace IOperationGenerator
                 }
 
                 return GetSubName(node.Name);
+            }
+        }
+
+        private void WriteCodeGenerators()
+        {
+            Blank();
+            WriteLine("internal partial class CodeGenerator");
+            Brace();
+
+            foreach (var type in _tree.Types.OfType<AbstractNode>())
+            {
+                if (type.SkipClassGeneration) continue;
+                if (type.IsAbstract) continue;
+                if (type.Namespace != null) continue;
+
+                var allProps = GetAllProperties(type);
+
+                var interfaceName = type.Name;
+                var typeName = interfaceName[1..];
+
+                var kinds = type.OperationKind?.Entries?.Where(e => e.EditorBrowsable != false).ToList();
+                if (kinds == null || kinds.Count <= 1)
+                {
+                    var typeNameWithoutOpSuffix = typeName.EndsWith("Operation") ? typeName[0..^"Operation".Length] : typeName;
+                    writeCodeGenerator(
+                        interfaceName,
+                        typeName,
+                        typeNameWithoutOpSuffix,
+                        kind: null,
+                        allProps,
+                        type,
+                        ClassType.NonLazy);
+                }
+                else
+                {
+                    foreach (var kind in kinds)
+                    {
+                        writeCodeGenerator(
+                            interfaceName,
+                            typeName,
+                            kind.Name,
+                            kind.Name,
+                            allProps,
+                            type,
+                            ClassType.NonLazy);
+                    }
+                }
+            }
+
+            Unbrace();
+
+            return;
+
+            void writeCodeGenerator(
+                string interfaceName,
+                string className,
+                string methodName,
+                string? kind,
+                IEnumerable<Property> properties,
+                AbstractNode type,
+                ClassType classType)
+            {
+                WriteLine($"public static {interfaceName} {methodName}(");
+                Indent();
+
+                var argList = new List<string>();
+                foreach (var prop in properties)
+                {
+                    if (classType != ClassType.NonLazy && IsIOperationType(prop.Type)) continue;
+                    if (prop.Type == "CommonConversion")
+                    {
+                        WriteLine($"IConvertibleConversion {prop.Name.ToCamelCase()},");
+                        argList.Add(prop.Name.ToCamelCase());
+                    }
+                    else
+                    {
+                        WriteLine($"{prop.Type} {prop.Name.ToCamelCase()}, ");
+                        argList.Add(prop.Name.ToCamelCase());
+                    }
+                }
+
+                if (kind != null)
+                {
+                    argList.Add($"OperationKind.{kind}");
+                }
+
+                // SemanticModel semanticModel, SyntaxNode syntax
+                argList.Add("semanticModel: null");
+                argList.Add("syntax: null");
+
+                Write("ITypeSymbol type = null, Optional<object> constantValue = default, bool isImplicit = false");
+
+                argList.Add("type");
+                argList.Add("constantValue");
+                argList.Add("isImplicit");
+
+                WriteLine(")");
+                Outdent();
+                Brace();
+                WriteLine($"return new {className}({string.Join(", ", argList)});");
+                Unbrace();
+                Blank();
             }
         }
 

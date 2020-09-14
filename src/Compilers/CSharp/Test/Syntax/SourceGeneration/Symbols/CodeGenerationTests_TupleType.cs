@@ -1,0 +1,83 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
+using Roslyn.Test.Utilities;
+using Xunit;
+using static Microsoft.CodeAnalysis.SourceGeneration.CodeGenerator;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.SourceGeneration
+{
+    public partial class CodeGenerationTests
+    {
+        [Fact]
+        public void TestTupleWithoutFieldNames()
+        {
+            AssertEx.AreEqual(
+"(int, bool)",
+TupleType().WithTupleElements(
+    TupleElement(Int32),
+    TupleElement(Boolean)).GenerateTypeString());
+        }
+
+        [Fact]
+        public void TestTupleWithFirstFieldName()
+        {
+            AssertEx.AreEqual(
+"(int a, bool)",
+TupleType().WithTupleElements(
+    TupleElement(Int32, "a"),
+    TupleElement(Boolean)).GenerateTypeString());
+        }
+
+        [Fact]
+        public void TestTupleWithSecondFieldName()
+        {
+            AssertEx.AreEqual(
+"(int, bool b)",
+TupleType().WithTupleElements(
+    TupleElement(Int32),
+    TupleElement(Boolean, "b")).GenerateTypeString());
+        }
+
+        [Fact]
+        public void TestTupleWithFieldNames()
+        {
+            AssertEx.AreEqual(
+"(int a, bool b)",
+TupleType().WithTupleElements(
+    TupleElement(Int32, "a"),
+    TupleElement(Boolean, "b")).GenerateTypeString());
+        }
+
+        [Fact]
+        public void TestTupleNameSyntax()
+        {
+            AssertEx.AreEqual(
+"global::System.ValueTuple<int, bool>",
+TupleType().WithTupleElements(
+    TupleElement(Int32),
+    TupleElement(Boolean)).GenerateNameString());
+        }
+
+        [Fact]
+        public void TestTupleNameSyntax10Elements()
+        {
+            AssertEx.AreEqual(
+"global::System.ValueTuple<int, bool, int, bool, int, bool, int, global::System.ValueTuple<bool, int, bool>>",
+TupleType().WithTupleElements(
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean),
+    TupleElement(Int32),
+    TupleElement(Boolean)).GenerateNameString());
+        }
+    }
+}

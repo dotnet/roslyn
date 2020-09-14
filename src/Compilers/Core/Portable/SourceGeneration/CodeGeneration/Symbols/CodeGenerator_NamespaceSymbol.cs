@@ -1,0 +1,130 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+
+namespace Microsoft.CodeAnalysis.SourceGeneration
+{
+    internal static partial class CodeGenerator
+    {
+        public static INamespaceSymbol GlobalNamespace(
+            ImmutableArray<INamespaceOrTypeSymbol> imports = default,
+            ImmutableArray<INamespaceOrTypeSymbol> members = default,
+            ISymbol containingSymbol = null)
+        {
+            return new NamespaceSymbol(
+                null,
+                imports,
+                members,
+                containingSymbol,
+                isGlobalNamespace: true);
+        }
+
+        public static INamespaceSymbol Namespace(
+            string name,
+            ImmutableArray<INamespaceOrTypeSymbol> imports = default,
+            ImmutableArray<INamespaceOrTypeSymbol> members = default,
+            ISymbol containingSymbol = null)
+        {
+            return new NamespaceSymbol(
+                name,
+                imports,
+                members,
+                containingSymbol,
+                isGlobalNamespace: false);
+        }
+
+        public static INamespaceSymbol WithName(this INamespaceSymbol symbol, string name)
+            => With(symbol, name: ToOptional(name));
+
+        public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, params INamespaceOrTypeSymbol[] imports)
+            => WithImports(symbol, (IEnumerable<INamespaceOrTypeSymbol>)imports);
+
+        public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, IEnumerable<INamespaceOrTypeSymbol> imports)
+            => WithImports(symbol, imports.ToImmutableArray());
+
+        public static INamespaceSymbol WithImports(this INamespaceSymbol symbol, ImmutableArray<INamespaceOrTypeSymbol> imports)
+            => With(symbol, imports: ToOptional(imports));
+
+        public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, params INamespaceOrTypeSymbol[] members)
+            => WithMembers(symbol, (IEnumerable<INamespaceOrTypeSymbol>)members);
+
+        public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, IEnumerable<INamespaceOrTypeSymbol> members)
+            => WithMembers(symbol, members.ToImmutableArray());
+
+        public static INamespaceSymbol WithMembers(this INamespaceSymbol symbol, ImmutableArray<INamespaceOrTypeSymbol> members)
+            => With(symbol, members: ToOptional(members));
+
+        public static INamespaceSymbol WithContainingSymbol(this INamespaceSymbol symbol, ISymbol containingSymbol)
+            => With(symbol, containingSymbol: ToOptional(containingSymbol));
+
+        private static INamespaceSymbol With(
+            this INamespaceSymbol symbol,
+            Optional<string> name = default,
+            Optional<ImmutableArray<INamespaceOrTypeSymbol>> imports = default,
+            Optional<ImmutableArray<INamespaceOrTypeSymbol>> members = default,
+            Optional<ISymbol> containingSymbol = default)
+        {
+            return new NamespaceSymbol(
+                name.GetValueOr(symbol.Name),
+                imports.GetValueOr(GetImports(symbol)),
+                members.GetValueOr(symbol.GetMembers().ToImmutableArray()),
+                containingSymbol.GetValueOr(symbol.ContainingSymbol),
+                symbol.IsGlobalNamespace);
+        }
+
+        internal static ImmutableArray<INamespaceOrTypeSymbol> GetImports(INamespaceSymbol symbol)
+            => symbol is NamespaceSymbol nsSymbol ? nsSymbol.Imports : ImmutableArray<INamespaceOrTypeSymbol>.Empty;
+
+        private class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbol
+        {
+            public readonly ImmutableArray<INamespaceOrTypeSymbol> Imports;
+
+            private readonly ImmutableArray<INamespaceOrTypeSymbol> _members;
+
+            public NamespaceSymbol(
+                string name,
+                ImmutableArray<INamespaceOrTypeSymbol> imports,
+                ImmutableArray<INamespaceOrTypeSymbol> members,
+                ISymbol containingSymbol,
+                bool isGlobalNamespace)
+            {
+                Name = name;
+                Imports = imports.NullToEmpty();
+                _members = members.NullToEmpty().SelectAsArray(m => m.With(containingSymbol: this));
+                ContainingSymbol = containingSymbol;
+                IsGlobalNamespace = isGlobalNamespace;
+            }
+
+            public bool IsGlobalNamespace { get; }
+
+            public override ISymbol ContainingSymbol { get; }
+            public override SymbolKind Kind => SymbolKind.Namespace;
+            public override string Name { get; }
+
+            public override ImmutableArray<ISymbol> GetMembers()
+                => ImmutableArray<ISymbol>.CastUp(_members);
+
+            IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers()
+                => _members;
+
+            public override void Accept(SymbolVisitor visitor)
+                => visitor.VisitNamespace(this);
+
+            public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+                => visitor.VisitNamespace(this);
+
+            #region default implementation
+
+            IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name) => throw new System.NotImplementedException();
+            public Compilation ContainingCompilation => throw new System.NotImplementedException();
+            public IEnumerable<INamespaceSymbol> GetNamespaceMembers() => throw new System.NotImplementedException();
+            public ImmutableArray<INamespaceSymbol> ConstituentNamespaces => throw new System.NotImplementedException();
+            public NamespaceKind NamespaceKind => throw new System.NotImplementedException();
+
+            #endregion
+        }
+    }
+}
