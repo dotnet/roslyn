@@ -123,10 +123,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
 
+            // Setup the work queue to allow us to hear about flurries of changes and then respond to them in batches
+            // every second.  Note: we pass in EqualityComparer<...>.Default since we don't care about ordering, and
+            // since once we hear about changes to a project (or the whole solution), we don't need to keep track if we
+            // hear about the same thing in that batch window interval.
             _workQueue = new AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>(
                 TimeSpan.FromSeconds(1),
                 this.ProcessWorkQueueAsync,
-                equalityComparer: null,
+                equalityComparer: EqualityComparer<(bool solutionChanged, ProjectId? changedProject)>.Default,
                 listenerProvider.GetListener(FeatureAttribute.PackageInstaller),
                 this.DisposalToken);
         }
