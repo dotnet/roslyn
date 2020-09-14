@@ -241,7 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     token.ValueText == _replacementText ||
                     isOldText ||
                     _possibleNameConflicts.Contains(token.ValueText) ||
-                    IsPossiblyDestructorConflict(token);
+                    IsPossiblyDestructorConflict(token) ||
+                    IsPropertyAccessorNameConflict(token);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -255,6 +256,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 return newToken;
             }
+
+            private bool IsPropertyAccessorNameConflict(SyntaxToken token)
+                => IsGetPropertyAccessorNameConflict(token)
+                || IsSetPropertyAccessorNameConflict(token);
+
+            private bool IsGetPropertyAccessorNameConflict(SyntaxToken token)
+                => token.IsKind(SyntaxKind.GetKeyword)
+                && IsNameConflictWithProperty("get", token.Parent as AccessorDeclarationSyntax);
+
+            private bool IsSetPropertyAccessorNameConflict(SyntaxToken token)
+                => token.IsKind(SyntaxKind.SetKeyword)
+                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
+
+            private bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor)
+                => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
+                && _replacementText.Equals(prefix + "_" + property.Identifier.Text, StringComparison.Ordinal);
 
             private bool IsPossiblyDestructorConflict(SyntaxToken token)
             {

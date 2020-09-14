@@ -3591,6 +3591,50 @@ class $${|Conflict:X|} {
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WpfTheory>
+        <WorkItem(45677, "https://github.com/dotnet/roslyn/issues/45677")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictWhenRenamingPropertySetterLikeMethod(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    public int MyProperty { get; {|conflict:set|}; }
+
+    private void {|conflict:$$_set_MyProperty|}(int value) => throw null;
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="set_MyProperty")
+
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <WorkItem(45677, "https://github.com/dotnet/roslyn/issues/45677")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictWhenRenamingPropertyGetterLikeMethod(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    public int MyProperty { {|conflict:get|}; set; }
+
+    private int {|conflict:$$_get_MyProperty|}() => throw null;
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="get_MyProperty")
+
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
 
