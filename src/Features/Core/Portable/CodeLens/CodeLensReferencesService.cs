@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var document = solution.GetDocument(documentId);
             if (document == null)
             {
-                return default;
+                return null;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
             if (symbol == null)
             {
-                return default;
+                return null;
             }
 
             using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
