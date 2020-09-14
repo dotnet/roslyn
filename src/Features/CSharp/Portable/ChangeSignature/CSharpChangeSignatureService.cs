@@ -391,14 +391,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         cancellationToken).ConfigureAwait(false));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objCreation))
+            // Handles both ObjectCreationExpressionSyntax and ImplicitObjectCreationExpressionSyntax
+            if (updatedNode is BaseObjectCreationExpressionSyntax objCreation)
             {
                 if (objCreation.ArgumentList == null)
                 {
                     return updatedNode;
                 }
 
-                var symbolInfo = semanticModel.GetSymbolInfo((ObjectCreationExpressionSyntax)originalNode, cancellationToken);
+                var symbolInfo = semanticModel.GetSymbolInfo((BaseObjectCreationExpressionSyntax)originalNode, cancellationToken);
 
                 return objCreation.WithArgumentList(
                     await UpdateArgumentListAsync(
@@ -407,27 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         objCreation.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken),
-                        document,
-                        originalNode.SpanStart,
-                        cancellationToken).ConfigureAwait(false));
-            }
-
-            if (updatedNode.IsKind(SyntaxKind.ImplicitObjectCreationExpression, out ImplicitObjectCreationExpressionSyntax? implicitObjCreation))
-            {
-                if (implicitObjCreation.ArgumentList == null)
-                {
-                    return updatedNode;
-                }
-
-                var symbolInfo = semanticModel.GetSymbolInfo((ImplicitObjectCreationExpressionSyntax)originalNode, cancellationToken);
-
-                return implicitObjCreation.WithArgumentList(
-                    await UpdateArgumentListAsync(
-                        declarationSymbol,
-                        signaturePermutation,
-                        implicitObjCreation.ArgumentList,
-                        isReducedExtensionMethod: false,
-                        IsParamsArrayExpanded(semanticModel, implicitObjCreation, symbolInfo, cancellationToken),
                         document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
@@ -595,8 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 BaseArgumentListSyntax? argumentList = node switch
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
-                    ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
-                    ImplicitObjectCreationExpressionSyntax implicitObjectCreation => implicitObjectCreation.ArgumentList,
+                    BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
                     ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                     ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList,
                     _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
