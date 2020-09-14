@@ -53,8 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected Overrides Sub GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol, referencedAssemblySymbols As List(Of AssemblySymbol))
-                referencedAssemblySymbols.Clear()
-
+                Debug.Assert(referencedAssemblySymbols.IsEmpty())
                 For Each [module] In assemblySymbol.Modules
                     referencedAssemblySymbols.AddRange([module].GetReferencedAssemblySymbols())
                 Next
