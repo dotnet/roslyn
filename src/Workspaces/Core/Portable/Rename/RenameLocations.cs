@@ -62,47 +62,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 new SearchResult(locations, implicitLocations, referencedSymbols));
         }
 
-        private static RenameLocations Create(
-            ISymbol symbol,
-            Solution solution,
-            RenameOptionSet options,
-            SearchResult originalSymbolResult,
-            ImmutableArray<SearchResult> overloadsResult,
-            ImmutableArray<RenameLocation> stringsResult,
-            ImmutableArray<RenameLocation> commentsResult)
-        {
-            var mergedLocations = ImmutableHashSet.CreateBuilder<RenameLocation>();
-            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
-            using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
-
-            if (options.RenameInStrings)
-                mergedLocations.AddRange(stringsResult);
-
-            if (options.RenameInComments)
-                mergedLocations.AddRange(commentsResult);
-
-            var renameMethodGroupReferences = options.RenameOverloads || !GetOverloadedSymbols(symbol).Any();
-            var overloadsToMerge = options.RenameOverloads
-                ? overloadsResult.NullToEmpty()
-                : ImmutableArray<SearchResult>.Empty;
-            foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
-            {
-                mergedLocations.AddRange(renameMethodGroupReferences
-                    ? result.Locations
-                    : result.Locations.Where(x => x.CandidateReason != CandidateReason.MemberGroup));
-
-                mergedImplicitLocations.AddRange(result.ImplicitLocations);
-                mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
-            }
-
-            return new RenameLocations(
-                symbol, solution, options,
-                new SearchResult(
-                    mergedLocations.ToImmutable(),
-                    mergedImplicitLocations.ToImmutable(),
-                    mergedReferencedSymbols.ToImmutable()));
-        }
-
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>

@@ -98,19 +98,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return default;
         }
 
-        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // see whether we can use the symbol as it is
-            var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (currentSemanticModel == semanticModel)
-            {
-                return symbol;
-            }
-
-            // get symbols from current document again
-            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             ISymbol symbol,
             Document document,
