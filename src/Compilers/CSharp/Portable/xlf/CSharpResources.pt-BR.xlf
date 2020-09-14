@@ -2802,6 +2802,16 @@
         <target state="needs-review-translation">O campo não anulável não foi inicializado. Considere declará-lo como anulável.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnusedRecordCtorParameter">
+        <source>Record constructor parameter '{0}' is unused.</source>
+        <target state="new">Record constructor parameter '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnusedRecordCtorParameter_Title">
+        <source>Record constructor parameters should be used.</source>
+        <target state="new">Record constructor parameters should be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="new">Use of unassigned local variable '{0}'</target>

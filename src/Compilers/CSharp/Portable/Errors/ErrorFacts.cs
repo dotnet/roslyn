@@ -478,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_UnusedRecordCtorParameter:
                     return 1;
                 default:
                     return 0;

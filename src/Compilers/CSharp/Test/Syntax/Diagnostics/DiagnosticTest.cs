@@ -256,6 +256,7 @@ class X
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                         case ErrorCode.WRN_RecordNamedDisallowed:
+                        case ErrorCode.WRN_UnusedRecordCtorParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -406,6 +407,7 @@ class X
                     ErrorCode.WRN_ParameterIsStaticClass,
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
+                    ErrorCode.WRN_UnusedRecordCtorParameter,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

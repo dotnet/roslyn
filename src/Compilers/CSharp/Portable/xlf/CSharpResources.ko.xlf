@@ -2804,6 +2804,16 @@
         <target state="needs-review-translation">null을 허용하지 않는 필드가 초기화되지 않았습니다. nullable로 선언하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnusedRecordCtorParameter">
+        <source>Record constructor parameter '{0}' is unused.</source>
+        <target state="new">Record constructor parameter '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnusedRecordCtorParameter_Title">
+        <source>Record constructor parameters should be used.</source>
+        <target state="new">Record constructor parameters should be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="new">Use of unassigned local variable '{0}'</target>

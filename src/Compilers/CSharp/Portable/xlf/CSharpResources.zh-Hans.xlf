@@ -2804,6 +2804,16 @@
         <target state="needs-review-translation">不可为 null 的字段未初始化。请考虑声明为可以为 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnusedRecordCtorParameter">
+        <source>Record constructor parameter '{0}' is unused.</source>
+        <target state="new">Record constructor parameter '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnusedRecordCtorParameter_Title">
+        <source>Record constructor parameters should be used.</source>
+        <target state="new">Record constructor parameters should be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="new">Use of unassigned local variable '{0}'</target>
