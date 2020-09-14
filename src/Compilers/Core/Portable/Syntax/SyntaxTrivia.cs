@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis
 {
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Represents a trivia in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxTrivia"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxTrivia"/>.
+    /// Represents a trivia in the syntax tree.
     /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
