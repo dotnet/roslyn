@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<SyntaxNode> thisConstructorArguments = default)
         {
             var result = new CodeGenerationConstructorSymbol(null, attributes, accessibility, modifiers, parameters);
-            CodeGenerationConstructorInfo.Attach(result, typeName, statements, baseConstructorArguments, thisConstructorArguments);
+            CodeGenerationConstructorInfo.Attach(result, modifiers.IsUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
             return result;
         }
 

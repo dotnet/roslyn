@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _listener = listener;
         }
 
-        protected override Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        protected override ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
             => _listener.OnProjectRemovedAsync(projectId, cancellationToken);
 
-        protected override Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
+        protected override ValueTask ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
             => _listener.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken);
     }
 }

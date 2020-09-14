@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-#if !CODE_STYLE // CODE_STYLE layer doesn't currently support generating 'not patterns'.  Do not bother analyzing.
             context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LogicalNotExpression);
-#endif
         }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
@@ -66,15 +64,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Look for the form: !(x is Y y)
             if (!(node is PrefixUnaryExpressionSyntax
-            {
-                Operand: ParenthesizedExpressionSyntax
                 {
-                    Expression: IsPatternExpressionSyntax
+                    Operand: ParenthesizedExpressionSyntax
                     {
-                        Pattern: DeclarationPatternSyntax,
-                    } isPattern,
-                },
-            } notExpression))
+                        Expression: IsPatternExpressionSyntax
+                        {
+                            Pattern: DeclarationPatternSyntax,
+                        } isPattern,
+                    },
+                } notExpression))
             {
                 return;
             }

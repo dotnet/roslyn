@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (TestData == null || !TestData.IsInProc)
             {
-                // Set this process's priority BelowNormal.
+                // Try setting this process's priority BelowNormal.
                 // this should let us to freely try to use all resources possible without worrying about affecting
                 // host's work such as responsiveness or build.
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
             }
 
             // this service provide a way for client to make sure remote host is alive
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RunService(() =>
             {
                 // initialize global asset storage
-                AssetStorage.Initialize(this);
+                WorkspaceManager.InitializeAssetSource(this);
 
                 if (uiCultureLCID != 0)
                 {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public void InitializeTelemetrySession(string host, string serializedSession, CancellationToken cancellationToken)
+        public void InitializeTelemetrySession(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
         {
             RunService(() =>
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
                 {
-                    m["Host"] = host;
+                    m["Host"] = hostProcessId;
                     m["InstanceId"] = InstanceId;
                 }));
 
@@ -124,25 +124,25 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        Task<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        async ValueTask<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() =>
+            return await RunServiceAsync(() =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_GetAssetsAsync, (serviceId, checksums) => $"{serviceId} - {Checksum.GetChecksumsLogInfo(checksums)}", scopeId, checksums, cancellationToken))
                 {
                     return EndPoint.InvokeAsync(
                         nameof(IRemoteHostServiceCallback.GetAssetsAsync),
                         new object[] { scopeId, checksums.ToArray() },
-                        (stream, cancellationToken) => Task.FromResult(RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken)),
+                        (stream, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(stream, scopeId, checksums, serializerService, cancellationToken).AsTask(),
                         cancellationToken);
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        Task<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        async ValueTask<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() =>
+            return await RunServiceAsync(() =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_IsExperimentEnabledAsync, experimentName, cancellationToken))
                 {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         new object[] { experimentName },
                         cancellationToken);
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, AssetStorage);
+                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
                     await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    var newText = text.WithChanges(textChanges);
+                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
                     var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
 
                     // save new text in the cache so that when asked, the data is most likely already there
@@ -312,16 +312,16 @@ namespace Microsoft.CodeAnalysis.Remote
                     //
                     // also, once the changes are picked up and put into Workspace, normal Workspace 
                     // caching logic will take care of the text
-                    AssetStorage.TryAddAsset(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.TryAddAsset(newChecksum, newText);
                 }
 
                 async Task<SourceText?> TryGetSourceTextAsync()
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (AssetStorage.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
+                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(baseTextChecksum, out var serializableSourceText))
                     {
-                        return sourceText;
+                        return await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     // do slower one

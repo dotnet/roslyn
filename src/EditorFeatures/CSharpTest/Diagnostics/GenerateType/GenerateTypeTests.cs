@@ -5410,5 +5410,36 @@ internal class SampleType : Exception
 }",
 index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestGenerateUnsafe()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new [|D|](x);
+    }
+}",
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new D(x);
+    }
+}
+
+internal class D
+{
+    private unsafe int* x;
+
+    public unsafe D(int* x)
+    {
+        this.x = x;
+    }
+}", index: 1);
+        }
     }
 }

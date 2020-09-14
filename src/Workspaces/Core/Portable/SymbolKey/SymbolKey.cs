@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool CanCreate(ISymbol symbol, CancellationToken cancellationToken)
         {
-            if (BodyLevelSymbolKey.IsBodyLevelSymbol(symbol))
+            if (IsBodyLevelSymbol(symbol))
             {
                 var locations = BodyLevelSymbolKey.GetBodyLevelSourceLocations(symbol, cancellationToken);
                 if (locations.Length == 0)
@@ -307,5 +307,15 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
+
+        public static bool IsBodyLevelSymbol(ISymbol symbol)
+            => symbol switch
+            {
+                ILabelSymbol _ => true,
+                IRangeVariableSymbol _ => true,
+                ILocalSymbol _ => true,
+                IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
+                _ => false,
+            };
     }
 }

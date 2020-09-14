@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 await serverData.SendShutdownAsync().ConfigureAwait(false);
                 Assert.False(compileTask.IsCompleted);
 
-                // Now complete the compilation and verify that it actually ran to completion dispite
+                // Now complete the compilation and verify that it actually ran to completion despite
                 // there being a shutdown request.
                 finishedMre.Set();
                 var response = await compileTask.ConfigureAwait(false);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 await serverData.SendShutdownAsync().ConfigureAwait(false);
                 await serverData.SendShutdownAsync().ConfigureAwait(false);
 
-                // Now complete the compilation and verify that it actually ran to completion dispite
+                // Now complete the compilation and verify that it actually ran to completion despite
                 // there being a shutdown request.
                 finishedMre.Set();
                 var response = await compileTask.ConfigureAwait(false);
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public class KeepAliveTests : VBCSCompilerServerTests
         {
             /// <summary>
-            /// Ensure server hits keep alive when processing no conections
+            /// Ensure server hits keep alive when processing no connections
             /// </summary>
             [Fact]
             public async Task NoConnections()
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
             [InlineData(2)]
             [InlineData(3)]
-            public async Task SimultaneousConnectons(int connectionCount)
+            public async Task SimultaneousConnections(int connectionCount)
             {
                 using var readyMre = new ManualResetEvent(initialState: false);
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) =>

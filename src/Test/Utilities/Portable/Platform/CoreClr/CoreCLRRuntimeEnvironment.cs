@@ -23,7 +23,7 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         private readonly IEnumerable<ModuleData> _additionalDependencies;
         private EmitData _emitData;
-        private CompilationTestData _testData = new CompilationTestData();
+        private readonly CompilationTestData _testData = new CompilationTestData();
 
         public CoreCLRRuntimeEnvironment(IEnumerable<ModuleData> additionalDependencies = null)
         {

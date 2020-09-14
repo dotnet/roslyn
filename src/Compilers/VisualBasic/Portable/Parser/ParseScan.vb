@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' //============ Methods to encapsulate scanning ========================
     ' //
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Scanner.h
         ' Lines: 301 - 301
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Dev10#708061: Treat Select in "From x in Sub() End Select" as part of End statement.
             Return If(Context.IsWithinSingleLineLambda,
                       CanFollowExpression(nextToken) AndAlso Not nextToken.Kind = SyntaxKind.SelectKeyword,
-                      IsValidStatementTerminator(nextToken))
+                      IsValidStatementTerminator(nextToken)) OrElse (Context.IsLineIf AndAlso nextToken.Kind = SyntaxKind.ElseKeyword)
         End Function
 
         ' Is this token a valid end of executable statement?

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -65,11 +66,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
+            var knownMissingTypes = new HashSet<SpecialType>()
+            {
+                SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
+            };
+
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
             {
                 var symbol = comp.GetSpecialType(specialType);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
-                Assert.Equal(symbol.IsValueType, specialType.IsValueType());
+                if (knownMissingTypes.Contains(specialType))
+                {
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                    Assert.Equal(symbol.IsValueType, specialType.IsValueType());
+                }
             }
         }
 

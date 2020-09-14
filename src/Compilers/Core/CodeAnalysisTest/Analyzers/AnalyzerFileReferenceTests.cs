@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators();
-            Assert.Equal(5, generators.Count());
+            Assert.Equal(5, generators.Length);
 
             var typeNames = generators.Select(g => g.GetType().FullName);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
@@ -265,6 +266,72 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
+        }
+
+        // can't load a coreclr targeting generator on net framework / mono
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGeneratorsCantTargetNetFramework()
+        {
+            var directory = Temp.CreateDirectory();
+
+            // core
+            var errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETCoreApp,Version=v5.0");
+            Assert.Empty(errors);
+
+            // netstandard
+            errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETStandard,Version=v2.0");
+            Assert.Empty(errors);
+
+            // no target
+            errors = buildAndLoadGeneratorAndReturnAnyErrors(targetFramework: null);
+            Assert.Empty(errors);
+
+            // framework
+            errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETFramework,Version=v4.7.2");
+            Assert.Equal(1, errors.Count);
+            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework, errors.First().ErrorCode);
+
+            List<AnalyzerLoadFailureEventArgs> buildAndLoadGeneratorAndReturnAnyErrors(string? targetFramework)
+            {
+                string targetFrameworkAttributeText = targetFramework is object
+                                                        ? $"[assembly: System.Runtime.Versioning.TargetFramework(\"{targetFramework}\")]"
+                                                        : string.Empty;
+
+                string generatorSource = $@"
+using Microsoft.CodeAnalysis;
+
+{targetFrameworkAttributeText}
+
+[Generator]
+public class Generator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var directory = Temp.CreateDirectory();
+                var generatorPath = Path.Combine(directory.Path, "generator.dll");
+
+                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
+                                                           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                compilation.VerifyDiagnostics();
+                var result = compilation.Emit(generatorPath);
+                Assert.True(result.Success);
+
+                AnalyzerFileReference reference = CreateAnalyzerFileReference(generatorPath);
+                List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+                void errorHandler(object? o, AnalyzerLoadFailureEventArgs e) => errors.Add(e);
+                reference.AnalyzerLoadFailed += errorHandler;
+                var builder = ImmutableArray.CreateBuilder<ISourceGenerator>();
+                reference.AddGenerators(builder, LanguageNames.CSharp);
+                Assert.Single(builder);
+                reference.AnalyzerLoadFailed -= errorHandler;
+
+                return errors;
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
@@ -291,8 +358,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Generator]
         public class TestGenerator : ISourceGenerator
         {
-            public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-            public void Initialize(InitializationContext context) => throw new NotImplementedException();
+            public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+            public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
         }
 
         public class SomeType
@@ -307,8 +374,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             [Generator]
             public class NestedGenerator : ISourceGenerator
             {
-                public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-                public void Initialize(InitializationContext context) => throw new NotImplementedException();
+                public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+                public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
             }
         }
     }
@@ -357,27 +424,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [Generator]
     public class TestGenerator : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
     public class TestGeneratorNoAttrib : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
     [Generator]
     public class BaseGenerator : ISourceGenerator
     {
-        public virtual void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        public virtual void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
     [Generator]
     public class SubClassedGenerator : BaseGenerator
     {
-        public override void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public override void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
     }
 
     [Generator]

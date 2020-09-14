@@ -140,11 +140,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // +1 for project itself
                 var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    solution: null,
-                    new object[] { analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache), count },
+                var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
+
+                _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -193,17 +192,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 project.Id,
                 analyzerMap.Keys.ToArray());
 
-            return await client.RunRemoteAsync(
-                WellKnownServiceHubService.CodeAnalysis,
-                nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>>(
                 solution,
-                new object[] { argument },
+                invocation: (service, solutionInfo, stream, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, stream, cancellationToken),
+                reader: (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, documentAnalysisScope, project, cancellationToken),
                 callbackTarget: null,
-                (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, documentAnalysisScope, project, c),
                 cancellationToken).ConfigureAwait(false);
+
+            return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
         }
 
-        private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
+        private static async ValueTask<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
             Stream stream,
             Dictionary<string, DiagnosticAnalyzer> analyzerMap,
             DocumentAnalysisScope? documentAnalysisScope,
@@ -213,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // handling of cancellation and exception
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken);
 
             // We only get a reader for data transmitted between live processes.
             // This data should always be correct as we're never persisting the data between sessions.

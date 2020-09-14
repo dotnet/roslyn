@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -33,14 +34,17 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ISerializerService _serializer;
         private readonly RemoteEndPoint _endPoint;
         private readonly HubClient _hubClient;
-        private readonly HostGroup _hostGroup;
+        private readonly IServiceBroker _serviceBroker;
+        private readonly ServiceBrokerClient _serviceBrokerClient;
+        private readonly IErrorReportingService? _errorReportingService;
 
         private readonly ConnectionPools? _connectionPools;
 
         private ServiceHubRemoteHostClient(
             HostWorkspaceServices services,
+            IServiceBroker serviceBroker,
+            ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
-            HostGroup hostGroup,
             Stream stream)
         {
             _connectionPools = new ConnectionPools(
@@ -51,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Remote
             services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
 
             _services = services;
+            _serviceBroker = serviceBroker;
+            _serviceBrokerClient = serviceBrokerClient;
             _hubClient = hubClient;
-            _hostGroup = hostGroup;
 
             _endPoint = new RemoteEndPoint(stream, hubClient.Logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
@@ -61,26 +66,28 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
+            _errorReportingService = services.GetService<IErrorReportingService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
-            => _services.GetService<IErrorReportingService>()?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
+            => _errorReportingService?.ShowRemoteHostCrashedErrorInfo(unexpectedException);
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services)));
 
-                // let each client to have unique id so that we can distinguish different clients when service is restarted
-                var clientId = $"VS ({Process.GetCurrentProcess().Id}) ({Guid.NewGuid()})";
+#pragma warning disable ISB001    // Dispose of proxies
+#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+                var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);
+#pragma warning restore
 
-                var hostGroup = new HostGroup(clientId);
                 var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, hostGroup, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, cancellationToken).ConfigureAwait(false);
 
-                var client = new ServiceHubRemoteHostClient(services, hubClient, hostGroup, remoteHostStream);
+                var client = new ServiceHubRemoteHostClient(services, serviceBroker, serviceBrokerClient, hubClient, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -100,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Remote
             HostWorkspaceServices services,
             HubClient client,
             RemoteServiceName serviceName,
-            HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
             var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
@@ -108,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceDescriptor(serviceName.ToString(is64bit)) { HostGroup = hostGroup };
+            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(is64bit));
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
@@ -142,9 +148,32 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public HostGroup HostGroup => _hostGroup;
+        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var options = default(ServiceActivationOptions);
 
-        public override string ClientId => _hostGroup.Id;
+                if (callbackTarget is not null)
+                {
+                    options.ClientRpcTarget = callbackTarget;
+                }
+
+                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
+
+#pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
+                var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
+
+                Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
+
+                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
 
         public override Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
@@ -162,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<RemoteServiceConnection> CreateConnectionImplAsync(RemoteServiceName serviceName, object? callbackTarget, IPooledConnectionReclamation? poolReclamation, CancellationToken cancellationToken)
         {
-            var serviceStream = await RequestServiceAsync(_services, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await RequestServiceAsync(_services, _hubClient, serviceName, cancellationToken).ConfigureAwait(false);
             return new JsonRpcConnection(_services, _hubClient.Logger, callbackTarget, serviceStream, poolReclamation);
         }
 
@@ -176,6 +205,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
             _hubClient.Dispose();
+
+            _serviceBrokerClient.Dispose();
 
             base.Dispose();
         }
@@ -214,7 +245,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                return Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+                return _services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName)
+                    ? SpecializedTasks.True
+                    : SpecializedTasks.False;
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {

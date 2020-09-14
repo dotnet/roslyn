@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         protected override IChecksummedPersistentStorage? TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath)
+            SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
@@ -59,9 +60,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             try
             {
                 sqlStorage = new SQLitePersistentStorage(
-                     workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjector);
+                     workingFolderPath, solutionKey.FilePath, databaseFilePath, dbOwnershipLock, _faultInjector);
 
-                sqlStorage.Initialize(solution);
+                sqlStorage.Initialize(bulkLoadSnapshot);
 
                 return sqlStorage;
             }

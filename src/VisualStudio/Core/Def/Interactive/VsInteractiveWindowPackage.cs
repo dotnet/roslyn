@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 extern alias InteractiveHost;
 
 using System;
@@ -16,6 +17,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using FatalError = InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
@@ -45,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Assumes.Present(_componentModel);
             Assumes.Present(menuCommandService);
 
-            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler = WatsonReporter.ReportFatal;
-            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler = WatsonReporter.ReportNonFatal;
+            FatalError.Handler = WatsonReporter.ReportFatal;
+            FatalError.NonFatalHandler = WatsonReporter.ReportNonFatal;
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);

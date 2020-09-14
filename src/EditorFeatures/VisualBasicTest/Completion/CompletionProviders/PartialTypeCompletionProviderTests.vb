@@ -69,7 +69,7 @@ End Class
 
 Partial Class C(</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, "("c, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, "("c, SourceCodeKind.Regular)
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/11569"), Trait(Traits.Feature, Traits.Features.Completion)>
@@ -103,7 +103,7 @@ End Class
 
 Partial Class C(Of Bar)</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, Nothing, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, Nothing, SourceCodeKind.Regular)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -118,7 +118,7 @@ End Class
 
 Partial Class C(Of T) </text>
 
-            Await VerifyProviderCommitAsync(text.Value, "C(Of T)", expected.Value, " "c, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "C(Of T)", expected.Value, " "c, SourceCodeKind.Regular)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -280,7 +280,7 @@ End Class
 
 Partial Class [Class]</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "Class", expected.Value, Nothing, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "Class", expected.Value, Nothing, SourceCodeKind.Regular)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -295,7 +295,7 @@ End Class
 
 Partial Class [Class](Of T)</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "Class(Of T)", expected.Value, Nothing, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "Class(Of T)", expected.Value, Nothing, SourceCodeKind.Regular)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -310,7 +310,7 @@ End Class
 
 Partial Class [Class](</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "Class(Of T)", expected.Value, "("c, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "Class(Of T)", expected.Value, "("c, SourceCodeKind.Regular)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -325,7 +325,7 @@ End Interface
 
 Partial Interface G(Of Out T)</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "G(Of Out T)", expected.Value, Nothing, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "G(Of Out T)", expected.Value, Nothing, SourceCodeKind.Regular)
         End Function
 
     End Class
