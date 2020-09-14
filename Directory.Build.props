@@ -19,7 +19,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-    <MicroBuildVersion>2.0.58</MicroBuildVersion>
+    <MicroBuildVersion>2.0.61</MicroBuildVersion>
   </PropertyGroup>
 
   <ItemGroup>
