@@ -682,7 +682,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
             // Create mapped text changes using the mapped spans and original text changes' text.
-            var mappedChanges = GetMappedTextChanges(projectChanges, changedMappedDocuments).Result;
+            var mappedChanges = Task.Run(async () => await GetMappedTextChanges(projectChanges, changedMappedDocuments).ConfigureAwait(true)).WaitAndGetResult(CancellationToken.None);
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
