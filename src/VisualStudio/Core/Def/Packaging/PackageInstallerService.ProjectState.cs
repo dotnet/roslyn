@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -31,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             public bool IsInstalled(string package)
                 => IsEnabled && InstalledPackageToVersion.ContainsKey(package);
 
-            public bool TryGetInstalledVersion(string packageName, [NotNullWhen(true)] out string version)
+            public bool TryGetInstalledVersion(string packageName, [MaybeNullWhenAttribute(false)] out string version)
                 => InstalledPackageToVersion.TryGetValue(packageName, out version);
         }
     }
