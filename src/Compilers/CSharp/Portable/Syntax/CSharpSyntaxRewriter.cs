@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ((CSharpSyntaxNode)node).Accept(this);
 
                 _recursionDepth--;
-                return result;
+                // https://github.com/dotnet/roslyn/issues/47682
+                return result!;
             }
             else
             {
