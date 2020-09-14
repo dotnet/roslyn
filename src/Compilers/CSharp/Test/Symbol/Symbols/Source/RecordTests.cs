@@ -232,6 +232,9 @@ record C(int X, int Y)
                 // (4,17): error CS8872: 'C.Equals(C)' must allow overriding because the containing record is not sealed.
                 //     public bool Equals(C c) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
+                // (4,17): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.Equals(C)' was found.
+                //     public bool Equals(C c) => throw null;
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
                 // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(object o) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
@@ -304,7 +307,11 @@ sealed record C(int X, int Y)
     }
     public bool Equals(C c) => X == c.X && Y == c.Y;
 }", expectedOutput: @"True
-False").VerifyDiagnostics();
+False").VerifyDiagnostics(
+    // (13,17): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.Equals(C)' was found.
+    //     public bool Equals(C c) => X == c.X && Y == c.Y;
+    Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals").WithArguments("C.Equals(C)").WithLocation(13, 17)
+);
 
             verifier.VerifyIL("C.Equals(object)", @"
 {

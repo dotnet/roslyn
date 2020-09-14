@@ -16693,7 +16693,10 @@ record A
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
                 // (4,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     public virtual bool Equals(A other)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 20),
+                // (4,25): warning CS8851: Both 'GetHashCode' and 'Equals' was expected to be declared. Only 'C.Equals(C)' was found.
+                //     public virtual bool Equals(A other)
+                Diagnostic(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, "Equals", isSuppressed: false).WithArguments("A.Equals(A)").WithLocation(4, 25)
                 );
         }
 
