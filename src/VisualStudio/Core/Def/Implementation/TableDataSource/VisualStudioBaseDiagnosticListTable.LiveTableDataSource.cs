@@ -37,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            private readonly ExternalErrorDiagnosticUpdateSource? _buildUpdateSource;
             private bool _isBuildRunning;
 
             public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
@@ -51,7 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _diagnosticService = diagnosticService;
                 ConnectToDiagnosticService(workspace, diagnosticService);
 
-                _buildUpdateSource = buildUpdateSource;
                 ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
