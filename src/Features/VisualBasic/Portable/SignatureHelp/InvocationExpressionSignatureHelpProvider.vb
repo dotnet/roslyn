@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo)
+            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo.Symbol)
             Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
     End Class
