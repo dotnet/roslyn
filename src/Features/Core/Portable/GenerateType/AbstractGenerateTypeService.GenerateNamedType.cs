@@ -242,7 +242,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,
                         preferThrowExpression: false,
-                        generateProperties: false));
+                        generateProperties: false,
+                        isContainedInUnsafeType: false)); // Since we generated the type, we know its not unsafe
                 }
             }
 
