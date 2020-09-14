@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         {
         }
 
+        protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
+           => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
+
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             => node is SimpleNameSyntax;
 
