@@ -137,8 +137,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // See https://github.com/microsoft/vs-streamjsonrpc/blob/master/doc/oob_streams.md
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            var writerTask = invocation(service, serverStream, cancellationToken).AsTask();
-            var readerTask = reader(clientStream, cancellationToken).AsTask();
+            // Create new tasks that both start executing, rather than invoking the delegates directly.
+            // If the reader started synchronously reading before the writer task started it would hang, and vice versa
+            // if the writer synchronously filled the buffer before the reader task started it would also hang.
+            var writerTask = Task.Run(async () => await invocation(service, serverStream, cancellationToken).ConfigureAwait(false), cancellationToken);
+            var readerTask = Task.Run(async () => await reader(clientStream, cancellationToken).ConfigureAwait(false), cancellationToken);
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
             return readerTask.Result;
