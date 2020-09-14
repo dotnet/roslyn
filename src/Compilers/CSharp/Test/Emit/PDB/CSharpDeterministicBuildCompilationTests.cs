@@ -235,7 +235,7 @@ public struct StructWithValue
                 delaySign: null,
                 platform: Platform.AnyCpu,
                 generalDiagnosticOption: ReportDiagnostic.Default,
-                warningLevel: 5,
+                warningLevel: 4,
                 specificDiagnosticOptions: null,
                 concurrentBuild: true,
                 deterministic: true,
