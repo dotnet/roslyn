@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                 return;
             }
 
+            if (!_syntaxFacts.IsBinaryExpression(operation.Syntax))
+            {
+                return;
+            }
+
             var rightOperand = operation.RightOperand;
             var leftOperand = operation.LeftOperand;
             if (rightOperand.Type.SpecialType is not SpecialType.System_Boolean ||
