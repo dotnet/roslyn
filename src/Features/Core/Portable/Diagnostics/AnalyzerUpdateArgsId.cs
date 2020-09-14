@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
     {
-        public DiagnosticAnalyzer Analyzer => _Field1;
+        public DiagnosticAnalyzer Analyzer => _Field1!;
 
         protected AnalyzerUpdateArgsId(DiagnosticAnalyzer analyzer)
             : base(analyzer)
