@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
             TelemetryCounter telemetryCounter)
         {
+            // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
+            // need to filter them out.
+            // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
                                where !string.IsNullOrWhiteSpace(texts.displayText)
