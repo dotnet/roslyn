@@ -13,7 +13,7 @@ namespace Roslyn.Test.Utilities.Syntax
 {
     internal sealed class RandomizedSourceText : SourceText
     {
-        private char[] _buffer = new char[2048];
+        private readonly char[] _buffer = new char[2048];
 
         public RandomizedSourceText()
         {

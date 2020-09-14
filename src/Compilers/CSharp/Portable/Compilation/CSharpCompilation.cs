@@ -3421,7 +3421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
         }
 
-        new internal NamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        internal new NamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
         {
             return GetSpecialType(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr).AsNativeInteger();
         }

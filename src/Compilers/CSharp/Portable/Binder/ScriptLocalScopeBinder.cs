@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Labels potentially shared across multiple ScriptLocalScopeBinder instances.
-        new internal sealed class Labels
+        internal new sealed class Labels
         {
             private readonly SynthesizedInteractiveInitializerMethod _scriptInitializer;
             private readonly CompilationUnitSyntax _syntax;

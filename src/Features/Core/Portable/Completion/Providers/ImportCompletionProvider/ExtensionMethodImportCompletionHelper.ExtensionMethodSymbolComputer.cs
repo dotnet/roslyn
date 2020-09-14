@@ -131,7 +131,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     symbols.AddRange(result);
                 }
 
-                return (symbols.ToImmutable(), isPartialResult);
+                var browsableSymbols = symbols.ToImmutable()
+                    .FilterToVisibleAndBrowsableSymbols(_originatingDocument.ShouldHideAdvancedMembers(), _originatingSemanticModel.Compilation);
+
+                return (browsableSymbols, isPartialResult);
             }
 
             // Returns all referenced projects and originating project itself.

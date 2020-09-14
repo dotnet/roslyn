@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private class CSharpSyntaxPrinter : CSharpSyntaxWalker
         {
-            PooledStringBuilder builder;
+            readonly PooledStringBuilder builder;
             int indent = 0;
 
             internal CSharpSyntaxPrinter()

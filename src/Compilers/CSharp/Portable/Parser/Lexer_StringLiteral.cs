@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Turn a (parsed) interpolated string nonterminal into an interpolated string token.
         /// </summary>
         /// <param name="interpolatedString"></param>
-        static internal SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
+        internal static SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
         {
             var text = interpolatedString.ToString();
             var kind = SyntaxKind.InterpolatedStringToken;

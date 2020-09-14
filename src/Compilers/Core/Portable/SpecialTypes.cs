@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
         };
 
-        private readonly static Dictionary<string, SpecialType> s_nameToTypeIdMap;
+        private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;
 
         private static readonly Microsoft.Cci.PrimitiveTypeCode[] s_typeIdToTypeCodeMap;
         private static readonly SpecialType[] s_typeCodeToTypeIdMap;
