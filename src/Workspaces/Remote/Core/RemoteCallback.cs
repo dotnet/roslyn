@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.Remote
             ClientDisconnectedSource = clientDisconnectedSource;
         }
 
-        public RemoteCallback<S> CastTo<S>() where S : class, T
-            => new RemoteCallback<S>((S)_callback, ClientDisconnectedSource);
-
         public async ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
