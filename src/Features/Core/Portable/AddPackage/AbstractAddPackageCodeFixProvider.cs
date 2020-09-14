@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                var packageSources =
-                    await installerService.TryGetPackageSourcesAsync(allowSwitchToMainThread: false, cancellationToken).ConfigureAwait(false)
-                    ?? ImmutableArray<PackageSource>.Empty;
+                var packageSources = installerService.TryGetPackageSources();
 
                 foreach (var packageSource in packageSources)
                 {
