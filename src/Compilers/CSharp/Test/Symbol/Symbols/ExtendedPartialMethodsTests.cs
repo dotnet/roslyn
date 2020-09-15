@@ -3108,6 +3108,5 @@ partial class C
                 Assert.Equal(implSymbol.ToTestDisplayString(includeNonNullable: false), defSymbol.ToTestDisplayString(includeNonNullable: false));
             }
         }
-        }
     }
 }
