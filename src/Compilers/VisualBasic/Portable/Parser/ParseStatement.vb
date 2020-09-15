@@ -434,9 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GetNextToken()
 
             Dim statement = SyntaxFactory.ElseStatement(elseKeyword)
-            Dim isElseFollowedByNewLineOrColon =
-                (CurrentToken.Kind = SyntaxKind.EndOfLineTrivia OrElse CurrentToken.Kind = SyntaxKind.ColonTrivia)
-            If Not Context.IsLineIf AndAlso Not isElseFollowedByNewLineOrColon Then
+            If Not Context.IsLineIf AndAlso Not SyntaxFacts.IsTerminator(CurrentToken.Kind) Then
                 statement = ReportSyntaxError(statement, ERRID.ERR_ExpectedEOS)
             End If
 
