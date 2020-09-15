@@ -3037,6 +3037,37 @@ static class Ex
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
 
+        [Fact]
+        [WorkItem(46593, "https://github.com/dotnet/roslyn/issues/46593")]
+        public void NameofInWhenClause()
+        {
+            var source =
+@"struct Outer
+{
+    struct S
+    {
+        static void M(string q)
+        {
+            S s = new S();
+            System.Console.Write(s switch
+            {
+                { P: 1 } when nameof(Q) == q => 1,
+                { P: 2 } => 2,
+                _ => 3,
+            });
+        }
+
+        int P => 1;
+    }
+
+    public int Q => 1;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
+        }
+
         [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
         public void SwitchOnNull_20210()
         {
@@ -3132,6 +3163,84 @@ static class Ex
                 // (49,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (12 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(49, 16)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+            int i when i % 2 == 0 => 5,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_02()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_03()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 3 == 0 => 4,
+            int i when i % 3 == 1 => 5,
+            int i when i % 3 == 2 => 6,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
                 );
         }
     }

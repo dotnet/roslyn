@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     ///
     /// <para>It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
-    /// could always limit the feature to only work on a whitelist of known safe types.</para>
+    /// could always limit the feature to only work on an allow list of known safe types.</para>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
 
             var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
-            // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property, 
+            // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property,
             // or the syntax allows for the slice method to be run
             if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && IsWriteableIndexer(invocation, indexer))
             {

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
@@ -27,8 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService)
-            : base(languageServerProtocol, workspace, diagnosticService, diagnosticsClientName: null)
+            IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, diagnosticsClientName: null)
         {
         }
 

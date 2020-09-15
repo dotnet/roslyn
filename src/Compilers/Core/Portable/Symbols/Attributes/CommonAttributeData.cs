@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -142,8 +140,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the value of a constructor argument as type <typeparamref name="T"/>.
         /// Throws if no constructor argument exists or the argument cannot be converted to the type.
         /// </summary>
-        [return: MaybeNull]
-        internal T GetConstructorArgument<T>(int i, SpecialType specialType)
+        internal T? GetConstructorArgument<T>(int i, SpecialType specialType)
         {
             var constructorArgs = this.CommonConstructorArguments;
             return constructorArgs[i].DecodeValue<T>(specialType);
@@ -161,14 +158,12 @@ namespace Microsoft.CodeAnalysis
         /// For user defined attributes VB allows duplicate named arguments and uses the last value.
         /// Dev11 reports an error for pseudo-custom attributes when emitting metadata. We don't.
         /// </remarks>
-        [return: MaybeNull]
-        internal T DecodeNamedArgument<T>(string name, SpecialType specialType, T defaultValue = default)
+        internal T? DecodeNamedArgument<T>(string name, SpecialType specialType, T? defaultValue = default)
         {
             return DecodeNamedArgument<T>(CommonNamedArguments, name, specialType, defaultValue);
         }
 
-        [return: MaybeNull]
-        private static T DecodeNamedArgument<T>(ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, string name, SpecialType specialType, T defaultValue = default)
+        private static T? DecodeNamedArgument<T>(ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, string name, SpecialType specialType, T? defaultValue = default)
         {
             int index = IndexOfNamedArgument(namedArguments, name);
             return index >= 0 ? namedArguments[index].Value.DecodeValue<T>(specialType) : defaultValue;

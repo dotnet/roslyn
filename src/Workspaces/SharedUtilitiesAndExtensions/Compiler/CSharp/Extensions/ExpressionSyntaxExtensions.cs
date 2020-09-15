@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,9 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 
-        public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
-            => (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression) ||
-               IsMemberBindingExpressionName(expression);
+        public static bool IsSimpleMemberAccessExpressionName(this ExpressionSyntax expression)
+            => expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression;
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsMemberBindingExpressionName();
         }
 
-        private static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
+        public static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding) &&
                memberBinding.Name == expression;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.AliasQualifiedName, out AliasQualifiedNameSyntax aliasName) && aliasName.Name == expression;
 
         public static bool IsRightSideOfDot(this ExpressionSyntax name)
-            => IsMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
+            => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
         public static bool IsRightSideOfDotOrArrow(this ExpressionSyntax name)
             => IsAnyMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsRightSideOfDotOrColonColon(this ExpressionSyntax name)
             => IsRightSideOfDot(name) || IsRightSideOfColonColon(name);
 
-        public static bool IsRightSideOfDotOrArrowOrColonColon(this ExpressionSyntax name)
+        public static bool IsRightSideOfDotOrArrowOrColonColon([NotNullWhen(true)] this ExpressionSyntax name)
             => IsRightSideOfDotOrArrow(name) || IsRightSideOfColonColon(name);
 
         public static bool IsRightOfCloseParen(this ExpressionSyntax expression)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // note: the above list is not intended to be exhaustive.  If more cases
-            // are discovered that should be considered 'constant' contexts in the 
+            // are discovered that should be considered 'constant' contexts in the
             // language, then this should be updated accordingly.
             return false;
         }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
         /// If found, returns either an assignment expression or a foreach variable statement.
         /// Returns null otherwise.
-        /// 
+        ///
         /// copied from SyntaxExtensions.GetContainingDeconstruction
         /// </summary>
         private static bool IsExpressionOfArgumentInDeconstruction(ExpressionSyntax expr)
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool CanReplaceWithRValue(
             this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // An RValue can't be written into. 
+            // An RValue can't be written into.
             // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // case (2) : obj?.GetAnotherObj()?.Length, obj?.AnotherObj?.Length
             // in case (1), the entire expression forms the conditional access expression, which can be replaced with an LValue.
             // in case (2), the nested conditional access expression is ".GetAnotherObj()?.Length" or ".AnotherObj()?.Length"
-            // essentially, the first expression (before the operator) in a nested conditional access expression 
+            // essentially, the first expression (before the operator) in a nested conditional access expression
             // is some form of member binding expression and they cannot be replaced with an LValue.
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // for the given expression, unless it is itself a MemberBindingExpression or starts with one.
                 // Case (1) : The WhenNotNull clause always starts with a MemberBindingExpression.
                 //              expression '.Method()' in a?.Method()
-                // Case (2) : The Expression clause always starts with a MemberBindingExpression if 
+                // Case (2) : The Expression clause always starts with a MemberBindingExpression if
                 // the grandparent is a conditional access expression.
                 //              expression '.Method' in a?.Method()?.Length
                 // Case (3) : The child Conditional access expression always starts with a MemberBindingExpression if

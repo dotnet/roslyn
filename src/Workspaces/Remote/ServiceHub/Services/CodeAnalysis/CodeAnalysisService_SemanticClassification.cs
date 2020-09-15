@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
                         document, span, temp, cancellationToken).ConfigureAwait(false);
 
-                    return SerializableClassifiedSpans.Dehydrate(temp);
+                    return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
                 }
             }, cancellationToken);
         }

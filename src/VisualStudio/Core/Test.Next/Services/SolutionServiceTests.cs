@@ -492,10 +492,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = 0;
-            var storage = new AssetStorage();
-            storage.Initialize(new SimpleAssetSource(map));
+            var storage = new SolutionAssetCache();
+            var assetSource = new SimpleAssetSource(map);
 
-            return new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());
+            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
         }
 
         private class TestAnalyzerProvider : IIncrementalAnalyzerProvider

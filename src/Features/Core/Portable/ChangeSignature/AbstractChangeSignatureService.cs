@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     newRoot,
                     changeSignatureFormattingAnnotation,
                     doc.Project.Solution.Workspace,
-                    options: null,
+                    options: doc.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken),
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
 

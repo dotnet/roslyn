@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Bail out on extension method invocations in conditional access expression.
                 // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
                 // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
-                if (originalMemberAccess.GetParentConditionalAccessExpression() == null)
+                if (originalMemberAccess.GetRootConditionalAccessExpression() == null)
                 {
                     var speculationPosition = originalNode.SpanStart;
                     var expression = RewriteExtensionMethodInvocation(speculationPosition, rewrittenNode, thisExpression, reducedExtensionMethod);

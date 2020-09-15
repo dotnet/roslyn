@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 return false;
             }
 
-            if (!syntaxFacts.IsNameOfMemberAccessExpression(node))
+            if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(node) &&
+                !syntaxFacts.IsNameOfMemberBindingExpression(node))
             {
                 return false;
             }
