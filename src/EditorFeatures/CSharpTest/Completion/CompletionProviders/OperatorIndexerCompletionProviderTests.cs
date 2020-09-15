@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -176,6 +178,44 @@ public class Program
         [InlineData("((C)c).$$", "((float)((C)c)).$$")]
         [InlineData("(true ? c : c).$$", "((float)(true ? c : c)).$$")]
         public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvcations(string invocation, string fixedCode)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static explicit operator float(C c) => 0;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {invocation}
+    }}
+}}
+", "(float)", @$"
+public class C
+{{
+    public static explicit operator float(C c) => 0;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {fixedCode}
+    }}
+}}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("/* Leading */c.$$", "/* Leading */((float)c).$$")]
+        [InlineData("c.  $$", "((float)c).  $$")]
+        [InlineData("(true ? /* Inline */ c : c).$$", "((float)(true ? /* Inline */ c : c)).$$")]
+        public async Task ExplicitUserDefinedConversionTriviaHandling(string invocation, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
 public class C
