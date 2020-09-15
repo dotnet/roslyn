@@ -79,7 +79,6 @@ public class Program
         [InlineData("c?.$$", true)]
         [InlineData("((C)c).$$", true)]
         [InlineData("(true ? c : c).$$", true)]
-        
         public async Task ExplicitUserDefinedConversionDifferentInvocations(string invocation, bool shouldSuggestConversion)
         {
             Func<string, string, Task> verifyFunc = shouldSuggestConversion
@@ -103,5 +102,39 @@ public class Program
 ", "(float)");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionIsApplied()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", "(float)", @"
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        ((float)c).$$
+    }
+}
+");
+        }
     }
 }
