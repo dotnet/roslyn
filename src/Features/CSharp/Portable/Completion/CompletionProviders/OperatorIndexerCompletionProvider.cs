@@ -36,9 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        private static readonly ImmutableHashSet<char> s_triggerCharactersHashSet = ImmutableHashSet.Create('.');
+        private const string CompletionHandlerPropertyname = "CompletionHandler";
+        private const string CompletionHandlerConversion = "Conversion";
 
-        internal override ImmutableHashSet<char> TriggerCharacters => s_triggerCharactersHashSet;
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
@@ -48,6 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+
+        private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            builder.Add(CompletionHandlerPropertyname, operation);
+            return builder.ToImmutable();
+        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -67,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
                         if (container is { })
                         {
-                            var allMembers = container?.GetMembers();
+                            var allMembers = container.GetMembers();
                             var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
                                                          where
                                                             m.IsConversion() && // MethodKind.Conversion
@@ -78,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                                              symbols: ImmutableList.Create(m),
                                                              rules: CompletionItemRules.Default,
                                                              contextPosition: position,
-                                                             properties: ImmutableDictionary<string, string>.Empty.Add("IsConversion", "true"));
+                                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion));
                             context.AddItems(allExplicitConversions);
                         }
                     }
@@ -99,9 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
-            if (item.Properties.TryGetValue("IsConversion", out var value) && value == "true")
+            if (item.Properties.TryGetValue(CompletionHandlerPropertyname, out var value))
             {
-                var completionChange = await HandleConversionChangeAsync(document, item, completionListSpan, cancellationToken).ConfigureAwait(false);
+                var completionChange = value switch
+                {
+                    CompletionHandlerConversion => await HandleConversionChangeAsync(document, item, completionListSpan, cancellationToken).ConfigureAwait(false),
+                    _ => null,
+                };
                 if (completionChange is { })
                 {
                     return completionChange;
