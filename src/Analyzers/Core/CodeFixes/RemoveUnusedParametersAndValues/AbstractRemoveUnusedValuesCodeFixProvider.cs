@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
                 {
-                    var orderedDiagnostics = diagnosticsToFix.OrderByDescending(d => GetDepthOfLocation(d.Location, root));
+                    var orderedDiagnostics = diagnosticsToFix.OrderByDescending(d => d.Location.SourceSpan.Start);
                     var containingMemberDeclaration = diagnosticsToFix.Key;
                     using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
 
@@ -316,19 +316,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 originalEditor.ReplaceNode(originalEditor.OriginalRoot, editor.GetChangedRoot());
             }
-        }
-
-        private static int GetDepthOfLocation(Location location, SyntaxNode root)
-        {
-            var node = root.FindNode(location.SourceSpan);
-            int depth = 0;
-            while (node != null && node != root)
-            {
-                depth += 1;
-                node = node.Parent;
-            }
-
-            return depth;
         }
 
         private async Task FixAllAsync(
