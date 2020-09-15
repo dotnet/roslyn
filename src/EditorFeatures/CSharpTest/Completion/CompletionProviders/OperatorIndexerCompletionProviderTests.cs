@@ -104,6 +104,54 @@ public class Program
 ", "(float)");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("", "(Nested1.C)", "(Nested2.C)")]
+        [InlineData("using N1.Nested1;", "(C)", "(Nested2.C)")]
+        [InlineData("using N1.Nested2;", "(C)", "(Nested1.C)")]
+        [InlineData("using N1.Nested1;using N1.Nested2;", "(Nested1.C)", "(Nested2.C)")]
+        public async Task ExplicitUserDefinedConversionTypeDisplayStringIsMinimal(string usingDirective, string displayText1, string displayText2)
+        {
+            var items = await GetCompletionItemsAsync(@$"
+namespace N1.Nested1
+{{
+    public class C
+    {{
+    }}
+}}
+
+namespace N1.Nested2
+{{
+    public class C
+    {{
+    }}
+}}
+namespace N2
+{{
+    public class Conversion
+    {{
+        public static explicit operator N1.Nested1.C(Conversion _) => new N1.Nested1.C();
+        public static explicit operator N1.Nested2.C(Conversion _) => new N1.Nested2.C();
+    }}
+}}
+namespace N1
+{{
+    {usingDirective}
+    public class Test
+    {{
+        public void M()
+        {{
+            var conversion = new N2.Conversion();
+            conversion.$$
+        }}
+    }}
+}}
+", SourceCodeKind.Regular);
+            Assert.Collection(items,
+                i => Assert.Equal(displayText1, i.DisplayText),
+                i => Assert.Equal(displayText2, i.DisplayText));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
 
