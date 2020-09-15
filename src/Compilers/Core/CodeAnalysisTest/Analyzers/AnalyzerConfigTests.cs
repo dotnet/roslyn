@@ -2101,6 +2101,38 @@ option2 = config3
             Assert.Empty(globalOptions.TreeOptions);
         }
 
+        [Theory]
+        [InlineData("c:/path/to/file.cs", true)]
+        [InlineData("/path/to/file.cs", true)]
+        [InlineData("file.cs", false)]
+        [InlineData("../file.cs", false)]
+        [InlineData("**", false)]
+        [InlineData("*.cs", false)]
+        [InlineData("?abc.cs", false)]
+        [InlineData("/path/to/**", false)]
+        [InlineData("/path/[a]/to/*.cs", false)]
+        public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+[{sectionName}]
+", "/.editorconfig"));
+
+            _ = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            if (isValid)
+            {
+                diagnostics.Verify();
+            }
+            else
+            {
+                diagnostics.Verify(
+                    Diagnostic("InvalidGlobalSectionName", isSuppressed: false).WithArguments(sectionName, "/.editorconfig").WithLocation(1, 1)
+                    );
+            }
+        }
 
         #endregion
     }

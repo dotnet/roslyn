@@ -714,4 +714,11 @@
   <data name="AssemblyReferencesNetFramework" xml:space="preserve">
     <value>The assembly containing type '{0}' references .NET Framework, which is not supported.</value>
   </data>
+  <data name="WRN_InvalidGlobalSectionName" xml:space="preserve">
+    <value>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</value>
+    <comment>{0}: invalid section name, {1} path to global config</comment>
+  </data>
+  <data name="WRN_InvalidGlobalSectionName_Title" xml:space="preserve">
+    <value>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</value>
+  </data>
 </root>
