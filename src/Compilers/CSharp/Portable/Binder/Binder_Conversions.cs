@@ -66,14 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)destination != null);
             RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
-            if (syntax is ObjectCreationExpressionSyntax objectCreationSyntax && source.Type is object)
+            if (source is BoundDelegateCreationExpression delegateCreationExpression &&
+                delegateCreationExpression.MethodOpt is not null)
             {
-                var arguments = objectCreationSyntax.ArgumentList?.Arguments;
-                if (arguments.HasValue && arguments.Value.Count > 0 && arguments.Value[0].Expression is not null)
-                {
-                    ReportDiagnosticsIfObsolete(diagnostics, source.Type, arguments.Value[0].Expression, false);
-                }
+                ReportDiagnosticsIfObsolete(diagnostics, delegateCreationExpression.MethodOpt, delegateCreationExpression.Argument.Syntax, hasBaseReceiver: false);
             }
+
             if (conversion.IsIdentity)
             {
                 if (source is BoundTupleLiteral sourceTuple)
