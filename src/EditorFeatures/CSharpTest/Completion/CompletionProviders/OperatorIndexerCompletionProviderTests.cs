@@ -102,6 +102,36 @@ public class Program
 ", "(float)");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+
+        public async Task ExplicitUserDefinedConversionIsSuggestedForAllExplicitConversionsToOtherTypesAndNotForImplicitConversions()
+        {
+            var items = await GetCompletionItemsAsync(@"
+public class C
+{
+    public static explicit operator float(C c) => 0;
+    public static explicit operator int(C c) => 0;
+    
+    public static explicit operator C(float f) => new C();
+    public static implicit operator C(string s) => new C();
+    public static implicit operator string(C c) => "";
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", SourceCodeKind.Regular);
+            Assert.Collection(items,
+                i => Assert.Equal("(float)", i.DisplayText),
+                i => Assert.Equal("(int)", i.DisplayText));
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsApplied()
@@ -134,6 +164,47 @@ public class Program
         ((float)c).$$
     }
 }
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("c.$$", "((float)c).$$")]
+        [InlineData("c.$$;", "((float)c).$$;")]
+        [InlineData("var f = c.$$;", "var f = ((float)c).$$;")]
+        [InlineData("c?.$$", "((float)c)?.$$")]
+        [InlineData("((C)c).$$", "((float)((C)c)).$$")]
+        [InlineData("(true ? c : c).$$", "((float)(true ? c : c)).$$")]
+        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvcations(string invocation, string fixedCode)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static explicit operator float(C c) => 0;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {invocation}
+    }}
+}}
+", "(float)", @$"
+public class C
+{{
+    public static explicit operator float(C c) => 0;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {fixedCode}
+    }}
+}}
 ");
         }
     }
