@@ -1511,8 +1511,8 @@ class C
                 testHost,
                 ParseOptions(Options.Regular),
                 Class("C"),
-                Static("M"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Theory]
@@ -1811,8 +1811,8 @@ namespace MyNameSpace
                 Namespace("MyNameSpace"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("method"),
                 Method("method"),
+                Static("method"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
                 Event("myEvent"),
@@ -1822,12 +1822,12 @@ namespace MyNameSpace
                 Struct("MyStruct"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("MyProp"),
                 Property("MyProp"),
+                Static("MyProp"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("myField"),
                 Field("myField"),
+                Static("myField"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
                 Delegate("MyDelegate"),
@@ -4054,8 +4054,8 @@ class X
 }",
             testHost,
             Keyword("var"),
-            Static("Parse"),
-            Method("Parse"));
+            Method("Parse"),
+            Static("Parse"));
         }
 
         [Theory]
@@ -4087,8 +4087,8 @@ class X
 }",
             testHost,
             Keyword("_"),
-            Static("Parse"),
-            Method("Parse"));
+            Method("Parse"),
+            Static("Parse"));
         }
 
         [Theory]
