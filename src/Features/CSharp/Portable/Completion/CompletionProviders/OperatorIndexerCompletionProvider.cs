@@ -55,27 +55,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (token.IsKind(SyntaxKind.DotToken))
+            if (syntaxTree is { })
             {
-                var expression = GetExpressionOfInvocation(token);
-                if (expression != null)
+                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                if (token.IsKind(SyntaxKind.DotToken))
                 {
-                    var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                    var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                    var allMembers = container.GetMembers();
-                    var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
-                                                 where
-                                                    m.IsConversion() && // MethodKind.Conversion
-                                                    m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
-                                                    m.Parameters[0].Type == container // Convert from container type to other type
-                                                 select SymbolCompletionItem.CreateWithSymbolId(
-                                                     displayText: $"({m.ReturnType.ToNameDisplayString()})", // The type to convert to
-                                                     symbols: ImmutableList.Create(m),
-                                                     rules: CompletionItemRules.Default,
-                                                     contextPosition: position,
-                                                     properties: ImmutableDictionary<string, string>.Empty.Add("IsConversion", "true"));
-                    context.AddItems(allExplicitConversions);
+                    var expression = GetExpressionOfInvocation(token);
+                    if (expression is { })
+                    {
+                        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                        var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                        if (container is { })
+                        {
+                            var allMembers = container?.GetMembers();
+                            var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
+                                                         where
+                                                            m.IsConversion() && // MethodKind.Conversion
+                                                            m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
+                                                            m.Parameters[0].Type == container // Convert from container type to other type
+                                                         select SymbolCompletionItem.CreateWithSymbolId(
+                                                             displayText: $"({m.ReturnType.ToMinimalDisplayString(semanticModel, position)})", // The type to convert to
+                                                             symbols: ImmutableList.Create(m),
+                                                             rules: CompletionItemRules.Default,
+                                                             contextPosition: position,
+                                                             properties: ImmutableDictionary<string, string>.Empty.Add("IsConversion", "true"));
+                            context.AddItems(allExplicitConversions);
+                        }
+                    }
                 }
             }
         }
@@ -105,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
+        private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
@@ -114,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(position);
             var expression = GetExpressionOfInvocation(token);
-            if (expression != null)
+            if (expression is { })
             {
                 var startPosition = completionListSpan.Start;
                 var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(startPosition, cancellationToken).ConfigureAwait(false), startPosition);
