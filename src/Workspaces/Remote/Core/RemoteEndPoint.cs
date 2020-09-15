@@ -58,9 +58,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var jsonFormatter = new JsonMessageFormatter();
 
-            // disable interpreting of strings as DateTime during deserialization:
-            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
-
             if (jsonConverters != null)
             {
                 jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters);

@@ -4053,5 +4053,169 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestWithUnsafe_Field()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+@"class C
+{
+    private unsafe int* x;
+
+    public unsafe C(int* x)
+    {
+        this.x = x;
+    }
+
+    unsafe void M(int* x)
+    {
+        new C(x);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestWithUnsafe_Property()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+@"class C
+{
+    public unsafe C(int* x)
+    {
+        X = x;
+    }
+
+    public unsafe int* X { get; }
+
+    unsafe void M(int* x)
+    {
+        new C(x);
+    }
+}", index: 1);
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithUnsafeInUnsafeClass_Field()
+        {
+            await TestInRegularAndScriptAsync(
+@"unsafe class C
+{
+    void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+@"unsafe class C
+{
+    private int* x;
+
+    public C(int* x)
+    {
+        this.x = x;
+    }
+
+    void M(int* x)
+    {
+        new C(x);
+    }
+}");
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithUnsafeInUnsafeClass_Property()
+        {
+            await TestInRegularAndScriptAsync(
+    @"unsafe class C
+{
+    void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+    @"unsafe class C
+{
+    public C(int* x)
+    {
+        X = x;
+    }
+
+    public int* X { get; }
+
+    void M(int* x)
+    {
+        new C(x);
+    }
+}", index: 1);
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestUnsafeDelegateConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    public unsafe A(int* a) { }
+
+    public unsafe A(int* a, int b, int c) : [|this(a, b)|] { }
+}",
+@"class A
+{
+    private int b;
+
+    public unsafe A(int* a) { }
+
+    public unsafe A(int* a, int b) : this(a)
+    {
+        this.b = b;
+    }
+
+    public unsafe A(int* a, int b, int c) : this(a, b) { }
+}");
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestUnsafeDelegateConstructorInUnsafeClass()
+        {
+            await TestInRegularAndScriptAsync(
+ @"unsafe class A
+{
+    public A(int* a) { }
+
+    public A(int* a, int b, int c) : [|this(a, b)|] { }
+}",
+ @"unsafe class A
+{
+    private int b;
+
+    public A(int* a) { }
+
+    public A(int* a, int b) : this(a)
+    {
+        this.b = b;
+    }
+
+    public A(int* a, int b, int c) : this(a, b) { }
+}");
+        }
     }
 }

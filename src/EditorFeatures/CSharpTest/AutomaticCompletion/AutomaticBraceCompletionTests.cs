@@ -406,6 +406,47 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        public void WithExpression()
+        {
+            var code = @"
+record C
+{
+    void M()
+    {
+        _ = this with $$
+    }
+}";
+
+            var expectedBeforeReturn = @"
+record C
+{
+    void M()
+    {
+        _ = this with { }
+    }
+}";
+
+            var expectedAfterReturn = @"
+record C
+{
+    void M()
+    {
+        _ = this with
+        {
+
+        }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void RecursivePattern()
         {
             var code = @"
