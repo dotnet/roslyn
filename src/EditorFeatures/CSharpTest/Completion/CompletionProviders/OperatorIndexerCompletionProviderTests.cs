@@ -376,7 +376,7 @@ public class Program
         c[$$
     }
 }
-"");
+");
         }
     }
 }
