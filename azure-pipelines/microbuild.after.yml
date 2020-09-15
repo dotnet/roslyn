@@ -23,5 +23,5 @@ steps:
       /repoName:$(Build.Repository.Name)
       /additionalCodexArguments:-bld
       /additionalCodexArguments:$(Build.ArtifactStagingDirectory)/build_logs
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
   continueOnError: true

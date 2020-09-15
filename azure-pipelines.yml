@@ -20,5 +20,3 @@ variables:
 
 jobs:
 - template: azure-pipelines/build.yml
-  parameters:
-    SignType:

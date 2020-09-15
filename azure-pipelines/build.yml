@@ -2,7 +2,6 @@ parameters:
 - name: windowsPool
   type: string
   default: Hosted Windows 2019 with VS2019
-- name: SignType
 
 jobs:
 - job: Windows
@@ -17,8 +16,6 @@ jobs:
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.before.yml
-      parameters:
-        SignType: ${{ parameters.SignType }}
 
   - template: dotnet.yml
 
