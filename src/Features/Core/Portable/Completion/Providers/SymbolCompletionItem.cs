@@ -69,19 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             item = item
                 .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
                 .AddProperty("SymbolName", symbol.Name);
-            if (symbol.IsConversion())
-            {
-                item = item.AddProperty("IsConversion", "true");
-                item = AddSymbolEncoding(symbols, item);
-            }
-            if (symbol.IsIndexer())
-            {
-                item = item.AddProperty("IsIndexer", "true");
-            }
-            if (symbol.IsUserDefinedOperator())
-            {
-                item = item.AddProperty("IsUserDefinedOperator", "true");
-            }
+
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
