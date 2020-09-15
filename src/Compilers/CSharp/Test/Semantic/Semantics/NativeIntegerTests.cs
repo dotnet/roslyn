@@ -12232,54 +12232,114 @@ System.OverflowException
 $@"using System;
 unsafe class Program
 {{
-    static {pointerType} F1(nint i) => ({pointerType})i;
-    static {pointerType} F2(nuint u) => ({pointerType})u;
-    static nint F3({pointerType} p) => (nint)p;
-    static nuint F4({pointerType} p) => (nuint)p;
+    static {pointerType} ToPointer1(nint i) => ({pointerType})i;
+    static {pointerType} ToPointer2(nuint u) => ({pointerType})u;
+    static {pointerType} ToPointer3(nint i) => checked(({pointerType})i);
+    static {pointerType} ToPointer4(nuint u) => checked(({pointerType})u);
+    static nint FromPointer1({pointerType} p) => (nint)p;
+    static nuint FromPointer2({pointerType} p) => (nuint)p;
+    static nint FromPointer3({pointerType} p) => checked((nint)p);
+    static nuint FromPointer4({pointerType} p) => checked((nuint)p);
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Execute({pointerType} p)
+    {{
+        Console.WriteLine((int)p);
+        Console.WriteLine(Execute(() => FromPointer1(p)));
+        Console.WriteLine(Execute(() => FromPointer2(p)));
+        Console.WriteLine(Execute(() => FromPointer3(p)));
+        Console.WriteLine(Execute(() => FromPointer4(p)));
+    }}
     static void Main()
     {{
-        {pointerType} p;
-        p = F1(-42);
-        Console.WriteLine((int)p);
-        Console.WriteLine(F3(p));
-        p = F2(42);
-        Console.WriteLine((int)p);
-        Console.WriteLine(F4(p));
+        Execute(ToPointer1(-42));
+        Execute(ToPointer2(42));
+        Console.WriteLine(Execute(() => (ulong)ToPointer3(-42)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer4(42)));
     }}
 }}";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            string negativeValue = IntPtr.Size == 4 ? "4294967254" : "18446744073709551574";
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
-@"-42
+$@"-42
 -42
+{negativeValue}
+System.OverflowException
+{negativeValue}
 42
+42
+42
+42
+42
+System.OverflowException
 42");
-            verifier.VerifyIL("Program.F1",
+            verifier.VerifyIL("Program.ToPointer1",
 @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            verifier.VerifyIL("Program.F2",
+            verifier.VerifyIL("Program.ToPointer2",
 @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            verifier.VerifyIL("Program.F3",
+            verifier.VerifyIL("Program.ToPointer3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer4",
 @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            verifier.VerifyIL("Program.F4",
+            verifier.VerifyIL("Program.FromPointer1",
 @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer2",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer4",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u.un
+  IL_0002:  ret
 }");
         }
     }
