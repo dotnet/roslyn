@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private const string CompletionHandlerPropertyname = "CompletionHandler";
         private const string CompletionHandlerConversion = "Conversion";
+        private const string CompletionHandlerIndexer = "Indexer";
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -87,7 +88,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                                              rules: CompletionItemRules.Default,
                                                              contextPosition: position,
                                                              properties: CreateCompletionHandlerProperty(CompletionHandlerConversion));
-                            context.AddItems(allExplicitConversions);
+                            var indexer = from p in allMembers.OfType<IPropertySymbol>()
+                                          where p.IsIndexer
+                                          select SymbolCompletionItem.CreateWithSymbolId(
+                                              displayText: $"[{string.Join(",", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
+                                              symbols: ImmutableList.Create(p),
+                                              rules: CompletionItemRules.Default,
+                                              contextPosition: position,
+                                              properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
+                            context.AddItems(allExplicitConversions.Union(indexer));
                         }
                     }
                 }
@@ -111,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var completionChange = value switch
                 {
-                    CompletionHandlerConversion => await HandleConversionChangeAsync(document, item, completionListSpan, cancellationToken).ConfigureAwait(false),
+                    CompletionHandlerConversion => await HandleConversionChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
+                    CompletionHandlerIndexer => await HandleIndexerChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
                     _ => null,
                 };
                 if (completionChange is { })
@@ -123,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
+        private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
@@ -134,8 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var expression = GetExpressionOfInvocation(token);
             if (expression is { })
             {
-                var startPosition = completionListSpan.Start;
-                var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(startPosition, cancellationToken).ConfigureAwait(false), startPosition);
+                var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false), expression.SpanStart);
 
                 // expr. -> ((type)expr).
                 var newNode =
@@ -146,6 +155,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var textChange = new TextChange(expressionSpan, newNodeText);
                 var newPosition = position + (newNodeText.Length - expressionSpan.Length);
                 return CompletionChange.Create(textChange, newPosition);
+            }
+
+            return null;
+        }
+
+        private static async Task<CompletionChange?> HandleIndexerChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var position = SymbolCompletionItem.GetContextPosition(item);
+            var token = root.FindTokenOnLeftOfPosition(position);
+            if (token.IsKind(SyntaxKind.DotToken))
+            {
+                return CompletionChange.Create(new TextChange(token.Span, "["), newPosition: position);
             }
 
             return null;
