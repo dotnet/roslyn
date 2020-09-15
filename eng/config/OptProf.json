@@ -497,7 +497,6 @@
             "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
-            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
             "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment",
             "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing",
             "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug"
