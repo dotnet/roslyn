@@ -317,5 +317,66 @@ public class Program
 }}
 ");
         }
+
+        // 
+        // Indexer
+        //
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+
+        public async Task IndexerIsSuggestedAfterDot()
+        {
+            await VerifyItemExistsAsync(@"
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", "[int]");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerIsChanged()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", "[int]", @"
+public class C
+{
+    public int this[int i] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c[$$
+    }
+}
+"");
+        }
     }
 }
