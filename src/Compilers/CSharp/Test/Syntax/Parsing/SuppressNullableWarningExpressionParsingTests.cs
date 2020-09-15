@@ -306,6 +306,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
+        public void ConditionalAccess_03()
+        {
+            UsingNode("x?.y!?.z.ToString()");
+
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.SuppressNullableWarningExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.MemberBindingExpression);
+                            {
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "z");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ToString");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_04()
+        {
+            UsingNode("x?.y?!.z.ToString()", options: null,
+                // (1,7): error CS1525: Invalid expression term '.'
+                // x?.y?!.z.ToString()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".", isSuppressed: false).WithArguments(".").WithLocation(1, 7),
+                // (1,20): error CS1003: Syntax error, ':' expected
+                // x?.y?!.z.ToString()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 20),
+                // (1,20): error CS1733: Expected expression
+                // x?.y?!.z.ToString()
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 20));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.MemberBindingExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.LogicalNotExpression);
+                {
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "z");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ToString");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void ConditionalAccess_ElementAccess()
         {
             UsingNode("x?.y![1].z.ToString()");
