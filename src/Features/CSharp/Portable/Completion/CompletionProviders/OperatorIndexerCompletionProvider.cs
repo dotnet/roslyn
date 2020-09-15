@@ -1,7 +1,14 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -51,13 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                var parent = token.Parent;
-                var expression = parent switch
-                {
-                    MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
-                    MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccess } _ => conditionalAccess.Expression,
-                    _ => null,
-                };
+                var expression = GetExpressionOfInvocation(token);
                 if (expression != null)
                 {
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
@@ -79,6 +80,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
+        private static ExpressionSyntax? GetExpressionOfInvocation(SyntaxToken dotToken)
+        {
+            Debug.Assert(dotToken.IsKind(SyntaxKind.DotToken));
+            return dotToken.Parent switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
+                MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccess } _ => conditionalAccess.Expression,
+                _ => null,
+            };
+        }
+
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
             if (item.Properties.TryGetValue("IsConversion", out var value) && value == "true")
@@ -93,25 +105,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CompletionChange> HandleConversionChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
+        private async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
             var symbol = symbols.Single() as IMethodSymbol;
-            var convertToType = symbol.ReturnType;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var convertToType = symbol!.ReturnType;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(position);
-            var syntax = token.Parent;
-            var startPosition = completionListSpan.Start;
-            var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(startPosition, cancellationToken).ConfigureAwait(false), startPosition);
-            if (syntax is MemberAccessExpressionSyntax memberAccess)
+            var expression = GetExpressionOfInvocation(token);
+            if (expression != null)
             {
+                var startPosition = completionListSpan.Start;
+                var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(startPosition, cancellationToken).ConfigureAwait(false), startPosition);
+
                 // expr. -> ((type)expr).
                 var newNode =
                     ParenthesizedExpression(
-                        CastExpression(IdentifierName(typeName), memberAccess.Expression.WithoutTrivia()));
+                        CastExpression(IdentifierName(typeName), expression.WithoutTrivia()));
                 var newNodeText = newNode.ToFullString();
-                var expressionSpan = memberAccess.Expression.Span;
+                var expressionSpan = expression.Span;
                 var textChange = new TextChange(expressionSpan, newNodeText);
                 var newPosition = position + (newNodeText.Length - expressionSpan.Length);
                 return CompletionChange.Create(textChange, newPosition);
