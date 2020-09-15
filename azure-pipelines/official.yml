@@ -39,7 +39,7 @@ stages:
   condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
   jobs:
   - job: archive
-    pool: VSEng-ReleasePool
+    pool: VSEng-RMPool
     steps:
     - download: current
       artifact: Variables-Windows
