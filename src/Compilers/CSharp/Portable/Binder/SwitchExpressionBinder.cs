@@ -98,9 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
                 {
-                    bool unnamedEnumValue = false;
                     var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
-                        BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false, out bool requiresFalseWhenClause, ref unnamedEnumValue);
+                        BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false, out bool requiresFalseWhenClause, out bool unnamedEnumValue);
                     ErrorCode warningCode =
                         requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen :
                         unnamedEnumValue ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue :

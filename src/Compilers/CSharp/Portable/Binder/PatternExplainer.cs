@@ -107,8 +107,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDagNode targetNode,
             bool nullPaths,
             out bool requiresFalseWhenClause,
-            ref bool unnamedEnumValue)
+            out bool unnamedEnumValue)
         {
+            unnamedEnumValue = false;
+
             // Compute the path to the node, excluding the node itself.
             var pathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, out requiresFalseWhenClause);
 
