@@ -28,19 +28,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override object? GetOptions(CancellationToken cancellationToken)
             => AbstractChangeSignatureService.GetChangeSignatureOptions(_context);
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
             if (options is ChangeSignatureOptionsResult changeSignatureOptions && changeSignatureOptions != null)
             {
-                var changeSignatureResult = _changeSignatureService.ChangeSignatureWithContext(_context, changeSignatureOptions, cancellationToken);
+                var changeSignatureResult = await _changeSignatureService.ChangeSignatureWithContextAsync(_context, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
 
                 if (changeSignatureResult.Succeeded)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution!)));
+                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution!));
                 }
             }
 
-            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
         }
     }
 }
