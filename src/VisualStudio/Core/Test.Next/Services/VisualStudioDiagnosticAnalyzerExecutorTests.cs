@@ -98,7 +98,7 @@ End Class";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47720"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCancellation()
         {
             var code = @"class Test { void Method() { } }";
