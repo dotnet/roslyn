@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var expression = parent switch
                 {
                     MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
+                    MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccess } _ => conditionalAccess.Expression,
                     _ => null,
                 };
                 if (expression != null)
