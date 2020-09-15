@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
                 {
-                    var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
+                    var orderedDiagnostics = diagnosticsToFix.OrderByDescending(d => GetDepthOfLocation(d.Location, root));
                     var containingMemberDeclaration = diagnosticsToFix.Key;
                     using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
 
@@ -316,6 +316,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 originalEditor.ReplaceNode(originalEditor.OriginalRoot, editor.GetChangedRoot());
             }
+        }
+
+        private static int GetDepthOfLocation(Location location, SyntaxNode root)
+        {
+            var node = root.FindNode(location.SourceSpan);
+            int depth = 0;
+            while (node != null && node != root)
+            {
+                depth += 1;
+                node = node.Parent;
+            }
+
+            return depth;
         }
 
         private async Task FixAllAsync(
@@ -361,7 +374,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
             // based on the user's preference.
-
             foreach (var diagnostic in diagnostics)
             {
                 var expressionStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<TExpressionStatementSyntax>();
