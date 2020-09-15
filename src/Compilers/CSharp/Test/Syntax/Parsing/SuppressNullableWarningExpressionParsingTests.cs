@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void ConditionalAccess()
+        public void ConditionalAccess_01()
         {
             UsingNode(
                 "o!?.ToString()",
@@ -251,6 +251,364 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     }
                 }
             }
+        }
+
+        [Fact]
+        public void ConditionalAccess_02()
+        {
+            UsingNode("x?.y!.z.ToString()");
+
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.SuppressNullableWarningExpression);
+                            {
+                                N(SyntaxKind.MemberBindingExpression);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "z");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_ElementAccess()
+        {
+            UsingNode("x?.y![1].z.ToString()");
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.SuppressNullableWarningExpression);
+                                {
+                                    N(SyntaxKind.MemberBindingExpression);
+                                    {
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                    N(SyntaxKind.ExclamationToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "z");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_SuppressInvocation()
+        {
+            UsingNode("x?.y!(0)");
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SuppressNullableWarningExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_PostfixSuppression()
+        {
+            UsingNode("x?.y!");
+            N(SyntaxKind.SuppressNullableWarningExpression);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.MemberBindingExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.ExclamationToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_Suppression_LangVersion()
+        {
+            UsingNode("x?.y!.z", options: TestOptions.Regular7_3,
+                // (1,3): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ".y!", isSuppressed: false).WithArguments("nullable reference types", "8.0").WithLocation(1, 3));
+            verify();
+
+            UsingNode("x?.y!.z", options: TestOptions.Regular8);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.SuppressNullableWarningExpression);
+                        {
+                            N(SyntaxKind.MemberBindingExpression);
+                            {
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.ExclamationToken);
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "z");
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void ConditionalAccess_Repeated_01()
+        {
+            UsingNode("x?.y!!.z");
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.SuppressNullableWarningExpression);
+                    {
+                        N(SyntaxKind.SuppressNullableWarningExpression);
+                        {
+                            N(SyntaxKind.MemberBindingExpression);
+                            {
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.ExclamationToken);
+                        }
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_Repeated_02()
+        {
+            UsingNode("x?.y!!!!.z");
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.SuppressNullableWarningExpression);
+                    {
+                        N(SyntaxKind.SuppressNullableWarningExpression);
+                        {
+                            N(SyntaxKind.SuppressNullableWarningExpression);
+                            {
+                                N(SyntaxKind.SuppressNullableWarningExpression);
+                                {
+                                    N(SyntaxKind.MemberBindingExpression);
+                                    {
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                    N(SyntaxKind.ExclamationToken);
+                                }
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.ExclamationToken);
+                        }
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAccess_Repeated_03()
+        {
+            UsingNode("x?.y.z!!");
+            N(SyntaxKind.SuppressNullableWarningExpression);
+            {
+                N(SyntaxKind.SuppressNullableWarningExpression);
+                {
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.MemberBindingExpression);
+                            {
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "z");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ExclamationToken);
+                }
+                N(SyntaxKind.ExclamationToken);
+            }
+            EOF();
         }
     }
 }
