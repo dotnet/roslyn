@@ -12262,6 +12262,42 @@ class C : I
         }
 
         [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem(44358, "https://github.com/dotnet/roslyn/issues/44358")]
+        [Fact]
+        public void OverrideReturnTypeDifferences()
+        {
+            string source =
+@"class A
+{
+    public virtual nint[] F1() => null;
+    public virtual System.IntPtr[] F2() => null;
+    public virtual nint[] F3() => null;
+    public virtual System.IntPtr[] F4() => null;
+}
+class B : A
+{
+    public override System.IntPtr[] F1() => null;
+    public override nint[] F2() => null;
+    public override nint[] F3() => null;
+    public override System.IntPtr[] F4() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("nint[] A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] A.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("System.IntPtr[] B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint[] B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] B.F4()", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
         [Fact]
         public void OverrideParameterTypeCustomModifierDifferences()
         {
