@@ -12814,6 +12814,44 @@ dotnet_diagnostic.CS0164.severity = none;
             VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(bool useGlobalConfig)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var additionalFlags = new[] { "/warnaserror+" };
+            if (useGlobalConfig)
+            {
+                var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = warning;
+");
+                additionalFlags = additionalFlags.Append("/analyzerconfig:" + globalConfig.Path).ToArray();
+            }
+            else
+            {
+                string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""15.0"">
+  <Rules AnalyzerId=""Compiler"" RuleNamespace=""Compiler"">
+    <Rule Id=""CS0164"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+                _ = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+                additionalFlags = additionalFlags.Append("/ruleset:Rules.ruleset").ToArray();
+            }
+
+            VerifyOutput(dir, src, additionalFlags: additionalFlags, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
         [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
         public void GlobalAnalyzerConfigSectionsOverrideCommandLine()

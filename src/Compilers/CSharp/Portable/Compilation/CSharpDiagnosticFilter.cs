@@ -196,6 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // 4. Global analyzer config level
                 isSpecified = true;
+
+                // '/warnaserror' should promote warnings configured in global analyzer config to error.
+                if (report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error)
+                {
+                    report = ReportDiagnostic.Error;
+                }
             }
             else
             {
