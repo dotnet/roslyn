@@ -3074,5 +3074,35 @@ partial class C
                 //     public partial string? M12(); // 7
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
         }
+
+        [Fact]
+        public void PublicAPI()
+        {
+            var source = @"
+#nullable enable
+
+partial class C
+{
+    public partial string M1();
+    public partial string M1() => ""a"";
+
+    partial void M2();
+    partial void M2() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol());
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol());
+
+            void verifyPublicAPI(IMethodSymbol methodSymbol)
+            {
+                Assert.Null(methodSymbol.PartialDefinitionPart);
+                var m2Impl = methodSymbol.PartialImplementationPart;
+                Assert.NotNull(m2Impl);
+                Assert.NotEqual(m2Impl, methodSymbol);
+                Assert.Equal(m2Impl.ToTestDisplayString(includeNonNullable: false), methodSymbol.ToTestDisplayString(includeNonNullable: false));
+            }
+        }
     }
 }
