@@ -3095,14 +3095,19 @@ partial class C
             verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol());
             verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol());
 
-            void verifyPublicAPI(IMethodSymbol methodSymbol)
+            void verifyPublicAPI(IMethodSymbol defSymbol)
             {
-                Assert.Null(methodSymbol.PartialDefinitionPart);
-                var m2Impl = methodSymbol.PartialImplementationPart;
-                Assert.NotNull(m2Impl);
-                Assert.NotEqual(m2Impl, methodSymbol);
-                Assert.Equal(m2Impl.ToTestDisplayString(includeNonNullable: false), methodSymbol.ToTestDisplayString(includeNonNullable: false));
+                var implSymbol = defSymbol.PartialImplementationPart;
+                Assert.NotNull(implSymbol);
+                Assert.NotEqual(implSymbol, defSymbol);
+
+                Assert.Null(defSymbol.PartialDefinitionPart);
+                Assert.Null(implSymbol.PartialImplementationPart);
+
+                Assert.Equal(implSymbol.PartialDefinitionPart, defSymbol);
+                Assert.Equal(implSymbol.ToTestDisplayString(includeNonNullable: false), defSymbol.ToTestDisplayString(includeNonNullable: false));
             }
+        }
         }
     }
 }
