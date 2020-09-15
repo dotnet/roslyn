@@ -373,7 +373,7 @@ public class Program
     public void Main()
     {
         var c = new C();
-        c[$$
+        c[$$]
     }
 }
 ");

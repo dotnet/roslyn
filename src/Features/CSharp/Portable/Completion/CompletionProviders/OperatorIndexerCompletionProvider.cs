@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = root.FindTokenOnLeftOfPosition(position);
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                return CompletionChange.Create(new TextChange(token.Span, "["), newPosition: position);
+                return CompletionChange.Create(new TextChange(token.Span, "[]"), newPosition: position);
             }
 
             return null;
