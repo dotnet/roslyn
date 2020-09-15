@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Displays a value in the C# style.
     /// </summary>
     /// <remarks>
-    /// Separate from <see cref="Microsoft.CodeAnalysis.CSharp.SymbolDisplay"/> because we want to link this functionality into
+    /// Separate from <see cref="T:Microsoft.CodeAnalysis.CSharp.SymbolDisplay"/> because we want to link this functionality into
     /// the Formatter project and we don't want it to be public there.
     /// </remarks>
     /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay"/>
