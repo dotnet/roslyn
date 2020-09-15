@@ -182,6 +182,28 @@ public class Program
                 i => Assert.Equal("(int)", i.DisplayText));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+
+        public async Task ExplicitUserDefinedConversionFromOtherTypeToTargetIsNotSuggested()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static explicit operator C(float f) => new C();
+}
+
+public class Program
+{
+    public void Main()
+    {
+        float f = 1;
+        f.$$
+    }
+}
+");
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsApplied()
