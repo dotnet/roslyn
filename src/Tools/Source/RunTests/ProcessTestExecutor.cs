@@ -11,15 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using RunTests.Cache;
 
 namespace RunTests
 {
-    internal sealed class ProcessTestExecutor : ITestExecutor
+    internal sealed class ProcessTestExecutor
     {
         public TestExecutionOptions Options { get; }
-
-        public IDataStorage DataStorage => EmptyDataStorage.Instance;
 
         internal ProcessTestExecutor(TestExecutionOptions options)
         {
@@ -204,7 +201,6 @@ namespace RunTests
                     assemblyInfo,
                     testResultInfo,
                     commandLine,
-                    isFromCache: false,
                     processResults: ImmutableArray.CreateRange(processResultList));
             }
             catch (Exception ex)

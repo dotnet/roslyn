@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using RunTests.Cache;
 using RestSharp;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
@@ -104,7 +103,6 @@ namespace RunTests
             var start = DateTime.Now;
             var assemblyInfoList = GetAssemblyList(options);
 
-            ConsoleUtil.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
             ConsoleUtil.WriteLine($"Running {options.Assemblies.Count} test assemblies in {assemblyInfoList.Count} partitions");
 
@@ -116,11 +114,6 @@ namespace RunTests
             LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
-
-            if (CanUseWebStorage() && options.UseCachedResults)
-            {
-                await SendRunStats(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
-            }
 
             if (!result.Succeeded)
             {
@@ -327,17 +320,7 @@ namespace RunTests
             }
         }
 
-        private static bool CanUseWebStorage()
-        {
-            // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
-            // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-            // to try it out should feel free to opt into this.
-            return
-                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) ||
-                Constants.IsJenkinsRun;
-        }
-
-        private static ITestExecutor CreateTestExecutor(Options options)
+        private static ProcessTestExecutor CreateTestExecutor(Options options)
         {
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
@@ -348,67 +331,7 @@ namespace RunTests
                 useHtml: options.UseHtml,
                 test64: options.Test64,
                 testVsi: options.TestVsi);
-            var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
-            if (!options.UseCachedResults)
-            {
-                return processTestExecutor;
-            }
-
-            // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
-            // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-            // to try it out should feel free to opt into this.
-            IDataStorage dataStorage = new LocalDataStorage();
-            if (CanUseWebStorage())
-            {
-                dataStorage = new WebDataStorage();
-            }
-
-            return new CachingTestExecutor(processTestExecutor, dataStorage);
-        }
-
-        /// <summary>
-        /// Order the assembly list so that the largest assemblies come first.  This
-        /// is not ideal as the largest assembly does not necessarily take the most time.
-        /// </summary>
-        /// <param name="list"></param>
-        private static IOrderedEnumerable<string> OrderAssemblyList(IEnumerable<string> list)
-        {
-            return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
-        }
-
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
-        {
-            var testRunData = new TestRunData()
-            {
-                Cache = dataStorage.Name,
-                ElapsedSeconds = (int)elapsed.TotalSeconds,
-                JenkinsUrl = Constants.JenkinsUrl,
-                IsJenkins = Constants.IsJenkinsRun,
-                Is32Bit = !options.Test64,
-                AssemblyCount = options.Assemblies.Count,
-                ChunkCount = partitionCount,
-                CacheCount = result.CacheCount,
-                Succeeded = result.Succeeded,
-                HasErrors = Logger.HasErrors
-            };
-
-            var request = new RestRequest("api/testData/run", Method.POST);
-            request.RequestFormat = DataFormat.Json;
-            request.AddParameter("text/json", JsonConvert.SerializeObject(testRunData), ParameterType.RequestBody);
-
-            try
-            {
-                var client = new RestClient(Constants.DashboardUriString);
-                var response = await client.ExecuteTaskAsync(request, cancellationToken);
-                if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                {
-                    Logger.Log($"Unable to send results: {response.ErrorMessage}");
-                }
-            }
-            catch
-            {
-                Logger.Log("Unable to send results");
-            }
+            return new ProcessTestExecutor(testExecutionOptions);
         }
 
         /// <summary>
