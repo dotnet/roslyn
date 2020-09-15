@@ -111,8 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     ParenthesizedExpression(
                         CastExpression(IdentifierName(typeName), memberAccess.Expression.WithoutTrivia()));
                 var newNodeText = newNode.ToFullString();
-                var textChange = new TextChange(memberAccess.Expression.Span, newNodeText);
-                return CompletionChange.Create(textChange);
+                var expressionSpan = memberAccess.Expression.Span;
+                var textChange = new TextChange(expressionSpan, newNodeText);
+                var newPosition = position + (newNodeText.Length - expressionSpan.Length);
+                return CompletionChange.Create(textChange, newPosition);
             }
 
             return null;
