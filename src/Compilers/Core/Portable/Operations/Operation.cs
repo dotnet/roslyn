@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
                 // entirely is tracked by https://github.com/dotnet/roslyn/issues/35818. Until then, however, we've
                 // seen real world examples where bailing out of the entire set operation causes infinite loops when
                 // searching for a parent operation, so we only skip setting the parent for a single node at a time.
-                if ((operations[0] as Operation)?._parentDoNotAccessDirectly != s_unset)
+                if ((operation as Operation)?._parentDoNotAccessDirectly != s_unset)
                 {
                     continue;
                 }
