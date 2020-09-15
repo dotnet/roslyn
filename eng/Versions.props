@@ -110,13 +110,8 @@
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
-<<<<<<< HEAD
     <MicrosoftServiceHubClientVersion>2.7.7-alpha</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>2.7.7-alpha</MicrosoftServiceHubFrameworkVersion>
-=======
-    <MicrosoftServiceHubClientVersion>2.7.69-alpha</MicrosoftServiceHubClientVersion>
-    <MicrosoftServiceHubFrameworkVersion>2.7.69-alpha</MicrosoftServiceHubFrameworkVersion>
->>>>>>> upstream/master
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
