@@ -16854,7 +16854,7 @@ record B : A;
             comp.VerifyEmitDiagnostics(
                 // (2,8): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
                 // record A
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
                 //     public static bool Equals(A x) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24),
