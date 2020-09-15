@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             public ImmutableDictionary<string, string> ParameterToNewFieldMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
+            public bool IsContainedInUnsafeType { get; private set; }
 
             private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule)
             {
@@ -110,6 +111,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 if (!TryInitializeDelegatedConstructor(cancellationToken))
                     InitializeNonDelegatedConstructor(cancellationToken);
+
+                IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
                 return true;
             }
@@ -542,12 +545,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var isThis = _delegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
                 var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
 
+                var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
+                var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(p => p.RequiresUnsafeModifier());
+
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: default,
+                    modifiers: new DeclarationModifiers(isUnsafe: generateUnsafe),
                     typeName: TypeToGenerateIn.Name,
-                    parameters: _delegatedConstructor.Parameters.Concat(_parameters),
+                    parameters: newParameters,
                     statements: assignments,
                     baseConstructorArguments: isThis ? default : delegatingArguments,
                     thisConstructorArguments: isThis ? delegatingArguments : default);
@@ -567,8 +573,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
 
-                var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap) :
-                              withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap) :
+                var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
+                              withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
                               ImmutableArray<ISymbol>.Empty;
 
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -606,7 +612,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         newMemberMap,
                         addNullChecks: false,
                         preferThrowExpression: false,
-                        generateProperties: withProperties),
+                        generateProperties: withProperties,
+                        IsContainedInUnsafeType),
                     new CodeGenerationOptions(
                         Token.GetLocation(),
                         options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
