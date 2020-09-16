@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-
         public async Task ExplicitUserDefinedConversionIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
@@ -49,7 +48,6 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-
         public async Task ExplicitUserDefinedConversionIsNotSuggestedIfMemberNameIsPartiallyWritten()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -153,7 +151,6 @@ namespace N1
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-
         public async Task ExplicitUserDefinedConversionIsSuggestedForAllExplicitConversionsToOtherTypesAndNotForImplicitConversions()
         {
             var items = await GetCompletionItemsAsync(@"
@@ -183,7 +180,6 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-
         public async Task ExplicitUserDefinedConversionFromOtherTypeToTargetIsNotSuggested()
         {
             await VerifyNoItemsExistAsync(@"
@@ -320,10 +316,8 @@ public class Program
         // 
         // Indexer
         //
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-
         public async Task IndexerIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"
