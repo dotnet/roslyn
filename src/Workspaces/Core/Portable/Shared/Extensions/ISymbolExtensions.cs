@@ -55,12 +55,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             List<IMethodSymbol>? typeLibVarAttributeConstructors = null,
             INamedTypeSymbol? hideModuleNameAttribute = null)
         {
+            return IsEditorBrowsableWithState(
+                symbol,
+                hideAdvancedMembers,
+                compilation,
+                editorBrowsableAttributeConstructor,
+                typeLibTypeAttributeConstructors,
+                typeLibFuncAttributeConstructors,
+                typeLibVarAttributeConstructors,
+                hideModuleNameAttribute).isBrowsable;
+        }
+
+        // In addition to given symbol's browsability, also returns its EditorBrowsableState if it contains EditorBrowsableAttribute.
+        public static (bool isBrowsable, bool isEditorBrowsableStateAdvanced) IsEditorBrowsableWithState(
+            this ISymbol symbol,
+            bool hideAdvancedMembers,
+            Compilation compilation,
+            IMethodSymbol? editorBrowsableAttributeConstructor = null,
+            List<IMethodSymbol>? typeLibTypeAttributeConstructors = null,
+            List<IMethodSymbol>? typeLibFuncAttributeConstructors = null,
+            List<IMethodSymbol>? typeLibVarAttributeConstructors = null,
+            INamedTypeSymbol? hideModuleNameAttribute = null)
+        {
             // Namespaces can't have attributes, so just return true here.  This also saves us a 
             // costly check if this namespace has any locations in source (since a merged namespace
             // needs to go collect all the locations).
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                return true;
+                return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
             }
 
             // check for IsImplicitlyDeclared so we don't spend time examining VB's embedded types.
@@ -68,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // have attributes, so it can't be hidden by them.
             if (symbol.IsImplicitlyDeclared)
             {
-                return true;
+                return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
             }
 
             // Ignore browsability limiting attributes if the symbol is declared in source.
@@ -77,10 +99,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.Locations.All(loc => loc.IsInSource))
             {
                 // The HideModuleNameAttribute still applies to Modules defined in source
-                return !IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute);
+                return (!IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute), isEditorBrowsableStateAdvanced: false);
             }
 
-            return !IsBrowsingProhibited(
+            var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibited(
                 symbol,
                 hideAdvancedMembers,
                 compilation,
@@ -89,9 +111,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeLibFuncAttributeConstructors,
                 typeLibVarAttributeConstructors,
                 hideModuleNameAttribute);
+
+            return (!isProhibited, isEditorBrowsableStateAdvanced);
         }
 
-        private static bool IsBrowsingProhibited(
+        private static (bool isProhibited, bool isEditorBrowsableStateAdvanced) IsBrowsingProhibited(
             ISymbol symbol,
             bool hideAdvancedMembers,
             Compilation compilation,
@@ -104,14 +128,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var attributes = symbol.GetAttributes();
             if (attributes.Length == 0)
             {
-                return false;
+                return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
             }
 
-            return IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor)
+            var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor);
+
+            return ((isProhibited
                 || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, compilation, typeLibTypeAttributeConstructors)
                 || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, compilation, typeLibFuncAttributeConstructors)
                 || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, compilation, typeLibVarAttributeConstructors)
-                || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute, attributes);
+                || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute, attributes)), isEditorBrowsableStateAdvanced);
         }
 
         private static bool IsBrowsingProhibitedByHideModuleNameAttribute(
@@ -135,13 +161,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
+        private static (bool isProhibited, bool isEditorBrowsableStateAdvanced) IsBrowsingProhibitedByEditorBrowsableAttribute(
             ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
         {
             constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
             {
-                return false;
+                return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
             }
 
             foreach (var attribute in attributes)
@@ -154,15 +180,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
 #nullable enable
 
-                    if (EditorBrowsableState.Never == state ||
-                        (hideAdvancedMembers && EditorBrowsableState.Advanced == state))
+                    if (EditorBrowsableState.Never == state)
                     {
-                        return true;
+                        return (isProhibited: true, isEditorBrowsableStateAdvanced: false);
+                    }
+
+                    if (EditorBrowsableState.Advanced == state)
+                    {
+                        return (isProhibited: hideAdvancedMembers, isEditorBrowsableStateAdvanced: true);
                     }
                 }
             }
 
-            return false;
+            return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibTypeAttribute(

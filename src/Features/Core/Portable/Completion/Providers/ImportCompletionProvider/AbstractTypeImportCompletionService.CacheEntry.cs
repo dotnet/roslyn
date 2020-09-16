@@ -25,15 +25,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
 
+            public bool ContainsAdvancedMembers { get; }
+
             private CacheEntry(
                 Checksum checksum,
                 string language,
+                bool containsAdvancedmembers,
                 ImmutableArray<TypeImportCompletionItemInfo> items)
             {
                 Checksum = checksum;
                 Language = language;
 
+                ContainsAdvancedMembers = containsAdvancedmembers;
                 ItemInfos = items;
+
             }
 
             public ImmutableArray<CompletionItem> GetItemsForContext(
@@ -41,15 +46,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 string genericTypeSuffix,
                 bool isInternalsVisible,
                 bool isAttributeContext,
-                bool isCaseSensitive)
+                bool isCaseSensitive,
+                bool hideAdvancedMembers)
             {
                 // We will need to adjust some items if the request is made in:
                 // 1. attribute context, then we will not show or complete with "Attribute" suffix.
                 // 2. a project with different language than when the cache entry was created,
                 //    then we will change the generic suffix accordingly.
+                // 3. asked to hide advanced members and there is advanced member in the cache
                 // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;
-                if (isSameLanguage && !isAttributeContext)
+                if (isSameLanguage && !isAttributeContext && !(hideAdvancedMembers && ContainsAdvancedMembers))
                 {
                     return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
                 }
@@ -59,6 +66,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 {
                     if (info.IsPublic || isInternalsVisible)
                     {
+                        if (hideAdvancedMembers && info.IsEditorBrowsableStateAdvanced)
+                        {
+                            continue;
+                        }
+
                         var item = info.Item;
                         if (isAttributeContext)
                         {
@@ -99,14 +111,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 private readonly string _language;
                 private readonly string _genericTypeSuffix;
                 private readonly Checksum _checksum;
+                private readonly EditorBrowsableInfo _editorBrowsableInfo;
 
                 private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
-                public Builder(Checksum checksum, string language, string genericTypeSuffix)
+                private bool _containsAdvancedMembers;
+
+                public Builder(Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
                 {
                     _checksum = checksum;
                     _language = language;
                     _genericTypeSuffix = genericTypeSuffix;
+                    _editorBrowsableInfo = editorBrowsableInfo;
 
                     _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 }
@@ -116,11 +132,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     return new CacheEntry(
                         _checksum,
                         _language,
+                        _containsAdvancedMembers,
                         _itemsBuilder.ToImmutable());
                 }
 
                 public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
                 {
+                    // We want to cache items with EditoBrowsableState == Advanced regarless of current "hide adv members" option value
+                    var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
+                        hideAdvancedMembers: false,
+                        _editorBrowsableInfo.Compilation,
+                        _editorBrowsableInfo.EditorBrowsableAttributeConstructor,
+                        _editorBrowsableInfo.typeLibTypeAttributeConstructors,
+                        _editorBrowsableInfo.TypeLibFuncAttributeConstructors,
+                        _editorBrowsableInfo.TypeLibVarAttributeConstructors,
+                        _editorBrowsableInfo.HideModuleNameAttribute);
+
+                    if (!isBrowsable)
+                    {
+                        // Hide this item from completion
+                        return;
+                    }
+
                     var isGeneric = symbol.Arity > 0;
 
                     // Need to determine if a type is an attribute up front since we want to filter out 
@@ -140,7 +173,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         CompletionItemFlags.CachedAndExpanded,
                         extensionMethodData: null);
 
-                    _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
+                    _containsAdvancedMembers = _containsAdvancedMembers || isEditorBrowsableStateAdvanced;
+                    _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced));
                 }
 
                 public void Dispose()

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
+            var hideAdvancedmembers = currentProject.Solution.Workspace.Options.GetOption(CompletionOptions.HideAdvancedMembers, currentProject.Language);
             var getCacheResults = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
             if (getCacheResults == null)
@@ -68,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                          GenericTypeSuffix,
                          currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
                          syntaxContext.IsAttributeNameContext,
-                         IsCaseSensitive);
+                         IsCaseSensitive,
+                         hideAdvancedmembers);
             }
         }
 
@@ -114,11 +117,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 }
             }
 
+            var editorBrowsableInfo = new EditorBrowsableInfo(currentCompilation);
+
             foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
                 if (HasGlobalAlias(peReference) &&
                     currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly &&
-                    TryGetCacheForPEReference(solution, currentCompilation, peReference, syntaxContext, forceCacheCreation, cancellationToken, out cacheResult))
+                    TryGetCacheForPEReference(solution, editorBrowsableInfo, peReference, syntaxContext, forceCacheCreation, cancellationToken, out cacheResult))
                 {
                     if (cacheResult.HasValue)
                     {
@@ -162,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 syntaxContext,
                 forceCacheCreation,
                 CacheService.ProjectItemsCache,
+                new EditorBrowsableInfo(compilation),
                 cancellationToken);
         }
 
@@ -170,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// </summary>
         private bool TryGetCacheForPEReference(
             Solution solution,
-            Compilation compilation,
+            EditorBrowsableInfo editorBrowsableInfo,
             PortableExecutableReference peReference,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
@@ -188,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 return false;
             }
 
-            if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
+            if (!(editorBrowsableInfo.Compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
             {
                 result = null;
                 return false;
@@ -202,6 +208,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 syntaxContext,
                 forceCacheCreation,
                 CacheService.PEItemsCache,
+                editorBrowsableInfo,
                 cancellationToken);
             return true;
         }
@@ -214,6 +221,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
+            EditorBrowsableInfo editorBrowsableInfo,
             CancellationToken cancellationToken)
             where TKey : notnull
         {
@@ -228,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             // Cache miss, create all items only when asked.
             if (forceCacheCreation)
             {
-                using var builder = new CacheEntry.Builder(checksum, language, GenericTypeSuffix);
+                using var builder = new CacheEntry.Builder(checksum, language, GenericTypeSuffix, editorBrowsableInfo);
                 GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
                 cacheEntry = builder.ToReferenceCacheEntry();
                 cache[key] = cacheEntry;
@@ -353,12 +361,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         {
             private readonly ItemPropertyKind _properties;
 
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute)
+            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced = false)
             {
                 Item = item;
                 _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
                             | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
-                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0);
+                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0)
+                            | (isEditorBrowsableStateAdvanced ? ItemPropertyKind.IsEditorBrowsableStateAdvanced : 0);
             }
 
             public CompletionItem Item { get; }
@@ -372,8 +381,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             public bool IsAttribute
                 => (_properties & ItemPropertyKind.IsAttribute) != 0;
 
+            public bool IsEditorBrowsableStateAdvanced
+                => (_properties & ItemPropertyKind.IsEditorBrowsableStateAdvanced) != 0;
+
             public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-                => new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
+                => new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute, IsEditorBrowsableStateAdvanced);
 
             [Flags]
             private enum ItemPropertyKind : byte
@@ -381,7 +393,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 IsPublic = 0x1,
                 IsGeneric = 0x2,
                 IsAttribute = 0x4,
+                IsEditorBrowsableStateAdvanced = 0x8,
             }
+        }
+
+        private class EditorBrowsableInfo
+        {
+            public Compilation Compilation { get; }
+            private IMethodSymbol? _editorBrowsableAttributeConstructor;
+            private List<IMethodSymbol>? _typeLibTypeAttributeConstructors;
+            private List<IMethodSymbol>? _typeLibFuncAttributeConstructors;
+            private List<IMethodSymbol>? _typeLibVarAttributeConstructors;
+
+            public EditorBrowsableInfo(Compilation compilation)
+            {
+                Compilation = compilation;
+                HideModuleNameAttribute = Compilation.HideModuleNameAttribute();
+            }
+
+            public IMethodSymbol EditorBrowsableAttributeConstructor
+                => _editorBrowsableAttributeConstructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(Compilation);
+
+            public List<IMethodSymbol> typeLibTypeAttributeConstructors
+                => _typeLibTypeAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(Compilation);
+
+            public List<IMethodSymbol> TypeLibFuncAttributeConstructors
+                => _typeLibFuncAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(Compilation);
+
+            public List<IMethodSymbol> TypeLibVarAttributeConstructors
+                => _typeLibVarAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(Compilation);
+
+            public INamedTypeSymbol? HideModuleNameAttribute { get; }
         }
     }
 }
