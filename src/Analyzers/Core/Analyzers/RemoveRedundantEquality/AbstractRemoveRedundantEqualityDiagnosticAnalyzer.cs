@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             //     additionalLocations[1] will be on the non-constant side "x"
             // additionalLocations is used by the codefix as follows:
             //     Replace(node at additionalLocations[0], node at AdditionalLocations[1]). i.e. Replace(`x == true`, `x`)
-            if (TryGetLiteralValue(rightOperand, out var result) && result == isOperatorEquals)
+            if (TryGetLiteralValue(rightOperand) == isOperatorEquals)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                     operatorToken.GetLocation(),
                     additionalLocations: new[] { operation.Syntax.GetLocation(), leftOperand.Syntax.GetLocation() }));
             }
-            else if (TryGetLiteralValue(leftOperand, out result) && result == isOperatorEquals)
+            else if (TryGetLiteralValue(leftOperand) == isOperatorEquals)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                     operatorToken.GetLocation(),
@@ -79,24 +79,21 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             return;
 
-            static bool TryGetLiteralValue(IOperation operand, [NotNullWhen(true)] out bool? result)
+            static bool? TryGetLiteralValue(IOperation operand)
             {
                 if (operand.ConstantValue.HasValue && operand.Kind == OperationKind.Literal)
                 {
                     if (operand.ConstantValue.Value is true)
                     {
-                        result = true;
                         return true;
                     }
                     if (operand.ConstantValue.Value is false)
                     {
-                        result = false;
-                        return true;
+                        return false;
                     }
                 }
 
-                result = null;
-                return false;
+                return null;
             }
         }
     }
