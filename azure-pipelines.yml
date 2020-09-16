@@ -37,7 +37,7 @@ jobs:
   timeoutInMinutes: 120
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -symlink
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -65,7 +65,7 @@ jobs:
   timeoutInMinutes: 120
 
   steps:
-    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
+    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop -symlink
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -87,8 +87,7 @@ jobs:
 
 - job: Windows_CoreClr_Unit_Tests
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    vmImage: windows-latest
   strategy:
     maxParallel: 2
     matrix:
@@ -99,7 +98,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr -symlink
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -123,7 +122,7 @@ jobs:
 - job: Windows_Determinism_Test
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    queue: BuildPool.Windows.10.Amd64.Open
   timeoutInMinutes: 90
   steps:
     - script: eng/test-determinism.cmd -configuration Debug
@@ -141,7 +140,7 @@ jobs:
 - job: Windows_Correctness_Test
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    queue: BuildPool.Windows.10.Amd64.Open
   timeoutInMinutes: 90
   steps:
     - script: eng/test-build-correctness.cmd -configuration Release
@@ -174,8 +173,7 @@ jobs:
 
 - job: Linux_Test
   pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
+   vmImage: ubuntu-latest
   strategy:
     maxParallel: 2
     matrix:
@@ -190,7 +188,7 @@ jobs:
 #        _configuration: Debug
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
+    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args) --symlink
       displayName: Build and Test
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -212,9 +210,7 @@ jobs:
 
 - job: SourceBuild_Test
   pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
-  timeoutInMinutes: 90
+   vmImage: ubuntu-latest
   steps:
     - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
       displayName: Build
@@ -229,11 +225,11 @@ jobs:
 
 - job: macOS_Test
   pool:
-    vmImage: 'macOS-10.14'
+    vmImage: macOS-latest
   timeoutInMinutes: 90
 
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr --symlink
       displayName: Build and Test
 
     - task: PublishTestResults@2

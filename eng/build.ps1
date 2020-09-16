@@ -43,6 +43,7 @@ param (
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
+  [switch]$symlink = $false,
   [switch]$oop64bit = $true,
 
   # official build settings
@@ -103,6 +104,7 @@ function Print-Usage() {
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -sourceBuild              Simulate building source-build"
+  Write-Host "  -symlink                  Use symlinks to save space"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
@@ -229,6 +231,10 @@ function BuildSolution() {
 
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+  $createHardLinksForFiles = if ($symlink) { "/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=true"} else { "" }
+  $createHardLinksForAdditionalFiles = if ($symlink) { "/p:CreateHardLinksForCopyAdditionalFilesIfPossible=true"} else { "" }
+  $createHardLinksForCopyLocal = if ($symlink) { "/p:CreateHardLinksForCopyLocalIfPossible=true"} else { "" }
+  $createHardLinksForPublish = if ($symlink) { "/p:CreateHardLinksForPublishFilesIfPossible=true"} else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -256,6 +262,10 @@ function BuildSolution() {
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
+      $createHardLinksForFiles `
+      $createHardLinksForAdditionalFiles `
+      $createHardLinksForCopyLocal `
+      $createHardLinksForPublish `
       @properties
   }
   finally {

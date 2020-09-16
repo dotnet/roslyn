@@ -36,6 +36,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --symlink                  Use symlinks to save space"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -72,6 +73,7 @@ warn_as_error=false
 properties=""
 disable_parallel_restore=false
 source_build=false
+use_sym_links=false
 
 docker=false
 args=""
@@ -150,6 +152,9 @@ while [[ $# > 0 ]]; do
       ;;
     --sourcebuild)
       source_build=true
+      ;;
+    --symlink)
+      use_sym_links=true
       ;;
     /p:*)
       properties="$properties $1"
@@ -252,6 +257,7 @@ function BuildSolution {
   local test_runtime=""
   local mono_tool=""
   local test_runtime_args=""
+  local sym_links_args=""
   if [[ "$test_mono" == true ]]; then
     mono_path=`command -v mono`
     # Echo out the mono version to the command line so it's visible in CI logs. It's not fixed
@@ -268,6 +274,10 @@ function BuildSolution {
     test=true
     test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0%3Bnetcoreapp3.1"
     mono_tool=""
+  fi
+
+  if [[ "$use_sym_links" == true ]]; then
+    sym_links_args="/p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=true /p:CreateHardLinksForCopyAdditionalFilesIfPossible=true /p:CreateHardLinksForCopyLocalIfPossible=true /p:CreateHardLinksForPublishFilesIfPossible=true"
   fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
@@ -292,6 +302,7 @@ function BuildSolution {
     /p:RestoreDisableParallel=$disable_parallel_restore \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildFromSource=$source_build \
+    $sym_links_args \
     $test_runtime \
     $mono_tool \
     $properties
