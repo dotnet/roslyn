@@ -25,9 +25,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    [ExportCompletionProvider(nameof(OperatorIndexerCompletionProvider), LanguageNames.CSharp)]
+    [ExportCompletionProvider(nameof(OperatorIndexerCompletionProvider), LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
-    [Shared]
     internal class OperatorIndexerCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        private const string CompletionHandlerPropertyname = "CompletionHandler";
+        private const string CompletionHandlerPropertyName = "CompletionHandler";
         private const string CompletionHandlerConversion = "Conversion";
         private const string CompletionHandlerIndexer = "Indexer";
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var position = context.Position;
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree is { })
             {
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                                              rules: CompletionItemRules.Default,
                                                              contextPosition: position,
                                                              properties: CreateCompletionHandlerProperty(CompletionHandlerConversion));
-                            var indexer = from p in allMembers.OfType<IPropertySymbol>()
+                            var indexers = from p in allMembers.OfType<IPropertySymbol>()
                                           where p.IsIndexer
                                           select SymbolCompletionItem.CreateWithSymbolId(
                                               displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
