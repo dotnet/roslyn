@@ -3097,7 +3097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var getHashCode = addGetHashCode(equalityContract);
             addEqualityOperators();
 
-            if ((thisEquals is not SynthesizedRecordEquals) ^ (getHashCode is not SynthesizedRecordEquals))
+            if ((thisEquals is not SynthesizedRecordEquals) ^ (getHashCode is not SynthesizedRecordGetHashCode))
             {
                 var declared = thisEquals is not SynthesizedRecordEquals ? thisEquals : getHashCode;
                 diagnostics.Add(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, declared.Locations[0], declared);
