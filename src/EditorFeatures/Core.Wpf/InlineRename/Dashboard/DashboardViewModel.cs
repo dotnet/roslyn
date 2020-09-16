@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
@@ -31,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _defaultRenameInCommentsFlag;
         private bool _defaultRenameFileFlag;
         private bool _defaultPreviewChangesFlag;
+        private bool _isReplacementTextValid;
 
         public DashboardViewModel(InlineRenameSession session)
         {
@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Set the flag to true by default if we're showing the option. Use
             // the property so we correctly update the session as well
+            _isReplacementTextValid = true;
             DefaultRenameFileFlag = session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename;
         }
 
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var session = (InlineRenameSession)sender;
             _resolvableConflictCount = 0;
             _unresolvableConflictCount = 0;
-
+            _isReplacementTextValid = DefaultRenameFileFlag = result.ReplacementTextValid;
             if (result.ReplacementTextValid)
             {
                 _errorText = null;
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public DashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
+        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => _session.FileRenameInfo switch
         {

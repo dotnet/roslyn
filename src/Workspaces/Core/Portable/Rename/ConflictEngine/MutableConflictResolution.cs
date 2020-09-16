@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var document = CurrentSolution.GetDocument(documentId);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    // For the computeReplacementToken and computeReplacementNode functions, use 
+                    // For the computeReplacementToken and computeReplacementNode functions, use
                     // the "updated" node to maintain any annotation removals from descendants.
                     var newRoot = root.ReplaceSyntax(
                         nodes: annotationSet.GetAnnotatedNodes(root),
@@ -106,8 +106,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return intermediateSolution;
         }
 
-        internal void RenameDocumentToMatchNewSymbol(Document document)
+        internal void TryRenameDocumentToMatchNewSymbol(Document document)
         {
+            if (ReplacementText.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+            {
+                return;
+            }
+
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 
