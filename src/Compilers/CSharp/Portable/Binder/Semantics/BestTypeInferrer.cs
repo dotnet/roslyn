@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
 #if DEBUG
-            var example = types.Where(t => t.HasType).FirstOrDefault();
+            var example = types.FirstOrDefault(t => t.HasType);
 #endif
 
             var result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
 #if DEBUG
-                Debug.Assert(!type.HasType || (example.HasType && type.Equals(example, TypeCompareKind.AllIgnoreOptions)));
+                Debug.Assert(!type.HasType || type.Equals(example, TypeCompareKind.AllIgnoreOptions));
 #endif
 
                 // This uses the covariant merging rules.
