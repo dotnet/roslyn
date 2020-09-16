@@ -81,10 +81,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 ISyntaxFacts syntaxFacts)
             {
                 SyntaxNode node;
+                var options = SyntaxGenerator.DefaultRemoveOptions;
                 if (editor.OriginalRoot.FindNode(location.SourceSpan) is { } attribute &&
                     syntaxFacts.IsAttribute(attribute))
                 {
                     node = attribute;
+                    // Keep leading trivia for attributes as we don't want to remove doc comments, or anything else
+                    options |= SyntaxRemoveOptions.KeepLeadingTrivia;
                 }
                 else
                 {
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
                 if (processedNodes.Add(node))
                 {
-                    editor.RemoveNode(node);
+                    editor.RemoveNode(node, options);
                 }
             }
         }

@@ -493,9 +493,6 @@ class Class
             [Fact]
             public async Task TestRemoveDiagnosticSuppression_Attribute_Trivia()
             {
-                // This test should not remove Comment1 and DocComment.
-                // TODO: File a bug for SyntaxEditor.RemoveNode API removing doc comment and its preceeeding trivia.
-
                 await TestInRegularAndScript1Async(
         $@"
 class Class
@@ -516,6 +513,11 @@ class Class
         @"
 class Class
 {
+    // Comment1
+    /// <summary>
+    /// DocComment
+    /// </summary>
+    // Comment2
     // Comment4
     void M()
     {
