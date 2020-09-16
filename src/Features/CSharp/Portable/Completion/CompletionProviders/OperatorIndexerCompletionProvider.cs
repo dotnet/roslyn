@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder.Add(CompletionHandlerPropertyname, operation);
+            builder.Add(CompletionHandlerPropertyName, operation);
             return builder.ToImmutable();
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                               rules: CompletionItemRules.Default,
                                               contextPosition: position,
                                               properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
-                            context.AddItems(allExplicitConversions.Union(indexer));
+                            context.AddItems(allExplicitConversions.Union(indexers));
                         }
                     }
                 }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
-            if (item.Properties.TryGetValue(CompletionHandlerPropertyname, out var value))
+            if (item.Properties.TryGetValue(CompletionHandlerPropertyName, out var value))
             {
                 var completionChange = value switch
                 {
