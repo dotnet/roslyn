@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                 var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 var replacementNode = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
                 replacementNode = replacementNode.WithTrailingTrivia(replacementNode.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-                editor.ReplaceNode(node, replacementNode);
+                editor.ReplaceNode(node, (_, _) => replacementNode);
             }
         }
 
