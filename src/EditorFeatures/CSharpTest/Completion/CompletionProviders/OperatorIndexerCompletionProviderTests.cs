@@ -344,6 +344,47 @@ public class Program
 ", "[int]");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("N2", "", "[N1.Nested1.C, N1.Nested2.C]")]
+        [InlineData("N2", "using N1.Nested1;", "[C, N1.Nested2.C]")]
+        [InlineData("N2", "using N1.Nested2;", "[N1.Nested1.C, C]")]
+        [InlineData("N2", "using N1.Nested1; using N1.Nested2;", "[N1.Nested1.C, N1.Nested2.C]")]
+        [InlineData("N1", "", "[Nested1.C, Nested2.C]")]
+        [InlineData("N1", "using N1.Nested1;", "[C, Nested2.C]")]
+        [InlineData("N1", "using N1.Nested2;", "[Nested1.C, C]")]
+        [InlineData("N1", "using N1.Nested1; using N1.Nested2;", "[Nested1.C, Nested2.C]")]
+        public async Task IndexerDisplayStringContainsMinimalQualifyingTypeNameOfParameters(string namespaceOfIndexer, string usingDirective, string suggestion)
+        {
+            await VerifyItemExistsAsync(@$"
+namespace N1.Nested1
+{{
+    public class C {{ }}
+}}
+namespace N1.Nested2
+{{
+    public class C {{ }}
+}}
+namespace {namespaceOfIndexer}
+{{
+    {usingDirective}
+    public class Indexer
+    {{
+        public int this[N1.Nested1.C, N1.Nested2.C] => i;
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var i = new Indexer();
+            i.$$
+        }}
+    }}
+}}
+", suggestion);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
