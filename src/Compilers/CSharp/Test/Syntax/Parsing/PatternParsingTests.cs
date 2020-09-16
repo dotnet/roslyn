@@ -11215,7 +11215,7 @@ switch (e)
         [Fact, WorkItem(47614, "https://github.com/dotnet/roslyn/issues/47614")]
         public void GenericTypeAsTypePatternInSwitchExpression()
         {
-            UsingStatement(@"_ = e switch { List<Foo> => 1, List<Bar> => 2, };",
+            UsingStatement(@"_ = e switch { List<X> => 1, List<Y> => 2, };",
                 TestOptions.RegularWithPatternCombinators
                 );
             N(SyntaxKind.ExpressionStatement);
@@ -11247,7 +11247,7 @@ switch (e)
                                         N(SyntaxKind.LessThanToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "Foo");
+                                            N(SyntaxKind.IdentifierToken, "X");
                                         }
                                         N(SyntaxKind.GreaterThanToken);
                                     }
@@ -11272,7 +11272,7 @@ switch (e)
                                         N(SyntaxKind.LessThanToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "Bar");
+                                            N(SyntaxKind.IdentifierToken, "Y");
                                         }
                                         N(SyntaxKind.GreaterThanToken);
                                     }
