@@ -566,6 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
+            // This method is only involved in method inference with unbound lambdas.
             VisitSwitchExpressionCore(node, inferType: true);
             return null;
         }
@@ -632,34 +633,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol inferredType =
                 (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
-                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes()
-                    ?? new ExtendedErrorTypeSymbol(this.compilation, "", arity: 0, errorInfo: null, unreported: false);
+                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
-            for (int i = 0; i < numSwitchArms; i++)
+            if (inferredType is not null)
             {
-                var expression = expressions[i];
-                resultTypes[i] = VisitConversion(conversionOpt: null, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
-                    fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                for (int i = 0; i < numSwitchArms; i++)
+                {
+                    var expression = expressions[i];
+                    resultTypes[i] = VisitConversion(conversionOpt: null, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                }
             }
 
             var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
             var resultType = TypeWithState.Create(inferredType, inferredState);
-            inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations(compilation);
-            if (resultType.State == NullableFlowState.MaybeDefault)
-            {
-                inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();
-            }
 
-            for (int i = 0; i < numSwitchArms; i++)
+            if (inferredType is not null)
             {
-                var nodeForSyntax = expressions[i];
-                var conversionOpt = node.SwitchArms[i].Value switch { BoundConversion c when c != nodeForSyntax => c, _ => null };
-                // Report top-level warnings
-                _ = VisitConversion(conversionOpt, conversionOperand: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
-                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
+                inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations(compilation);
+                if (resultType.State == NullableFlowState.MaybeDefault)
+                {
+                    inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();
+                }
+
+                for (int i = 0; i < numSwitchArms; i++)
+                {
+                    var nodeForSyntax = expressions[i];
+                    var conversionOpt = node.SwitchArms[i].Value switch { BoundConversion c when c != nodeForSyntax => c, _ => null };
+                    // Report top-level warnings
+                    _ = VisitConversion(conversionOpt, conversionOperand: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
+                }
             }
 
             conversions.Free();
