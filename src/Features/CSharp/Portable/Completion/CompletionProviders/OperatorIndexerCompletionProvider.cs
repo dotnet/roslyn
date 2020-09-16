@@ -63,43 +63,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTree is { })
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            if (!token.IsKind(SyntaxKind.DotToken))
             {
-                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-                if (token.IsKind(SyntaxKind.DotToken))
-                {
-                    var expression = GetExpressionOfInvocation(token);
-                    if (expression is { })
-                    {
-                        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                        var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                        if (container is { })
-                        {
-                            var allMembers = container.GetMembers();
-                            var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
-                                                         where
-                                                             m.IsConversion() && // MethodKind.Conversion
-                                                             m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
-                                                             m.Parameters[0].Type == container // Convert from container type to other type
-                                                         select SymbolCompletionItem.CreateWithSymbolId(
-                                                             displayText: $"({m.ReturnType.ToMinimalDisplayString(semanticModel, position)})", // The type to convert to
-                                                             symbols: ImmutableList.Create(m),
-                                                             rules: CompletionItemRules.Default,
-                                                             contextPosition: position,
-                                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion));
-                            var indexers = from p in allMembers.OfType<IPropertySymbol>()
-                                          where p.IsIndexer
-                                          select SymbolCompletionItem.CreateWithSymbolId(
-                                              displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
-                                              symbols: ImmutableList.Create(p),
-                                              rules: CompletionItemRules.Default,
-                                              contextPosition: position,
-                                              properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
-                            context.AddItems(allExplicitConversions.Union(indexers));
-                        }
-                    }
-                }
+                return;
             }
+
+            var expression = GetExpressionOfInvocation(token);
+            if (expression is null)
+            {
+                return;
+            }
+
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            if (container is null)
+            {
+                return;
+            }
+
+            var allMembers = container.GetMembers();
+            var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
+                                         where
+                                             m.IsConversion() && // MethodKind.Conversion
+                                             m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
+                                             m.Parameters[0].Type == container // Convert from container type to other type
+                                         select SymbolCompletionItem.CreateWithSymbolId(
+                                             displayText: $"({m.ReturnType.ToMinimalDisplayString(semanticModel, position)})", // The type to convert to
+                                             symbols: ImmutableList.Create(m),
+                                             rules: CompletionItemRules.Default,
+                                             contextPosition: position,
+                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion));
+            var indexers = from p in allMembers.OfType<IPropertySymbol>()
+                           where p.IsIndexer
+                           select SymbolCompletionItem.CreateWithSymbolId(
+                               displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
+                               symbols: ImmutableList.Create(p),
+                               rules: CompletionItemRules.Default,
+                               contextPosition: position,
+                               properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
+            context.AddItems(allExplicitConversions.Union(indexers));
         }
 
         private static ExpressionSyntax? GetExpressionOfInvocation(SyntaxToken dotToken)
