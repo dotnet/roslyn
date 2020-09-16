@@ -1501,38 +1501,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
             }
-
-            var targetEqualsMethod = new SignatureOnlyMethodSymbol(
-                    WellKnownMemberNames.ObjectEquals,
-                    this,
-                    MethodKind.Ordinary,
-                    Cci.CallingConvention.HasThis,
-                    ImmutableArray<TypeParameterSymbol>.Empty,
-                    ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
-                                                                TypeWithAnnotations.Create(this),
-                                                                ImmutableArray<CustomModifier>.Empty,
-                                                                isParams: false,
-                                                                RefKind.None
-                                                                )),
-                    RefKind.None,
-                    isInitOnly: false,
-                    TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)),
-                    ImmutableArray<CustomModifier>.Empty,
-                    ImmutableArray<MethodSymbol>.Empty);
-
-
-            var targetGetHashCodeMethod = new SignatureOnlyMethodSymbol(
-                WellKnownMemberNames.ObjectGetHashCode,
-                this,
-                MethodKind.Ordinary,
-                Cci.CallingConvention.HasThis,
-                ImmutableArray<TypeParameterSymbol>.Empty,
-                ImmutableArray<ParameterSymbol>.Empty,
-                RefKind.None,
-                isInitOnly: false,
-                TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)),
-                ImmutableArray<CustomModifier>.Empty,
-                ImmutableArray<MethodSymbol>.Empty);
         }
 
         private void CheckMemberNameConflicts(DiagnosticBag diagnostics)
