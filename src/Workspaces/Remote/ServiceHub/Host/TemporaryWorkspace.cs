@@ -17,29 +17,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class TemporaryWorkspace : Workspace
     {
-        private TemporaryWorkspace()
-            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
+        public TemporaryWorkspace(HostServices hostServices, string? workspaceKind, SolutionInfo solutionInfo, SerializableOptionSet options)
+            : base(hostServices, workspaceKind)
         {
             SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
             RegisterDocumentOptionProviders(documentOptionsProviderFactories);
+
+            OnSolutionAdded(solutionInfo);
+            SetCurrentSolution(CurrentSolution.WithOptions(options));
         }
-
-        public TemporaryWorkspace(Solution solution) : this()
-            => this.SetCurrentSolution(solution);
-
-        public TemporaryWorkspace(SolutionInfo solutionInfo, SerializableOptionSet options) : this()
-        {
-            this.OnSolutionAdded(solutionInfo);
-            this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
-        }
-
-        // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish
-        // they just can't apply those changes back to the workspace.
-        public override bool CanApplyChange(ApplyChangesKind feature) => false;
-
-        public override bool CanOpenDocuments => false;
     }
 }

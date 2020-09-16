@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -755,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
         }
 
-        internal override Diagnostic? FilterDiagnostic(Diagnostic diagnostic)
+        internal override Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             return CSharpDiagnosticFilter.Filter(
                 diagnostic,
@@ -763,7 +764,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableContextOptions,
                 GeneralDiagnosticOption,
                 SpecificDiagnosticOptions,
-                SyntaxTreeOptionsProvider);
+                SyntaxTreeOptionsProvider,
+                cancellationToken);
         }
 
         protected override CompilationOptions CommonWithModuleName(string? moduleName)

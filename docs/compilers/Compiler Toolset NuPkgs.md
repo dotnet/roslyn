@@ -31,9 +31,9 @@ To install the NuPgk run the following:
 > nuget install Microsoft.Net.Compilers.Toolset   # Install C# and VB compilers
 ```
 
-Daily NuGet builds of the project are also available in our MyGet feed:
+Daily NuGet builds of the project are also available in our [Azure DevOps feed](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools):
 
-> [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
+> https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json
 
 ## Microsoft.Net.Compilers
 

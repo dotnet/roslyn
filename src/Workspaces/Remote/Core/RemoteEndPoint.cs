@@ -58,9 +58,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var jsonFormatter = new JsonMessageFormatter();
 
-            // disable interpreting of strings as DateTime during deserialization:
-            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
-
             if (jsonConverters != null)
             {
                 jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters);
@@ -390,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (e != null)
             {
-                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', LastMessage: {e.LastMessage}, Exception: {e.Exception?.Message}");
+                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', Exception: {e.Exception?.Message}");
             }
         }
 

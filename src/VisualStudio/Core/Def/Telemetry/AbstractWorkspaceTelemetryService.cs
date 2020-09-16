@@ -31,10 +31,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             WatsonReporter.RegisterTelemetrySesssion(telemetrySession);
 
             CurrentSession = telemetrySession;
+
+            TelemetrySessionInitialized();
+        }
+
+        protected virtual void TelemetrySessionInitialized()
+        {
         }
 
         public bool HasActiveSession
-            => CurrentSession != null;
+            => CurrentSession != null && CurrentSession.IsOptedIn;
 
         public string? SerializeCurrentSessionSettings()
             => CurrentSession?.SerializeSettings();

@@ -5404,7 +5404,7 @@ class C
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
-", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
             var source1 = MarkedSource(@"
 using System;
 using System.Threading.Tasks;
@@ -5423,7 +5423,7 @@ class C
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
-", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
             var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);

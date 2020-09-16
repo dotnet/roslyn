@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             }
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             if (document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
                 && !string.IsNullOrEmpty(fileHeaderTemplate))
@@ -45,6 +44,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 // If we have a defined file header template, allow the analyzer and code fix to handle it
                 return;
             }
+
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var position = span.Start;
             var firstToken = root.GetFirstToken();

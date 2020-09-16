@@ -235,28 +235,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document));
                     if (mappedSpan.HasValue)
                     {
+                        // Check if the mapped file matches one already in the workspace.
+                        // If so use the workspace APIs to navigate to it.  Otherwise use VS APIs to navigate to the file path.
+                        var documentIdsForFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(mappedSpan.Value.FilePath);
+                        if (!documentIdsForFilePath.IsEmpty)
+                        {
+                            // If the mapped file maps to the same document that was passed in, then re-use the documentId to preserve context.
+                            // Otherwise, just pick one of the ids to use for navigation.
+                            var documentIdToNavigate = documentIdsForFilePath.Contains(documentId) ? documentId : documentIdsForFilePath.First();
+                            return NavigateToFileInWorkspace(documentIdToNavigate, workspace, getVsTextSpan);
+                        }
+
                         return TryNavigateToMappedFile(workspace, document, mappedSpan.Value);
                     }
                 }
 
-                document = OpenDocument(workspace, documentId);
-                if (document == null)
-                {
-                    return false;
-                }
-
-                var text = document.GetTextSynchronously(CancellationToken.None);
-                var textBuffer = text.Container.GetTextBuffer();
-
-                var vsTextSpan = getVsTextSpan(text);
-                if (IsSecondaryBuffer(workspace, documentId) &&
-                    !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
-                {
-                    return false;
-                }
-
-                return NavigateTo(textBuffer, vsTextSpan);
+                return NavigateToFileInWorkspace(documentId, workspace, getVsTextSpan);
             }
+        }
+
+        private bool NavigateToFileInWorkspace(DocumentId documentId, Workspace workspace, Func<SourceText, VsTextSpan> getVsTextSpan)
+        {
+            var document = OpenDocument(workspace, documentId);
+            if (document == null)
+            {
+                return false;
+            }
+
+            var text = document.GetTextSynchronously(CancellationToken.None);
+            var textBuffer = text.Container.GetTextBuffer();
+
+            var vsTextSpan = getVsTextSpan(text);
+            if (IsSecondaryBuffer(workspace, documentId) &&
+                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
+            {
+                return false;
+            }
+
+            return NavigateTo(textBuffer, vsTextSpan);
         }
 
         private bool TryNavigateToMappedFile(Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult)

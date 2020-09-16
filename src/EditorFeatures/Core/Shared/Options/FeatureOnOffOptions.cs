@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoXmlDocCommentGeneration,
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
+            FeatureOnOffOptions.InlineParameterNameHints,
             FeatureOnOffOptions.AutoFormattingOnTyping,
             FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,

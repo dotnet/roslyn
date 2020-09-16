@@ -2007,7 +2007,7 @@ class Test
 
             CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 

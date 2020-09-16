@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // var cannot be used with target typed new
-            if (expression.IsKind(SyntaxKindEx.ImplicitObjectCreationExpression))
+            if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return false;
             }

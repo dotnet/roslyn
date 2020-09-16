@@ -13334,6 +13334,49 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(Test))").WithArguments("Test"));
         }
 
+        [Fact, WorkItem(38256, "https://github.com/dotnet/roslyn/issues/38256")]
+        public void ParameterAndReturnTypesAreStaticClassesWarning()
+        {
+            var source = @"
+static class C {}
+interface I
+{
+    void M1(C c); // 1
+    C M2(); // 2
+    C Prop { get; set; } // 3, 4
+    C this[C c] { get; set; } // 5, 6, 7
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+
+            comp.VerifyDiagnostics(
+                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
+                //     void M1(C c); // 1
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                // (6,7): warning CS8898: 'C': static types cannot be used as return types
+                //     C M2(); // 2
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
+                // (7,14): warning CS8898: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3, 4
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
+                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
+                //     C Prop { get; set; } // 3, 4
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19),
+                // (8,7): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "this").WithArguments("C").WithLocation(8, 7),
+                // (8,19): warning CS8898: 'C': static types cannot be used as return types
+                //     C this[C c] { get; set; } // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(8, 19),
+                // (8,24): warning CS8897: 'C': static types cannot be used as parameters
+                //     C this[C c] { get; set; } // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
+            );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void CS0730ERR_ForwardedTypeIsNested()
         {

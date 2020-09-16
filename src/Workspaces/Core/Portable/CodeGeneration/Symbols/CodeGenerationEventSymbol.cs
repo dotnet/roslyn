@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -54,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override void Accept(SymbolVisitor visitor)
             => visitor.VisitEvent(this);
 
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        public override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
+            where TResult : default
             => visitor.VisitEvent(this);
 
         public new IEventSymbol OriginalDefinition => this;

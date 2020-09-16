@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AnonymousMethodExpressionSyntax anonymousMethod:
                     SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
                     return;
-                case ObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+                case BaseObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
                     return;
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
@@ -177,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 case SwitchExpressionSyntax switchExpression:
                     SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case WithExpressionSyntax withExpression:
+                    SetAlignmentBlockOperation(list, withExpression.GetFirstToken(), withExpression.Initializer.OpenBraceToken, withExpression.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
                 case PropertyPatternClauseSyntax propertyPatternClause:
                     if (propertyPatternClause.Parent is RecursivePatternSyntax { Parent: { } recursivePatternParent })

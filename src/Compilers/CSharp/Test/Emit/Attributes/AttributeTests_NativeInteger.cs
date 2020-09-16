@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public nint F1;
     public nuint[] F2;
 }";
-            var comp = CreateCompilation(new[] { NativeIntegerAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { NativeIntegerAttributeDefinition, source });
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public nint F1;
     public nuint[] F2;
 }";
-            comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public nint F1;
     public nuint[] F2;
 }";
-            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
                 //     public nint F1;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public nint F1;
     public nuint[] F2;
 }";
-            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NativeIntegerAttribute..ctor'
                 //     public nint F1;
@@ -163,7 +163,7 @@ using System.Runtime.CompilerServices;
             var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular8);
             verifyDiagnostics(comp);
 
-            comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular9);
             verifyDiagnostics(comp);
 
             static void verifyDiagnostics(CSharpCompilation comp)
@@ -199,7 +199,7 @@ using System.Runtime.CompilerServices;
     public nint F1;
     public nuint[] F2;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
@@ -261,7 +261,7 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(6, 11));
             verify(comp);
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,11): error CS0570: 'B.F0(?, ?)' is not supported by the language
                 //         B.F0(default, default);
@@ -341,7 +341,7 @@ using System.Runtime.CompilerServices;
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -416,15 +416,15 @@ using System.Runtime.CompilerServices;
 
             var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,25): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,25): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         B.F1(new A<int, nuint>());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 25),
-                // (7,20): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 25),
+                // (7,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         B.F2(new A<nint, uint>());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(7, 20));
             verify(comp);
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -501,7 +501,7 @@ using System.Runtime.CompilerServices;
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -587,12 +587,12 @@ using System.Runtime.CompilerServices;
 
             var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (3,21): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,21): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     static void F(A<nint, nuint> a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 21),
-                // (3,27): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(3, 21),
+                // (3,27): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     static void F(A<nint, nuint> a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(3, 27),
                 // (5,11): error CS0570: 'B.F(?)' is not supported by the language
                 //         B.F(a);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("B.F(?)").WithLocation(5, 11),
@@ -607,7 +607,7 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(9, 11));
             verify(comp);
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,11): error CS0570: 'B.F(?)' is not supported by the language
                 //         B.F(a);
@@ -717,7 +717,7 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F4").WithArguments("B.F4(?)").WithLocation(8, 11)
             );
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,11): error CS0570: 'B.F1(?)' is not supported by the language
                 //         B.F1(default);
@@ -765,7 +765,7 @@ B
 public class B : A<nint, nuint[]>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"[NativeInteger({ True, True })] B
 ";
@@ -782,7 +782,7 @@ public class B : A<nint, nuint[]>
 public class A : I<(nint, nuint[])>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -810,7 +810,7 @@ public class C<T>
     public C<C<nuint>.D<System.IntPtr>>.F F5;
     public C<C<System.UIntPtr>.F>.D<nint> F6;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"C<T>
     [NativeInteger] C<T>.S<System.IntPtr> F1
@@ -839,7 +839,7 @@ public class D
     public B<nint> F1;
     public C<nint, A> F2;
 }";
-            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             var ref2 = comp.EmitToImageReference();
 
             var source3 =
@@ -852,7 +852,7 @@ public class D
         _ = d.F2;
     }
 }";
-            comp = CreateCompilation(source3, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source3, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0012: The type 'B<>' is defined in an assembly that is not referenced. You must add a reference to assembly '95d36b13-f2e1-495d-9ab6-62e8cc63ac22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         _ = d.F1;
@@ -871,7 +871,7 @@ public class D
     public nint F1;
     public (System.IntPtr, nuint[]) F2;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
@@ -888,7 +888,7 @@ public class D
 {
     public (System.IntPtr, nuint[]) F() => default;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) F()
@@ -904,7 +904,7 @@ public class D
 {
     public void F(nint x, nuint y) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     void F(System.IntPtr x, System.UIntPtr y)
@@ -922,7 +922,7 @@ public class D
 {
     public (System.IntPtr, nuint[]) P => default;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) P { get; }
@@ -939,7 +939,7 @@ public class D
 {
     public object this[nint x, (nuint[], System.IntPtr) y] => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     System.Object this[System.IntPtr x, (System.UIntPtr[], System.IntPtr) y] { get; }
@@ -961,7 +961,7 @@ public class Program
 {
     public event EventHandler<nuint[]> E;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"Program
     [NativeInteger] event System.EventHandler<System.UIntPtr[]> E
@@ -981,7 +981,7 @@ public class Program
 {
     public static nint operator+(C a, C b) => 0;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"C
     [NativeInteger] System.IntPtr operator +(C a, C b)
@@ -997,7 +997,7 @@ public class Program
 {
     public static C operator+(C a, nuint[] b) => a;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"C
     C operator +(C a, System.UIntPtr[] b)
@@ -1011,7 +1011,7 @@ public class Program
         {
             var source =
 @"public delegate nint D();";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"D
     [NativeInteger] System.IntPtr Invoke()
@@ -1025,7 +1025,7 @@ public class Program
         {
             var source =
 @"public delegate void D(nint x, nuint[] y);";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"D
     void Invoke(System.IntPtr x, System.UIntPtr[] y)
@@ -1051,7 +1051,7 @@ public class B<T> where T : A<nint>
 public class C<T> where T : A<nuint[]>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var type = comp.GetMember<NamedTypeSymbol>("B");
             Assert.Equal("A<nint>", getConstraintType(type).ToDisplayString(FormatWithSpecialTypes));
             type = comp.GetMember<NamedTypeSymbol>("C");
@@ -1073,7 +1073,7 @@ class Program
         return f();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             AssertNoNativeIntegerAttributes(comp);
         }
 
@@ -1090,7 +1090,7 @@ class Program
         a(null);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             AssertNoNativeIntegerAttributes(comp);
         }
 
@@ -1108,7 +1108,7 @@ class Program
 }";
             CompileAndVerify(
                 source,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
@@ -1132,7 +1132,7 @@ class Program
 }";
             CompileAndVerify(
                 source,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
@@ -1156,7 +1156,7 @@ class Program
         L<I<nint>>();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -1180,7 +1180,7 @@ unsafe public class Program
     public A<nint>.B<nuint> F4;
     public (nint, nuint) F5;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
@@ -1204,7 +1204,7 @@ unsafe public class B
     public A<(object, (nint, nuint, nint[], nuint, nint, nuint*[], nint, System.UIntPtr))> F1;
     public A<(nint, object, nuint[], object, nint, object, (System.IntPtr, nuint), object, nuint)> F2;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             var expected =
 @"B
     [NativeInteger({ True, True, True, True, True, True, True, False })] A<(System.Object, (System.IntPtr, System.UIntPtr, System.IntPtr[], System.UIntPtr, System.IntPtr, System.UIntPtr*[], System.IntPtr, System.UIntPtr))> F1
@@ -1222,7 +1222,7 @@ public interface IB<T> { }
 public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.IntPtr, nuint), object, nuint)>
 {
 }";
-            var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -1244,7 +1244,7 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
         _ = a;
     }
 }";
-            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -1259,7 +1259,7 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
     static partial void F1(nint x) { }
     static partial void F2(nuint x);
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular9);
             // Ideally should not emit any attributes. Compare with dynamic/object.
             var expected =
 @"Program
@@ -1283,7 +1283,7 @@ class B : A<System.UIntPtr, nint>
             var comp = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview.WithNullablePublicOnly());
+                parseOptions: TestOptions.Regular9.WithNullablePublicOnly());
             var expected =
 @"[NativeInteger({ False, True })] B
 ";
@@ -1298,7 +1298,7 @@ class B : A<System.UIntPtr, nint>
 {
     public nint F;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NativeIntegerAttribute");
@@ -1326,7 +1326,7 @@ class B : A<System.UIntPtr, nint>
 {
     public nint F;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Program");
@@ -1351,7 +1351,7 @@ class C<T, U, V>
     public C<T, nint, System.IntPtr> F3;
     public C<T, nuint, System.UIntPtr> F4;
 }
-", options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+", options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9, symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -1396,7 +1396,7 @@ unsafe class C
     public delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr> F7;
     public delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>> F8;
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {

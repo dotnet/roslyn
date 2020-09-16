@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         public ReportDiagnostic GeneralDiagnosticOption { get; protected set; }
 
         /// <summary>
-        /// Global warning level (from 0 to 4).
+        /// Global warning level (a non-negative integer).
         /// </summary>
         public int WarningLevel { get; protected set; }
 
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="diagnostic"></param>
         /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic? FilterDiagnostic(Diagnostic diagnostic);
+        internal abstract Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         /// <summary>
         /// Warning report option for each warning.

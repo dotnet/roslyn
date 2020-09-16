@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
             var fieldDocument = solution.GetRequiredDocument(declarator.SyntaxTree);
             var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
 
             var property = GetPropertyDeclaration(propertyLocation.FindNode(cancellationToken));
             var propertyDocument = solution.GetRequiredDocument(property.SyntaxTree);
             var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var propertySymbol = (IPropertySymbol)propertySemanticModel.GetDeclaredSymbol(property, cancellationToken);
+            var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
 
             Debug.Assert(fieldDocument.Project == propertyDocument.Project);
             var project = fieldDocument.Project;

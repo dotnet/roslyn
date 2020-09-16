@@ -145,9 +145,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             Contract.ThrowIfTrue(GetDTE().ActiveDocument.ProjectItem.Saved);
         }
 
-        public void VerifySaved()
+        public string VerifySaved()
         {
-            Contract.ThrowIfFalse(GetDTE().ActiveDocument.ProjectItem.Saved);
+            var activeDocument = GetDTE().ActiveDocument;
+            Contract.ThrowIfFalse(activeDocument.ProjectItem.Saved);
+            return activeDocument.FullName;
         }
 
         public string GetActiveBufferName()

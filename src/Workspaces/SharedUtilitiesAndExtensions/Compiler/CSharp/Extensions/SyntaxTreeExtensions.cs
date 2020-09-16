@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             continue;
                         }
 
-                        if (token.HasMatchingText(SyntaxKindEx.DataKeyword))
+                        if (token.HasMatchingText(SyntaxKind.DataKeyword))
                         {
-                            result.Add(SyntaxKindEx.DataKeyword);
+                            result.Add(SyntaxKind.DataKeyword);
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }

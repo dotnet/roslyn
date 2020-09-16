@@ -210,7 +210,7 @@ class Program
         D d=  new D(
     }
 }";
-            await VerifyProviderCommitAsync(markup, "D", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "D", expected, '(');
         }
 
         [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
@@ -328,7 +328,7 @@ class C
     }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -357,7 +357,7 @@ class C
     void M2(object o) { }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -382,7 +382,7 @@ class C
     }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -411,7 +411,7 @@ class C
     void M2(object o) { }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]

@@ -96,7 +96,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,18): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -218,7 +218,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,18): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -395,7 +395,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,15): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -547,7 +547,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,15): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -777,7 +777,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): error CS1624: The body of '<top-level-statements-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
@@ -915,7 +915,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): error CS1624: The body of '<top-level-statements-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
@@ -1041,7 +1041,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
@@ -1173,7 +1173,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
@@ -1347,7 +1347,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,1): warning CS0162: Unreachable code detected
@@ -1473,7 +1473,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,1): warning CS0162: Unreachable code detected
@@ -1611,7 +1611,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,19): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -1759,7 +1759,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,19): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -1958,7 +1958,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -2129,7 +2129,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -2332,7 +2332,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -2504,7 +2504,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -2706,7 +2706,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,24): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -2852,7 +2852,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,24): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -3097,7 +3097,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                                  options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                                                                  options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,30): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -3247,7 +3247,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): warning CS0164: This label has not been referenced
@@ -3393,7 +3393,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): warning CS0164: This label has not been referenced
@@ -3595,7 +3595,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): warning CS0164: This label has not been referenced
@@ -3766,7 +3766,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): warning CS0164: This label has not been referenced
@@ -3997,7 +3997,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                                  options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                                                                  options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (1,1): warning CS0164: This label has not been referenced
@@ -4195,7 +4195,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                                  options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                                                                  options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (1,1): warning CS0164: This label has not been referenced
@@ -4420,7 +4420,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (7,20): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -4587,7 +4587,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (7,20): error CS0128: A local variable or function named 'x2' is already defined in this scope
@@ -4930,7 +4930,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -5096,7 +5096,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -5427,7 +5427,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,21): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -5612,7 +5612,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,21): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -5945,7 +5945,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,6): warning CS0168: The variable 'a' is declared but never used
@@ -6032,7 +6032,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (2,1): warning CS0164: This label has not been referenced
@@ -6117,7 +6117,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -6203,7 +6203,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (3,12): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -6568,7 +6568,7 @@ catch (System.Exception x15)
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (14,24): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -6743,7 +6743,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (7,8): warning CS0168: The variable 'x2' is declared but never used
@@ -6997,7 +6997,7 @@ for (
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (20,27): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -7320,7 +7320,7 @@ foreach (var x15 in
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (15,37): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -7591,7 +7591,7 @@ Dummy(x12);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (6,39): error CS0841: Cannot use local variable 'x4' before it is declared
@@ -8086,7 +8086,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                 // (14,21): error CS0103: The name 'z2' does not exist in the current context
@@ -8540,7 +8540,7 @@ using (Dummy(1 is var x14,
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
                     // (15,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter

@@ -98,7 +98,7 @@ End Class";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47720"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCancellation()
         {
             var code = @"class Test { void Method() { } }";
@@ -193,7 +193,7 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var remotableDataService = workspace.Services.GetService<IRemotableDataService>();
+                var remotableDataService = workspace.Services.GetService<ISolutionAssetStorageProvider>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis

@@ -87,7 +87,8 @@ namespace Microsoft.CodeAnalysis
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLoggerOpt,
-            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions);
+            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
+            AnalyzerConfigOptionsResult globalConfigOptions);
 
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
@@ -769,6 +770,7 @@ namespace Microsoft.CodeAnalysis
 
             AnalyzerConfigSet analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
+            AnalyzerConfigOptionsResult globalConfigOptions = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
@@ -779,6 +781,7 @@ namespace Microsoft.CodeAnalysis
                     return Failed;
                 }
 
+                globalConfigOptions = analyzerConfigSet.GlobalConfigOptions;
                 sourceFileAnalyzerConfigOptions = Arguments.SourceFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
 
                 foreach (var sourceFileAnalyzerConfigOption in sourceFileAnalyzerConfigOptions)
@@ -787,7 +790,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions);
+            Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
             if (compilation == null)
             {
                 return Failed;

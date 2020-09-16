@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private async Task<CompletionData> ProcessCompilationRequestAsync(IClientConnection clientConnection, BuildRequest request, CancellationToken cancellationToken)
         {
             // Need to wait for the compilation and client disconnection in parallel. If the client
-            // suddenly disconnects we need to cancel the compilation that is occuring. It could be the 
+            // suddenly disconnects we need to cancel the compilation that is occurring. It could be the 
             // client hit Ctrl-C due to a run away analyzer.
             var buildCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var compilationTask = ProcessCompilationRequestCore(CompilerServerHost, request, buildCancellationTokenSource.Token);

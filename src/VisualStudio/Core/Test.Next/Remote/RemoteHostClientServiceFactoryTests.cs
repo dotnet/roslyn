@@ -89,12 +89,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false).ConfigureAwait(false);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
             var serviceName = new RemoteServiceName("Test");
 
             // register local service
             TestService testService = null;
-            client.RegisterService(serviceName, (s, p) =>
+            client.RegisterService(serviceName, (s, p, o) =>
             {
                 testService = new TestService(s, p);
                 return testService;

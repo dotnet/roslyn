@@ -233,12 +233,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -497,19 +497,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
             return TryGetValueCore(key, valueProvider, out value);
         }
 
-        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             throw new NotImplementedException();
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -603,12 +603,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);

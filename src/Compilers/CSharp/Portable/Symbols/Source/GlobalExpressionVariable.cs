@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
         /// </summary>
-        private SyntaxReference _typeSyntaxOpt;
+        private readonly SyntaxReference _typeSyntaxOpt;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,

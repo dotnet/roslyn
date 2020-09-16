@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         [InlineData("(x = o as string) is null", "!(o is string x)")]
-#if !CODE_STYLE
         [InlineData("x == null", "o is not string x", LanguageVersion.CSharp9)]
-#endif
         public async Task InlineTypeCheck1(string input, string output, LanguageVersion version = LanguageVersion.CSharp8)
         {
             await TestStatement($"if ({input}) {{ }}", $"if ({output}) {{ }}", version);
@@ -1055,7 +1053,7 @@ public static class C
         if (!(o is string x)) return null;
         return x;
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1090,7 +1088,7 @@ public static class C
             return x;
         }
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1330,7 +1328,7 @@ public static class C
     {
         for (; !(!(e is C c));) { }
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1357,7 +1355,7 @@ public static class C
             M(c);
         }
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1406,7 +1404,7 @@ public static class C
             M(c);
         }
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1434,7 +1432,7 @@ public static class C
             M(c);
         }
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1489,7 +1487,7 @@ public static class C
     {
         C F() => !(e is C c) ? null : c;
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -1525,7 +1523,7 @@ public static class C
     {
         System.Func<C> f = () => !(e is C c) ? null : c;
     }
-}");
+}", parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]

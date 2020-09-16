@@ -5632,7 +5632,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public virtual T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             new SolutionChangeAction(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, isPerLanguage, project, cancellationToken)));
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken)));
                     }
                 }
             }

@@ -26,9 +26,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _textViewWindow._editorInProc.VerifyNotSaved();
             }
 
-            public void IsSaved()
+            public string IsSaved()
             {
-                _textViewWindow._editorInProc.VerifySaved();
+                return _textViewWindow._editorInProc.VerifySaved();
             }
 
             public void CurrentLineText(

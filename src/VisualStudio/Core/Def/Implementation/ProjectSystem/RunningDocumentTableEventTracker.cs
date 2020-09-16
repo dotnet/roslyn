@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
                 {
                     _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                    _listener.OnOpenDocument(moniker, buffer, hierarchy);
+                    _listener.OnOpenDocument(moniker, buffer, hierarchy, windowFrame: null);
                 }
             }
 
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fFirstShow != 0 && _runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
             {
                 _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                _listener.OnOpenDocument(moniker, buffer, hierarchy);
+                _listener.OnOpenDocument(moniker, buffer, hierarchy, pFrame);
             }
 
             return VSConstants.S_OK;

@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only fails verification
                 verify: Verification.Skipped);
 
@@ -74,9 +74,9 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 12),
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
                 // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
@@ -1295,6 +1295,22 @@ data struct S2(int X, int Y);";
             );
         }
 
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
+        [Fact]
+        public void ClassInheritingFromRecord()
+        {
+            var src = @"
+abstract record AbstractRecord {}
+class SomeClass : AbstractRecord {}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8865: Only records may inherit from records.
+                // class SomeClass : AbstractRecord {}
+                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "AbstractRecord").WithLocation(3, 19)
+            );
+        }
+
         [Fact]
         public void RecordInheritance()
         {
@@ -1356,7 +1372,7 @@ enum H : C { }
 ";
 
             var comp2 = CreateCompilation(src2,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 references: new[] {
                 emitReference ? comp.EmitToImageReference() : comp.ToMetadataReference()
             });
@@ -1469,7 +1485,7 @@ class C
 }";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.ReleaseExe);
 
             var r = comp.GlobalNamespace.GetTypeMember("R");

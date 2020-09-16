@@ -1151,8 +1151,8 @@ class C
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor1, s_descriptor2);
 
-            private static DiagnosticDescriptor s_descriptor1 = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'. Speculative flow state is '{3}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
-            private static DiagnosticDescriptor s_descriptor2 = new DiagnosticDescriptor(id: "CA9998_NullabilityPrinter", title: "CA9998_NullabilityPrinter", messageFormat: "Declared nullability of '{0}' is '{1}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private static readonly DiagnosticDescriptor s_descriptor1 = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'. Speculative flow state is '{3}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private static readonly DiagnosticDescriptor s_descriptor2 = new DiagnosticDescriptor(id: "CA9998_NullabilityPrinter", title: "CA9998_NullabilityPrinter", messageFormat: "Declared nullability of '{0}' is '{1}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override void Initialize(AnalysisContext context)
             {
@@ -1268,7 +1268,7 @@ class C
             Assert.Equal(notNull, leftInfo.Nullability);
             Assert.Equal(notNull, leftInfo.ConvertedNullability);
             Assert.Equal(@null, rightInfo.Nullability);
-            Assert.Equal(notNull, rightInfo.ConvertedNullability);
+            Assert.Equal(@null, rightInfo.ConvertedNullability);
         }
 
         [Fact]
@@ -3924,7 +3924,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc([A(o1)] object o3 = o2)
@@ -4565,7 +4565,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (17,16): warning CS8603: Possible null reference return.
                 //         return z2; // 1
@@ -4711,6 +4711,25 @@ class C
             var typeInfo = speculativeModel.GetTypeInfo(newAccess.Expression);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Type.NullableAnnotation);
             Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+        }
+
+        [Theory, WorkItem(47467, "https://github.com/dotnet/roslyn/issues/47467")]
+        [InlineData("void M() {}")]
+        [InlineData(@"void M() {}
+M();")]
+        [InlineData(@"
+// Comment
+void M() {}
+M();")]
+        public void GetDeclaredSymbolTopLevelStatementsWithLocalFunctionFirst(string code)
+        {
+            var comp = CreateCompilation(code, options: TestOptions.ReleaseExe.WithNullableContextOptions(NullableContextOptions.Enable));
+
+            var tree = comp.SyntaxTrees[0];
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+
+            AssertEx.Equal("void M()", model.GetDeclaredSymbol(localFunction).ToTestDisplayString());
         }
     }
 }

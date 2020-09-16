@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 {
                     var workspace = document.Project.Solution.Workspace;
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
+                    var symbolDisplayService = document.Project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
                     var formatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
                     var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
                     textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
@@ -113,11 +113,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                         }
                     }
                 }
+
+                var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
+                    document, _threadingContext, _streamingPresenter);
+                return uiCollection;
             }
 
-            var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
-                document, _threadingContext, _streamingPresenter);
-            return uiCollection;
+            return Array.Empty<object>();
         }
 
         private static FrameworkElement CreateElement(string text, IWpfTextView textView, TextFormattingRunProperties format)

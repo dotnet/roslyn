@@ -5654,7 +5654,7 @@ class A
                 source,
                 symbolValidator: metadataValidator,
                 expectedOutput: "",
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var compilation = verifier.Compilation;
@@ -10734,7 +10734,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
             Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda
@@ -10776,7 +10776,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
@@ -10818,7 +10818,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
             Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
@@ -10860,7 +10860,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
             Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
@@ -10902,7 +10902,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
@@ -10944,7 +10944,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
             Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda

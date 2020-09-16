@@ -27,12 +27,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
-            var completionParams = CreateCompletionParams(locations["caret"].Single());
-            var completionItem = CreateCompletionItem("A", LSP.CompletionItemKind.Class, tags, completionParams);
+            var completionParams = CreateCompletionParams(locations["caret"].Single(), "\0", LSP.CompletionTriggerKind.Invoked);
+            var completionItem = CreateCompletionItem
+                ("A", LSP.CompletionItemKind.Class, tags, completionParams);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
-            var expected = CreateResolvedCompletionItem("A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
+            var expected = CreateResolvedCompletionItem(
+                "A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
 
             var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(workspace.CurrentSolution, completionItem, clientCapabilities);
             AssertJsonEquals(expected, results);
@@ -43,9 +45,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                 completionItem, clientCapabilities, null, CancellationToken.None);
 
         private static LSP.VSCompletionItem CreateResolvedCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters,
-            ClassifiedTextElement description, string detail, string documentation)
+            ClassifiedTextElement description, string detail, string documentation, string[] commitCharacters = null)
         {
-            var resolvedCompletionItem = CreateCompletionItem(text, kind, tags, requestParameters);
+            var resolvedCompletionItem = CreateCompletionItem(text, kind, tags, requestParameters, commitCharacters: commitCharacters);
             resolvedCompletionItem.Detail = detail;
             if (documentation != null)
             {

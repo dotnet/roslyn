@@ -7512,7 +7512,7 @@ class B
     static void F3(nint? x, UIntPtr? y) { }
     static void F4(nint[] x, A<nuint> y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular9);
             var formatWithoutOptions = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,

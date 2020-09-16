@@ -14787,7 +14787,7 @@ class c1
                 expectedOutput: "",
                 symbolValidator: validator,
                 options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             void validator(ModuleSymbol module)
             {

@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void RemoveMethodsNotDeclaredStatic<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
         {
-            // RemoveStaticInstanceMistmatches allows methods that do not need a reciever but are not declared static,
+            // RemoveStaticInstanceMismatches allows methods that do not need a receiver but are not declared static,
             // such as a local function that is not declared static. This eliminates methods that are not actually
             // declared as static
             for (int f = 0; f < results.Count; f++)

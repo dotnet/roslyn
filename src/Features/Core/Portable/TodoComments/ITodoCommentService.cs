@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Position = position;
         }
 
-        internal TodoCommentData CreateSerializableData(
+        private TodoCommentData CreateSerializableData(
             Document document, SourceText text, SyntaxTree? tree)
         {
             // make sure given position is within valid text range.
@@ -54,6 +55,19 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 MappedColumn = mappedLineInfo.StartLinePosition.Character,
                 MappedFilePath = mappedLineInfo.GetMappedFilePathIfExist(),
             };
+        }
+
+        public static async Task ConvertAsync(
+            Document document,
+            ImmutableArray<TodoComment> todoComments,
+            ArrayBuilder<TodoCommentData> converted,
+            CancellationToken cancellationToken)
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var comment in todoComments)
+                converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
         }
     }
 

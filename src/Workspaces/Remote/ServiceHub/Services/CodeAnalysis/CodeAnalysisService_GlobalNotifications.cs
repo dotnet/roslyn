@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Remote.Services;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : ServiceBase, IRemoteGlobalNotificationDeliveryService
+    internal partial class CodeAnalysisService : IRemoteGlobalNotificationDeliveryService
     {
         /// <summary>
         /// Remote API.
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, CancellationToken.None);
         }
 
-        private static RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
-            => SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
+            => GetWorkspace().Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
     }
 }

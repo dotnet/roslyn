@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => throw ExceptionUtilities.Unreachable;
+
         internal override bool RequiresSecurityObject
         {
             get { return false; }

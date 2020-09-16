@@ -94,52 +94,58 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void ReportNonFatal(Exception exception)
         {
-            if (exception is OutOfMemoryException)
+            try
+            {
+                var emptyCallstack = exception.SetCallstackIfEmpty();
+                var currentProcess = Process.GetCurrentProcess();
+
+                // write the exception to a log file:
+                var logMessage = $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}";
+                foreach (var logger in s_loggers)
+                {
+                    logger.TraceEvent(TraceEventType.Error, 1, logMessage);
+                }
+
+                var faultEvent = new FaultEvent(
+                    eventName: FunctionId.NonFatalWatson.GetEventName(),
+                    description: GetDescription(exception),
+                    FaultSeverity.Diagnostic,
+                    exceptionObject: exception,
+                    gatherEventDetails: faultUtility =>
+                    {
+                        if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
+                        {
+                            // add ServiceHub log files:
+                            foreach (var path in CollectServiceHubLogFilePaths())
+                            {
+                                faultUtility.AddFile(path);
+                            }
+                        }
+
+                        // Returning "0" signals that, if sampled, we should send data to Watson. 
+                        // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                        // we'll let TargetedNotifications determine if a dump should be collected.
+                        // See https://aka.ms/roslynnfwdocs for more details
+                        return 0;
+                    });
+
+                // add extra bucket parameters to bucket better in NFW
+                // we do it here so that it gets bucketted better in both
+                // watson and telemetry. 
+                faultEvent.SetExtraParameters(exception, emptyCallstack);
+
+                foreach (var session in s_telemetrySessions)
+                {
+                    session.PostEvent(faultEvent);
+                }
+            }
+            catch (OutOfMemoryException)
             {
                 FailFast.OnFatalException(exception);
             }
-
-            var emptyCallstack = exception.SetCallstackIfEmpty();
-            var currentProcess = Process.GetCurrentProcess();
-
-            // write the exception to a log file:
-            var logMessage = $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}";
-            foreach (var logger in s_loggers)
+            catch (Exception e)
             {
-                logger.TraceEvent(TraceEventType.Error, 1, logMessage);
-            }
-
-            var faultEvent = new FaultEvent(
-                eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: GetDescription(exception),
-                FaultSeverity.Diagnostic,
-                exceptionObject: exception,
-                gatherEventDetails: faultUtility =>
-                {
-                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
-                    {
-                        // add ServiceHub log files:
-                        foreach (var path in CollectServiceHubLogFilePaths())
-                        {
-                            faultUtility.AddFile(path);
-                        }
-                    }
-
-                    // Returning "0" signals that, if sampled, we should send data to Watson. 
-                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
-                    // we'll let TargetedNotifications determine if a dump should be collected.
-                    // See https://aka.ms/roslynnfwdocs for more details
-                    return 0;
-                });
-
-            // add extra bucket parameters to bucket better in NFW
-            // we do it here so that it gets bucketted better in both
-            // watson and telemetry. 
-            faultEvent.SetExtraParameters(exception, emptyCallstack);
-
-            foreach (var session in s_telemetrySessions)
-            {
-                session.PostEvent(faultEvent);
+                FailFast.OnFatalException(e);
             }
         }
 

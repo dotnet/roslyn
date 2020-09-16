@@ -3164,7 +3164,7 @@ public static class Extensions
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
 
-            var boundNode = GetBoundForEachStatement(text, options: TestOptions.RegularPreview);
+            var boundNode = GetBoundForEachStatement(text, options: TestOptions.Regular9);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);

@@ -129,8 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var totalPattern = GetPattern(switchLabels[0], out var whenClauseUnused);
                 Debug.Assert(whenClauseUnused == null, "We should not have offered to convert multiple cases if any have a when clause");
 
-#if !CODE_STYLE
-
                 for (var i = 1; i < switchLabels.Count; i++)
                 {
                     var nextPatternPart = GetPattern(switchLabels[i], out whenClauseUnused);
@@ -138,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                     totalPattern = BinaryPattern(SyntaxKind.OrPattern, totalPattern.Parenthesize(), nextPatternPart.Parenthesize());
                 }
-
-#endif
 
                 whenClauseOpt = null;
                 return totalPattern;

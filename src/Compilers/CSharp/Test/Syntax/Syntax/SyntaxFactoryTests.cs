@@ -596,12 +596,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
             parsedWith8.GetDiagnostics().Verify(
-                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1)
             );
 
-            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.RegularPreview);
+            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular9);
             parsedWithPreview.GetDiagnostics().Verify();
         }
     }

@@ -1024,7 +1024,7 @@ End Class
         Public Async Function TestExclusiveNamedParameterCompletion() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                       <Workspace>
-                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="15">
                               <Document>
 Class Class1
     Private Sub Test()
@@ -1053,7 +1053,7 @@ End Class
         Public Async Function TestExclusiveNamedParameterCompletion2() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                       <Workspace>
-                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="15">
                               <Document>
 Class Goo
     Private Sub Test()
@@ -2551,7 +2551,7 @@ $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As '
         Public Async Function TestNonTrailingNamedArgumentInVB15_3() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_3" CommonReferences="true" AssemblyName="VBProj">
+                     <Project Language="Visual Basic" LanguageVersion="15.3" CommonReferences="true" AssemblyName="VBProj">
                          <Document FilePath="C.vb">
 Class C
     Sub M()

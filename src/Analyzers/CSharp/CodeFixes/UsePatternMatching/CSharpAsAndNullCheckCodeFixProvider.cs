@@ -146,14 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (!comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
                 return isPatternExpression;
 
-#if !CODE_STYLE
             if (languageVersion >= LanguageVersion.CSharp9)
             {
                 // In C# 9 and higher, convert to `x is not string s`.
                 return isPatternExpression.WithPattern(
                     SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), isPatternExpression.Pattern));
             }
-#endif
 
             // In C# 8 and lower, convert to `!(x is string s)`
             return SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, isPatternExpression.Parenthesize());

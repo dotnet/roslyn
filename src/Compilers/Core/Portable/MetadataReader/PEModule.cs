@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
                 _peReader = peReader;
             }
 
-            internal unsafe override ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
+            internal override unsafe ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
             {
                 PEMemoryBlock block = _peReader.GetEntireImage();
                 byte[] hash;
@@ -3425,7 +3425,7 @@ namespace Microsoft.CodeAnalysis
 
             private StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
 
-            public unsafe override string GetString(byte* bytes, int byteCount)
+            public override unsafe string GetString(byte* bytes, int byteCount)
             {
                 return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
             }

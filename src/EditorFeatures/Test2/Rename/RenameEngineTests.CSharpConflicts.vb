@@ -682,7 +682,7 @@ End Class
             Public Sub ConflictingTypeDeclaration(host As RenameTestHost)
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
-                        <Project Language="C#" CommonReferences="true" LanguageVersion="CSharp6">
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="6">
                             <Document><![CDATA[
 namespace N1
 {
