@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     }
                     else
                     {
-
                         AddFieldCodeActions(actions, semanticDocument, state);
                         AddPropertyCodeActions(actions, semanticDocument, state);
                     }
@@ -107,6 +106,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return;
             }
 
+            if (!state.CanGeneratePropertyOrField())
+            {
+                return;
+            }
+
             var isOnlyReadAndIsInInterface = state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo;
 
             if (isOnlyReadAndIsInInterface || state.IsInConstructor)
@@ -130,6 +134,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
+                if (!state.CanGeneratePropertyOrField())
+                {
+                    return;
+                }
+
                 if (state.IsConstant)
                 {
                     result.Add(new GenerateVariableCodeAction(

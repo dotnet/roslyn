@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
             }
 
+            internal bool CanGeneratePropertyOrField()
+            {
+                return !ContainingType.IsImplicitClass;
+            }
+
             internal bool CanGenerateLocal()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
