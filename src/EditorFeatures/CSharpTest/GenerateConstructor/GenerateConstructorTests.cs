@@ -4217,5 +4217,35 @@ class C
     public A(int* a, int b, int c) : this(a, b) { }
 }");
         }
+
+        [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateNameFromTypeArgument()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System.Collections.Generic;
+
+class Frog { }
+
+class C
+{
+    C M() => new [||]C(new List<Frog>());
+}",
+ @"using System.Collections.Generic;
+
+class Frog { }
+
+class C
+{
+    private List<Frog> frogs;
+
+    public C(List<Frog> frogs)
+    {
+        this.frogs = frogs;
+    }
+
+    C M() => new C(new List<Frog>());
+}");
+        }
     }
 }

@@ -220,12 +220,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // instead.
             var info = semanticModel.GetTypeInfo(expression, cancellationToken);
 
-            // If we can't determine the type, then fallback to some placeholders.
             var type = info.Type;
             var pluralize = Pluralize(semanticModel, type);
 
+            // We may be able to use the type's arguments to generate a name.
+            if (TryGenerateNameFromTypeArgument(type, capitalize, pluralize, out var typeArgumentParameterName))
+            {
+                return typeArgumentParameterName;
+            }
+
             var parameterName = type.CreateParameterName(capitalize);
             return pluralize ? parameterName.Pluralize() : parameterName;
+        }
+
+        private static bool TryGenerateNameFromTypeArgument(ITypeSymbol type, bool capitalize, bool pluralize, out string parameterName)
+        {
+            var typeArguments = type.GetAllTypeArguments();
+
+            // We only consider generating a name if there's one type argument.
+            // This logic can potentially be expanded upon in the future.
+            if (typeArguments.Length == 1)
+            {
+                var typeArgument = typeArguments.Single().ToNameDisplayString();
+                if (SyntaxFacts.IsValidIdentifier(typeArgument))
+                {
+                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
+                    parameterName = pluralize ? parameterName.Pluralize() : parameterName;
+                    return true;
+                }
+            }
+
+            parameterName = null;
+            return false;
         }
 
         private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
