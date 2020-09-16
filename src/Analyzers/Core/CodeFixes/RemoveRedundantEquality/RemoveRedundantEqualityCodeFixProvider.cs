@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
                 editor.ReplaceNode(node, (n, _) =>
                 {
-                    if (!syntaxFacts.IsBinaryExpression(node) ||
-                        semanticModel.GetOperation(node, cancellationToken) is not IBinaryOperation operation ||
+                    if (!syntaxFacts.IsBinaryExpression(n) ||
+                        semanticModel.GetOperation(n, cancellationToken) is not IBinaryOperation operation ||
                         operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals) ||
                         operation.RightOperand.Type.SpecialType != SpecialType.System_Boolean ||
                         operation.LeftOperand.Type.SpecialType != SpecialType.System_Boolean)
                     {
                         // This should happen only in error cases.
-                        return node;
+                        return n;
                     }
 
                     var redundantBoolValue = operation.OperatorKind == BinaryOperatorKind.Equals;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                         return operation.RightOperand.Syntax;
                     }
 
-                    return node;
+                    return n;
                 });
             }
 
