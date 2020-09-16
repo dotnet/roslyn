@@ -912,6 +912,11 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
@@ -1446,11 +1451,6 @@
       <trans-unit id="IDS_FeatureModuleInitializers">
         <source>module initializers</source>
         <target state="new">module initializers</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor">
-        <source>Mixed declarations and expressions in deconstruction</source>
-        <target state="new">Mixed declarations and expressions in deconstruction</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">

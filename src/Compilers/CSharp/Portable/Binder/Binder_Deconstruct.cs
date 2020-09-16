@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ExpressionStatement:
                         if (expression != null)
                         {
-                            MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor
+                            MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction
                                 .CheckFeatureAvailability(diagnostics, Compilation, node.Location);
                         }
                         break;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (expression != null)
                             {
-                                MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor
+                                MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction
                                     .CheckFeatureAvailability(diagnostics, Compilation, node.Location);
                             }
                         }
