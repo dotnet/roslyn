@@ -346,7 +346,7 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerIsChanged()
+        public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
         {
             await VerifyCustomCommitProviderAsync(@"
 public class C
@@ -376,6 +376,83 @@ public class Program
         c[$$]
     }
 }
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerWithTwoParametersSuggestionCommitsOpenAndClosingBraces()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public class C
+{
+    public int this[int x, int y] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", "[int, int]", @"
+public class C
+{
+    public int this[int x, int y] => i;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c[$$]
+    }
+}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("c.$$", "c[$$]")]
+        [InlineData("c. $$", "c[$$] ")]
+        [InlineData("c.$$;", "c[$$];")]
+        [InlineData("var f = c.$$;", "var f = c[$$];")]
+        [InlineData("c?.$$", "c?[$$]")]
+        [InlineData("((C)c).$$", "((C)c)[$$]")]
+        [InlineData("(true ? c : c).$$", "(true ? c : c)[$$]")]
+        public async Task IndexerCompletionForDifferentInvocations(string invocation, string fixedCode)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public int this[int i] => i;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {invocation}
+    }}
+}}
+", "[int]", @$"
+public class C
+{{
+    public int this[int i] => i;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {fixedCode}
+    }}
+}}
 ");
         }
     }

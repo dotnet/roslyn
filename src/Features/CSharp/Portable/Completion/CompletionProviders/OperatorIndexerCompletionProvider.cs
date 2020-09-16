@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             var indexer = from p in allMembers.OfType<IPropertySymbol>()
                                           where p.IsIndexer
                                           select SymbolCompletionItem.CreateWithSymbolId(
-                                              displayText: $"[{string.Join(",", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
+                                              displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
                                               symbols: ImmutableList.Create(p),
                                               rules: CompletionItemRules.Default,
                                               contextPosition: position,
@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = root.FindTokenOnLeftOfPosition(position);
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                return CompletionChange.Create(new TextChange(token.Span, "[]"), newPosition: position);
+                var newPosition = token.Span.End;
+                return CompletionChange.Create(new TextChange(token.Span, "[]"), newPosition);
             }
 
             return null;
