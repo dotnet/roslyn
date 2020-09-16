@@ -64,21 +64,24 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteCodeLensReferencesService)),
         });
 
-        private static string GetServiceName(Type serviceInterface)
+        internal static string GetServiceName(Type serviceInterface)
         {
             Contract.ThrowIfFalse(serviceInterface.IsInterface);
             var interfaceName = serviceInterface.Name;
             Contract.ThrowIfFalse(interfaceName.StartsWith(InterfaceNamePrefix, StringComparison.Ordinal));
             Contract.ThrowIfFalse(interfaceName.EndsWith(InterfaceNameSuffix, StringComparison.Ordinal));
 
-            return ServiceNamePrefix + interfaceName.Substring(InterfaceNamePrefix.Length, interfaceName.Length - InterfaceNamePrefix.Length - InterfaceNameSuffix.Length);
+            return interfaceName.Substring(InterfaceNamePrefix.Length, interfaceName.Length - InterfaceNamePrefix.Length - InterfaceNameSuffix.Length);
         }
+
+        internal static string GetQualifiedServiceName(Type serviceInterface)
+            => ServiceNamePrefix + GetServiceName(serviceInterface);
 
         private static KeyValuePair<Type, (ServiceDescriptor, ServiceDescriptor)> CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
-            var serviceName = GetServiceName(serviceInterface);
+            var serviceName = GetQualifiedServiceName(serviceInterface);
             var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName, callbackInterface);
             var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName + RemoteServiceName.Suffix64, callbackInterface);
             return new(serviceInterface, (descriptor32, descriptor64));
@@ -89,5 +92,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var (descriptor32, descriptor64) = Descriptors[serviceType];
             return isRemoteHost64Bit ? descriptor64 : descriptor32;
         }
+
+        internal static string GetFeatureName(Type serviceInterface)
+            => RemoteWorkspacesResources.GetResourceString("FeatureName_" + GetServiceName(serviceInterface));
     }
 }

@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Remote
                IServiceBroker serviceBroker)
             {
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8);
-                var serverConnection = descriptor.ConstructRpcConnection(pipe);
+                var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
+                var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
                 var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker, new CancellationTokenSource());
                 var service = CreateService(args, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);

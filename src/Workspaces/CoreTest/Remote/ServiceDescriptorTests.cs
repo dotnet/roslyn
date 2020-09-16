@@ -149,5 +149,14 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             AssertEx.Empty(errors, "Types are not MessagePack-serializable");
         }
-}
+
+        [Fact]
+        public void GetFeatureName()
+        {
+            foreach (var (serviceType, _) in ServiceDescriptors.Descriptors)
+            {
+                Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
+            }
+        }
+    }
 }

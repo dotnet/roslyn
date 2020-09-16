@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 #pragma warning restore
 
             Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, assetStorage, errorReportingService: null);
+            return new BrokeredServiceConnection<T>(proxy, assetStorage, _workspaceServices.GetRequiredService<IErrorReportingService>(), shutdownCancellationService: null);
         }
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     // Currently don't support callback creation as we don't have in-proc service with callbacks yet.
                     Contract.ThrowIfFalse(descriptor.ClientInterface == null);
 
-                    var serviceConnection = descriptor.ConstructRpcConnection(pipe);
+                    var serviceConnection = descriptor.WithTraceSource(_serviceProvider.TraceSource).ConstructRpcConnection(pipe);
                     var service = inProcFactory();
 
                     serviceConnection.AddLocalRpcTarget(service);
