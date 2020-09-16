@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                     {
                         return WithElasticTrailingTrivia(operation.LeftOperand.Syntax);
                     }
-                    else if (TryGetLiteralValue(operation.RightOperand) == redundantBoolValue)
+                    else if (TryGetLiteralValue(operation.LeftOperand) == redundantBoolValue)
                     {
                         // Elastic trivia is not needed here.
                         // LeftExpression                 ==                     RightExpression
