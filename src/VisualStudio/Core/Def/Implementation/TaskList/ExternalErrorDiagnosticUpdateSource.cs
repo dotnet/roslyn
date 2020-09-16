@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,20 +21,43 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
+
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     using ProjectErrorMap = ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>;
 
+    /// <summary>
+    /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.
+    /// VS workspaces calls into us when a build is invoked or completed in Visual Studio.
+    /// <see cref="ProjectExternalErrorReporter"/> calls into us to clear reported diagnostics or to report new diagnostics during the build.
+    /// For each of these callbacks, we create/capture the current <see cref="BuildInprogressState"/> and
+    /// schedule updating/processing this state on a serialized <see cref="_taskQueue"/> in the background.
+    /// The processing phase de-dupes the diagnostics reported from build and intellisense to ensure that the error list does not contain duplicate diagnostics.
+    /// It raises events about diagnostic updates, which eventually trigger the "Build + Intellisense" and "Build only" error list diagnostic
+    /// sources to update the reported diagnostics.
+    /// </summary>
     internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IGlobalOperationNotificationService _notificationService;
 
+        /// <summary>
+        /// Task queue to serialize all the work for errors reported by build.
+        /// <see cref="_stateDoNotAccessDirectly"/> represents the state from build errors,
+        /// which is built up and processed in serialized fashion on this task queue.
+        /// </summary>
         private readonly TaskQueue _taskQueue;
 
         private readonly object _gate = new object();
         private InProgressState? _stateDoNotAccessDirectly;
+
+        /// <summary>
+        /// Latest diagnostics reported during current or last build.
+        /// These are not the de-duped build/live diagnostics, but the actual diagnostics from build.
+        /// They are directly used by the "Build only" error list setting.
+        /// </summary>
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         public ExternalErrorDiagnosticUpdateSource(
@@ -67,15 +89,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
 
+        /// <summary>
+        /// Event generated from the serialized <see cref="_taskQueue"/> whenever the build progress in Visual Studio changes.
+        /// Events are guaranteed to be generated in a serial fashion, but may be invoked on any thread.
+        /// </summary>
         public event EventHandler<BuildProgress>? BuildProgressChanged;
+
+        /// <summary>
+        /// Event generated from the serialized <see cref="_taskQueue"/> whenever build-only diagnostics are reported during a build in Visual Studio.
+        /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
+        /// </summary>
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+
+        /// <summary>
+        /// Event generated from the serialized <see cref="_taskQueue"/> whenever build-only diagnostics are cleared during a build in Visual Studio.
+        /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
+        /// </summary>
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
+        /// <summary>
+        /// Indicates if a build is currently in progress inside Visual Studio.
+        /// </summary>
         public bool IsInProgress => BuildInprogressState != null;
 
+        /// <summary>
+        /// Get the latest diagnostics reported during current or last build.
+        /// These are not the de-duped build/live diagnostics, but the actual diagnostics from build.
+        /// They are directly used by the "Build only" error list setting.
+        /// </summary>
         public ImmutableArray<DiagnosticData> GetBuildErrors()
             => _lastBuiltResult;
 
+        /// <summary>
+        /// Returns true if the given <paramref name="id"/> represents an analyzer diagnostic ID that could be reported
+        /// for the given <paramref name="projectId"/> during the current build in progress.
+        /// This API is only intended to be invoked from <see cref="ProjectExternalErrorReporter"/> while a build is in progress.
+        /// </summary>
         public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
             => BuildInprogressState?.IsSupportedDiagnosticId(projectId, id) ?? false;
 
@@ -91,17 +140,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void ClearErrors(ProjectId projectId)
         {
-            // capture state if it exists
+            // Capture state if it exists
             var state = BuildInprogressState;
 
+            // Update the state to clear diagnostics and raise corresponding diagnostic updated events
+            // on a serialized task queue.
             _taskQueue.ScheduleTask(nameof(ClearErrors), async () =>
             {
                 if (state == null)
                 {
+                    // TODO: Is it possible that ClearErrors can be invoked while the build is not in progress?
+                    // We fallback to current solution in the workspace and clear errors for the project.
                     await ClearErrorsCoreAsync(projectId, _workspace.CurrentSolution, state).ConfigureAwait(false);
                 }
                 else
                 {
+                    // We are going to clear the diagnostics for the current project.
+                    // Additionally, we clear errors for all projects that transitively depend on this project.
+                    // Otherwise, fixing errors in core projects in dependency chain will leave back stale diagnostics in dependent projects.
+
+                    // First check if we already cleared the diagnostics for this project when processing a referenced project.
+                    // If so, we don't need to clear diagnostics for it again.
                     if (state.WereProjectErrorsCleared(projectId))
                     {
                         return;
@@ -109,11 +168,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     var solution = state.Solution;
 
-                    // Clear errors for the given project.
                     await ClearErrorsCoreAsync(projectId, solution, state).ConfigureAwait(false);
 
-                    // Additionally, clear errors for all projects that transitively depend on this project.
-                    // Otherwise, fixing errors in core projects in dependency chain will leave back stale diagnostics in dependent projects.
                     var transitiveProjectIds = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(projectId);
                     foreach (var projectId in transitiveProjectIds)
                     {
@@ -140,6 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 await SetLiveErrorsForProjectAsync(projectId, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
 
                 // Mark projects as having its error cleared.
+                // This ensures that we do not attempt to again clear the diagnostics for the same project
+                // when 'ClearErrors' is invoked for multiple dependent projects.
                 state?.MarkErrorsCleared(projectId);
 
                 // Update build progress to refresh error list
@@ -190,18 +248,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         internal void OnSolutionBuildStarted()
         {
-            // build just started, create the state and fire build in progress event.
-            // build just started, create the state and fire build in progress event.
+            // Build just started, create the state and fire build in progress event.
             _ = GetOrCreateInProgressState();
         }
 
         internal void OnSolutionBuildCompleted()
         {
-            // building is done. reset the state
-            // and get local copy of in-progress state
+            // Building is done, so reset the state
+            // and get local copy of in-progress state.
             var inProgressState = ClearInProgressState();
 
-            // enqueue build/live sync in the queue.
+            // Enqueue build/live sync in the queue.
             _taskQueue.ScheduleTask("OnSolutionBuild", async () =>
             {
                 // nothing to do
@@ -210,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return;
                 }
 
-                // explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
+                // Explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
                 // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
                 // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
                 // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
@@ -220,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
                 OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
 
-                // we are about to update live analyzer data using one from build.
+                // We are about to update live analyzer data using one from build.
                 // pause live analyzer
                 using var operation = _notificationService.Start("BuildDone");
                 if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
@@ -233,15 +290,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }, CancellationToken.None);
         }
 
+        /// <summary>
+        /// Core method that de-dupes live and build diagnostics at the completion of build.
+        /// It raises diagnostic update events for both the Build-only diagnostics and Build + Intellisense diagnostics
+        /// in the error list.
+        /// </summary>
         private async Task SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
         {
             var solution = inProgressState.Solution;
             var (allLiveErrors, pendingLiveErrorsToSync) = await inProgressState.GetLiveErrorsAsync().ConfigureAwait(false);
 
-            // make those errors live errors
+            // Make those errors live errors
             await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true).ConfigureAwait(false);
 
-            // raise events for ones left-out
+            // Raise events for ones left-out, i.e. build only errors.
             var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
             foreach (var group in buildErrors)
             {
@@ -268,14 +330,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            // must be not null
-            var documentId = item as DocumentId;
-            RaiseDiagnosticsCreated(documentId, solution, documentId!.ProjectId, documentId, buildErrors);
+            RoslynDebug.Assert(item is DocumentId);
+            var documentId = (DocumentId)(object)item;
+            RaiseDiagnosticsCreated(documentId, solution, documentId.ProjectId, documentId, buildErrors);
         }
 
         private void ClearBuildOnlyProjectErrors(Solution solution, ProjectId? projectId)
         {
-            // remove all project errors
+            // Remove all project errors
             RaiseDiagnosticsRemoved(projectId, solution, projectId, documentId: null);
 
             var project = solution.GetProject(projectId);
@@ -284,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            // remove all document errors
+            // Remove all document errors
             foreach (var documentId in project.DocumentIds)
             {
                 ClearBuildOnlyDocumentErrors(solution, projectId, documentId);
@@ -296,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
-            // capture state that will be processed in background thread.
+            // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
             _taskQueue.ScheduleTask("Project New Errors", async () =>
@@ -308,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
-            // capture state that will be processed in background thread.
+            // Capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
             _taskQueue.ScheduleTask("Document New Errors", async () =>
@@ -321,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
-            // capture state that will be processed in background thread
+            // Capture state that will be processed in background thread
             var state = GetOrCreateInProgressState();
 
             _taskQueue.ScheduleTask("Project New Errors", async () =>
@@ -337,13 +399,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }, CancellationToken.None);
         }
 
+        /// <summary>
+        /// This method is invoked from all <see cref="M:AddNewErrors"/> overloads before it adds the new errors to the in progress state.
+        /// It checks if build reported errors for a different project then the previous callback to report errors.
+        /// This provides a good checkpoint to de-dupe build and live errors for lastProjectId and
+        /// raise diagnostic updated events for that project.
+        /// This ensures that error list keeps getting refreshed while a build is in progress, as opposed to doing all the work
+        /// and a single refresh when the build completes.
+        /// </summary>
         private async Task ReportPreviousProjectErrorsIfRequiredAsync(ProjectId projectId, InProgressState state)
         {
             if (state.TryGetLastProjectWithReportedErrors() is ProjectId lastProjectId &&
                 lastProjectId != projectId)
             {
-                // We received errors for a different project.
-                // Reports errors for lastProjectId as its live errors.
                 await SetLiveErrorsForProjectAsync(lastProjectId, state).ConfigureAwait(false);
             }
         }
@@ -393,8 +461,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 if (_stateDoNotAccessDirectly == null)
                 {
-                    // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                    // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+                    // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+                    // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                     // between build and diagnostic service, but this at least make us to consistent inside of our code.
                     _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
                     OnBuildProgressChanged(_stateDoNotAccessDirectly, BuildProgress.Started);
@@ -442,17 +510,71 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             private readonly ExternalErrorDiagnosticUpdateSource _owner;
 
-            private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = new ConcurrentDictionary<ProjectId, ImmutableHashSet<string>>();
-            private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _liveDiagnosticIdMap = new ConcurrentDictionary<ProjectId, ImmutableHashSet<string>>();
+            /// <summary>
+            /// Map from project ID to all the possible analyzer diagnostic IDs that can be reported in the project.
+            /// </summary>
+            /// <remarks>
+            /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
+            /// </remarks>
+            private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
+
+            /// <summary>
+            /// Map from project ID to all the possible intellisense analyzer diagnostic IDs that can be reported in the project.
+            /// A diagnostic is considered to be an intellise analyzer diagnostic if is reported from a non-compilation end action in an analyzer,
+            /// i.e. we do not require to analyze the entire compilation to compute these diagnostics.
+            /// Compilation end diagnostics are considered build-only diagnostics.
+            /// </summary>
+            /// <remarks>
+            /// This map may be accessed concurrently, so needs to ensure thread safety by using locks.
+            /// </remarks>
+            private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _liveDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
 
             // Fields that are used only from APIs invoked from serialized task queue, hence don't need to be thread safe.
+            #region Serialized fields
+
+            /// <summary>
+            /// Map from project ID to a dictionary of reported project level diagnostics to an integral counter.
+            /// Project level diagnostics are diagnostics that have no document location, i.e. reported with <see cref="Location.None"/>.
+            /// Integral counter value for each diagnostic is used to order the reported diagnostics in error list
+            /// based on the order in which they were reported during build.
+            /// </summary>
             private readonly Dictionary<ProjectId, Dictionary<DiagnosticData, int>> _projectMap = new Dictionary<ProjectId, Dictionary<DiagnosticData, int>>();
+
+            /// <summary>
+            /// Map from document ID to a dictionary of reported document level diagnostics to an integral counter.
+            /// Project level diagnostics are diagnostics that have a valid document location, i.e. reported with a location within a syntax tree.
+            /// Integral counter value for each diagnostic is used to order the reported diagnostics in error list
+            /// based on the order in which they were reported during build.
+            /// </summary>
             private readonly Dictionary<DocumentId, Dictionary<DiagnosticData, int>> _documentMap = new Dictionary<DocumentId, Dictionary<DiagnosticData, int>>();
+
+            /// <summary>
+            /// Set of projects for which we have already cleared the build and intellisense diagnostics in the error list.
+            /// </summary>
             private readonly HashSet<ProjectId> _projectsWithErrorsCleared = new HashSet<ProjectId>();
+
+            /// <summary>
+            /// Set of projects for which we have reported all intellisense/live diagnostics.
+            /// </summary>
             private readonly HashSet<ProjectId> _projectsWithAllLiveErrorsReported = new HashSet<ProjectId>();
+
+            /// <summary>
+            /// Set of projects which have at least one project or document diagnostic in
+            /// <see cref="_projectMap"/> and/or <see cref="_documentMap"/>.
+            /// </summary>
             private readonly HashSet<ProjectId> _projectsWithErrors = new HashSet<ProjectId>();
+
+            /// <summary>
+            /// Last project for which build reported an error through one of the <see cref="M:AddError"/> methods.
+            /// </summary>
             private ProjectId? _lastProjectWithReportedErrors;
+
+            /// <summary>
+            /// Counter to help order the diagnostics in error list based on the order in which they were reported during build.
+            /// </summary>
             private int _incrementDoNotAccessDirectly;
+
+            #endregion
 
             public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
             {
@@ -467,13 +589,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             private ImmutableHashSet<string> GetOrCreateSupportedDiagnosticIds(ProjectId projectId)
             {
-                if (_allDiagnosticIdMap.TryGetValue(projectId, out var ids))
+                lock (_allDiagnosticIdMap)
                 {
-                    return ids;
+                    if (_allDiagnosticIdMap.TryGetValue(projectId, out var ids))
+                    {
+                        return ids;
+                    }
                 }
 
                 var computedIds = ComputeSupportedDiagnosticIds(projectId, Solution, _owner._diagnosticService);
-                return _allDiagnosticIdMap.GetOrAdd(projectId, computedIds);
+
+                lock (_allDiagnosticIdMap)
+                {
+                    _allDiagnosticIdMap[projectId] = computedIds;
+                    return computedIds;
+                }
 
                 static ImmutableHashSet<string> ComputeSupportedDiagnosticIds(ProjectId projectId, Solution solution, IDiagnosticAnalyzerService diagnosticService)
                 {
@@ -515,14 +645,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public ProjectId? TryGetLastProjectWithReportedErrors()
                 => _lastProjectWithReportedErrors;
 
-            private IEnumerable<ProjectId> GetProjectsWithErrors()
-            {
-                // filter out project that is no longer exist in IDE
-                // this can happen if user started a "build" and then remove a project from IDE
-                // before build finishes
-                return _projectsWithErrors.Where(p => Solution.GetProject(p) != null);
-            }
-
             public async Task<(ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync)> GetLiveErrorsAsync()
             {
                 var allLiveErrorsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
@@ -539,6 +661,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
 
                 return (allLiveErrorsBuilder.ToImmutable(), pendingLiveErrorsToSyncBuilder.ToImmutable());
+
+                // Local functions.
+                IEnumerable<ProjectId> GetProjectsWithErrors()
+                {
+                    // Filter out project that is no longer exist in IDE
+                    // this can happen if user started a "build" and then remove a project from IDE
+                    // before build finishes
+                    return _projectsWithErrors.Where(p => Solution.GetProject(p) != null);
+                }
             }
 
             public async Task<ImmutableArray<DiagnosticData>> GetLiveErrorsForProjectAsync(ProjectId projectId)
@@ -627,13 +758,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             private async Task<ImmutableHashSet<string>> GetOrCreateSupportedLiveDiagnosticsAsync(Project project)
             {
-                if (_liveDiagnosticIdMap.TryGetValue(project.Id, out var ids))
+                lock (_liveDiagnosticIdMap)
                 {
-                    return ids;
+                    if (_liveDiagnosticIdMap.TryGetValue(project.Id, out var ids))
+                    {
+                        return ids;
+                    }
                 }
 
                 var computedIds = await ComputeSupportedLiveDiagnosticIdsAsync().ConfigureAwait(false);
-                return _liveDiagnosticIdMap.GetOrAdd(project.Id, computedIds);
+
+                lock (_liveDiagnosticIdMap)
+                {
+                    _liveDiagnosticIdMap[project.Id] = computedIds;
+                    return computedIds;
+                }
 
                 async Task<ImmutableHashSet<string>> ComputeSupportedLiveDiagnosticIdsAsync()
                 {
