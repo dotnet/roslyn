@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     switch (fromPredefTypeKind)
                     {
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
+                        case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             break; // NOP
                         case Microsoft.Cci.PrimitiveTypeCode.UInt8:
                         case Microsoft.Cci.PrimitiveTypeCode.UInt16:
@@ -183,11 +185,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             else
                                 this.EmitOpCode(ILOpCode.Conv_i); // potentially widening, so not NOP
                             break;
-                        case Microsoft.Cci.PrimitiveTypeCode.Pointer:
-                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
-                            if (@checked)
-                                goto default;
-                            break; // NOP
                         default:
                             if (@checked)
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_u_un : ILOpCode.Conv_ovf_u);

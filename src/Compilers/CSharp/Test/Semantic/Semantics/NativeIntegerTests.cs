@@ -7422,8 +7422,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u.un"));
-            conversions(sourceType: "delegate*<void>", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u.un"));
+            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "delegate*<void>", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
             conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
@@ -7522,14 +7522,6 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
-}",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.ovf.u.un
-  IL_0002:  newobj     ""nuint?..ctor(nuint)""
-  IL_0007:  ret
 }");
             conversions(sourceType: "delegate*<void>", destType: "nuint?", expectedImplicitIL: null,
 @"{
@@ -7538,14 +7530,6 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
-}",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.ovf.u.un
-  IL_0002:  newobj     ""nuint?..ctor(nuint)""
-  IL_0007:  ret
 }");
             conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
@@ -12367,11 +12351,10 @@ System.OverflowException
 }");
             verifier.VerifyIL("Program.FromPointer4",
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  conv.ovf.u.un
-  IL_0002:  ret
+  IL_0001:  ret
 }");
         }
     }
