@@ -1024,6 +1024,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             }
 
+                            foreach (var parameter in methodSymbol.Parameters)
+                            {
+                                bool isParameterUsed = false;
+                                foreach (var statement in analyzedInitializers.Statements)
+                                {
+                                    if (statement is BoundExpressionStatement boundExpression &&
+                                        boundExpression.Expression is BoundAssignmentOperator boundAssignment &&
+                                        boundAssignment.Right.ExpressionSymbol == parameter)
+                                    {
+                                        isParameterUsed = true;
+                                        break;
+                                    }
+                                }
+                                if (!isParameterUsed)
+                                {
+                                    _diagnostics.Add(ErrorCode.WRN_UnusedRecordCtorParameter, parameter.Locations[0], parameter.Name);
+                                }
+                            }
+
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
                             includeNonEmptyInitializersInBody = false;

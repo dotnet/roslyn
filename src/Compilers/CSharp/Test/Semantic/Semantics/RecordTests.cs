@@ -23125,6 +23125,24 @@ class C
         }
 
         [Fact]
+        public void UnusedCtorArgument()
+        {
+            string source = @"
+record R(string FirstName, string LastName)
+{
+    public string FirstName { get; init; } = FirstName;
+    public string LastName { get; init; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            comp.VerifyDiagnostics(
+                // (2,35): warning CS8903: Record constructor parameter 'LastName' is unused.
+                // record R(string FirstName, string LastName)
+                Diagnostic(ErrorCode.WRN_UnusedRecordCtorParameter, "LastName").WithArguments("LastName").WithLocation(2, 35));
+        }
+
+        [Fact]
         public void RecordWithConstraints_NullableWarning()
         {
             var src = @"

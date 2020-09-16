@@ -3297,7 +3297,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
                             existingOrAddedMembers.Add(prop);
-                            diagnostics.Add(ErrorCode.WRN_UnusedRecordCtorParameter, param.Locations[0], param);
                         }
                     }
                     else
