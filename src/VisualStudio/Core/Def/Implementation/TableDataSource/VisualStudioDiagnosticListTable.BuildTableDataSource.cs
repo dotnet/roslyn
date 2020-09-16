@@ -8,10 +8,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -22,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
         {
+            /// <summary>
+            /// Error list diagnostic source for "Build only" setting.
+            /// See <see cref="VisualStudioBaseDiagnosticListTable.LiveTableDataSource"/>
+            /// for error list diagnostic source for "Build + Intellisense" setting.
+            /// </summary>
             private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem>
             {
                 private readonly object _key = new object();

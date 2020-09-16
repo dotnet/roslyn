@@ -30,6 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
+        /// <summary>
+        /// Error list diagnostic source for "Build + Intellisense" setting.
+        /// See <see cref="VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.BuildTableDataSource"/>
+        /// for error list diagnostic source for "Build only" setting.
+        /// </summary>
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
         {
             private readonly string _identifier;
@@ -37,6 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
+            /// <summary>
+            /// Flag indicating if a build inside Visual Studio is in progress.
+            /// We get build progress updates from <see cref="ExternalErrorDiagnosticUpdateSource.BuildProgressChanged"/>.
+            /// Build progress events are guaranteed to be invoked in a serial fashion during build.
+            /// </summary>
             private bool _isBuildRunning;
 
             public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
@@ -74,6 +84,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private void OnBuildProgressChanged(bool running)
             {
                 _isBuildRunning = running;
+
+                // We mark error list "Build + Intellisense" setting as stable,
+                // i.e. shown as "Error List" without the trailing "...", if both the following are true:
+                //  1. User invoked build is not running inside Visual Studio AND
+                //  2. Solution crawler is not running in background to compute intellisense diagnostics.
                 ChangeStableStateIfRequired(newIsStable: !_isBuildRunning && !IsSolutionCrawlerRunning);
             }
 
