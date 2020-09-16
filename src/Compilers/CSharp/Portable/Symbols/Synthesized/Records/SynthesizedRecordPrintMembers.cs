@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
             try
             {
-                ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers()
-                    .WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public && (m.Kind is SymbolKind.Field or SymbolKind.Property));
+                ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers().WhereAsArray(m => isPrintable(m));
 
                 if (ReturnType.IsErrorType() ||
                     printableMembers.Any(m => m.GetTypeOrReturnType().Type.IsErrorType()))
@@ -206,6 +205,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static BoundStatement makeAppendString(SyntheticBoundNodeFactory F, BoundParameter builder, string value)
             {
                 return F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString), F.StringLiteral(value)));
+            }
+
+            static bool isPrintable(Symbol m)
+            {
+                if (m.DeclaredAccessibility != Accessibility.Public)
+                {
+                    return false;
+                }
+
+                if (m.Kind is SymbolKind.Field)
+                {
+                    return true;
+                }
+
+                if (m.Kind is SymbolKind.Property)
+                {
+                    var property = (PropertySymbol)m;
+                    return !property.IsIndexer && property.GetMethod is not null;
+                }
+
+                return false;
             }
         }
 

@@ -4398,6 +4398,33 @@ sealed record C2(int I1, int I2) : C1(I1);
             CompileAndVerify(comp, expectedOutput: "C2 { I1 = 42, I2 = 43 }", verify: Verification.Skipped /* init-only */);
         }
 
+        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        public void ToString_RecordWithIndexer()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record C1(int I1)
+{
+    private int field = 44;
+    public int this[int i] => 0;
+    public int PropertyWithoutGetter { set { } }
+    public int P2 { get => 43; }
+    public ref int P3 { get => ref field; }
+    public event System.Action a;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1 { I1 = 42, P2 = 43, P3 = 44 }", verify: Verification.Skipped /* init-only */);
+            comp.VerifyEmitDiagnostics(
+                // (10,32): warning CS0067: The event 'C1.a' is never used
+                //     public event System.Action a;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(10, 32)
+                );
+        }
+
         [Fact]
         public void ToString_ErrorBase()
         {
