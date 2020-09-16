@@ -3013,10 +3013,10 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,28): warning CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' must have identical parameter types and return types.
+                // (5,28): warning CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' have differences in parameter or return types.
                 //     public partial dynamic M1() => null;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
-                // (8,27): warning CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' must have identical parameter types and return types.
+                // (8,27): warning CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' have differences in parameter or return types.
                 //     public partial object M2() => null;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
@@ -3040,10 +3040,10 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (7,25): warning CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' must have identical parameter types and return types.
+                // (7,25): warning CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' have differences in parameter or return types.
                 //     public partial nint M1() => 0;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
-                // (10,27): warning CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' must have identical parameter types and return types.
+                // (10,27): warning CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' have differences in parameter or return types.
                 //     public partial IntPtr M2() => default;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
@@ -3380,16 +3380,16 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
             comp.VerifyDiagnostics(
-                // (5,18): warning CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' must have identical parameter types and return types.
+                // (5,18): warning CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' have differences in parameter or return types.
                 //     partial void F1(System.IntPtr i) { } // 1
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void C.F1(nint i)", "void C.F1(IntPtr i)").WithLocation(5, 18),
-                // (7,18): warning CS8824: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' must have identical parameter types and return types.
+                // (7,18): warning CS8824: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' have differences in parameter or return types.
                 //     partial void F2(object x, System.IntPtr y) { } // 2
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(dynamic x, nint y)", "void C.F2(object x, IntPtr y)").WithLocation(7, 18),
-                // (9,27): warning CS8824: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' must have identical parameter types and return types.
+                // (9,27): warning CS8824: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' have differences in parameter or return types.
                 //     internal partial void F3(System.IntPtr i) { } // 3
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3").WithArguments("void C.F3(nint i)", "void C.F3(IntPtr i)").WithLocation(9, 27),
-                // (11,40): warning CS8824: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' must have identical parameter types and return types.
+                // (11,40): warning CS8824: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' have differences in parameter or return types.
                 //     internal partial IEnumerable<nint> F4() => null; // 4
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
         }
