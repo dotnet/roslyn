@@ -4,10 +4,13 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (changeSignatureResult.Succeeded)
                 {
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution!));
+                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution!, changeSignatureResult.ConfirmationMessage));
                 }
             }
 

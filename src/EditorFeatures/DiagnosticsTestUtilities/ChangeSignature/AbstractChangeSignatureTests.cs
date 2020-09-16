@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool expectedSuccess = true,
             int[] updatedSignature = null,
             string expectedUpdatedInvocationDocumentCode = null,
-            string expectedErrorText = null,
+            CannotChangeSignatureReason? expectedFailureReason = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             => await TestChangeSignatureViaCommandAsync(languageName, markup,
                 updatedSignature?.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
                 expectedSuccess, expectedUpdatedInvocationDocumentCode,
-                expectedErrorText,
+                expectedFailureReason,
                 totalParameters,
                 verifyNoDiagnostics,
                 parseOptions,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             AddedParameterOrExistingIndex[] updatedSignature,
             bool expectedSuccess = true,
             string expectedUpdatedInvocationDocumentCode = null,
-            string expectedErrorText = null,
+            CannotChangeSignatureReason? expectedFailureReason = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
@@ -104,21 +104,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions, options))
             {
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-                var result = testState.ChangeSignature();
+                var result = await testState.ChangeSignature().ConfigureAwait(false);
 
                 if (expectedSuccess)
                 {
                     Assert.True(result.Succeeded);
-                    Assert.Null(testState.ErrorMessage);
+                    Assert.Null(result.CannotChangeSignatureReason);
                 }
                 else
                 {
                     Assert.False(result.Succeeded);
 
-                    if (expectedErrorText != null)
+                    if (expectedFailureReason != null)
                     {
-                        Assert.Equal(expectedErrorText, testState.ErrorMessage);
-                        Assert.Equal(NotificationSeverity.Error, testState.ErrorSeverity);
+                        Assert.Equal(expectedFailureReason, result.CannotChangeSignatureReason);
                     }
                 }
 

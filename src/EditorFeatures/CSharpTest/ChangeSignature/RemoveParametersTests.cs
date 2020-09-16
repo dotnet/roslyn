@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task RemoveParameters1()
         {
             var markup = @"
@@ -113,7 +113,7 @@ static class Ext
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task RemoveParameters_GenericParameterType()
         {
             var markup = @"
@@ -183,7 +183,7 @@ public class DP20<T>
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
         [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
         public async Task RemoveParameters_ExtensionMethodInAnotherFile()
@@ -246,10 +246,10 @@ class C{i}
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-            var result = testState.ChangeSignature();
+            var result = await testState.ChangeSignature().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
-            Assert.Null(testState.ErrorMessage);
+            Assert.Null(result.CannotChangeSignatureReason);
 
             foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {
@@ -264,7 +264,7 @@ class C{i}
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
         [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
         public async Task AddRemoveParameters_ExtensionMethodInAnotherFile()
@@ -328,10 +328,10 @@ class C{i}
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-            var result = testState.ChangeSignature();
+            var result = await testState.ChangeSignature().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
-            Assert.Null(testState.ErrorMessage);
+            Assert.Null(result.CannotChangeSignatureReason);
 
             foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {
@@ -379,7 +379,7 @@ class C{i}
         }
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task RemoveParameters_TargetTypedNew()
         {
             var markup = @"

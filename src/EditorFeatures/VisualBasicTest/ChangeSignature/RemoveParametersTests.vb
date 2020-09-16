@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestRemoveParameters1() As Task
 
             Dim markup = <Text><![CDATA[

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,6 +15,8 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 {
@@ -68,23 +72,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     return false;
                 }
 
-                var reorderParametersService = document.GetLanguageService<AbstractChangeSignatureService>();
-                var result = reorderParametersService.ChangeSignature(
+                var reorderParametersService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
+                var result = reorderParametersService.ChangeSignatureAsync(
                     document,
                     caretPoint.Value.Position,
-                    (errorMessage, severity) =>
-                    {
-                        // We are about to show a modal UI dialog so we should take over the command execution
-                        // wait context. That means the command system won't attempt to show its own wait dialog 
-                        // and also will take it into consideration when measuring command handling duration.
-                        context.OperationContext.TakeOwnership();
-                        workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity);
-                    },
-                context.OperationContext.UserCancellationToken);
+                    context.OperationContext.UserCancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 if (result == null || !result.Succeeded)
                 {
+                    ShowError(result?.CannotChangeSignatureReason, context.OperationContext, notificationService);
                     return true;
+                }
+
+                if (result.ConfirmationMessage != null)
+                {
+                    if (!notificationService.ConfirmMessageBox(result.ConfirmationMessage, severity: NotificationSeverity.Warning))
+                    {
+                        return true;
+                    }
                 }
 
                 var finalSolution = result.UpdatedSolution;
@@ -124,6 +130,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 }
 
                 return true;
+            }
+        }
+
+        private static void ShowError(CannotChangeSignatureReason? reason, IUIThreadOperationContext operationContext, INotificationService notificationService)
+        {
+            switch (reason)
+            {
+                case CannotChangeSignatureReason.DefinedInMetadata:
+                    ShowMessage(FeaturesResources.The_member_is_defined_in_metadata, NotificationSeverity.Error, operationContext, notificationService);
+                    break;
+                case CannotChangeSignatureReason.IncorrectKind:
+                    ShowMessage(FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate, NotificationSeverity.Error, operationContext, notificationService);
+                    break;
+            }
+
+            static void ShowMessage(string errorMessage, NotificationSeverity severity, IUIThreadOperationContext operationContext, INotificationService notificationService)
+            {
+                operationContext.TakeOwnership();
+                notificationService.SendNotification(errorMessage, severity: severity);
             }
         }
     }
