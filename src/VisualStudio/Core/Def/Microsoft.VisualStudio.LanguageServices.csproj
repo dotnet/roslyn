@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
@@ -28,8 +29,11 @@
     <NuspecProperty Include="MicrosoftVisualStudioCompositionVersion=$(MicrosoftVisualStudioCompositionVersion)" />
     <NuspecProperty Include="SystemThreadingTasksDataflowVersion=$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
+  <PropertyGroup>
+    <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
+  </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{6cf2e545-6109-4730-8883-cf43d7aec3e1}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
+    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true"/>
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
@@ -169,6 +173,10 @@
 
     <!-- By default build assets that define embedded interop types do not flow. Set PrivateAssets to none to make them flow. -->
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
+    <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
+    
+    <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ServicesVSResources.resx" GenerateSource="true" />
@@ -194,4 +202,15 @@
     <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
+
+  <Target Name="GeneratePkgDefServiceRegistrations"
+          BeforeTargets="GeneratePkgDef">
+    <ItemGroup>
+      <!-- Add registrations for both 32-bit and 64-bit -->
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
+
+      <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
+    </ItemGroup>
+  </Target>
 </Project>
