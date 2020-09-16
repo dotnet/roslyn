@@ -12279,25 +12279,41 @@ unsafe class Program
     {{
         Execute(ToPointer1(-42));
         Execute(ToPointer2(42));
+        Execute(ToPointer1(int.MinValue));
+        Execute(ToPointer2(uint.MaxValue));
         Console.WriteLine(Execute(() => (ulong)ToPointer3(-42)));
         Console.WriteLine(Execute(() => (ulong)ToPointer4(42)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer3(int.MinValue)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer4(uint.MaxValue)));
     }}
 }}";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
-            string negativeValue = IntPtr.Size == 4 ? "4294967254" : "18446744073709551574";
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+            string expectedOutput =
 $@"-42
 -42
-{negativeValue}
+{(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
 System.OverflowException
-{negativeValue}
+{(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
 42
 42
 42
 42
+42
+-2147483648
+-2147483648
+{(IntPtr.Size == 4 ? "2147483648" : "18446744071562067968")}
+System.OverflowException
+{(IntPtr.Size == 4 ? "2147483648" : "18446744071562067968")}
+-1
+{(IntPtr.Size == 4 ? "-1" : "4294967295")}
+4294967295
+{(IntPtr.Size == 4 ? "System.OverflowException" : "4294967295")}
+4294967295
+System.OverflowException
 42
 System.OverflowException
-42");
+4294967295";
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.ToPointer1",
 @"{
   // Code size        2 (0x2)
