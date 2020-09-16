@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     internal static partial class ConflictResolver
     {
         /// <summary>
-        /// Helper class to track the state necessary for finding/resolving conflicts in a 
+        /// Helper class to track the state necessary for finding/resolving conflicts in a
         /// rename session.
         /// </summary>
         private class Session
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private struct ConflictLocationInfo
             {
-                // The span of the Node that needs to be complexified 
+                // The span of the Node that needs to be complexified
                 public readonly TextSpan ComplexifiedSpan;
                 public readonly DocumentId DocumentId;
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             // If the 1st phase results in conflict then we perform then:
                             //      2nd phase is to expand and simplify only the reference locations with conflicts
                             //      3rd phase is to expand and simplify all the conflict locations (both reference and non-reference)
-                            // If there are unresolved Conflicts after the 3rd phase then in 4th phase, 
+                            // If there are unresolved Conflicts after the 3rd phase then in 4th phase,
                             //      We complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
                             // If the OptionSet has RenameFile to true, we rename files with the type declaration
                             for (var phase = 0; phase < 4; phase++)
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                     }
 
-                    // This rename could break implicit references of this symbol (e.g. rename MoveNext on a collection like type in a 
+                    // This rename could break implicit references of this symbol (e.g. rename MoveNext on a collection like type in a
                     // foreach/for each statement
                     var renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
 
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         if (definitionDocuments.Count() == 1)
                         {
                             // At the moment, only single document renaming is allowed
-                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                            conflictResolution.TryRenameDocumentToMatchNewSymbol(definitionDocuments.Single());
                         }
                     }
 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 var documentIdErrorStateLookup = new Dictionary<DocumentId, bool>();
 
-                // we only check for the documentIds we add annotations to, which is a subset of the ones we're going 
+                // we only check for the documentIds we add annotations to, which is a subset of the ones we're going
                 // to change the syntax in.
                 foreach (var documentId in documents)
                 {
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     foreach (var documentId in documents)
                     {
-                        // only check documents that had no errors before rename (we might have 
+                        // only check documents that had no errors before rename (we might have
                         // fixed them because of rename).  Also, don't bother checking if a custom
                         // callback was provided.  The caller might be ok with a rename that introduces
                         // errors.
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #endif
 
             /// <summary>
-            /// Find conflicts in the new solution 
+            /// Find conflicts in the new solution
             /// </summary>
             private async Task<bool> IdentifyConflictsAsync(
                 HashSet<DocumentId> documentIdsForConflictResolution,
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
 
                     // if the text replacement is invalid, we just did a simple token replacement.
-                    // Therefore we don't need more mapping information and can skip the rest of 
+                    // Therefore we don't need more mapping information and can skip the rest of
                     // the loop body.
                     if (!IsRenameValid(conflictResolution, renamedSymbolInNewSolution))
                     {
@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
 
                                 // The semantic correctness, after rename, for each token of interest in the
-                                // rename context is performed by getting the symbol pointed by each token 
+                                // rename context is performed by getting the symbol pointed by each token
                                 // and obtain the Symbol's First Ordered Location's  Span-Start and check to
-                                // see if it is the same as before from the base solution. During rename, 
+                                // see if it is the same as before from the base solution. During rename,
                                 // the spans would have been modified and so we need to adjust the old position
                                 // to the new position for which we use the renameSpanTracker, which was tracking
                                 // & mapping the old span -> new span during rename
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             /// <summary>
-            /// Gets the list of the nodes that were annotated for a conflict check 
+            /// Gets the list of the nodes that were annotated for a conflict check
             /// </summary>
             private IEnumerable<(SyntaxNodeOrToken syntax, RenameActionAnnotation annotation)> GetNodesOrTokensToCheckForConflicts(
                 SyntaxNode syntaxRoot)
