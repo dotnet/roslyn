@@ -1496,6 +1496,60 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullExtendedPartialMethodUpToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void Bar[||]Bar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+        void BarBar();
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void BarBar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task PullMultipleNonPublicMethodsToInterfaceViaDialog()
         {
             var testText = @"
