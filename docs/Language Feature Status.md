@@ -16,7 +16,7 @@ efforts behind them.
 | [Generic attributes](https://github.com/dotnet/csharplang/issues/124)                              | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes)                        | [In Progress](https://github.com/dotnet/roslyn/issues/36285) | [AviAvni](https://github.com/AviAvni)                                        | [agocke](https://github.com/agocke)                                                | [mattwar](https://github.com/mattwar)   |
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562)                           | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default)                                  | [Implemented](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv)                                            | [gafter](https://github.com/gafter)                                                | [jcouv](https://github.com/jcouv)       |
 | [Constant Interpolated Strings](https://github.com/dotnet/csharplang/issues/2951) | [features/interpolated-string-constants](https://github.com/dotnet/roslyn/tree/features/interpolated-string-constants) | In Progress | [kevinsun-dev](https://github.com/kevinsun-dev) | [333fred](https://github.com/333fred) | [jaredar](https://github.com/jaredpar), [agocke](https://github.com/agocke) |
-
+| [Mix declarations and variables in deconstruction](https://github.com/dotnet/csharplang/issues/125) | master | [In Progress](https://github.com/dotnet/roslyn/issues/47746) | [YairHalberstadt ](https://github.com/YairHalberstadt ) | [jcouv](https://github.com/jcouv) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 
 # C# 9
 
