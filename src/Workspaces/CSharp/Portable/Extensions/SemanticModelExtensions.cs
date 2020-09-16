@@ -223,8 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var type = info.Type;
             var pluralize = Pluralize(semanticModel, type);
 
-            // We may be able to use the type's arguments to generate a name.
-            if (TryGenerateNameFromTypeArgument(type, capitalize, pluralize, out var typeArgumentParameterName))
+            // We may be able to use the type's arguments to generate a name if we're working
+            // with an enumerable type.
+            if (pluralize && TryGenerateNameFromTypeArgument(type, capitalize, out var typeArgumentParameterName))
             {
                 return typeArgumentParameterName;
             }
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return pluralize ? parameterName.Pluralize() : parameterName;
         }
 
-        private static bool TryGenerateNameFromTypeArgument(ITypeSymbol type, bool capitalize, bool pluralize, out string parameterName)
+        private static bool TryGenerateNameFromTypeArgument(ITypeSymbol type, bool capitalize, out string parameterName)
         {
             var typeArguments = type.GetAllTypeArguments();
 
@@ -244,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var typeArgument = typeArguments.Single().ToNameDisplayString();
                 if (SyntaxFacts.IsValidIdentifier(typeArgument))
                 {
+                    typeArgument = typeArgument.Pluralize();
                     parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
-                    parameterName = pluralize ? parameterName.Pluralize() : parameterName;
                     return true;
                 }
             }

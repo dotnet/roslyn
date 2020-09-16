@@ -9,9 +9,12 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Humanizer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
+
+        Private Const s_defaultParameterName = "p"
 
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
@@ -94,6 +97,133 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
                                  ToImmutableArray()
+        End Function
+
+        <Extension()>
+        Public Function GenerateNameForArgument(semanticModel As SemanticModel,
+                                                argument As ArgumentSyntax,
+                                                cancellationToken As CancellationToken) As String
+            Dim result = GenerateNameForArgumentWorker(semanticModel, argument, cancellationToken)
+            Return If(String.IsNullOrWhiteSpace(result), s_defaultParameterName, result)
+        End Function
+
+        Private Function GenerateNameForArgumentWorker(semanticModel As SemanticModel,
+                                                       argument As ArgumentSyntax,
+                                                       cancellationToken As CancellationToken) As String
+            If argument.IsNamed Then
+                Return DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText
+            ElseIf Not argument.IsOmitted Then
+                Return semanticModel.GenerateNameForExpression(
+                    argument.GetExpression(), capitalize:=False, cancellationToken:=cancellationToken)
+            Else
+                Return s_defaultParameterName
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Given an expression node, tries to generate an appropriate name that can be used for
+        ''' that expression.
+        ''' </summary> 
+        <Extension()>
+        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
+                                                  expression As ExpressionSyntax,
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String
+            ' Try to find a usable name node that we can use to name the
+            ' parameter.  If we have an expression that has a name as part of it
+            ' then we try to use that part.
+            Dim current = expression
+
+            While True
+                current = current.WalkDownParentheses()
+                If current.Kind = SyntaxKind.IdentifierName Then
+                    Return (DirectCast(current, IdentifierNameSyntax)).Identifier.ValueText.ToCamelCase()
+                ElseIf TypeOf current Is MemberAccessExpressionSyntax Then
+                    Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()
+                ElseIf TypeOf current Is CastExpressionSyntax Then
+                    current = (DirectCast(current, CastExpressionSyntax)).Expression
+                Else
+                    Exit While
+                End If
+            End While
+
+            ' there was nothing in the expression to signify a name.  If we're in an argument
+            ' location, then try to choose a name based on the argument name.
+            Dim argumentName = TryGenerateNameForArgumentExpression(
+                semanticModel, expression, cancellationToken)
+            If argumentName IsNot Nothing Then
+                Return If(capitalize, argumentName.ToPascalCase(), argumentName.ToCamelCase())
+            End If
+
+            ' Otherwise, figure out the type of the expression and generate a name from that
+            ' instead.
+            Dim info = semanticModel.GetTypeInfo(expression, cancellationToken)
+
+            ' If we can't determine the type, then fallback to some placeholders.
+            Dim type = info.Type
+            Dim makePlural = Pluralize(semanticModel, type)
+
+            Dim parameterName = ""
+            If makePlural And TryGenerateNameFromTypeArgument(type, capitalize, parameterName) Then
+                Return parameterName
+            End If
+
+            If makePlural Then
+                Return type.CreateParameterName(capitalize).Pluralize()
+            Else
+                Return type.CreateParameterName(capitalize)
+            End If
+        End Function
+
+        Private Function TryGenerateNameForArgumentExpression(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As String
+            Dim topExpression = expression.WalkUpParentheses()
+            If TypeOf topExpression.Parent Is ArgumentSyntax Then
+                Dim argument = DirectCast(topExpression.Parent, ArgumentSyntax)
+                Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
+
+                If simpleArgument?.NameColonEquals IsNot Nothing Then
+                    Return simpleArgument.NameColonEquals.Name.Identifier.ValueText
+                End If
+
+                Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+                If argumentList IsNot Nothing Then
+                    Dim index = argumentList.Arguments.IndexOf(argument)
+                    Dim member = TryCast(semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol, IMethodSymbol)
+                    If member IsNot Nothing AndAlso index < member.Parameters.Length Then
+                        Dim parameter = member.Parameters(index)
+                        If parameter.Type.TypeKind <> TypeKind.TypeParameter Then
+                            Return parameter.Name
+                        End If
+                    End If
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function TryGenerateNameFromTypeArgument(type As ITypeSymbol, capitalize As Boolean, ByRef parameterName As String) As Boolean
+            Dim typeArguments = type.GetAllTypeArguments()
+
+            If typeArguments.Length = 1 Then
+                Dim typeArgument = typeArguments.Single().ToNameDisplayString()
+
+                If SyntaxFacts.IsValidIdentifier(typeArgument) Then
+                    typeArgument = typeArgument.Pluralize()
+                    parameterName = If(capitalize, typeArgument.ToPascalCase(), typeArgument.ToCamelCase())
+                    Return True
+                End If
+            End If
+
+            parameterName = Nothing
+            Return False
+        End Function
+
+        Private Function Pluralize(semanticModel As SemanticModel, type As ITypeSymbol) As Boolean
+            If type Is Nothing Then Return False
+            If type.SpecialType = SpecialType.System_String Then Return False
+
+            Dim enumerableType = semanticModel.Compilation.IEnumerableOfTType()
+            Return type.AllInterfaces.Any(Function(i) i.OriginalDefinition.Equals(enumerableType))
         End Function
     End Module
 End Namespace

@@ -4247,5 +4247,37 @@ class C
     C M() => new C(new List<Frog>());
 }");
         }
+
+        [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDoNotGenerateNameFromTypeArgumentIfNotEnumerable()
+        {
+            await TestInRegularAndScriptAsync(
+ @"class Frog<T> { }
+
+class C
+{
+    C M()
+    {
+        return new [||]C(new Frog<int>());
+    }
+}",
+ @"class Frog<T> { }
+
+class C
+{
+    private Frog<int> frog;
+
+    public C(Frog<int> frog)
+    {
+        this.frog = frog;
+    }
+
+    C M()
+    {
+        return new C(new Frog<int>());
+    }
+}");
+        }
     }
 }

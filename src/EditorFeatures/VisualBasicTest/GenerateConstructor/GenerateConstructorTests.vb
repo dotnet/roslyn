@@ -1986,5 +1986,69 @@ Class Test
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")>
+        Public Async Function TestGenerateNameFromTypeArgument() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Collections.Generic
+
+Class Frog
+End Class
+
+Class C
+    Private Function M() As C
+        Return New C([||]New List(Of Frog)())
+    End Function
+End Class
+",
+"Imports System.Collections.Generic
+
+Class Frog
+End Class
+
+Class C
+    Private frogs As List(Of Frog)
+
+    Public Sub New(frogs As List(Of Frog))
+        Me.frogs = frogs
+    End Sub
+
+    Private Function M() As C
+        Return New C(New List(Of Frog)())
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")>
+        Public Async Function TestDoNotGenerateNameFromTypeArgumentIfNotEnumerable() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Frog(Of T)
+End Class
+
+Class C
+    Private Function M() As C
+        Return New C([||]New Frog(Of Integer)())
+    End Function
+End Class
+",
+"Class Frog(Of T)
+End Class
+
+Class C
+    Private frog As Frog(Of Integer)
+
+    Public Sub New(frog As Frog(Of Integer))
+        Me.frog = frog
+    End Sub
+
+    Private Function M() As C
+        Return New C(New Frog(Of Integer)())
+    End Function
+End Class
+")
+        End Function
     End Class
 End Namespace
