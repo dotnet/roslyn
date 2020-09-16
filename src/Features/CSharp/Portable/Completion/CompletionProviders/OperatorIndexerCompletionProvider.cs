@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -112,8 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 : token.Parent;
             return syntaxNode switch
             {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
-                MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccess } _ => conditionalAccess.Expression,
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? memberAccess.Expression,
+                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression()?.Expression,
                 _ => null,
             };
         }

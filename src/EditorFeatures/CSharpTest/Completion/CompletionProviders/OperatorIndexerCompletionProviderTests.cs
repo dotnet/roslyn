@@ -244,6 +244,14 @@ public class Program
         [InlineData("c.$$fl;", "((float)c).$$fl;")]
         [InlineData("var f = c.$$;", "var f = ((float)c).$$;")]
         [InlineData("c?.$$", "((float)c)?.$$")]
+        [InlineData("c?.$$b", "((float)c)?.$$b")]
+        [InlineData("c?.$$b.c()", "((float)c)?.$$b.c()")]
+        [InlineData("c?.$$b()", "((float)c)?.$$b()")]
+        [InlineData("c.Parent?.$$", "((float)c.Parent)?.$$")]
+        [InlineData("c.Parent.$$", "((float)c.Parent).$$")]
+        [InlineData("c?.Parent?.$$", "((float)c?.Parent)?.$$")]
+        [InlineData("c?.Parent?.fl$$", "((float)c?.Parent)?.$$")]
+        [InlineData("c?.Parent.fl$$", "((float)c?.Parent).$$")]
         [InlineData("((C)c).$$", "((float)((C)c)).$$")]
         [InlineData("(true ? c : c).$$", "((float)(true ? c : c)).$$")]
         public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvcations(string invocation, string fixedCode)
@@ -251,6 +259,7 @@ public class Program
             await VerifyCustomCommitProviderAsync($@"
 public class C
 {{
+    public C Parent {{ get; }}
     public static explicit operator float(C c) => 0;
 }}
 
@@ -265,6 +274,7 @@ public class Program
 ", "(float)", @$"
 public class C
 {{
+    public C Parent {{ get; }}
     public static explicit operator float(C c) => 0;
 }}
 
