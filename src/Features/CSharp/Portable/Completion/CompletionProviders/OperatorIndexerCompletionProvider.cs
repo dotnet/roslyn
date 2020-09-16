@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var symbol = symbols.Single() as IMethodSymbol;
-            var convertToType = symbol!.ReturnType;
+            var symbol = (IMethodSymbol)symbols.Single();
+            var convertToType = symbol.ReturnType;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(position);
             var expression = GetExpressionOfInvocation(token);
