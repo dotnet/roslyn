@@ -1200,6 +1200,7 @@ namespace CSharpSyntaxGenerator
                     node.Fields.Select(f => CamelCase(f.Name))));
                 WriteLine(");");
                 WriteLine("var annotations = GetAnnotations();");
+                WriteLine("RoslynEx.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
                 WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
@@ -1569,6 +1570,30 @@ namespace CSharpSyntaxGenerator
                 else if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
                     WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
+                }
+            }
+
+            // annotate parameters with original locations
+            foreach (var field in nodeFields)
+            {
+                if (field.Type == "SyntaxToken" || field.Type == "SyntaxList<SyntaxToken>" || field.Type == "SyntaxNodeOrTokenList"
+                    || IsNodeList(field.Type) || IsSeparatedNodeList(field.Type))
+                {
+                    // do nothing
+                }
+                else if (IsOptional(field))
+                {
+                    WriteLine($"if (RoslynEx.TreeTracker.NeedsTracking({CamelCase(field.Name)}, out var preTransformation{field.Name}))");
+                    Indent();
+                    WriteLine($"{CamelCase(field.Name)} = RoslynEx.TreeTracker.AnnotateNodeAndChildren({CamelCase(field.Name)}, preTransformation{field.Name});");
+                    Unindent();
+                }
+                else
+                {
+                    WriteLine($"if (RoslynEx.TreeTracker.NeedsTracking({CamelCase(field.Name)}, out var preTransformation{field.Name}))");
+                    Indent();
+                    WriteLine($"{CamelCase(field.Name)} = RoslynEx.TreeTracker.AnnotateNodeAndChildren({CamelCase(field.Name)}, preTransformation{field.Name});");
+                    Unindent();
                 }
             }
 

@@ -7,10 +7,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -64,14 +66,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (produceDetailedSequencePoints)
                 {
-                    var syntax = (SwitchExpressionSyntax)node.Syntax;
-                    result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForEnclosingStatement));
-                    // While evaluating the state machine, we highlight the `switch {...}` part.
-                    var spanStart = syntax.SwitchKeyword.Span.Start;
-                    var spanEnd = syntax.Span.End;
-                    var spanForSwitchBody = new TextSpan(spanStart, spanEnd - spanStart);
-                    result.Add(new BoundStepThroughSequencePoint(node.Syntax, span: spanForSwitchBody));
-                    result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForSwitchBody));
+                    var syntax = (SwitchExpressionSyntax?)TreeTracker.GetPreTransformationNode(node.Syntax);
+                    if (syntax == null)
+                    {
+                        produceDetailedSequencePoints = false;
+                    }
+                    else
+                    {
+                        result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForEnclosingStatement));
+                        // While evaluating the state machine, we highlight the `switch {...}` part.
+                        var spanStart = syntax.SwitchKeyword.Span.Start;
+                        var spanEnd = syntax.Span.End;
+                        var spanForSwitchBody = new TextSpan(spanStart, spanEnd - spanStart);
+                        result.Add(new BoundStepThroughSequencePoint(node.Syntax, span: spanForSwitchBody));
+                        result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForSwitchBody));
+                    }
                 }
 
                 // add the rest of the lowered dag that references that input

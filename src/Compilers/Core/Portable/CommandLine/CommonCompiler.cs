@@ -907,6 +907,13 @@ namespace Microsoft.CodeAnalysis
             return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
+        protected static bool ShouldDebugTransformedCode(AnalyzerConfigOptionsProvider options)
+        {
+            options.GlobalOptions.TryGetValue("build_property.RoslynExDebugTransformedCode", out var shouldDebugTransformedCodeString);
+            bool.TryParse(shouldDebugTransformedCodeString, out var shouldDebugTransformedCode);
+            return shouldDebugTransformedCode;
+        }
+
         /// <summary>
         /// Perform all the work associated with actual compilation
         /// (parsing, binding, compile, emit), resulting in diagnostics
@@ -989,8 +996,8 @@ namespace Microsoft.CodeAnalysis
                     var compilationBefore = compilation;
                     compilation = RunTransformers(compilation, transfomers, analyzerConfigProvider, diagnostics);
 
-                    // fix whitespace and embed transformed code into PDB to support debugging
-                    if (compilation != compilationBefore)
+                    // fix whitespace and embed transformed code into PDB if we want to debug transformed code
+                    if (compilation != compilationBefore && ShouldDebugTransformedCode(analyzerConfigProvider))
                     {
                         foreach (var tree in compilation.SyntaxTrees)
                         {

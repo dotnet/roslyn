@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -161,7 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bodyBuilder.Add(F.SequencePointWithSpan(block, block.CloseBraceToken.Span, stateDone));
+                var preTransformationBlock = TreeTracker.GetPreTransformationNode(block);
+                bodyBuilder.Add(F.SequencePointWithSpan(preTransformationBlock, preTransformationBlock?.CloseBraceToken.Span, stateDone));
                 bodyBuilder.Add(F.HiddenSequencePoint());
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }

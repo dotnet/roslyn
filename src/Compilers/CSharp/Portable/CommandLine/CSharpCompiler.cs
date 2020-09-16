@@ -393,6 +393,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
         {
             var compilation = input;
+
+            if (!ShouldDebugTransformedCode(analyzerConfigProvider))
+            {
+                // mark old trees as debuggable
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options));
+                }
+            }
+
             foreach (var transformer in transformers)
             {
                 try
@@ -408,6 +418,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(diagnostic);
                 }
             }
+
+            if (!ShouldDebugTransformedCode(analyzerConfigProvider))
+            {
+                // mark new trees as not debuggable
+                // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    if (TreeTracker.IsAnnotated(tree.GetRoot()))
+                    {
+#if DEBUG
+                        TreeTracker.MarkAsUndebuggable(tree);
+#endif
+                        continue;
+                    }
+
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null), tree.Options));
+                }
+
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    if (input.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath) is { } preTransformationTree)
+                    {
+                        TreeTracker.SetPreTransformationTree(tree, preTransformationTree);
+                    }
+                }
+            }
+
             return compilation;
         }
     }

@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxList(SyntaxNode? node)
         {
+            if (TreeTracker.NeedsTracking(node, out var preTransformationNode))
+            {
+                node = TreeTracker.AnnotateNodeAndChildren(node, preTransformationNode).Green.CreateRed(node.Parent, node.Position);
+            }
+
             _node = node;
         }
 
@@ -58,7 +64,13 @@ namespace Microsoft.CodeAnalysis
 
             foreach (TNode node in nodes)
             {
-                builder.Add(node);
+                var newNode = node;
+                if (TreeTracker.NeedsTracking(node, out var preTransformationNode))
+                {
+                    newNode = TreeTracker.AnnotateNodeAndChildren(node, preTransformationNode);
+                }
+
+                builder.Add(newNode);
             }
 
             return builder.ToList().Node;
@@ -327,6 +339,14 @@ namespace Microsoft.CodeAnalysis
             if (items.Count == 0)
             {
                 return default(SyntaxList<TNode>);
+            }
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (TreeTracker.NeedsTracking(items[i], out var preTransformationNode))
+                {
+                    items[i] = TreeTracker.AnnotateNodeAndChildren(items[i], preTransformationNode);
+                }
             }
 
             var newGreen = creator.CreateList(items.Select(n => n.Green));

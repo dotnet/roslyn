@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -542,11 +543,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (syntax.Kind() == SyntaxKind.Block)
                 {
-                    //sequence point to mimic Dev10
-                    baseFinalizeCall = new BoundSequencePointWithSpan(
-                        syntax,
-                        baseFinalizeCall,
-                        ((BlockSyntax)syntax).CloseBraceToken.Span);
+                    var preTransformationSyntax = TreeTracker.GetPreTransformationNode(syntax);
+                    if (preTransformationSyntax != null)
+                    {
+                        //sequence point to mimic Dev10
+                        baseFinalizeCall = new BoundSequencePointWithSpan(
+                            preTransformationSyntax,
+                            baseFinalizeCall,
+                            ((BlockSyntax)preTransformationSyntax).CloseBraceToken.Span);
+                    }
                 }
 
                 return new BoundBlock(

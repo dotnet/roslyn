@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1043,12 +1044,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
         {
-            return new BoundSequencePoint(syntax, statement);
+            var preTransformationSyntax = TreeTracker.GetPreTransformationNode(syntax);
+            return BoundSequencePoint.Create(preTransformationSyntax, statement);
         }
 
-        public BoundStatement SequencePointWithSpan(CSharpSyntaxNode syntax, TextSpan span, BoundStatement statement)
+        public BoundStatement SequencePointWithSpan(CSharpSyntaxNode syntax, TextSpan? span, BoundStatement statement)
         {
-            return new BoundSequencePointWithSpan(syntax, statement, span);
+            return BoundSequencePoint.Create(syntax, span, statement);
         }
 
         public BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)

@@ -2121,6 +2121,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left == null) throw new ArgumentNullException(nameof(left));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
             if (right == null) throw new ArgumentNullException(nameof(right));
+            if (RoslynEx.TreeTracker.NeedsTracking(left, out var preTransformationLeft))
+                left = RoslynEx.TreeTracker.AnnotateNodeAndChildren(left, preTransformationLeft);
+            if (RoslynEx.TreeTracker.NeedsTracking(right, out var preTransformationRight))
+                right = RoslynEx.TreeTracker.AnnotateNodeAndChildren(right, preTransformationRight);
             return (QualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.QualifiedName((Syntax.InternalSyntax.NameSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)right.Green).CreateRed();
         }
 
@@ -2133,6 +2137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (typeArgumentList == null) throw new ArgumentNullException(nameof(typeArgumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(typeArgumentList, out var preTransformationTypeArgumentList))
+                typeArgumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeArgumentList, preTransformationTypeArgumentList);
             return (GenericNameSyntax)Syntax.InternalSyntax.SyntaxFactory.GenericName((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.TypeArgumentListSyntax)typeArgumentList.Green).CreateRed();
         }
 
@@ -2162,6 +2168,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (alias == null) throw new ArgumentNullException(nameof(alias));
             if (colonColonToken.Kind() != SyntaxKind.ColonColonToken) throw new ArgumentException(nameof(colonColonToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (RoslynEx.TreeTracker.NeedsTracking(alias, out var preTransformationAlias))
+                alias = RoslynEx.TreeTracker.AnnotateNodeAndChildren(alias, preTransformationAlias);
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (AliasQualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.AliasQualifiedName((Syntax.InternalSyntax.IdentifierNameSyntax)alias.Green, (Syntax.InternalSyntax.SyntaxToken)colonColonToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2203,6 +2213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ArrayTypeSyntax ArrayType(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
+            if (RoslynEx.TreeTracker.NeedsTracking(elementType, out var preTransformationElementType))
+                elementType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(elementType, preTransformationElementType);
             return (ArrayTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, rankSpecifiers.Node.ToGreenList<Syntax.InternalSyntax.ArrayRankSpecifierSyntax>()).CreateRed();
         }
 
@@ -2227,6 +2239,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(elementType, out var preTransformationElementType))
+                elementType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(elementType, preTransformationElementType);
             return (PointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PointerType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!).CreateRed();
         }
 
@@ -2240,6 +2254,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
+            if (RoslynEx.TreeTracker.NeedsTracking(callingConvention, out var preTransformationCallingConvention))
+                callingConvention = RoslynEx.TreeTracker.AnnotateNodeAndChildren(callingConvention, preTransformationCallingConvention);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
             return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterListSyntax)parameterList.Green).CreateRed();
         }
 
@@ -2272,6 +2290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnmanagedKeyword: break;
                 default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(unmanagedCallingConventionList, out var preTransformationUnmanagedCallingConventionList))
+                unmanagedCallingConventionList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(unmanagedCallingConventionList, preTransformationUnmanagedCallingConventionList);
             return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedOrUnmanagedKeyword.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)unmanagedCallingConventionList.Green).CreateRed();
         }
 
@@ -2303,6 +2323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
             if (questionToken.Kind() != SyntaxKind.QuestionToken) throw new ArgumentException(nameof(questionToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(elementType, out var preTransformationElementType))
+                elementType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(elementType, preTransformationElementType);
             return (NullableTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.NullableType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node!).CreateRed();
         }
 
@@ -2332,6 +2354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (TupleElementSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleElement((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node).CreateRed();
         }
 
@@ -2361,6 +2385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(readOnlyKeyword));
             }
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -2374,6 +2400,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ParenthesizedExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2423,6 +2451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (operand == null) throw new ArgumentNullException(nameof(operand));
+            if (RoslynEx.TreeTracker.NeedsTracking(operand, out var preTransformationOperand))
+                operand = RoslynEx.TreeTracker.AnnotateNodeAndChildren(operand, preTransformationOperand);
             return (PrefixUnaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PrefixUnaryExpression(kind, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)operand.Green).CreateRed();
         }
 
@@ -2450,6 +2480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (awaitKeyword.Kind() != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (AwaitExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AwaitExpression((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -2475,6 +2507,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclamationToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(operand, out var preTransformationOperand))
+                operand = RoslynEx.TreeTracker.AnnotateNodeAndChildren(operand, preTransformationOperand);
             return (PostfixUnaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PostfixUnaryExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)operand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!).CreateRed();
         }
 
@@ -2508,6 +2542,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (MemberAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MemberAccessExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2529,6 +2567,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (operatorToken.Kind() != SyntaxKind.QuestionToken) throw new ArgumentException(nameof(operatorToken));
             if (whenNotNull == null) throw new ArgumentNullException(nameof(whenNotNull));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(whenNotNull, out var preTransformationWhenNotNull))
+                whenNotNull = RoslynEx.TreeTracker.AnnotateNodeAndChildren(whenNotNull, preTransformationWhenNotNull);
             return (ConditionalAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ConditionalAccessExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenNotNull.Green).CreateRed();
         }
 
@@ -2541,6 +2583,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(operatorToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (MemberBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MemberBindingExpression((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2552,6 +2596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
         {
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (ElementBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ElementBindingExpression((Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2563,6 +2609,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static RangeExpressionSyntax RangeExpression(ExpressionSyntax? leftOperand, SyntaxToken operatorToken, ExpressionSyntax? rightOperand)
         {
             if (operatorToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(operatorToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(leftOperand, out var preTransformationLeftOperand))
+                leftOperand = RoslynEx.TreeTracker.AnnotateNodeAndChildren(leftOperand, preTransformationLeftOperand);
+            if (RoslynEx.TreeTracker.NeedsTracking(rightOperand, out var preTransformationRightOperand))
+                rightOperand = RoslynEx.TreeTracker.AnnotateNodeAndChildren(rightOperand, preTransformationRightOperand);
             return (RangeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RangeExpression(leftOperand == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)leftOperand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, rightOperand == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)rightOperand.Green).CreateRed();
         }
 
@@ -2578,6 +2628,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImplicitElementAccessSyntax ImplicitElementAccess(BracketedArgumentListSyntax argumentList)
         {
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (ImplicitElementAccessSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitElementAccess((Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2640,6 +2692,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
+            if (RoslynEx.TreeTracker.NeedsTracking(left, out var preTransformationLeft))
+                left = RoslynEx.TreeTracker.AnnotateNodeAndChildren(left, preTransformationLeft);
+            if (RoslynEx.TreeTracker.NeedsTracking(right, out var preTransformationRight))
+                right = RoslynEx.TreeTracker.AnnotateNodeAndChildren(right, preTransformationRight);
             return (BinaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
         }
 
@@ -2711,6 +2767,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
+            if (RoslynEx.TreeTracker.NeedsTracking(left, out var preTransformationLeft))
+                left = RoslynEx.TreeTracker.AnnotateNodeAndChildren(left, preTransformationLeft);
+            if (RoslynEx.TreeTracker.NeedsTracking(right, out var preTransformationRight))
+                right = RoslynEx.TreeTracker.AnnotateNodeAndChildren(right, preTransformationRight);
             return (AssignmentExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AssignmentExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
         }
 
@@ -2744,6 +2804,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whenTrue == null) throw new ArgumentNullException(nameof(whenTrue));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             if (whenFalse == null) throw new ArgumentNullException(nameof(whenFalse));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
+            if (RoslynEx.TreeTracker.NeedsTracking(whenTrue, out var preTransformationWhenTrue))
+                whenTrue = RoslynEx.TreeTracker.AnnotateNodeAndChildren(whenTrue, preTransformationWhenTrue);
+            if (RoslynEx.TreeTracker.NeedsTracking(whenFalse, out var preTransformationWhenFalse))
+                whenFalse = RoslynEx.TreeTracker.AnnotateNodeAndChildren(whenFalse, preTransformationWhenFalse);
             return (ConditionalExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ConditionalExpression((Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenTrue.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenFalse.Green).CreateRed();
         }
 
@@ -2828,6 +2894,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (MakeRefExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MakeRefExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2842,6 +2910,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (RefTypeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefTypeExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2858,6 +2928,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (comma.Kind() != SyntaxKind.CommaToken) throw new ArgumentException(nameof(comma));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (RefValueExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefValueExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)comma.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2883,6 +2957,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (CheckedExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CheckedExpression(kind, (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2905,6 +2981,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (DefaultExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2919,6 +2997,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (TypeOfExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeOfExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2933,6 +3013,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (SizeOfExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SizeOfExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2945,6 +3027,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (InvocationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InvocationExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2957,6 +3043,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (ElementAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ElementAccessExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -3000,6 +3090,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(nameColon, out var preTransformationNameColon))
+                nameColon = RoslynEx.TreeTracker.AnnotateNodeAndChildren(nameColon, preTransformationNameColon);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.Argument(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3012,6 +3106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (NameColonSyntax)Syntax.InternalSyntax.SyntaxFactory.NameColon((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -3028,6 +3124,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(designation, out var preTransformationDesignation))
+                designation = RoslynEx.TreeTracker.AnnotateNodeAndChildren(designation, preTransformationDesignation);
             return (DeclarationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.DeclarationExpression((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3038,6 +3138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (CastExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CastExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3050,6 +3154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3058,6 +3168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(parameter, out var preTransformationParameter))
+                parameter = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameter, preTransformationParameter);
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3074,6 +3190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (RefExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefExpression((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3086,6 +3204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3123,6 +3247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (ImplicitObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3139,6 +3267,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (ObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, argumentList == null ? null : (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3156,6 +3290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3167,6 +3305,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(nameEquals, out var preTransformationNameEquals))
+                nameEquals = RoslynEx.TreeTracker.AnnotateNodeAndChildren(nameEquals, preTransformationNameEquals);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (AnonymousObjectMemberDeclaratorSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)nameEquals.Green, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3192,6 +3334,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (ArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArrayTypeSyntax)type.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3210,6 +3356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (ImplicitArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, commas.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3226,6 +3374,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stackAllocKeyword.Kind() != SyntaxKind.StackAllocKeyword) throw new ArgumentException(nameof(stackAllocKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (StackAllocArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3244,6 +3396,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (ImplicitStackAllocArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitStackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3256,6 +3410,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (fromClause == null) throw new ArgumentNullException(nameof(fromClause));
             if (body == null) throw new ArgumentNullException(nameof(body));
+            if (RoslynEx.TreeTracker.NeedsTracking(fromClause, out var preTransformationFromClause))
+                fromClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(fromClause, preTransformationFromClause);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
             return (QueryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.QueryExpression((Syntax.InternalSyntax.FromClauseSyntax)fromClause.Green, (Syntax.InternalSyntax.QueryBodySyntax)body.Green).CreateRed();
         }
 
@@ -3263,6 +3421,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static QueryBodySyntax QueryBody(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax? continuation)
         {
             if (selectOrGroup == null) throw new ArgumentNullException(nameof(selectOrGroup));
+            if (RoslynEx.TreeTracker.NeedsTracking(selectOrGroup, out var preTransformationSelectOrGroup))
+                selectOrGroup = RoslynEx.TreeTracker.AnnotateNodeAndChildren(selectOrGroup, preTransformationSelectOrGroup);
+            if (RoslynEx.TreeTracker.NeedsTracking(continuation, out var preTransformationContinuation))
+                continuation = RoslynEx.TreeTracker.AnnotateNodeAndChildren(continuation, preTransformationContinuation);
             return (QueryBodySyntax)Syntax.InternalSyntax.SyntaxFactory.QueryBody(clauses.Node.ToGreenList<Syntax.InternalSyntax.QueryClauseSyntax>(), (Syntax.InternalSyntax.SelectOrGroupClauseSyntax)selectOrGroup.Green, continuation == null ? null : (Syntax.InternalSyntax.QueryContinuationSyntax)continuation.Green).CreateRed();
         }
 
@@ -3277,6 +3439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (inKeyword.Kind() != SyntaxKind.InKeyword) throw new ArgumentException(nameof(inKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (FromClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.FromClause((Syntax.InternalSyntax.SyntaxToken)fromKeyword.Node!, type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3299,6 +3465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (LetClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.LetClause((Syntax.InternalSyntax.SyntaxToken)letKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3321,6 +3489,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftExpression == null) throw new ArgumentNullException(nameof(leftExpression));
             if (equalsKeyword.Kind() != SyntaxKind.EqualsKeyword) throw new ArgumentException(nameof(equalsKeyword));
             if (rightExpression == null) throw new ArgumentNullException(nameof(rightExpression));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(inExpression, out var preTransformationInExpression))
+                inExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(inExpression, preTransformationInExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(leftExpression, out var preTransformationLeftExpression))
+                leftExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(leftExpression, preTransformationLeftExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(rightExpression, out var preTransformationRightExpression))
+                rightExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(rightExpression, preTransformationRightExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(into, out var preTransformationInto))
+                into = RoslynEx.TreeTracker.AnnotateNodeAndChildren(into, preTransformationInto);
             return (JoinClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.JoinClause((Syntax.InternalSyntax.SyntaxToken)joinKeyword.Node!, type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)inExpression.Green, (Syntax.InternalSyntax.SyntaxToken)onKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)leftExpression.Green, (Syntax.InternalSyntax.SyntaxToken)equalsKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)rightExpression.Green, into == null ? null : (Syntax.InternalSyntax.JoinIntoClauseSyntax)into.Green).CreateRed();
         }
 
@@ -3357,6 +3535,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (whereKeyword.Kind() != SyntaxKind.WhereKeyword) throw new ArgumentException(nameof(whereKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
             return (WhereClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.WhereClause((Syntax.InternalSyntax.SyntaxToken)whereKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green).CreateRed();
         }
 
@@ -3392,6 +3572,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (OrderingSyntax)Syntax.InternalSyntax.SyntaxFactory.Ordering(kind, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken?)ascendingOrDescendingKeyword.Node).CreateRed();
         }
 
@@ -3412,6 +3594,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (selectKeyword.Kind() != SyntaxKind.SelectKeyword) throw new ArgumentException(nameof(selectKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (SelectClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.SelectClause((Syntax.InternalSyntax.SyntaxToken)selectKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3426,6 +3610,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (groupExpression == null) throw new ArgumentNullException(nameof(groupExpression));
             if (byKeyword.Kind() != SyntaxKind.ByKeyword) throw new ArgumentException(nameof(byKeyword));
             if (byExpression == null) throw new ArgumentNullException(nameof(byExpression));
+            if (RoslynEx.TreeTracker.NeedsTracking(groupExpression, out var preTransformationGroupExpression))
+                groupExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(groupExpression, preTransformationGroupExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(byExpression, out var preTransformationByExpression))
+                byExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(byExpression, preTransformationByExpression);
             return (GroupClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.GroupClause((Syntax.InternalSyntax.SyntaxToken)groupKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)groupExpression.Green, (Syntax.InternalSyntax.SyntaxToken)byKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)byExpression.Green).CreateRed();
         }
 
@@ -3439,6 +3627,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (intoKeyword.Kind() != SyntaxKind.IntoKeyword) throw new ArgumentException(nameof(intoKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (body == null) throw new ArgumentNullException(nameof(body));
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
             return (QueryContinuationSyntax)Syntax.InternalSyntax.SyntaxFactory.QueryContinuation((Syntax.InternalSyntax.SyntaxToken)intoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.QueryBodySyntax)body.Green).CreateRed();
         }
 
@@ -3488,6 +3678,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (isKeyword.Kind() != SyntaxKind.IsKeyword) throw new ArgumentException(nameof(isKeyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(pattern, out var preTransformationPattern))
+                pattern = RoslynEx.TreeTracker.AnnotateNodeAndChildren(pattern, preTransformationPattern);
             return (IsPatternExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.IsPatternExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)isKeyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -3500,6 +3694,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwKeyword.Kind() != SyntaxKind.ThrowKeyword) throw new ArgumentException(nameof(throwKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ThrowExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ThrowExpression((Syntax.InternalSyntax.SyntaxToken)throwKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3512,6 +3708,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (whenKeyword.Kind() != SyntaxKind.WhenKeyword) throw new ArgumentException(nameof(whenKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
             return (WhenClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.WhenClause((Syntax.InternalSyntax.SyntaxToken)whenKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green).CreateRed();
         }
 
@@ -3535,6 +3733,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(designation, out var preTransformationDesignation))
+                designation = RoslynEx.TreeTracker.AnnotateNodeAndChildren(designation, preTransformationDesignation);
             return (DeclarationPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.DeclarationPattern((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3543,6 +3745,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (varKeyword.Kind() != SyntaxKind.VarKeyword) throw new ArgumentException(nameof(varKeyword));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
+            if (RoslynEx.TreeTracker.NeedsTracking(designation, out var preTransformationDesignation))
+                designation = RoslynEx.TreeTracker.AnnotateNodeAndChildren(designation, preTransformationDesignation);
             return (VarPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.VarPattern((Syntax.InternalSyntax.SyntaxToken)varKeyword.Node!, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3553,6 +3757,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
         public static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(positionalPatternClause, out var preTransformationPositionalPatternClause))
+                positionalPatternClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(positionalPatternClause, preTransformationPositionalPatternClause);
+            if (RoslynEx.TreeTracker.NeedsTracking(propertyPatternClause, out var preTransformationPropertyPatternClause))
+                propertyPatternClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(propertyPatternClause, preTransformationPropertyPatternClause);
+            if (RoslynEx.TreeTracker.NeedsTracking(designation, out var preTransformationDesignation))
+                designation = RoslynEx.TreeTracker.AnnotateNodeAndChildren(designation, preTransformationDesignation);
             return (RecursivePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, positionalPatternClause == null ? null : (Syntax.InternalSyntax.PositionalPatternClauseSyntax)positionalPatternClause.Green, propertyPatternClause == null ? null : (Syntax.InternalSyntax.PropertyPatternClauseSyntax)propertyPatternClause.Green, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3588,6 +3800,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SubpatternSyntax Subpattern(NameColonSyntax? nameColon, PatternSyntax pattern)
         {
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (RoslynEx.TreeTracker.NeedsTracking(nameColon, out var preTransformationNameColon))
+                nameColon = RoslynEx.TreeTracker.AnnotateNodeAndChildren(nameColon, preTransformationNameColon);
+            if (RoslynEx.TreeTracker.NeedsTracking(pattern, out var preTransformationPattern))
+                pattern = RoslynEx.TreeTracker.AnnotateNodeAndChildren(pattern, preTransformationPattern);
             return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -3599,6 +3815,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ConstantPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstantPattern((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3608,6 +3826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(pattern, out var preTransformationPattern))
+                pattern = RoslynEx.TreeTracker.AnnotateNodeAndChildren(pattern, preTransformationPattern);
             return (ParenthesizedPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedPattern((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3629,6 +3849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (RelationalPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RelationalPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3636,6 +3858,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypePatternSyntax TypePattern(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (TypePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.TypePattern((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -3656,6 +3880,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
+            if (RoslynEx.TreeTracker.NeedsTracking(left, out var preTransformationLeft))
+                left = RoslynEx.TreeTracker.AnnotateNodeAndChildren(left, preTransformationLeft);
+            if (RoslynEx.TreeTracker.NeedsTracking(right, out var preTransformationRight))
+                right = RoslynEx.TreeTracker.AnnotateNodeAndChildren(right, preTransformationRight);
             return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)right.Green).CreateRed();
         }
 
@@ -3676,6 +3904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorToken.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (RoslynEx.TreeTracker.NeedsTracking(pattern, out var preTransformationPattern))
+                pattern = RoslynEx.TreeTracker.AnnotateNodeAndChildren(pattern, preTransformationPattern);
             return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -3700,6 +3930,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(alignmentClause, out var preTransformationAlignmentClause))
+                alignmentClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(alignmentClause, preTransformationAlignmentClause);
+            if (RoslynEx.TreeTracker.NeedsTracking(formatClause, out var preTransformationFormatClause))
+                formatClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(formatClause, preTransformationFormatClause);
             return (InterpolationSyntax)Syntax.InternalSyntax.SyntaxFactory.Interpolation((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, alignmentClause == null ? null : (Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax)alignmentClause.Green, formatClause == null ? null : (Syntax.InternalSyntax.InterpolationFormatClauseSyntax)formatClause.Green, (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3715,6 +3951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolationAlignmentClauseSyntax InterpolationAlignmentClause(SyntaxToken commaToken, ExpressionSyntax value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
+            if (RoslynEx.TreeTracker.NeedsTracking(value, out var preTransformationValue))
+                value = RoslynEx.TreeTracker.AnnotateNodeAndChildren(value, preTransformationValue);
             return (InterpolationAlignmentClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolationAlignmentClause((Syntax.InternalSyntax.SyntaxToken)commaToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
         }
 
@@ -3733,6 +3971,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static GlobalStatementSyntax GlobalStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
         {
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (GlobalStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.GlobalStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -3770,6 +4010,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(returnType, out var preTransformationReturnType))
+                returnType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(returnType, preTransformationReturnType);
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (LocalFunctionStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LocalFunctionStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -3802,6 +4052,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
             return (LocalDeclarationStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)usingKeyword.Node, modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -3817,6 +4069,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (VariableDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.VariableDeclaration((Syntax.InternalSyntax.TypeSyntax)type.Green, variables.Node.ToGreenSeparatedList<Syntax.InternalSyntax.VariableDeclaratorSyntax>()).CreateRed();
         }
 
@@ -3828,6 +4082,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static VariableDeclaratorSyntax VariableDeclarator(SyntaxToken identifier, BracketedArgumentListSyntax? argumentList, EqualsValueClauseSyntax? initializer)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (VariableDeclaratorSyntax)Syntax.InternalSyntax.SyntaxFactory.VariableDeclarator((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, argumentList == null ? null : (Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green).CreateRed();
         }
 
@@ -3844,6 +4102,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
             if (value == null) throw new ArgumentNullException(nameof(value));
+            if (RoslynEx.TreeTracker.NeedsTracking(value, out var preTransformationValue))
+                value = RoslynEx.TreeTracker.AnnotateNodeAndChildren(value, preTransformationValue);
             return (EqualsValueClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.EqualsValueClause((Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
         }
 
@@ -3886,6 +4146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ExpressionStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -3918,6 +4180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (LabeledStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LabeledStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -3952,6 +4216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(caseOrDefaultKeyword));
             }
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (GotoStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.GotoStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)gotoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)caseOrDefaultKeyword.Node, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4002,6 +4268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (returnKeyword.Kind() != SyntaxKind.ReturnKeyword) throw new ArgumentException(nameof(returnKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ReturnStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ReturnStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)returnKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4020,6 +4288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwKeyword.Kind() != SyntaxKind.ThrowKeyword) throw new ArgumentException(nameof(throwKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ThrowStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ThrowStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)throwKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4050,6 +4320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(returnOrBreakKeyword));
             }
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (YieldStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.YieldStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)yieldKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)returnOrBreakKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4079,6 +4351,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (WhileStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.WhileStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)whileKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4100,6 +4376,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
             return (DoStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.DoStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)doKeyword.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green, (Syntax.InternalSyntax.SyntaxToken)whileKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4120,6 +4400,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (secondSemicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(secondSemicolonToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (ForStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)forKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, declaration == null ? null : (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, initializers.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)firstSemicolonToken.Node!, condition == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)secondSemicolonToken.Node!, incrementors.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4148,6 +4434,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (ForEachStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForEachStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)forEachKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4179,6 +4471,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(variable, out var preTransformationVariable))
+                variable = RoslynEx.TreeTracker.AnnotateNodeAndChildren(variable, preTransformationVariable);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (ForEachVariableStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForEachVariableStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)forEachKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)variable.Green, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4203,6 +4501,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (UsingStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, declaration == null ? null : (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4222,6 +4526,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (FixedStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.FixedStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)fixedKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4249,6 +4557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(keyword));
             }
             if (block == null) throw new ArgumentNullException(nameof(block));
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
             return (CheckedStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.CheckedStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4275,6 +4585,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (unsafeKeyword.Kind() != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
             return (UnsafeStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.UnsafeStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)unsafeKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4296,6 +4608,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (LockStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LockStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)lockKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4315,6 +4631,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
+            if (RoslynEx.TreeTracker.NeedsTracking(@else, out var preTransformationElse))
+                @else = RoslynEx.TreeTracker.AnnotateNodeAndChildren(@else, preTransformationElse);
             return (IfStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.IfStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)ifKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green, @else == null ? null : (Syntax.InternalSyntax.ElseClauseSyntax)@else.Green).CreateRed();
         }
 
@@ -4331,6 +4653,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elseKeyword.Kind() != SyntaxKind.ElseKeyword) throw new ArgumentException(nameof(elseKeyword));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            if (RoslynEx.TreeTracker.NeedsTracking(statement, out var preTransformationStatement))
+                statement = RoslynEx.TreeTracker.AnnotateNodeAndChildren(statement, preTransformationStatement);
             return (ElseClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.ElseClause((Syntax.InternalSyntax.SyntaxToken)elseKeyword.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4357,6 +4681,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (SwitchStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)openParenToken.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken?)closeParenToken.Node, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, sections.Node.ToGreenList<Syntax.InternalSyntax.SwitchSectionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4375,6 +4701,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (RoslynEx.TreeTracker.NeedsTracking(pattern, out var preTransformationPattern))
+                pattern = RoslynEx.TreeTracker.AnnotateNodeAndChildren(pattern, preTransformationPattern);
+            if (RoslynEx.TreeTracker.NeedsTracking(whenClause, out var preTransformationWhenClause))
+                whenClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(whenClause, preTransformationWhenClause);
             return (CasePatternSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CasePatternSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4391,6 +4721,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (value == null) throw new ArgumentNullException(nameof(value));
+            if (RoslynEx.TreeTracker.NeedsTracking(value, out var preTransformationValue))
+                value = RoslynEx.TreeTracker.AnnotateNodeAndChildren(value, preTransformationValue);
             return (CaseSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CaseSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4416,6 +4748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (switchKeyword.Kind() != SyntaxKind.SwitchKeyword) throw new ArgumentException(nameof(switchKeyword));
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(governingExpression, out var preTransformationGoverningExpression))
+                governingExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(governingExpression, preTransformationGoverningExpression);
             return (SwitchExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchExpression((Syntax.InternalSyntax.ExpressionSyntax)governingExpression.Green, (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, arms.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SwitchExpressionArmSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4433,6 +4767,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (equalsGreaterThanToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(equalsGreaterThanToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(pattern, out var preTransformationPattern))
+                pattern = RoslynEx.TreeTracker.AnnotateNodeAndChildren(pattern, preTransformationPattern);
+            if (RoslynEx.TreeTracker.NeedsTracking(whenClause, out var preTransformationWhenClause))
+                whenClause = RoslynEx.TreeTracker.AnnotateNodeAndChildren(whenClause, preTransformationWhenClause);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (SwitchExpressionArmSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm((Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)equalsGreaterThanToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4449,6 +4789,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (tryKeyword.Kind() != SyntaxKind.TryKeyword) throw new ArgumentException(nameof(tryKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
+            if (RoslynEx.TreeTracker.NeedsTracking(@finally, out var preTransformationFinally))
+                @finally = RoslynEx.TreeTracker.AnnotateNodeAndChildren(@finally, preTransformationFinally);
             return (TryStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.TryStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)tryKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green, catches.Node.ToGreenList<Syntax.InternalSyntax.CatchClauseSyntax>(), @finally == null ? null : (Syntax.InternalSyntax.FinallyClauseSyntax)@finally.Green).CreateRed();
         }
 
@@ -4467,6 +4811,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (catchKeyword.Kind() != SyntaxKind.CatchKeyword) throw new ArgumentException(nameof(catchKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
+            if (RoslynEx.TreeTracker.NeedsTracking(filter, out var preTransformationFilter))
+                filter = RoslynEx.TreeTracker.AnnotateNodeAndChildren(filter, preTransformationFilter);
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
             return (CatchClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchClause((Syntax.InternalSyntax.SyntaxToken)catchKeyword.Node!, declaration == null ? null : (Syntax.InternalSyntax.CatchDeclarationSyntax)declaration.Green, filter == null ? null : (Syntax.InternalSyntax.CatchFilterClauseSyntax)filter.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4490,6 +4840,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(identifier));
             }
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (CatchDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchDeclaration((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4508,6 +4860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (filterExpression == null) throw new ArgumentNullException(nameof(filterExpression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(filterExpression, out var preTransformationFilterExpression))
+                filterExpression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(filterExpression, preTransformationFilterExpression);
             return (CatchFilterClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchFilterClause((Syntax.InternalSyntax.SyntaxToken)whenKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)filterExpression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4520,6 +4874,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (finallyKeyword.Kind() != SyntaxKind.FinallyKeyword) throw new ArgumentException(nameof(finallyKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            if (RoslynEx.TreeTracker.NeedsTracking(block, out var preTransformationBlock))
+                block = RoslynEx.TreeTracker.AnnotateNodeAndChildren(block, preTransformationBlock);
             return (FinallyClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.FinallyClause((Syntax.InternalSyntax.SyntaxToken)finallyKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4566,6 +4922,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (usingKeyword.Kind() != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(alias, out var preTransformationAlias))
+                alias = RoslynEx.TreeTracker.AnnotateNodeAndChildren(alias, preTransformationAlias);
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4590,6 +4950,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (NamespaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.NamespaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)namespaceKeyword.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4606,6 +4968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(target, out var preTransformationTarget))
+                target = RoslynEx.TreeTracker.AnnotateNodeAndChildren(target, preTransformationTarget);
             return (AttributeListSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, target == null ? null : (Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)target.Green, attributes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -4632,6 +4996,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeSyntax Attribute(NameSyntax name, AttributeArgumentListSyntax? argumentList)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (AttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.Attribute((Syntax.InternalSyntax.NameSyntax)name.Green, argumentList == null ? null : (Syntax.InternalSyntax.AttributeArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -4655,6 +5023,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeArgumentSyntax AttributeArgument(NameEqualsSyntax? nameEquals, NameColonSyntax? nameColon, ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(nameEquals, out var preTransformationNameEquals))
+                nameEquals = RoslynEx.TreeTracker.AnnotateNodeAndChildren(nameEquals, preTransformationNameEquals);
+            if (RoslynEx.TreeTracker.NeedsTracking(nameColon, out var preTransformationNameColon))
+                nameColon = RoslynEx.TreeTracker.AnnotateNodeAndChildren(nameColon, preTransformationNameColon);
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (AttributeArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeArgument(nameEquals == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)nameEquals.Green, nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4667,6 +5041,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (NameEqualsSyntax)Syntax.InternalSyntax.SyntaxFactory.NameEquals((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!).CreateRed();
         }
 
@@ -4725,6 +5101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(baseList, out var preTransformationBaseList))
+                baseList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(baseList, preTransformationBaseList);
             return (ClassDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ClassDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4753,6 +5133,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(baseList, out var preTransformationBaseList))
+                baseList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(baseList, preTransformationBaseList);
             return (StructDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.StructDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4781,6 +5165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(baseList, out var preTransformationBaseList))
+                baseList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(baseList, preTransformationBaseList);
             return (InterfaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.InterfaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4818,6 +5206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(baseList, out var preTransformationBaseList))
+                baseList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(baseList, preTransformationBaseList);
             return (RecordDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4846,6 +5240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(baseList, out var preTransformationBaseList))
+                baseList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(baseList, preTransformationBaseList);
             return (EnumDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EnumDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)enumKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenSeparatedList<Syntax.InternalSyntax.EnumMemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4869,6 +5265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(returnType, out var preTransformationReturnType))
+                returnType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(returnType, preTransformationReturnType);
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
             return (DelegateDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DelegateDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4888,6 +5290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (RoslynEx.TreeTracker.NeedsTracking(equalsValue, out var preTransformationEqualsValue))
+                equalsValue = RoslynEx.TreeTracker.AnnotateNodeAndChildren(equalsValue, preTransformationEqualsValue);
             return (EnumMemberDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EnumMemberDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, equalsValue == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)equalsValue.Green).CreateRed();
         }
 
@@ -4914,6 +5318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -4922,6 +5328,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (PrimaryConstructorBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PrimaryConstructorBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -4935,6 +5345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whereKeyword.Kind() != SyntaxKind.WhereKeyword) throw new ArgumentException(nameof(whereKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (TypeParameterConstraintClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameterConstraintClause((Syntax.InternalSyntax.SyntaxToken)whereKeyword.Node!, (Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, constraints.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeParameterConstraintSyntax>()).CreateRed();
         }
 
@@ -5003,6 +5415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeConstraintSyntax TypeConstraint(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (TypeConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeConstraint((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5022,6 +5436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
             return (FieldDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.FieldDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5039,6 +5455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (eventKeyword.Kind() != SyntaxKind.EventKeyword) throw new ArgumentException(nameof(eventKeyword));
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(declaration, out var preTransformationDeclaration))
+                declaration = RoslynEx.TreeTracker.AnnotateNodeAndChildren(declaration, preTransformationDeclaration);
             return (EventFieldDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EventFieldDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)eventKeyword.Node!, (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5055,6 +5473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (ExplicitInterfaceSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier((Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!).CreateRed();
         }
 
@@ -5074,6 +5494,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(returnType, out var preTransformationReturnType))
+                returnType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(returnType, preTransformationReturnType);
+            if (RoslynEx.TreeTracker.NeedsTracking(explicitInterfaceSpecifier, out var preTransformationExplicitInterfaceSpecifier))
+                explicitInterfaceSpecifier = RoslynEx.TreeTracker.AnnotateNodeAndChildren(explicitInterfaceSpecifier, preTransformationExplicitInterfaceSpecifier);
+            if (RoslynEx.TreeTracker.NeedsTracking(typeParameterList, out var preTransformationTypeParameterList))
+                typeParameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(typeParameterList, preTransformationTypeParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (MethodDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.MethodDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5128,6 +5560,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(returnType, out var preTransformationReturnType))
+                returnType = RoslynEx.TreeTracker.AnnotateNodeAndChildren(returnType, preTransformationReturnType);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (OperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5157,6 +5597,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (ConversionOperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5179,6 +5627,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (ConstructorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, initializer == null ? null : (Syntax.InternalSyntax.ConstructorInitializerSyntax)initializer.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5211,6 +5667,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(thisOrBaseKeyword));
             }
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            if (RoslynEx.TreeTracker.NeedsTracking(argumentList, out var preTransformationArgumentList))
+                argumentList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(argumentList, preTransformationArgumentList);
             return (ConstructorInitializerSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorInitializer(kind, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)thisOrBaseKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -5238,6 +5696,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (DestructorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DestructorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)tildeToken.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5264,6 +5728,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(explicitInterfaceSpecifier, out var preTransformationExplicitInterfaceSpecifier))
+                explicitInterfaceSpecifier = RoslynEx.TreeTracker.AnnotateNodeAndChildren(explicitInterfaceSpecifier, preTransformationExplicitInterfaceSpecifier);
+            if (RoslynEx.TreeTracker.NeedsTracking(accessorList, out var preTransformationAccessorList))
+                accessorList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(accessorList, preTransformationAccessorList);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(initializer, out var preTransformationInitializer))
+                initializer = RoslynEx.TreeTracker.AnnotateNodeAndChildren(initializer, preTransformationInitializer);
             return (PropertyDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5284,6 +5758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (RoslynEx.TreeTracker.NeedsTracking(expression, out var preTransformationExpression))
+                expression = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expression, preTransformationExpression);
             return (ArrowExpressionClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrowExpressionClause((Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -5303,6 +5779,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(explicitInterfaceSpecifier, out var preTransformationExplicitInterfaceSpecifier))
+                explicitInterfaceSpecifier = RoslynEx.TreeTracker.AnnotateNodeAndChildren(explicitInterfaceSpecifier, preTransformationExplicitInterfaceSpecifier);
+            if (RoslynEx.TreeTracker.NeedsTracking(accessorList, out var preTransformationAccessorList))
+                accessorList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(accessorList, preTransformationAccessorList);
             return (EventDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EventDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)eventKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5330,6 +5812,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(explicitInterfaceSpecifier, out var preTransformationExplicitInterfaceSpecifier))
+                explicitInterfaceSpecifier = RoslynEx.TreeTracker.AnnotateNodeAndChildren(explicitInterfaceSpecifier, preTransformationExplicitInterfaceSpecifier);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameterList, out var preTransformationParameterList))
+                parameterList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameterList, preTransformationParameterList);
+            if (RoslynEx.TreeTracker.NeedsTracking(accessorList, out var preTransformationAccessorList))
+                accessorList = RoslynEx.TreeTracker.AnnotateNodeAndChildren(accessorList, preTransformationAccessorList);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (IndexerDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.IndexerDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)thisKeyword.Node!, (Syntax.InternalSyntax.BracketedParameterListSyntax)parameterList.Green, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5382,6 +5874,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(body, out var preTransformationBody))
+                body = RoslynEx.TreeTracker.AnnotateNodeAndChildren(body, preTransformationBody);
+            if (RoslynEx.TreeTracker.NeedsTracking(expressionBody, out var preTransformationExpressionBody))
+                expressionBody = RoslynEx.TreeTracker.AnnotateNodeAndChildren(expressionBody, preTransformationExpressionBody);
             return (AccessorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.AccessorDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5438,6 +5934,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(@default, out var preTransformationDefault))
+                @default = RoslynEx.TreeTracker.AnnotateNodeAndChildren(@default, preTransformationDefault);
             return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
         }
 
@@ -5449,6 +5949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (FunctionPointerParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5459,6 +5961,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (IncompleteMemberSyntax)Syntax.InternalSyntax.SyntaxFactory.IncompleteMember(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5499,6 +6003,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeCrefSyntax TypeCref(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (TypeCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeCref((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5508,6 +6014,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (container == null) throw new ArgumentNullException(nameof(container));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
             if (member == null) throw new ArgumentNullException(nameof(member));
+            if (RoslynEx.TreeTracker.NeedsTracking(container, out var preTransformationContainer))
+                container = RoslynEx.TreeTracker.AnnotateNodeAndChildren(container, preTransformationContainer);
+            if (RoslynEx.TreeTracker.NeedsTracking(member, out var preTransformationMember))
+                member = RoslynEx.TreeTracker.AnnotateNodeAndChildren(member, preTransformationMember);
             return (QualifiedCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.QualifiedCref((Syntax.InternalSyntax.TypeSyntax)container.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.MemberCrefSyntax)member.Green).CreateRed();
         }
 
@@ -5519,6 +6029,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name, CrefParameterListSyntax? parameters)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameters, out var preTransformationParameters))
+                parameters = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameters, preTransformationParameters);
             return (NameMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.NameMemberCref((Syntax.InternalSyntax.TypeSyntax)name.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -5530,6 +6044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
         {
             if (thisKeyword.Kind() != SyntaxKind.ThisKeyword) throw new ArgumentException(nameof(thisKeyword));
+            if (RoslynEx.TreeTracker.NeedsTracking(parameters, out var preTransformationParameters))
+                parameters = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameters, preTransformationParameters);
             return (IndexerMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.IndexerMemberCref((Syntax.InternalSyntax.SyntaxToken)thisKeyword.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefBracketedParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -5567,6 +6083,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TrueKeyword: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(parameters, out var preTransformationParameters))
+                parameters = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameters, preTransformationParameters);
             return (OperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -5589,6 +6107,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (operatorKeyword.Kind() != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
+            if (RoslynEx.TreeTracker.NeedsTracking(parameters, out var preTransformationParameters))
+                parameters = RoslynEx.TreeTracker.AnnotateNodeAndChildren(parameters, preTransformationParameters);
             return (ConversionOperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -5636,6 +6158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
             if (type == null) throw new ArgumentNullException(nameof(type));
+            if (RoslynEx.TreeTracker.NeedsTracking(type, out var preTransformationType))
+                type = RoslynEx.TreeTracker.AnnotateNodeAndChildren(type, preTransformationType);
             return (CrefParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5648,6 +6172,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (startTag == null) throw new ArgumentNullException(nameof(startTag));
             if (endTag == null) throw new ArgumentNullException(nameof(endTag));
+            if (RoslynEx.TreeTracker.NeedsTracking(startTag, out var preTransformationStartTag))
+                startTag = RoslynEx.TreeTracker.AnnotateNodeAndChildren(startTag, preTransformationStartTag);
+            if (RoslynEx.TreeTracker.NeedsTracking(endTag, out var preTransformationEndTag))
+                endTag = RoslynEx.TreeTracker.AnnotateNodeAndChildren(endTag, preTransformationEndTag);
             return (XmlElementSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElement((Syntax.InternalSyntax.XmlElementStartTagSyntax)startTag.Green, content.Node.ToGreenList<Syntax.InternalSyntax.XmlNodeSyntax>(), (Syntax.InternalSyntax.XmlElementEndTagSyntax)endTag.Green).CreateRed();
         }
 
@@ -5661,6 +6189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (XmlElementStartTagSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElementStartTag((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.XmlAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -5678,6 +6208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanSlashToken.Kind() != SyntaxKind.LessThanSlashToken) throw new ArgumentException(nameof(lessThanSlashToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (XmlElementEndTagSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElementEndTag((Syntax.InternalSyntax.SyntaxToken)lessThanSlashToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -5691,6 +6223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (slashGreaterThanToken.Kind() != SyntaxKind.SlashGreaterThanToken) throw new ArgumentException(nameof(slashGreaterThanToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (XmlEmptyElementSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlEmptyElement((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.XmlAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)slashGreaterThanToken.Node!).CreateRed();
         }
 
@@ -5706,6 +6240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static XmlNameSyntax XmlName(XmlPrefixSyntax? prefix, SyntaxToken localName)
         {
             if (localName.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(localName));
+            if (RoslynEx.TreeTracker.NeedsTracking(prefix, out var preTransformationPrefix))
+                prefix = RoslynEx.TreeTracker.AnnotateNodeAndChildren(prefix, preTransformationPrefix);
             return (XmlNameSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlName(prefix == null ? null : (Syntax.InternalSyntax.XmlPrefixSyntax)prefix.Green, (Syntax.InternalSyntax.SyntaxToken)localName.Node!).CreateRed();
         }
 
@@ -5750,6 +6286,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (XmlTextAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlTextAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -5779,6 +6317,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
+            if (RoslynEx.TreeTracker.NeedsTracking(cref, out var preTransformationCref))
+                cref = RoslynEx.TreeTracker.AnnotateNodeAndChildren(cref, preTransformationCref);
             return (XmlCrefAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlCrefAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, (Syntax.InternalSyntax.CrefSyntax)cref.Green, (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -5804,6 +6346,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
+            if (RoslynEx.TreeTracker.NeedsTracking(identifier, out var preTransformationIdentifier))
+                identifier = RoslynEx.TreeTracker.AnnotateNodeAndChildren(identifier, preTransformationIdentifier);
             return (XmlNameAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlNameAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, (Syntax.InternalSyntax.IdentifierNameSyntax)identifier.Green, (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -5843,6 +6389,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (startProcessingInstructionToken.Kind() != SyntaxKind.XmlProcessingInstructionStartToken) throw new ArgumentException(nameof(startProcessingInstructionToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (endProcessingInstructionToken.Kind() != SyntaxKind.XmlProcessingInstructionEndToken) throw new ArgumentException(nameof(endProcessingInstructionToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(name, out var preTransformationName))
+                name = RoslynEx.TreeTracker.AnnotateNodeAndChildren(name, preTransformationName);
             return (XmlProcessingInstructionSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlProcessingInstruction((Syntax.InternalSyntax.SyntaxToken)startProcessingInstructionToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endProcessingInstructionToken.Node!).CreateRed();
         }
 
@@ -5873,6 +6421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ifKeyword.Kind() != SyntaxKind.IfKeyword) throw new ArgumentException(nameof(ifKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
             return (IfDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IfDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)ifKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken, conditionValue).CreateRed();
         }
 
@@ -5887,6 +6437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elifKeyword.Kind() != SyntaxKind.ElifKeyword) throw new ArgumentException(nameof(elifKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            if (RoslynEx.TreeTracker.NeedsTracking(condition, out var preTransformationCondition))
+                condition = RoslynEx.TreeTracker.AnnotateNodeAndChildren(condition, preTransformationCondition);
             return (ElifDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ElifDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)elifKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken, conditionValue).CreateRed();
         }
 

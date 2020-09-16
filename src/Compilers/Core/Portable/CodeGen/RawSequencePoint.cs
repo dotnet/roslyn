@@ -6,6 +6,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -24,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal RawSequencePoint(SyntaxTree syntaxTree, int ilMarker, TextSpan span)
         {
+#if DEBUG
+            Debug.Assert(!TreeTracker.IsUndebuggable(syntaxTree));
+#endif
+
             this.SyntaxTree = syntaxTree;
             this.ILMarker = ilMarker;
             this.Span = span;

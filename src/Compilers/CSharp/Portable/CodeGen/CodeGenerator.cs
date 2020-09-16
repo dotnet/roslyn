@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // expect to hit it before exiting the method.
                 // We do it by rewriting all returns into a jump to an Exit label 
                 // and mark the Exit sequence with sequence point for the span of the last "}".
-                BlockSyntax blockSyntax = _methodBodySyntaxOpt as BlockSyntax;
+                BlockSyntax blockSyntax = TreeTracker.GetPreTransformationNode(_methodBodySyntaxOpt as BlockSyntax);
                 if (blockSyntax != null)
                 {
                     EmitSequencePoint(blockSyntax.SyntaxTree, blockSyntax.CloseBraceToken.Span);
@@ -468,13 +469,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (_emitPdbSequencePoints && _methodBodySyntaxOpt != null)
             {
+                // find the pre-transformation root that corresponds to the root node of the tree where the method is
+                var preTransformationRoot = TreeTracker.GetPreTransformationNode(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
+                if (preTransformationRoot == null)
+                    return;
+
                 // If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 // provide the IL builder with our best guess at the appropriate debug document.
                 // If we don't and this is hidden sequence point precedes all non-hidden sequence
                 // points, then the IL Builder will drop the sequence point for lack of a document.
                 // This negatively impacts the scenario where we insert hidden sequence points at
                 // the beginnings of methods so that step-into (F11) will handle them correctly.
-                _builder.SetInitialDebugDocument(_methodBodySyntaxOpt.SyntaxTree);
+                _builder.SetInitialDebugDocument(preTransformationRoot.SyntaxTree);
             }
         }
 
@@ -486,7 +492,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePoint(SyntaxNode syntax)
         {
-            EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
+            var preTransformationSyntax = TreeTracker.GetPreTransformationNode(syntax);
+
+            if (preTransformationSyntax == null)
+                EmitHiddenSequencePoint();
+            else
+                EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
         }
 
         private TextSpan EmitSequencePoint(SyntaxTree syntaxTree, TextSpan span)
