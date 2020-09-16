@@ -3218,7 +3218,6 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31));
         }
 
-        // Errors reported for differences in extended partial methods, warnings for differences in other partial methods.
         [Fact]
         [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_Dynamic()
@@ -3249,7 +3248,6 @@ partial class C
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3").WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
         }
 
-        // Errors reported for differences in extended partial methods, warnings for differences in other partial methods.
         [Fact]
         [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_Nullable()
@@ -3357,7 +3355,6 @@ partial class C
             }
         }
 
-        // Errors reported for all differences.
         [Fact]
         [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void DifferentSignatures_NativeIntegers()
