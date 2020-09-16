@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             if (within != null)
             {
-                var constructors = semanticModel.GetSymbolInfo(recordBaseType, cancellationToken).CandidateSymbols.OfType<IMethodSymbol>();
+                var type = semanticModel.GetTypeInfo(recordBaseType.Type, cancellationToken).Type as INamedTypeSymbol;
 
-                return constructors
+                return type?.InstanceConstructors
                     .Where(m => m.IsAccessibleWithin(within))
                     .Select(m => m.Parameters);
             }

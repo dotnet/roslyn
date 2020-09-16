@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            var baseType = (INamedTypeSymbol?)semanticModel.GetTypeInfo(baseTypeSyntax.Type, cancellationToken).Type;
+            var baseType = semanticModel.GetTypeInfo(baseTypeSyntax.Type, cancellationToken).Type as INamedTypeSymbol;
             if (within is null || baseType is null)
             {
                 return null;
