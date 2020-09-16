@@ -3016,5 +3016,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
+
+        public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+        {
+            return targetToken.IsKind(SyntaxKind.AsteriskToken) &&
+                   targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
+                   targetToken == functionPointerType.AsteriskToken;
+        }
     }
 }

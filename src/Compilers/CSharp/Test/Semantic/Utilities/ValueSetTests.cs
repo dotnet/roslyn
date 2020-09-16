@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class ValueSetTests
     {
-        private static Random Random = new Random();
+        private static readonly Random Random = new Random();
 
         [Theory]
         [InlineData(0)]

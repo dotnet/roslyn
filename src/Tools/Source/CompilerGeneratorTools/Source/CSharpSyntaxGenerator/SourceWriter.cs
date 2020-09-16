@@ -912,6 +912,17 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
+                WriteComment($"<remarks>");
+                WriteComment($"<para>This node is associated with the following syntax kinds:</para>");
+                WriteComment($"<list type=\"bullet\">");
+
+                foreach (var kind in nd.Kinds)
+                {
+                    WriteComment($"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 

@@ -766,6 +766,20 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(47662, "https://github.com/dotnet/roslyn/issues/47662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaExpressionInImplicitObjectCreation()
+        {
+            var markup = @"
+using System;
+class C {
+    C(Action<int> a) {
+        C c = new($$
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
         [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
