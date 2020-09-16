@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                          where
                                              m.IsConversion() && // MethodKind.Conversion
                                              m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
-                                             m.Parameters[0].Type == container // Convert from container type to other type
+                                             container.Equals(m.Parameters[0].Type) // Convert from container type to other type
                                          select SymbolCompletionItem.CreateWithSymbolId(
                                              displayText: $"({m.ReturnType.ToMinimalDisplayString(semanticModel, position)})", // The type to convert to
                                              symbols: ImmutableList.Create(m),
