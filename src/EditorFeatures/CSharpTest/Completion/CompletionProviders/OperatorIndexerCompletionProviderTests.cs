@@ -48,9 +48,9 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitUserDefinedConversionIsNotSuggestedIfMemberNameIsPartiallyWritten()
+        public async Task ExplicitUserDefinedConversionIsSuggestedIfMemberNameIsPartiallyWritten()
         {
-            await VerifyItemIsAbsentAsync(@"
+            await VerifyItemExistsAsync(@"
 public class C
 {
     public void fly() { }

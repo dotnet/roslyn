@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (!token.IsKind(SyntaxKind.DotToken))
+            if (!(token.IsKind(SyntaxKind.DotToken) | token.IsKind(SyntaxKind.IdentifierToken)))
             {
                 return;
             }
@@ -105,10 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             context.AddItems(allExplicitConversions.Union(indexers));
         }
 
-        private static ExpressionSyntax? GetExpressionOfInvocation(SyntaxToken dotToken)
+        private static ExpressionSyntax? GetExpressionOfInvocation(SyntaxToken token)
         {
-            Debug.Assert(dotToken.IsKind(SyntaxKind.DotToken));
-            return dotToken.Parent switch
+            var syntaxNode = token.IsKind(SyntaxKind.IdentifierToken)
+                ? token.Parent?.Parent
+                : token.Parent;
+            return syntaxNode switch
             {
                 MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
                 MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccess } _ => conditionalAccess.Expression,
