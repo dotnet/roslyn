@@ -6815,6 +6815,22 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(46472, "https://github.com/dotnet/roslyn/issues/46472")>
+        Public Async Function TestAllowCompletionInNameOfArgumentContext17() As Task
+            Dim text =
+<code><![CDATA[
+Public Class C
+  Event Bar()
+  
+Public Sub Baz()
+    Dim s = NameOf($$
+  End Sub
+End Class]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "Bar")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAllowCompletionInInterpolationExpressionContext1() As Task
             Dim text =
 <code><![CDATA[
