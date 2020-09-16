@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             var rightOperand = operation.RightOperand;
             var leftOperand = operation.LeftOperand;
-            if (rightOperand.Type.SpecialType is not SpecialType.System_Boolean ||
-                leftOperand.Type.SpecialType is not SpecialType.System_Boolean)
+            if (rightOperand.Type.SpecialType != SpecialType.System_Boolean ||
+                leftOperand.Type.SpecialType != SpecialType.System_Boolean)
             {
                 return;
             }
