@@ -189,18 +189,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 Debug.Assert(state == null || !state.WereProjectErrorsCleared(projectId));
 
-                // Clear build-only errors for project
+                // Here, we clear the build and live errors for the project.
+                // Additionally, we mark projects as having its errors cleared.
+                // This ensures that we do not attempt to clear the diagnostics again for the same project
+                // when 'ClearErrors' is invoked for multiple dependent projects.
+                // Finally, we update build progress state so error list gets refreshed.
+
                 ClearBuildOnlyProjectErrors(solution, projectId);
 
-                // Clear live errors for project
                 await SetLiveErrorsForProjectAsync(projectId, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
 
-                // Mark projects as having its error cleared.
-                // This ensures that we do not attempt to again clear the diagnostics for the same project
-                // when 'ClearErrors' is invoked for multiple dependent projects.
                 state?.MarkErrorsCleared(projectId);
 
-                // Update build progress to refresh error list
                 OnBuildProgressChanged(state, BuildProgress.Updated);
             }
         }
