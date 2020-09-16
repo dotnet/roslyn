@@ -1533,28 +1533,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)),
                 ImmutableArray<CustomModifier>.Empty,
                 ImmutableArray<MethodSymbol>.Empty);
-
-            var userDefinedGetHashCode = getNonSynthesizedRecordMethod(targetGetHashCodeMethod);
-            var userDefinedEquals = getNonSynthesizedRecordMethod(targetEqualsMethod);
-
-            if (userDefinedGetHashCode is null ^ userDefinedEquals is null)
-            {
-                var declared = userDefinedGetHashCode is null ? userDefinedEquals : userDefinedGetHashCode;
-                diagnostics.Add(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, declared!.Locations[0], declared);
-            }
-
-            Symbol? getNonSynthesizedRecordMethod(Symbol targetMethod)
-            {
-                var members = GetMembers(targetMethod.Name);
-                foreach (var member in members)
-                {
-                    if (MemberSignatureComparer.RecordAPISignatureComparer.Equals(member, targetMethod) && member is not SynthesizedRecordOrdinaryMethod)
-                    {
-                        return member;
-                    }
-                }
-                return null;
-            }
         }
 
         private void CheckMemberNameConflicts(DiagnosticBag diagnostics)
@@ -3116,8 +3094,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var thisEquals = addThisEquals(equalityContract);
             addOtherEquals();
             addObjectEquals(thisEquals);
-            addGetHashCode(equalityContract);
+            var getHashCode = addGetHashCode(equalityContract);
             addEqualityOperators();
+
+            if ((thisEquals is not SynthesizedRecordEquals) ^ (getHashCode is not SynthesizedRecordEquals))
+            {
+                var declared = thisEquals is not SynthesizedRecordEquals ? thisEquals : getHashCode;
+                diagnostics.Add(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, declared.Locations[0], declared);
+            }
 
             var printMembers = addPrintMembersMethod();
             addToStringMethod(printMembers);
@@ -3391,7 +3375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics));
             }
 
-            void addGetHashCode(PropertySymbol equalityContract)
+            MethodSymbol addGetHashCode(PropertySymbol equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectGetHashCode,
@@ -3406,19 +3390,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<CustomModifier>.Empty,
                     ImmutableArray<MethodSymbol>.Empty);
 
+                MethodSymbol getHashCode;
+
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
-                    members.Add(hashCode);
+                    getHashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
+                    members.Add(getHashCode);
                 }
                 else
                 {
-                    var method = (MethodSymbol)existingHashCodeMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
+                    getHashCode = (MethodSymbol)existingHashCodeMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialType.System_Int32, diagnostics) && getHashCode.IsSealed && !IsSealed)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, method.Locations[0], method);
+                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, getHashCode.Locations[0], getHashCode);
                     }
                 }
+                return getHashCode;
             }
 
             PropertySymbol addEqualityContract()
