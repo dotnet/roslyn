@@ -677,11 +677,6 @@
         <target state="new">Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodNullabilityDifference">
-        <source>Partial method declarations '{0}' and '{1}' must have identical nullability for parameter types and return types.</source>
-        <target state="new">Partial method declarations '{0}' and '{1}' must have identical nullability for parameter types and return types.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">Либо оба объявления разделяемого метода должны иметь модификатор readonly, либо ни одно из них не должно иметь модификатор readonly.</target>
@@ -695,11 +690,6 @@
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
         <source>Both partial method declarations must have the same return type.</source>
         <target state="new">Both partial method declarations must have the same return type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodTypeDifference">
-        <source>Partial method declarations '{0}' and '{1}' must have identical parameter types and return types.</source>
-        <target state="new">Partial method declarations '{0}' and '{1}' must have identical parameter types and return types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
@@ -916,6 +906,26 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have differences in parameter or return types.</source>
+        <target state="new">Partial method declarations have differences in parameter or return types.</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>

@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
@@ -230,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                 case ErrorCode.WRN_ParameterIsStaticClass:
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                case ErrorCode.WRN_PartialMethodTypeDifference:
                     // Warning level 5 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
                     return 5;
@@ -416,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:

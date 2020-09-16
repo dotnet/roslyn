@@ -1827,14 +1827,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
-        // Available = 8819,
+        WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
-        ERR_PartialMethodTypeDifference = 8824,
-        ERR_PartialMethodNullabilityDifference = 8825,
+        WRN_PartialMethodTypeDifference = 8824,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,

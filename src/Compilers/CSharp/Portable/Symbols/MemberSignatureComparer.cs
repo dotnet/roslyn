@@ -127,23 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
-        /// This instance is used to determine if a partial method implementation matches the definition
-        /// including differences ignored by the runtime other than dynamic/object and nullability (for instance, nint/System.IntPtr).
-        /// </summary>
-        public static readonly MemberSignatureComparer PartialMethodsStrictComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: true,
-            considerReturnType: false,
-            considerTypeConstraints: false,
-            considerCallingConvention: false,
-            considerRefKindDifferences: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic | TypeCompareKind.AllNullableIgnoreOptions);
-
-        /// <summary>
-        /// This instance is used to determine if an extended partial method implementation matches the definition,
+        /// This instance is used to determine if a partial method implementation matches the definition,
         /// including differences ignored by the runtime.
         /// </summary>
-        public static readonly MemberSignatureComparer ExtendedPartialMethodsStrictComparer = new MemberSignatureComparer(
+        public static readonly MemberSignatureComparer PartialMethodsStrictComparer = new MemberSignatureComparer(
             considerName: true,
             considerExplicitlyImplementedInterfaces: true,
             considerReturnType: true,
@@ -151,19 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false,
             considerRefKindDifferences: true,
             typeComparison: TypeCompareKind.ConsiderEverything);
-
-        /// <summary>
-        /// This instance is used to determine if an extended partial method implementation matches the definition,
-        /// including differences ignored by the runtime other than nullability.
-        /// </summary>
-        public static readonly MemberSignatureComparer ExtendedPartialMethodsStrictIgnoreNullabilityComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: true,
-            considerReturnType: true,
-            considerTypeConstraints: false,
-            considerCallingConvention: false,
-            considerRefKindDifferences: true,
-            typeComparison: TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
