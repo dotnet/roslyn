@@ -255,6 +255,7 @@ class X
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
