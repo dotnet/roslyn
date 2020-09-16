@@ -1237,7 +1237,7 @@ class C
 
     public void M()
     {
-        _ = new(1, 2);
+        C _ = new(1, ""y"");
     }
 }";
             var permutation = new[] {
@@ -1254,11 +1254,9 @@ class C
 
     public void M()
     {
-        _ = new(1, 2);
+        C _ = new(""y"", 34, 1);
     }
 }";
-            // Expect: _ = new(2, 34, 1);
-            // Tracked by https://github.com/dotnet/roslyn/issues/44126
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
     }
