@@ -128,6 +128,12 @@ namespace Roslyn.Utilities
             }
         }
 
+        public Task WaitUntilCurrentBatchCompletesAsync()
+        {
+            lock (_gate)
+                return _updateTask;
+        }
+
         private void AddItemsToBatch(IEnumerable<TItem> items)
         {
             // no equality comparer.  We want to process all items.

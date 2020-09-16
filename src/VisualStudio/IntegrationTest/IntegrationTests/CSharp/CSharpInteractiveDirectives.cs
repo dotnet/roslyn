@@ -13,12 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveDirectives(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveDirectives(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
+        [WpfFact]
         public void VerifyHostCommandsCompletionList()
         {
             VisualStudio.InteractiveWindow.InsertCode("#");

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             }
         }
 
-        private bool CanFix(
+        private static bool CanFix(
             SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken,
             [NotNullWhen(true)] out SimpleNameSyntax? leftName,
             [NotNullWhen(true)] out ISymbol? matchingMember,
@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 
                 var newNameNode = matchingMember.Name.ToIdentifierName();
                 var newExpr = (ExpressionSyntax)newNameNode;
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                 {
                     newExpr = MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), newNameNode).WithAdditionalAnnotations(Simplifier.Annotation);

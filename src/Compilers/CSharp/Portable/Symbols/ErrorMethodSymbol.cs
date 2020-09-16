@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => null;
+
         public override Accessibility DeclaredAccessibility
         {
             get { return Accessibility.Public; }
@@ -127,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         internal override int ParameterCount
         {

@@ -6,9 +6,6 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    /// <summary>
-    /// The action that triggered completion to start.
-    /// </summary>
     public readonly struct CompletionTrigger
     {
         /// <summary>

@@ -21,6 +21,7 @@ namespace RunTests
         private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
             StringComparer.OrdinalIgnoreCase,
             "devenv",
+            "xunit.console",
             "xunit.console.x86");
 
         internal const int ExitSuccess = 0;
@@ -59,7 +60,7 @@ namespace RunTests
                 return await RunCore(options, cancellationToken);
             }
 
-            var timeoutTask = Task.Delay(options.Timeout.Value);
+            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunCore(options, cts.Token);
 
@@ -398,7 +399,7 @@ namespace RunTests
             try
             {
                 var client = new RestClient(Constants.DashboardUriString);
-                var response = await client.ExecuteTaskAsync(request);
+                var response = await client.ExecuteTaskAsync(request, cancellationToken);
                 if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
                     Logger.Log($"Unable to send results: {response.ErrorMessage}");

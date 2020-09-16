@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
         }
 
-        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, ISymbol symbolOpt = null)
+        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             SuppressMessageInfo info;
-            if (IsDiagnosticSuppressed(diagnostic, getSemanticModel, out info))
+            if (IsDiagnosticSuppressed(diagnostic, out info))
             {
                 // Attach the suppression info to the diagnostic.
                 diagnostic = diagnostic.WithIsSuppressed(true);
@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return diagnostic;
         }
 
-        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out AttributeData suppressingAttribute)
+        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, out AttributeData suppressingAttribute)
         {
             SuppressMessageInfo info;
-            if (IsDiagnosticSuppressed(diagnostic, getSemanticModel, out info))
+            if (IsDiagnosticSuppressed(diagnostic, out info))
             {
                 suppressingAttribute = info.Attribute;
                 return true;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
+        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info)
         {
             info = default;
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Walk up the syntax tree checking for suppression by any declared symbols encountered
             if (location.IsInSource)
             {
-                var model = getSemanticModel(_compilation, location.SourceTree);
+                var model = _compilation.GetSemanticModel(location.SourceTree);
                 bool inImmediatelyContainingSymbol = true;
 
                 for (var node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);
@@ -324,24 +324,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static IEnumerable<ISymbol> ResolveTargetSymbols(Compilation compilation, string target, TargetScope scope)
+        internal static ImmutableArray<ISymbol> ResolveTargetSymbols(Compilation compilation, string target, TargetScope scope)
         {
             switch (scope)
             {
                 case TargetScope.Namespace:
                 case TargetScope.Type:
                 case TargetScope.Member:
-                    {
-                        var results = new List<ISymbol>();
-                        new TargetSymbolResolver(compilation, scope, target).Resolve(results);
-                        return results;
-                    }
+                    return new TargetSymbolResolver(compilation, scope, target).Resolve(out _);
 
                 case TargetScope.NamespaceAndDescendants:
                     return ResolveTargetSymbols(compilation, target, TargetScope.Namespace);
 
                 default:
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
             }
         }
 

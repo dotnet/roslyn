@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private bool IsFlagsEnum(INamedTypeSymbol typeSymbol)
+        private static bool IsFlagsEnum(INamedTypeSymbol typeSymbol)
         {
             if (typeSymbol.TypeKind != TypeKind.Enum)
             {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
+        private static IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
             for (var i = allFieldsAndValues.Count - 1; i >= 0; i--)
             {

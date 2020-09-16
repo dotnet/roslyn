@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var originalNamespaceName = semanticModel.GetDeclaredSymbol(originalNamespaceDeclarations.First()).ToDisplayString();
+            var originalNamespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations.First(), cancellationToken).ToDisplayString();
             var solution = document.Project.Solution;
 
             // Only loop as many top level namespace declarations as we originally had. 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // rule out namespaces that didn't need to be changed
             for (var i = 0; i < originalNamespaceDeclarations.Length; i++)
             {
-                var namespaceName = semanticModel.GetDeclaredSymbol(originalNamespaceDeclarations[i]).ToDisplayString();
+                var namespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations[i], cancellationToken).ToDisplayString();
                 if (namespaceName != originalNamespaceName)
                 {
                     // Skip all namespaces that didn't match the original namespace name that 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// <summary>
         /// Mark container nodes with our annotation so we can keep track of them across syntax modifications.
         /// </summary>
-        protected async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
+        protected static async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
         {
             var solutionEditor = new SolutionEditor(solution);
             foreach (var (id, container) in containers)
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
+        private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> FixReferencingDocumentAsync(
+        private static async Task<Document> FixReferencingDocumentAsync(
             Document document,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             string newNamespace,
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         ///     2. find and mark the qualified reference for simplification.
         /// Otherwise, there would be no namespace replacement.
         /// </summary>
-        private async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
+        private static async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
             Document document,
             IChangeNamespaceService changeNamespaceService,
             IAddImportsService addImportService,
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return result;
         }
 
-        private async Task<Solution> RemoveUnnecessaryImportsAsync(
+        private static async Task<Solution> RemoveUnnecessaryImportsAsync(
             Solution solution,
             ImmutableArray<DocumentId> ids,
             ImmutableArray<string> names,
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Add imports for the namespace specified by <paramref name="names"/>
         /// to the provided <paramref name="containers"/>
         /// </summary>
-        private async Task<Document> AddImportsInContainersAsync(
+        private static async Task<Document> AddImportsInContainersAsync(
             Document document,
             IAddImportsService addImportService,
             ImmutableArray<SyntaxNode> containers,

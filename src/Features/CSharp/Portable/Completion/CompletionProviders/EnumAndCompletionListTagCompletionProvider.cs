@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
-                var span = new TextSpan(position, 0);
-                var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var types = typeInferenceService.InferTypes(semanticModel, position,
                     cancellationToken: cancellationToken);
 
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private ITypeSymbol TryGetEnumTypeInEnumInitializer(
+        private static ITypeSymbol TryGetEnumTypeInEnumInitializer(
             SemanticModel semanticModel, SyntaxToken token,
             ITypeSymbol type, CancellationToken cancellationToken)
         {
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        private INamedTypeSymbol TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
+        private static INamedTypeSymbol TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {
             // PERF: None of the SpecialTypes include <completionlist> tags,
             // so we don't even need to load the documentation.

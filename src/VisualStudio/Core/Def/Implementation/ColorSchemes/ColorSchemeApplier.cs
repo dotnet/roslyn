@@ -13,7 +13,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -32,12 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ColorSchemeSettings _settings;
+        private readonly ClassificationVerifier _classificationVerifier;
         private readonly ImmutableDictionary<SchemeName, ColorScheme> _colorSchemes;
         private readonly AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> _colorSchemeRegistryItems;
-        private readonly ForegroundColorDefaulter _colorDefaulter;
 
         private bool _isInitialized = false;
-        private bool _migrationAttempted = false;
         private bool _isDisposed = false;
 
         [ImportingConstructor]
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             _settings = new ColorSchemeSettings(_serviceProvider, visualStudioWorkspace);
             _colorSchemes = _settings.GetColorSchemes();
-            _colorDefaulter = new ForegroundColorDefaulter(threadingContext, serviceProvider, _settings, _colorSchemes);
+            _classificationVerifier = new ClassificationVerifier(threadingContext, serviceProvider, _colorSchemes);
 
             _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
         }
@@ -66,48 +64,51 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         public void Initialize()
         {
-            AssertIsForeground();
-
             if (!_isInitialized)
             {
-                _isInitialized = true;
-
-                _ = _colorSchemeRegistryItems.GetValueAsync(CancellationToken.None);
-
-                // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
-                var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
-
-                VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
-
-                // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
-                // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
-                // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
-                // colors are only applicable to the Blue and Light VS themes.
-
-                // When we update the colors we also flag that this is potentially a theme change, as settings could have synced over from a
-                // different VS instance and we may need to perform additional work to default colors that match our scheme.
-                UpdateColorScheme(themeChanged: true);
+                return;
             }
+
+            AssertIsForeground();
+
+            _isInitialized = true;
+
+            _ = _colorSchemeRegistryItems.GetValueAsync(CancellationToken.None);
+
+            // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
+            var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
+
+            VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
+
+            // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+            _settings.MigrateToColorSchemeSetting();
+
+            // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+            // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+            // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+            // colors are only applicable to the Blue and Light VS themes.
+
+            UpdateColorScheme();
         }
 
         private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
             => SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-            => QueueColorSchemeUpdate(themeChanged: true);
+            => QueueColorSchemeUpdate();
 
         private async Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
             => await QueueColorSchemeUpdate();
 
-        private IVsTask QueueColorSchemeUpdate(bool themeChanged = false)
+        private IVsTask QueueColorSchemeUpdate()
         {
             // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
             return VsTaskLibraryHelper.CreateAndStartTask(
-                VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, () => UpdateColorScheme(themeChanged));
+                VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, () => UpdateColorScheme());
         }
 
-        private void UpdateColorScheme(bool themeChanged = false)
+        private void UpdateColorScheme()
         {
             AssertIsForeground();
 
@@ -115,20 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             if (_isDisposed)
             {
                 return;
-            }
-
-            if (!_migrationAttempted)
-            {
-                _migrationAttempted = true;
-
-                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
-                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
-            }
-
-            if (themeChanged)
-            {
-                // Default Foreground colors if they match our theme colors.
-                _colorDefaulter.DefaultClassifications();
             }
 
             // If the color scheme has updated, apply the scheme.
@@ -165,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsSupportedTheme()
-            => IsSupportedTheme(_settings.GetThemeId());
+            => IsSupportedTheme(GetThemeId());
 
         public bool IsSupportedTheme(Guid themeId)
         {
@@ -175,7 +162,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsThemeCustomized()
-            => !_colorDefaulter.AreClassificationsDefaultable(_settings.GetThemeId());
+            => _classificationVerifier.AreForegroundColorsCustomized(_settings.GetConfiguredColorScheme(), GetThemeId());
+
+        public Guid GetThemeId()
+        {
+            AssertIsForeground();
+
+            dynamic colorThemeService = _serviceProvider.GetService(typeof(SVsColorThemeService));
+            return (Guid)colorThemeService.CurrentTheme.ThemeId;
+        }
+
+        // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
+        [Guid("0d915b59-2ed7-472a-9de8-9161737ea1c5")]
+        private interface SVsColorThemeService
+        {
+        }
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]

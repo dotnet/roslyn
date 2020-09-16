@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     End If
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(False)
                 Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
                 If parameterLists Is Nothing Then
                     Return
@@ -103,13 +103,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
         End Function
 
-        Private Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
+        Private Shared Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
             ' A parameter list is valid if it has parameters that match in name all the existing ;
             ' named parameters that have been provided.
             Return existingNamedParameters.Except(parameterList.Select(Function(p) p.Name)).IsEmpty()
         End Function
 
-        Private Function GetExistingNamedParameters(argumentList As ArgumentListSyntax, position As Integer) As ISet(Of String)
+        Private Shared Function GetExistingNamedParameters(argumentList As ArgumentListSyntax, position As Integer) As ISet(Of String)
             Dim existingArguments =
                 argumentList.Arguments.OfType(Of SimpleArgumentSyntax).
                                        Where(Function(n) n.IsNamed AndAlso Not n.NameColonEquals.ColonEqualsToken.IsMissing AndAlso n.NameColonEquals.Span.End <= position).
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return existingArguments.ToSet()
         End Function
 
-        Private Function GetParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetParameterLists(semanticModel As SemanticModel,
                                            position As Integer,
                                            invocableNode As SyntaxNode,
                                            cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Function(objectCreationExpression As ObjectCreationExpressionSyntax) GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken))
         End Function
 
-        Private Function GetObjectCreationExpressionParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetObjectCreationExpressionParameterLists(semanticModel As SemanticModel,
                                                                    position As Integer,
                                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                                    cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Function GetAttributeParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetAttributeParameterLists(semanticModel As SemanticModel,
                                                     position As Integer,
                                                     attribute As AttributeSyntax,
                                                     cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 ImmutableArray.CreateRange(namedParameters))
         End Function
 
-        Private Function GetInvocationExpressionParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetInvocationExpressionParameterLists(semanticModel As SemanticModel,
                                                                position As Integer,
                                                                invocationExpression As InvocationExpressionSyntax,
                                                                cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Sub GetInvocableNode(token As SyntaxToken, ByRef invocableNode As SyntaxNode, ByRef argumentList As ArgumentListSyntax)
+        Private Shared Sub GetInvocableNode(token As SyntaxToken, ByRef invocableNode As SyntaxNode, ByRef argumentList As ArgumentListSyntax)
             Dim current = token.Parent
 
             While current IsNot Nothing

@@ -8,15 +8,20 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal enum WellKnownServiceHubService
     {
-        None,
-        RemoteHost,
-        CodeAnalysis,
-        RemoteSymbolSearchUpdateEngine,
-        RemoteDesignerAttributeService,
-        RemoteProjectTelemetryService,
-        RemoteTodoCommentsService,
-        LanguageServer,
-        IntelliCode,
-        Razor
+        None = 0,
+        RemoteHost = 1,
+        CodeAnalysis = 2,
+        RemoteSymbolSearchUpdateEngine = 3,
+        // obsolete: RemoteDesignerAttributeService = 4,
+        // obsolete: RemoteProjectTelemetryService = 5,
+        // obsolete: RemoteTodoCommentsService = 6,
+        LanguageServer = 7,
+        IntelliCode = 8,
+        Razor = 9,
+
+        // owned by Unit Testing team:
+        UnitTestingAnalysisService = 10,
+        LiveUnitTestingBuildService = 11,
+        UnitTestingSourceLookupService = 12,
     }
 }

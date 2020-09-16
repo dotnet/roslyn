@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -28,11 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal ILibraryService LibraryService => _libraryService.Value;
 
-        private readonly IServiceProvider _serviceProvider;
         private readonly Lazy<ILibraryService> _libraryService;
-
         private readonly string _languageName;
-        private readonly __SymbolToolLanguage _preferredLanguage;
 
         private uint _classVersion;
         private uint _membersVersion;
@@ -47,15 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
-            __SymbolToolLanguage preferredLanguage,
             IServiceProvider serviceProvider,
             IComponentModel componentModel,
             VisualStudioWorkspace workspace)
             : base(libraryGuid, serviceProvider)
         {
             _languageName = languageName;
-            _preferredLanguage = preferredLanguage;
-            _serviceProvider = serviceProvider;
 
             Workspace = workspace;
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -94,10 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
                     var newDocument = e.NewSolution.GetDocument(e.DocumentId);
 
-                    // make sure we do this in background thread. we don't care about ordering of events
-                    // we just need to refresh OB at some point if it ever needs to be updated
-                    // link to the bug tracking root cause  - https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=169649&_a=edit
-                    Task.Run(() => DocumentChangedAsync(oldDocument, newDocument));
+                    UpdateDocument(oldDocument, newDocument);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
@@ -117,17 +107,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private async Task DocumentChangedAsync(Document oldDocument, Document newDocument)
+        private void UpdateDocument(Document oldDocument, Document newDocument)
         {
             try
             {
-                var oldTextVersion = await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                var newTextVersion = await newDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
-
-                if (oldTextVersion != newTextVersion)
+                // If the versions are the same, avoid updating the object browser. However, avoid
+                // loading the document to determine the version because it can cause extreme memory
+                // pressure during batch changes.
+                if (oldDocument.TryGetTextVersion(out var oldTextVersion)
+                    && newDocument.TryGetTextVersion(out var newTextVersion)
+                    && oldTextVersion == newTextVersion)
                 {
-                    UpdateClassAndMemberVersions();
+                    return;
                 }
+
+                UpdateClassAndMemberVersions();
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -330,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             Debug.Assert(listKind == ObjectListKind.Projects);
 
-            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags, CancellationToken.None));
+            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
         }
 
         protected override uint GetUpdateCounter()
@@ -343,9 +337,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             ppNavInfo = null;
 
             var count = 0;
-            string libraryName = null;
             string referenceOwnerName = null;
 
+            string libraryName;
             if (rgSymbolNodes[0].dwType != (uint)_LIB_LISTTYPE.LLT_PACKAGE)
             {
                 Debug.Fail("Symbol description should always contain LLT_PACKAGE node as first node");
@@ -497,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // and the references will be asynchronously added to the FindReferences
                                 // window as they are computed.  The user also knows something is happening
                                 // as the window, with the progress-banner will pop up immediately.
-                                var task = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
+                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }

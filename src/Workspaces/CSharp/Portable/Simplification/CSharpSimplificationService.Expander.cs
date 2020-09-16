@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return expression;
             }
 
-            private ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
+            private static ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
             {
                 if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
                 {
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return typeArgumentSymbols;
             }
 
-            private bool IsInvocationWithDynamicArguments(SimpleNameSyntax originalSimpleName, SemanticModel semanticModel)
+            private static bool IsInvocationWithDynamicArguments(SimpleNameSyntax originalSimpleName, SemanticModel semanticModel)
             {
                 var invocationExpression = originalSimpleName.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
 
@@ -858,14 +858,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
             }
 
-            private bool IsPropertyNameOfObjectInitializer(SimpleNameSyntax identifierName)
+            private static bool IsPropertyNameOfObjectInitializer(SimpleNameSyntax identifierName)
             {
                 SyntaxNode currentNode = identifierName;
                 SyntaxNode parent = identifierName;
 
                 while (parent != null)
                 {
-                    if (parent.Kind() == SyntaxKind.ObjectInitializerExpression)
+                    if (parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
                     {
                         return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Bail out on extension method invocations in conditional access expression.
                 // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
                 // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
-                if (originalMemberAccess.GetParentConditionalAccessExpression() == null)
+                if (originalMemberAccess.GetRootConditionalAccessExpression() == null)
                 {
                     var speculationPosition = originalNode.SpanStart;
                     var expression = RewriteExtensionMethodInvocation(speculationPosition, rewrittenNode, thisExpression, reducedExtensionMethod);

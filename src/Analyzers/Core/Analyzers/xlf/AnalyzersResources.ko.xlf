@@ -37,6 +37,16 @@
         <target state="translated">this' 또는 'Me' 한정자를 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute'에서 레거시 형식 대상 '{0}'을(를) 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute'에서 레거시 형식 대상을 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">코드에 불필요한 값을 할당하면 값의 중복 계산으로 표시될 수 있으므로 이와 같은 할당을 사용하지 않도록 합니다. 값의 중복 계산이 아닌 할당을 유지하려는 경우 할당 대상을 이름이 밑줄로 시작하고 필요에 따라 뒤에 정수가 있는(예: '_', '_1', '_2' 등) 지역 변수로 변경합니다. 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
@@ -54,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
+        <target state="translated">조건식을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
@@ -89,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">보간을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -99,17 +109,17 @@
       </trans-unit>
       <trans-unit id="Invalid_global_SuppressMessageAttribute">
         <source>Invalid global 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid global 'SuppressMessageAttribute'</target>
+        <target state="translated">전역 'SuppressMessageAttribute'가 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
         <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid or missing target for 'SuppressMessageAttribute'</target>
+        <target state="translated">'SuppressMessageAttribute'의 대상이 잘못되었거나 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
         <source>Invalid scope for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid scope for 'SuppressMessageAttribute'</target>
+        <target state="translated">'SuppressMessageAttribute'의 범위가 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
-        <target state="new">Member name can be simplified</target>
+        <target state="translated">멤버 이름을 간단하게 줄일 수 있음</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -222,6 +232,11 @@
         <target state="translated">불필요한 괄호 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="new">Remove unnecessary suppression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">읽지 않은 private 멤버 제거</target>
@@ -264,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">보간 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_initialization">
@@ -319,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
-        <target state="new">Use inferred member name</target>
+        <target state="translated">유추 멤버 이름 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

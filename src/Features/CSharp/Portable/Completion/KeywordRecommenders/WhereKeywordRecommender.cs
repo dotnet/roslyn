@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsTypeParameterConstraintContext(context);
         }
 
-        private bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
+        private static bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
         {
             // cases:
             //   class C<T> |

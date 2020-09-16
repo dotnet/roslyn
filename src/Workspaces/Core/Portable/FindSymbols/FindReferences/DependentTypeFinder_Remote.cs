@@ -27,29 +27,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(functionId, cancellationToken))
             {
-                var project = solution.GetOriginatingProject(type);
-                if (project != null)
+                if (SerializableSymbolAndProjectId.TryCreate(type, solution, cancellationToken, out var serializedType))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                        var result = await client.RunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                             WellKnownServiceHubService.CodeAnalysis,
                             remoteFunctionName,
                             solution,
                             new object?[]
                             {
-                                SerializableSymbolAndProjectId.Create(type, project, cancellationToken),
+                                serializedType,
                                 projects?.Select(p => p.Id).ToArray(),
                                 transitive,
                             },
                             null,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasValue)
-                        {
-                            return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                        }
+                        return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

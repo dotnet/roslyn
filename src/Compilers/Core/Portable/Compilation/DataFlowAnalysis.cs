@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> UnsafeAddressTaken { get; }
 
         /// <summary>
+        /// The set of local functions that are used.
+        /// </summary>
+        public abstract ImmutableArray<IMethodSymbol> UsedLocalFunctions { get; }
+
+        /// <summary>
         /// Returns true iff analysis was successful.  Analysis can fail if the region does not
         /// properly span a single expression, a single statement, or a contiguous series of
         /// statements within the enclosing block.

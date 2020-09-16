@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsLocalVariableDeclaration(context);
         }
 
-        private bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, s_validGlobalModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
 
-        private bool IsLocalVariableDeclaration(CSharpSyntaxContext context)
+        private static bool IsLocalVariableDeclaration(CSharpSyntaxContext context)
         {
             // cases:
             //   void Goo() {

@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // otherwise we would not be able to get correct data from syntax.
         bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
 
-        // Get the name of the target type of specified extension method declaration node.
-        // The returned value would be null for complex type.
-        string GetTargetTypeName(SyntaxNode node);
+        // Get the name of the receiver type of specified extension method declaration node.
+        // The returned value would be "" or "[]" for complex types.
+        string GetReceiverTypeName(SyntaxNode node);
 
         bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
 
@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
             var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
-            var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
-            var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
+            var extensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
             using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
 
             try
@@ -89,6 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
+                var containsGlobalAttributes = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
+                            containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -169,8 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                         usingAliases,
                                         declaredSymbolInfoIndex,
                                         declaredSymbolInfo,
-                                        simpleExtensionMethodInfoBuilder,
-                                        complexExtensionMethodInfoBuilder);
+                                        extensionMethodInfoBuilder);
                                 }
                                 else
                                 {
@@ -266,12 +266,14 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsDeconstruction,
                             containsAwait,
                             containsTupleExpressionOrTupleType,
-                            containsImplicitObjectCreation),
+                            containsImplicitObjectCreation,
+                            containsGlobalAttributes),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
-                        simpleExtensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray),
-                        complexExtensionMethodInfoBuilder.ToImmutable()));
+                        extensionMethodInfoBuilder.ToImmutableDictionary(
+                            static kvp => kvp.Key,
+                            static kvp => kvp.Value.ToImmutable())));
             }
             finally
             {
@@ -279,19 +281,15 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
 
-                foreach (var (_, builder) in simpleExtensionMethodInfoBuilder)
+                foreach (var (_, builder) in extensionMethodInfoBuilder)
                 {
                     builder.Free();
                 }
 
-                simpleExtensionMethodInfoBuilder.Free();
-                complexExtensionMethodInfoBuilder.Free();
+                extensionMethodInfoBuilder.Free();
                 declaredSymbolInfos.Free();
             }
         }
-
-        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, string> s_getKey = kvp => kvp.Key;
-        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, ImmutableArray<int>> s_getValuesAsImmutableArray = kvp => kvp.Value.ToImmutable();
 
         private static void AddExtensionMethodInfo(
             IDeclaredSymbolInfoFactoryService infoFactory,
@@ -299,43 +297,35 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             PooledDictionary<string, string> aliases,
             int declaredSymbolInfoIndex,
             DeclaredSymbolInfo declaredSymbolInfo,
-            PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
-            ArrayBuilder<int> complexInfoBuilder)
+            PooledDictionary<string, ArrayBuilder<int>> extensionMethodsInfoBuilder)
         {
             if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
             {
                 return;
             }
 
-            var targetTypeName = infoFactory.GetTargetTypeName(node);
-
-            // complex method
-            if (targetTypeName == null)
-            {
-                complexInfoBuilder.Add(declaredSymbolInfoIndex);
-                return;
-            }
+            var receiverTypeName = infoFactory.GetReceiverTypeName(node);
 
             // Target type is an alias
-            if (aliases.TryGetValue(targetTypeName, out var originalName))
+            if (aliases.TryGetValue(receiverTypeName, out var originalName))
             {
                 // it is an alias of multiple with identical name,
                 // simply treat it as a complex method.
                 if (originalName == null)
                 {
-                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
-                    return;
+                    receiverTypeName = Extensions.ComplexReceiverTypeName;
                 }
-
-                // replace the alias with its original name.
-                targetTypeName = originalName;
+                else
+                {
+                    // replace the alias with its original name.
+                    receiverTypeName = originalName;
+                }
             }
 
-            // So we've got a simple method.
-            if (!simpleInfoBuilder.TryGetValue(targetTypeName, out var arrayBuilder))
+            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
             {
                 arrayBuilder = ArrayBuilder<int>.GetInstance();
-                simpleInfoBuilder[targetTypeName] = arrayBuilder;
+                extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
             }
 
             arrayBuilder.Add(declaredSymbolInfoIndex);

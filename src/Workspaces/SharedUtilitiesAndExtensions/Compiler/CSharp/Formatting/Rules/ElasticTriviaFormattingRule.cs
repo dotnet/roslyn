@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var initializer = GetInitializerNode(node);
             var lastTokenOfType = GetLastTokenOfType(node);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
+        private static InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
             => node switch
             {
                 ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => null,
             };
 
-        private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
+        private static SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
             if (node is ObjectCreationExpressionSyntax objectCreationNode)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
         }
 
-        private AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (!FormattingRangeHelper.InBetweenTwoMembers(previousToken, currentToken))
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         // copied from compiler formatter to have same base forced format
-        private int LineBreaksAfter(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static int LineBreaksAfter(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (currentToken.Kind() == SyntaxKind.None)
             {
@@ -432,13 +432,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private bool IsWhitespace(SyntaxTrivia trivia)
+        private static bool IsWhitespace(SyntaxTrivia trivia)
         {
             return trivia.Kind() == SyntaxKind.WhitespaceTrivia
                 || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
 
-        private int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
+        private static int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
             => triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
     }
 }

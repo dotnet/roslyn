@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode == null)
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
         }
 
-        private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
+        private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
             ISymbol selectedMember,
             Solution solution,
             CancellationToken cancellationToken)
@@ -82,6 +81,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
-
     }
 }

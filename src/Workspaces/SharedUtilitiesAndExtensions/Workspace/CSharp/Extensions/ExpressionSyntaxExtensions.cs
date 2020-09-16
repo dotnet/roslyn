@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parenthesized.WithTriviaFrom(expression);
         }
 
-#if !CODE_STYLE
-
         public static PatternSyntax Parenthesize(
             this PatternSyntax pattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
@@ -68,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 ? result.WithAdditionalAnnotations(Simplifier.Annotation)
                 : result;
         }
-
-#endif
 
         public static CastExpressionSyntax Cast(
             this ExpressionSyntax expression,

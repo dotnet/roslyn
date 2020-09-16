@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         {
         }
 
+        protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
+            => (PropertyDeclarationSyntax)node;
+
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
             var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         private class SingleLinePropertyFormattingRule : AbstractFormattingRule
         {
-            private bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
+            private static bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
             {
                 if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
                 {
@@ -122,13 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        private async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
+        private static async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
         {
             var variableDeclarator = (VariableDeclaratorSyntax)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             return variableDeclarator.Initializer?.Value;
         }
 
-        private bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
+        private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
         {
             if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
             {
@@ -147,10 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return isWrittenOutsideOfConstructor;
         }
 
-        private bool SupportsReadOnlyProperties(Compilation compilation)
+        private static bool SupportsReadOnlyProperties(Compilation compilation)
             => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
 
-        private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
+        private static AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
         {
             if (accessorList == null)
             {
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return accessorList.WithAccessors(SyntaxFactory.List(GetAccessors(accessorList.Accessors)));
         }
 
-        private IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
+        private static IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
         {
             foreach (var accessor in accessors)
             {

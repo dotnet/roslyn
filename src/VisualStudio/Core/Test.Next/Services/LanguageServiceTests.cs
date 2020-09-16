@@ -9,35 +9,38 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
-using Roslyn.Test.Utilities.Remote;
-using StreamJsonRpc;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class LanguageServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
+
+        [Fact]
         public async Task CSharpLanguageServiceTest()
         {
             var code = @"class Test { void Method() { } }";
 
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
 
             var results = await GetVsSearchResultsAsync(workspace, "met");
 
             Assert.Equal("Method", Assert.Single(results).Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task CSharpLanguageServiceTest_MultipleResults()
         {
             var code = @"class Test 
@@ -49,14 +52,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
     int methodProperty { get; }
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
             var results = await GetVsSearchResultsAsync(workspace, "met");
 
             Assert.Equal(4, results.Length);
         }
 
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task VisualBasicLanguageServiceTest()
         {
             var code = @"Class Test
@@ -64,7 +66,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
     End Sub
 End Class";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = TestWorkspace.CreateVisualBasic(code, composition: s_composition);
 
             var results = await GetVsSearchResultsAsync(workspace, "met");
 
@@ -74,7 +76,9 @@ End Class";
         private async Task<ImmutableArray<SymbolInformation>> GetVsSearchResultsAsync(TestWorkspace workspace, string query)
         {
             var solution = workspace.CurrentSolution;
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
+
+            using var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
+            Assert.NotNull(client);
 
             var document = solution.Projects.First().Documents.First();
             await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, Path.Combine(TempRoot.Root, document.FilePath)));
@@ -86,26 +90,32 @@ End Class";
 
             var symbolResultsBuilder = ArrayBuilder<SymbolInformation>.GetInstance();
             var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-            var awaitableProgress = new ProgressWithCompletion<SymbolInformation[]>(symbols =>
-            {
-                symbolResultsBuilder.AddRange(symbols);
-            }, threadingContext.JoinableTaskFactory);
+
+            var awaitableProgress = new ProgressWithCompletion<SymbolInformation[]>(
+                symbols => symbolResultsBuilder.AddRange(symbols),
+                threadingContext.JoinableTaskFactory);
+
             workspaceSymbolParams.PartialResultToken = awaitableProgress;
 
-            using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(WellKnownServiceHubService.LanguageServer)))
-            {
-                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>(
-                    Methods.InitializeName,
-                    new object[] { new InitializeParams() },
-                    CancellationToken.None);
+            var result = await client.RunRemoteAsync<JObject>(
+                WellKnownServiceHubService.LanguageServer,
+                Methods.InitializeName,
+                solution: null,
+                new object[] { new InitializeParams() },
+                callbackTarget: null,
+                CancellationToken.None).ConfigureAwait(false);
 
-                Assert.True(result["capabilities"]["workspaceSymbolProvider"].ToObject<bool>());
+            Assert.True(result["capabilities"]["workspaceSymbolProvider"].ToObject<bool>());
 
-                var symbolResult = await jsonRpc.InvokeWithCancellationAsync<SymbolInformation[]>(
-                    Methods.WorkspaceSymbolName,
-                    new object[] { workspaceSymbolParams },
-                    CancellationToken.None);
-            }
+            _ = await client.RunRemoteAsync<SymbolInformation[]>(
+                WellKnownServiceHubService.LanguageServer,
+                Methods.WorkspaceSymbolName,
+                solution: null,
+                new object[] { workspaceSymbolParams },
+                callbackTarget: null,
+                CancellationToken.None).ConfigureAwait(false);
+
+            await awaitableProgress.WaitAsync(CancellationToken.None);
 
             return symbolResultsBuilder.ToImmutableAndFree();
         }
@@ -113,15 +123,15 @@ End Class";
         // make sure we always move remote workspace forward
         private int _solutionVersion = 0;
 
-        private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
+        private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            Assert.True(await client.TryRunRemoteAsync(
+            await client.RunRemoteAsync(
                 WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
-                CancellationToken.None));
+                CancellationToken.None);
         }
     }
 }

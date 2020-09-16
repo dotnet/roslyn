@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -101,6 +101,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
 
         internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
+
+#nullable enable
+        /// <summary>
+        /// Returns the UnmanagedCallersOnlyAttribute data for this method, if there is any. If there is no data, <see langword="null"/>
+        /// will be returned. If the data has not yet been loaded (because attributes have not yet been parsed),
+        /// <see cref="UnmanagedCallersOnlyAttributeData.Uninitialized"/> will be returned. If early attribute binding has occurred, but
+        /// fully attribute binding has not, <see cref="UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound"/> will be returned.
+        /// To force data to load, call <see cref="ForceCompleteUnmanagedCallersOnlyAttribute()"/>, but be sure to ensure that cycles will
+        /// not occur.
+        /// </summary>
+        internal abstract UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData { get; }
+
+        /// <summary>
+        /// Forces <see cref="UnmanagedCallersOnlyAttributeData"/> to be loaded. This can cause cycles if called in the process of attribute
+        /// binding, so be sure that attribute binding is not currently occuring when calling.
+        /// </summary>
+        internal void ForceCompleteUnmanagedCallersOnlyAttribute()
+        {
+            if (ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                || ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
+            {
+                this.GetAttributes();
+            }
+
+            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized));
+            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+        }
+#nullable restore
 
         /// <summary>
         /// Returns true if this method is an extension method.
@@ -337,6 +365,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsDeclaredReadOnly { get; }
 
         /// <summary>
+        /// Indicates whether the accessor is marked with the 'init' modifier.
+        /// </summary>
+        internal abstract bool IsInitOnly { get; }
+
+        /// <summary>
         /// Indicates whether the method is effectively readonly,
         /// by either the method or the containing type being marked readonly.
         /// </summary>
@@ -389,8 +422,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="accessingTypeOpt">The search must respect accessibility from this type.</param>
         internal MethodSymbol GetLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
+            return GetLeastOverriddenMethodCore(accessingTypeOpt, requireSameReturnType: false);
+        }
 
+        /// <summary>
+        /// Returns the original virtual or abstract method which a given method symbol overrides,
+        /// ignoring any other overriding methods in base classes.
+        /// </summary>
+        /// <param name="accessingTypeOpt">The search must respect accessibility from this type.</param>
+        /// <param name="requireSameReturnType">The returned method must have the same return type.</param>
+        private MethodSymbol GetLeastOverriddenMethodCore(NamedTypeSymbol accessingTypeOpt, bool requireSameReturnType)
+        {
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             MethodSymbol m = this;
             while (m.IsOverride && !m.HidesBaseMethodsByName)
             {
@@ -416,7 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 MethodSymbol overridden = m.OverriddenMethod;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                if ((object)overridden == null ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref useSiteDiagnostics)) ||
+                    (requireSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
                 {
                     break;
                 }
@@ -433,9 +478,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Also, if the given method symbol is generic then the resulting virtual or abstract method is constructed with the
         /// same type arguments as the given method.
         /// </summary>
-        internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
+        /// <param name="requireSameReturnType">The returned method must have the same return type.</param>
+        internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt, bool requireSameReturnType)
         {
-            var m = this.ConstructedFrom.GetLeastOverriddenMethod(accessingTypeOpt);
+            var m = this.ConstructedFrom.GetLeastOverriddenMethodCore(accessingTypeOpt, requireSameReturnType);
             return m.IsGenericMethod ? m.Construct(this.TypeArgumentsWithAnnotations) : m;
         }
 
@@ -868,6 +914,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal virtual ImmutableArray<NamedTypeSymbol> CallingConventionTypes => ImmutableArray<NamedTypeSymbol>.Empty;
+
         /// <summary>
         /// Returns the map from type parameters to type arguments.
         /// If this is not a generic method instantiation, returns null.
@@ -897,8 +945,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers, parameters
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations,
+                                                MethodKind == MethodKind.PropertySet ?
+                                                    AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
+                                                    AllowedRequiredModifierType.None) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -906,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
-            if (this.ContainingModule.HasUnifiedReferences)
+            if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
@@ -921,6 +972,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return false;
         }
+
+#nullable enable
+        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location? location, DiagnosticBag? diagnostics)
+        {
+            Debug.Assert((location is null) == (diagnostics is null));
+            ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
+            bool isValid = true;
+            if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+            {
+                foreach (var (key, value) in attribute.CommonNamedArguments)
+                {
+                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
+                    {
+                        continue;
+                    }
+
+                    if (callingConventionTypes != null)
+                    {
+                        isValid = false;
+                    }
+
+                    if (value.Values.IsDefaultOrEmpty)
+                    {
+                        callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                        continue;
+                    }
+
+                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                    foreach (var callConvTypedConstant in value.Values)
+                    {
+                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                        {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
+                            isValid = false;
+                        }
+                        else
+                        {
+                            _ = builder.Add(callConvType);
+                        }
+
+                    }
+                    callingConventionTypes = builder.ToImmutableHashSet();
+                    builder.Free();
+                }
+            }
+
+            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid);
+        }
+#nullable restore
 
         /// <summary>
         /// Return error code that has highest priority while calculating use site error for this symbol.
@@ -944,11 +1047,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal bool IsIterator
+        internal virtual bool IsIterator
         {
             get
             {
-                return !IteratorElementTypeWithAnnotations.IsDefault;
+                return false;
             }
         }
 

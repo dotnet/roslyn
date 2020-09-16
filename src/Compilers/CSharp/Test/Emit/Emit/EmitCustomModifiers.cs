@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = TestMetadata.Net40.mscorlib;
             string source = @"
 public class A
 {

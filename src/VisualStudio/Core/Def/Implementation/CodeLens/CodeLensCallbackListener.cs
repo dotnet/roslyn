@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,12 +17,13 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -55,35 +60,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             _workspace = workspace;
         }
 
-        public async Task<string> GetHostGroupIdAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(ImmutableArray<Guid> projectGuids, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            var builder = ImmutableDictionary.CreateBuilder<Guid, string>();
+            foreach (var project in _workspace.CurrentSolution.Projects)
             {
-                // exception is handled by code lens engine
-                throw new InvalidOperationException("remote host doesn't exist");
+                var projectGuid = _workspace.GetProjectGuid(project.Id);
+                if (!projectGuids.Contains(projectGuid))
+                    continue;
+
+                var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                builder[projectGuid] = projectVersion.ToString();
             }
 
-            return client.ClientId;
+            return builder.ToImmutable();
         }
 
-        public List<Guid> GetDocumentId(Guid projectGuid, string filePath, CancellationToken cancellationToken)
-        {
-            if (TryGetDocument(_workspace.CurrentSolution, projectGuid, filePath, out var document))
-            {
-                var documentId = document.Id;
-                return new List<Guid>(2) { documentId.ProjectId.Id, documentId.Id };
-            }
-
-            return null;
-        }
-
-        public async Task<ReferenceCount> GetReferenceCountAsync(
+        public async Task<ReferenceCount?> GetReferenceCountAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
-                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+                solution, descriptor, descriptorContext.ApplicableSpan, cancellationToken).ConfigureAwait(false);
             if (documentId == null)
             {
                 return null;
@@ -91,52 +89,64 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
             var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
 
-            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.GetReferenceCountAsync(solution, documentId, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(
+        public async Task<IEnumerable<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
-                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+                solution, descriptor, descriptorContext.ApplicableSpan, cancellationToken).ConfigureAwait(false);
             if (documentId == null)
             {
                 return null;
             }
 
-            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(
+        public async Task<IEnumerable<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
-                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+                solution, descriptor, descriptorContext.ApplicableSpan, cancellationToken).ConfigureAwait(false);
             if (documentId == null)
             {
                 return null;
             }
 
-            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.FindReferenceMethodsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<(DocumentId, SyntaxNode)> GetDocumentIdAndNodeAsync(
-            Solution solution, CodeLensDescriptor descriptor, Text.Span span, CancellationToken cancellationToken)
+        private async Task<(DocumentId?, SyntaxNode?)> GetDocumentIdAndNodeAsync(
+            Solution solution, CodeLensDescriptor descriptor, Span? span, CancellationToken cancellationToken)
         {
+            if (span is null)
+            {
+                return default;
+            }
+
             if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
             {
                 return default;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span.ToTextSpan());
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = span.Value.ToTextSpan();
 
-            return (document.Id, node);
+            // TODO: This check avoids ArgumentOutOfRangeException but it's not clear if this is the right solution
+            // https://github.com/dotnet/roslyn/issues/44639
+            if (!root.FullSpan.Contains(textSpan))
+            {
+                return default;
+            }
+
+            return (document.Id, root.FindNode(textSpan));
         }
 
         private async Task<int> GetMaxResultCapAsync(CancellationToken cancellationToken)
@@ -177,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-        private bool TryGetDocument(Solution solution, Guid projectGuid, string filePath, out Document document)
+        private bool TryGetDocument(Solution solution, Guid projectGuid, string filePath, [NotNullWhen(true)] out Document? document)
         {
             document = null;
 

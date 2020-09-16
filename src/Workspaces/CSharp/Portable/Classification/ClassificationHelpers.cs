@@ -177,7 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             return false;
                         }
 
-
                         return interpolatedStringText.Parent is InterpolatedStringExpressionSyntax interpolatedString
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
-            SyntaxNode? parentNode = token.Parent;
+            var parentNode = token.Parent;
 
             if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
@@ -363,12 +362,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     case SyntaxKind.LessThanToken:
                     case SyntaxKind.GreaterThanToken:
-                        // the < and > tokens of a type parameter list should be classified as
-                        // punctuation; otherwise, they're operators.
+                        // the < and > tokens of a type parameter list or function pointer parameter
+                        // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
                             if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList)
+                                token.Parent.Kind() == SyntaxKind.TypeArgumentList ||
+                                token.Parent.Kind() == SyntaxKind.FunctionPointerParameterList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -441,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
                     return true;
 
                 default:

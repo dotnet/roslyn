@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void SynchronousContinuationsDoNotRunWithinGetValueCallForFaultedTask()
             => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
 
-        private void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
+        private static void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
         {
             var synchronousComputationStartedEvent = new ManualResetEvent(initialState: false);
             var synchronousComputationShouldCompleteEvent = new ManualResetEvent(initialState: false);

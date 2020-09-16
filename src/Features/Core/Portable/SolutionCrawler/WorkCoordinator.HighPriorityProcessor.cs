@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
@@ -105,6 +107,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void EnqueueActiveFileItem(WorkItem item)
                     {
+                        Contract.ThrowIfNull(item.DocumentId);
+
                         UpdateLastAccessTime();
                         var added = _workItemQueue.AddOrReplace(item);
 
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
-                        var source = new TaskCompletionSource<object>();
+                        var source = new TaskCompletionSource<object?>();
                         try
                         {
                             // mark it as running
@@ -152,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationToken cancellationToken)
                     {
                         // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
-                        var documentId = _processor._documentTracker.TryGetActiveDocument();
+                        var documentId = _processor._documentTracker?.TryGetActiveDocument();
                         if (documentId != null)
                         {
                             if (_workItemQueue.TryTake(documentId, out workItem, out cancellationToken))
@@ -171,6 +175,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
+                        Contract.ThrowIfNull(workItem.DocumentId);
+
                         if (CancellationToken.IsCancellationRequested)
                         {
                             return;

@@ -65,13 +65,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvalidLocation1()
-            => await VerifyItemIsAbsentAsync(@"System.Console.$$", @"Beep");
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task GlobalStatement1()
+            => await VerifyItemExistsAsync(@"System.Console.$$", @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvalidLocation2()
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task GlobalStatement2()
         {
-            await VerifyItemIsAbsentAsync(@"using System;
+            await VerifyItemExistsAsync(@"using System;
 Console.$$", @"Beep");
         }
 

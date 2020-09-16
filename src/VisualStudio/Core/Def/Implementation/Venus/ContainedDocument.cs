@@ -173,7 +173,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             throw ExceptionUtilities.Unreachable;
         }
 
-
         public SourceTextContainer GetOpenTextContainer()
             => this.SubjectBuffer.AsTextContainer();
 
@@ -278,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     }
 
                     // make sure we are not replacing whitespace around start and at the end of visible span
-                    if (WhitespaceOnEdges(originalText, visibleTextSpan, change))
+                    if (WhitespaceOnEdges(visibleTextSpan, change))
                     {
                         continue;
                     }
@@ -306,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool WhitespaceOnEdges(SourceText text, TextSpan visibleTextSpan, TextChange change)
+        private bool WhitespaceOnEdges(TextSpan visibleTextSpan, TextChange change)
         {
             if (!string.IsNullOrWhiteSpace(change.NewText))
             {

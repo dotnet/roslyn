@@ -37,6 +37,16 @@
         <target state="translated">添加 "this" 或 "Me" 限定。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="translated">避免在 "SuppressMessageAttribute" 中使用旧格式目标“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
+        <target state="translated">避免在 "SuppressMessageAttribute" 中使用旧格式目标</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">请避免在代码中使用不必要的值赋值，因为这些值极有可能指示冗余的值计算。如果值计算不是冗余的，并且打算保留该赋值，请将分配目标更改为名称以下划线开头或在下划线后面跟一个整数的局部变量(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
@@ -54,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
+        <target state="translated">可以简化条件表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
@@ -89,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">内插可以简化</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -99,17 +109,17 @@
       </trans-unit>
       <trans-unit id="Invalid_global_SuppressMessageAttribute">
         <source>Invalid global 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid global 'SuppressMessageAttribute'</target>
+        <target state="translated">全局 "SuppressMessageAttribute" 无效</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
         <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid or missing target for 'SuppressMessageAttribute'</target>
+        <target state="translated">"SuppressMessageAttribute" 的目标无效或缺失</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
         <source>Invalid scope for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid scope for 'SuppressMessageAttribute'</target>
+        <target state="translated">"SuppressMessageAttribute" 的范围无效</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
-        <target state="new">Member name can be simplified</target>
+        <target state="translated">可简化成员名称</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -222,6 +232,11 @@
         <target state="translated">删除不必要的括号</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">请删除不必要的忽略</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">删除未读的私有成员</target>
@@ -264,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">简化内插</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_initialization">
@@ -279,7 +294,7 @@
       </trans-unit>
       <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
         <source>The file header is missing or not located at the top of the file</source>
-        <target state="translated">文件标题缺失或不位于文件的顶部</target>
+        <target state="translated">文件标题缺失或没有位于文件的顶部</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -319,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
-        <target state="new">Use inferred member name</target>
+        <target state="translated">使用推断的成员名称</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

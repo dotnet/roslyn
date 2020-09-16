@@ -730,7 +730,6 @@ class X
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task Tuple()
         {
@@ -1718,6 +1717,50 @@ chosenSymbols: null);
         s_field_a = p_a;
     }
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestUnsafeField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Z
+{
+    [|unsafe int* a;|]
+}",
+@"
+class Z
+{
+    unsafe int* a;
+
+    public unsafe Z(int* a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestUnsafeFieldInUnsafeClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+unsafe class Z
+{
+    [|int* a;|]
+}",
+@"
+unsafe class Z
+{
+    int* a;
+
+    public Z(int* a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class ValueSetTests
     {
-        private static Random Random = new Random();
+        private static readonly Random Random = new Random();
 
         [Theory]
         [InlineData(0)]
@@ -843,6 +843,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.False(s1.All(GreaterThanOrEqual, j + 1));
                 Assert.True(s1.All(GreaterThanOrEqual, j));
                 Assert.True(s1.All(GreaterThanOrEqual, j - 1));
+            }
+        }
+
+        [Fact]
+        public void DoNotCrashOnBadInput()
+        {
+            // For error recovery, do not throw exceptions on bad inputs.
+            var ctors = new IValueSetFactory[]
+            {
+                    ForByte,
+                    ForSByte,
+                    ForChar,
+                    ForShort,
+                    ForUShort,
+                    ForInt,
+                    ForUInt,
+                    ForLong,
+                    ForULong,
+                    ForBool,
+                    ForFloat,
+                    ForDouble,
+                    ForString,
+                    ForDecimal,
+                    ForNint,
+                    ForNuint
+            };
+            ConstantValue badConstant = ConstantValue.Bad;
+            foreach (IValueSetFactory fac in ctors)
+            {
+                foreach (BinaryOperatorKind relation in new[] { LessThan, Equal, NotEqual })
+                {
+                    IValueSet set = fac.Related(relation, badConstant);
+                    _ = set.All(relation, badConstant);
+                    _ = set.Any(relation, badConstant);
+                }
             }
         }
     }

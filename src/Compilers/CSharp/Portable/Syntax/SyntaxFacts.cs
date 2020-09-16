@@ -4,7 +4,10 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -94,6 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PointerType:
                         return ((PointerTypeSyntax)parent).ElementType == node;
 
+                    case FunctionPointerType:
+                        // FunctionPointerTypeSyntax has no direct children that are ExpressionSyntaxes
+                        throw ExceptionUtilities.Unreachable;
+
                     case PredefinedType:
                         return true;
 
@@ -148,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((RefTypeSyntax)parent).Type == node;
 
                     case Parameter:
-                        return ((ParameterSyntax)parent).Type == node;
+                    case FunctionPointerParameter:
+                        return ((BaseParameterSyntax)parent).Type == node;
 
                     case TypeConstraint:
                         return ((TypeConstraintSyntax)parent).Type == node;
@@ -180,6 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SimpleBaseType:
                         return true;
 
+                    case PrimaryConstructorBaseType:
+                        return ((PrimaryConstructorBaseTypeSyntax)parent).Type == node;
+
                     case CrefParameter:
                         return true;
 
@@ -195,6 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
+
+                    case RecursivePattern:
+                        return ((RecursivePatternSyntax)parent).Type == node;
 
                     case TupleElement:
                         return ((TupleElementSyntax)parent).Type == node;
@@ -307,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Attribute:
                 case BaseConstructorInitializer:
                 case ThisConstructorInitializer:
+                case PrimaryConstructorBaseType:
                     return true;
                 default:
                     return false;
@@ -488,6 +503,67 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
         {
             return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
+        }
+
+        internal static bool IsTopLevelStatement([NotNullWhen(true)] GlobalStatementSyntax? syntax)
+        {
+            return syntax?.Parent?.IsKind(SyntaxKind.CompilationUnit) == true;
+        }
+
+        internal static bool IsSimpleProgramTopLevelStatement(GlobalStatementSyntax? syntax)
+        {
+            return IsTopLevelStatement(syntax) && syntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular;
+        }
+
+        internal static bool HasAwaitOperations(SyntaxNode node)
+        {
+            // Do not descend into functions
+            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).Any(
+                            node =>
+                            {
+                                switch (node)
+                                {
+                                    case AwaitExpressionSyntax _:
+                                    case LocalDeclarationStatementSyntax local when local.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                    case CommonForEachStatementSyntax @foreach when @foreach.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                    case UsingStatementSyntax @using when @using.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            });
+        }
+
+        internal static bool IsNestedFunction(SyntaxNode child)
+        {
+            switch (child.Kind())
+            {
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool HasYieldOperations(SyntaxNode? node)
+        {
+            // Do not descend into functions and expressions
+            return node is object &&
+                   node.DescendantNodesAndSelf(child =>
+                   {
+                       Debug.Assert(ReferenceEquals(node, child) || child is not (MemberDeclarationSyntax or TypeDeclarationSyntax));
+                       return !IsNestedFunction(child) && !(node is ExpressionSyntax);
+                   }).Any(n => n is YieldStatementSyntax);
+        }
+
+        internal static bool HasReturnWithExpression(SyntaxNode? node)
+        {
+            // Do not descend into functions and expressions
+            return node is object &&
+                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).Any(n => n is ReturnStatementSyntax { Expression: { } });
         }
     }
 }

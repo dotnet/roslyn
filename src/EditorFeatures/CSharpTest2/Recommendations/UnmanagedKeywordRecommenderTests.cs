@@ -219,5 +219,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     void N() {
         void M<T> where T : I, $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerDeclaration()
+        {
+            await VerifyKeywordAsync(
+@"class Test {
+    unsafe void N() {
+        delegate* $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerDeclarationTouchingAsterisk()
+        {
+            await VerifyKeywordAsync(
+@"class Test {
+    unsafe void N() {
+        delegate*$$");
+        }
     }
 }

@@ -24,25 +24,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
+    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler()
+        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<LSP.CompletionItem[]> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
-                return Array.Empty<LSP.CompletionItem>();
+                return null;
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
+            // Filter out snippets as they are not supported in the LSP client
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1139740
             // Filter out unimported types for now as there are two issues with providing them:
             // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
             //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
@@ -51,19 +52,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 3.  LSP client should support completion filters / expanders
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var completionOptions = documentOptions
+                .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false)
+                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
-                return Array.Empty<LSP.CompletionItem>();
+                return null;
             }
 
-            var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
+            var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
-            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray();
+            return new LSP.VSCompletionList
+            {
+                Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray(),
+                SuggesstionMode = list.SuggestionModeItem != null,
+            };
 
             // local functions
             static LSP.CompletionItem CreateLSPCompletionItem(LSP.CompletionParams request, CompletionItem item, bool useVSCompletionItem)
@@ -90,7 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
+                    Data = new CompletionResolveData { TextDocument = request.TextDocument, Position = request.Position, DisplayText = item.DisplayText },
+                    Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
         }
 

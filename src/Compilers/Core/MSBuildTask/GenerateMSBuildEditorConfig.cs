@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// 
     /// <see cref="MetadataItems"/> is expected to be a list of items whose <see cref="ITaskItem.ItemSpec"/> represents a file in the 
     /// compilation source tree. It should have two metadata values: <c>ItemType</c> is the name of the MSBuild item that originally 
-    /// inlcuded the file (e.g. <c>Compile</c>, <c>AdditionalFile</c> etc.); <c>MetadataName</c> is expected to contain the name of
+    /// included the file (e.g. <c>Compile</c>, <c>AdditionalFile</c> etc.); <c>MetadataName</c> is expected to contain the name of
     /// another piece of metadata that should be retrieved and used as the output value in the file. It is expected that a given 
     /// file can have multiple entries in the <see cref="MetadataItems" /> differing by its <c>ItemType</c>.
     /// 
@@ -83,13 +83,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 foreach (var item in group)
                 {
+                    string itemType = item.GetMetadata("ItemType");
                     string metadataName = item.GetMetadata("MetadataName");
-                    builder.Append("build_metadata.")
-                           .Append(item.GetMetadata("ItemType"))
-                           .Append(".")
-                           .Append(metadataName)
-                           .Append(" = ")
-                           .AppendLine(item.GetMetadata(metadataName));
+                    if (!string.IsNullOrWhiteSpace(itemType) && !string.IsNullOrWhiteSpace(metadataName))
+                    {
+                        builder.Append("build_metadata.")
+                               .Append(itemType)
+                               .Append(".")
+                               .Append(metadataName)
+                               .Append(" = ")
+                               .AppendLine(item.GetMetadata(metadataName));
+                    }
                 }
             }
 

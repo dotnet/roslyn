@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind ManagedKind => ManagedKind.Unmanaged;
+        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => ManagedKind.Unmanaged;
 
         public sealed override bool IsRefLikeType
         {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticInfo result = null;
 
             // Check type, custom modifiers
-            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations);
+            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations, AllowedRequiredModifierType.None);
             return result;
         }
 

@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return nextOperation.Invoke(previousToken, currentToken)
         End Function
 
-
         Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If UnderStructuredTrivia(previousToken, currentToken) Then
                 If previousToken.Kind = SyntaxKind.HashToken AndAlso SyntaxFacts.IsPreprocessorKeyword(CType(currentToken.Kind, SyntaxKind)) Then
@@ -32,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return nextOperation.Invoke(previousToken, currentToken)
         End Function
 
-        Private Function UnderStructuredTrivia(previousToken As SyntaxToken, currentToken As SyntaxToken) As Boolean
+        Private Shared Function UnderStructuredTrivia(previousToken As SyntaxToken, currentToken As SyntaxToken) As Boolean
             ' this actually doesn't check all cases but the cases where we care
             ' since checking all cases would be expansive
             If TypeOf previousToken.Parent Is StructuredTriviaSyntax OrElse TypeOf currentToken.Parent Is StructuredTriviaSyntax Then

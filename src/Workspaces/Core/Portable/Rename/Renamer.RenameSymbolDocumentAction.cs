@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (matchingTypeDeclaration is object)
                 {
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var symbol = semanticModel.GetDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
+                    var symbol = semanticModel.GetRequiredDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
 
                     solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, optionSet, cancellationToken).ConfigureAwait(false);
                 }

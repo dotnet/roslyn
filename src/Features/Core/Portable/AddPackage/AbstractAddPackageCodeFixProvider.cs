@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                var packageSources =
-                    await installerService.TryGetPackageSourcesAsync(allowSwitchToMainThread: false, cancellationToken).ConfigureAwait(false)
-                    ?? ImmutableArray<PackageSource>.Empty;
+                var packageSources = installerService.TryGetPackageSources();
 
                 foreach (var packageSource in packageSources)
                 {
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             return codeActions.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+        private static async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
             PackageSource source,
             ISymbolSearchService searchService,
             ISet<string> assemblyNames,

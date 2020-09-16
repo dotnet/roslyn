@@ -37,6 +37,16 @@
         <target state="translated">Dodaj kwalifikacje „this” lub „Me”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="translated">Unikaj elementu docelowego w starszym formacie „{0}” we właściwości „SuppressMessageAttribute”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
+        <target state="translated">Unikaj elementu docelowego w starszym formacie we właściwości „SuppressMessageAttribute”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">Unikaj niepotrzebnych przypisań wartości w kodzie, ponieważ mogą one wskazywać nadmiarowe obliczenia wartości. Jeśli obliczenie wartości nie jest nadmiarowe i zamierzasz zachować przypisanie, zmień wartość docelową przypisania na zmienną lokalną, której nazwa rozpoczyna się od znaku podkreślenia, a opcjonalnie następuje po niej liczba całkowita, taka jak „_”, „_1”, „_2” itp. Są one traktowane jako specjalne nazwy symboli odrzucenia.</target>
@@ -54,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
+        <target state="translated">Wyrażenie warunkowe można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
@@ -89,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">Interpolację można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -99,17 +109,17 @@
       </trans-unit>
       <trans-unit id="Invalid_global_SuppressMessageAttribute">
         <source>Invalid global 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid global 'SuppressMessageAttribute'</target>
+        <target state="translated">Nieprawidłowy globalny element „SuppressMessageAttribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
         <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid or missing target for 'SuppressMessageAttribute'</target>
+        <target state="translated">Nieprawidłowy lub brakujący element docelowy dla elementu „SuppressMessageAttribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
         <source>Invalid scope for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid scope for 'SuppressMessageAttribute'</target>
+        <target state="translated">Nieprawidłowy zakres dla elementu „SuppressMessageAttribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
-        <target state="new">Member name can be simplified</target>
+        <target state="translated">Nazwę składowej można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -222,6 +232,11 @@
         <target state="translated">Usuń niepotrzebne nawiasy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="new">Remove unnecessary suppression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">Usuń nieodczytywane składowe prywatne</target>
@@ -264,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">Uprość interpolację</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_initialization">
@@ -319,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
-        <target state="new">Use inferred member name</target>
+        <target state="translated">Użyj nazwy wywnioskowanego elementu członkowskiego</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

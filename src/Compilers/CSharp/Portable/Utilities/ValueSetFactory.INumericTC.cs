@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             T Random(Random random);
 
             /// <summary>
+            /// Produce the zero value for the type.
+            /// </summary>
+            T Zero { get; }
+
+            /// <summary>
             /// A formatter for values of type <typeparamref name="T"/>.  This is needed for testing because
             /// the default ToString output for float and double changed between desktop and .net core,
             /// and also because we want the string representation to be locale-independent.

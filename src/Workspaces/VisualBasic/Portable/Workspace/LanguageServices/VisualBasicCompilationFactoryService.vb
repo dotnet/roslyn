@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_defaultOptions
         End Function
 
-        Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+        Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
             Return Nothing
         End Function
     End Class

@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<SyntaxNodeOrToken>
         {
-            private SyntaxNodeOrTokenList _list;
+            private readonly SyntaxNodeOrTokenList _list;
             private int _index;
 
             internal Enumerator(in SyntaxNodeOrTokenList list)

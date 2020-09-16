@@ -52,8 +52,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestWithSimpleArgument_NoFields()
+        public async Task TestWithSimpleArgument_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|C|](1);
+    }
+}",
+@"class C
+{
+    public C(int v)
+    {
+        V = v;
+    }
+
+    public int V { get; }
+
+    void M()
+    {
+        new C(1);
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithSimpleArgument_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -73,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
     {
         new C(1);
     }
-}", index: 1);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -238,8 +266,46 @@ class D
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestWithExistingField2_NoFields()
+        public async Task TestWithExistingField2_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|D|](1);
+    }
+}
+
+class D
+{
+    private string v;
+}",
+@"class C
+{
+    void M()
+    {
+        new D(1);
+    }
+}
+
+class D
+{
+    private string v;
+
+    public D(int v1)
+    {
+        V = v1;
+    }
+
+    public int V { get; }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithExistingField2_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -269,7 +335,7 @@ class D
     public D(int v1)
     {
     }
-}", index: 1);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -1120,8 +1186,57 @@ class D : B
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestWithBaseDelegatingConstructor2_NoFields()
+        public async Task TestWithBaseDelegatingConstructor2_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|D|](1);
+    }
+}
+
+class B
+{
+    private B(int x)
+    {
+    }
+}
+
+class D : B
+{
+}",
+@"class C
+{
+    void M()
+    {
+        new D(1);
+    }
+}
+
+class B
+{
+    private B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D(int v)
+    {
+        V = v;
+    }
+
+    public int V { get; }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithBaseDelegatingConstructor2_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1162,7 +1277,7 @@ class D : B
     public D(int v)
     {
     }
-}", index: 1);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -1418,8 +1533,62 @@ class Delta
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestDelegateToSmallerConstructor1_NoFields()
+        public async Task TestDelegateToSmallerConstructor1_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    void M()
+    {
+        Delta d1 = new Delta(""ss"", 3);
+        Delta d2 = new [|Delta|](""ss"", 5, true);
+    }
+}
+
+class Delta
+{
+    private string v1;
+    private int v2;
+
+    public Delta(string v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}",
+@"class A
+{
+    void M()
+    {
+        Delta d1 = new Delta(""ss"", 3);
+        Delta d2 = new Delta(""ss"", 5, true);
+    }
+}
+
+class Delta
+{
+    private string v1;
+    private int v2;
+
+    public Delta(string v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+
+    public Delta(string v1, int v2, bool v) : this(v1, v2)
+    {
+        V = v;
+    }
+
+    public bool V { get; }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateToSmallerConstructor1_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"class A
@@ -1465,7 +1634,7 @@ class Delta
     public Delta(string v1, int v2, bool v) : this(v1, v2)
     {
     }
-}", index: 1);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -1657,8 +1826,34 @@ class Delta
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestGenerateFromThisInitializer1_NoFields()
+        public async Task TestGenerateFromThisInitializer1_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C() [|: this(4)|]
+    {
+    }
+}",
+@"class C
+{
+    public C() : this(4)
+    {
+    }
+
+    public C(int v)
+    {
+        V = v;
+    }
+
+    public int V { get; }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFromThisInitializer1_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1676,7 +1871,7 @@ class Delta
     public C(int v)
     {
     }
-}", index: 1);
+}", index: 2);
         }
 
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -1826,7 +2021,44 @@ internal class A
 
         [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestUnavailableTypeParameters_NoFields()
+        public async Task TestUnavailableTypeParameters_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T1, T2>
+{
+    public void Goo(T1 t1, T2 t2)
+    {
+        A a = new [|A|](t1, t2);
+    }
+}
+
+internal class A
+{
+}",
+@"class C<T1, T2>
+{
+    public void Goo(T1 t1, T2 t2)
+    {
+        A a = new A(t1, t2);
+    }
+}
+
+internal class A
+{
+    public A(object t1, object t2)
+    {
+        T1 = t1;
+        T2 = t2;
+    }
+
+    public object T1 { get; }
+    public object T2 { get; }
+}", index: 1);
+        }
+
+        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestUnavailableTypeParameters_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
@@ -1853,7 +2085,7 @@ internal class A
     public A(object t1, object t2)
     {
     }
-}", index: 1);
+}", index: 2);
         }
 
         [WorkItem(541020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541020")]
@@ -2035,7 +2267,42 @@ class D
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestAttributesWithArgument_NoFields()
+        public async Task TestAttributesWithArgument_WithProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+}
+
+[[|MyAttribute(123)|]]
+class D
+{
+}",
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+    public MyAttribute(int v)
+    {
+        V = v;
+    }
+
+    public int V { get; }
+}
+
+[MyAttribute(123)]
+class D
+{
+}", index: 1);
+        }
+
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestAttributesWithArgument_NoMembers()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -2062,7 +2329,7 @@ class MyAttribute : Attribute
 [MyAttribute(123)]
 class D
 {
-}", index: 1);
+}", index: 2);
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
@@ -3784,6 +4051,170 @@ class C
         IEnumerable<string?> s;
         new C(s);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestWithUnsafe_Field()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+@"class C
+{
+    private unsafe int* x;
+
+    public unsafe C(int* x)
+    {
+        this.x = x;
+    }
+
+    unsafe void M(int* x)
+    {
+        new C(x);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestWithUnsafe_Property()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+@"class C
+{
+    public unsafe C(int* x)
+    {
+        X = x;
+    }
+
+    public unsafe int* X { get; }
+
+    unsafe void M(int* x)
+    {
+        new C(x);
+    }
+}", index: 1);
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithUnsafeInUnsafeClass_Field()
+        {
+            await TestInRegularAndScriptAsync(
+@"unsafe class C
+{
+    void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+@"unsafe class C
+{
+    private int* x;
+
+    public C(int* x)
+    {
+        this.x = x;
+    }
+
+    void M(int* x)
+    {
+        new C(x);
+    }
+}");
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithUnsafeInUnsafeClass_Property()
+        {
+            await TestInRegularAndScriptAsync(
+    @"unsafe class C
+{
+    void M(int* x)
+    {
+        new [|C|](x);
+    }
+}",
+    @"unsafe class C
+{
+    public C(int* x)
+    {
+        X = x;
+    }
+
+    public int* X { get; }
+
+    void M(int* x)
+    {
+        new C(x);
+    }
+}", index: 1);
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestUnsafeDelegateConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    public unsafe A(int* a) { }
+
+    public unsafe A(int* a, int b, int c) : [|this(a, b)|] { }
+}",
+@"class A
+{
+    private int b;
+
+    public unsafe A(int* a) { }
+
+    public unsafe A(int* a, int b) : this(a)
+    {
+        this.b = b;
+    }
+
+    public unsafe A(int* a, int b, int c) : this(a, b) { }
+}");
+        }
+
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestUnsafeDelegateConstructorInUnsafeClass()
+        {
+            await TestInRegularAndScriptAsync(
+ @"unsafe class A
+{
+    public A(int* a) { }
+
+    public A(int* a, int b, int c) : [|this(a, b)|] { }
+}",
+ @"unsafe class A
+{
+    private int b;
+
+    public A(int* a) { }
+
+    public A(int* a, int b) : this(a)
+    {
+        this.b = b;
+    }
+
+    public A(int* a, int b, int c) : this(a, b) { }
 }");
         }
     }

@@ -15,7 +15,6 @@ namespace Roslyn.Test.PdbUtilities
         // NOTE: this type implementation is essentially an extraction from PdbReader 
         //       located under ndp\clr\src\ToolBox\CCI2\PdbReader folder
 
-
         private class PdbSource
         {
             internal readonly string name;
@@ -1128,7 +1127,7 @@ namespace Roslyn.Test.PdbUtilities
         {
         }
 
-        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
+        private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
             Encoding = Encoding.UTF8,
             Indent = true,

@@ -111,6 +111,20 @@ class C
 }");
         }
 
+        [WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnOutParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public C([||]out string s)
+    {
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnValueType()
         {
@@ -305,7 +319,6 @@ class C
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMultiNullableParameters()

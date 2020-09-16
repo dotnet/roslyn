@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return CommandState.Unspecified;
             }
 
-            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
-                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                !args.SubjectBuffer.SupportsRename())
+            if (!CanRename(args))
             {
                 return CommandState.Unspecified;
             }
@@ -33,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool ExecuteCommand(RenameCommandArgs args, CommandExecutionContext context)
         {
+            if (!CanRename(args))
+            {
+                return false;
+            }
+
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
                 ExecuteRenameWorker(args, context);
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
                 {
                     var dashboard = GetDashboard(args.TextView);
                     dashboard.Focus();
@@ -97,6 +100,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 ShowErrorDialog(workspace, sessionInfo.LocalizedErrorMessage);
             }
+        }
+
+        private static bool CanRename(RenameCommandArgs args)
+        {
+            return args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
+                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+                args.SubjectBuffer.SupportsRename();
         }
 
         private static void ShowErrorDialog(Workspace workspace, string message)

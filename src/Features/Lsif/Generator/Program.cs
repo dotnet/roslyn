@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static async Task GenerateAsync(FileInfo? solution, FileInfo? compilerInvocation, string? output, LsifFormat outputFormat, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
-            using StreamWriter? outputFile = output != null ? new StreamWriter(output) : null;
-            TextWriter outputWriter = outputFile ?? Console.Out;
+            using var outputFile = output != null ? new StreamWriter(output) : null;
+            var outputWriter = outputFile ?? Console.Out;
 
-            using TextWriter logFile = log != null ? new StreamWriter(log) : TextWriter.Null;
+            using var logFile = log != null ? new StreamWriter(log) : TextWriter.Null;
             ILsifJsonWriter lsifWriter = outputFormat switch
             {
                 LsifFormat.Json => new JsonModeLsifJsonWriter(outputWriter),
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
             var lsifGenerator = new Generator(lsifWriter);
 
-            Stopwatch totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();
-            TimeSpan totalTimeInGenerationPhase = TimeSpan.Zero;
+            var totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();
+            var totalTimeInGenerationPhase = TimeSpan.Zero;
 
             foreach (var project in solution.Projects)
             {

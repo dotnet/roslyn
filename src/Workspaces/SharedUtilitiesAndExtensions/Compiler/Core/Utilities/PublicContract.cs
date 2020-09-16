@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         {
             using var _ = PooledHashSet<T>.GetInstance(out var set);
 
-            int i = 0;
+            var i = 0;
             foreach (var item in sequence)
             {
                 if (item is null || !set.Add(item))
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
 
         private static int IndexOfNullOrDuplicateItem<T>(this IReadOnlyList<T> list) where T : class
         {
-            int length = list.Count;
+            var length = list.Count;
 
             if (length == 0)
             {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
             using var _ = PooledHashSet<T>.GetInstance(out var set);
 
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var item = list[i];
                 if (item is null || !set.Add(item))
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         private static void ThrowArgumentItemNullOrDuplicateException<T>(IEnumerable<T> sequence, string argumentName) where T : class
         {
             var list = sequence.ToList();
-            int index = list.IndexOfNullOrDuplicateItem();
+            var index = list.IndexOfNullOrDuplicateItem();
 
             argumentName = MakeIndexedArgumentName(argumentName, index);
 

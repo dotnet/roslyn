@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             _accessListMap.Add(key, accessibility);
         }
 
-        private void InitialSetup(string languageName)
+        private void InitialSetup()
         {
             _accessListMap = new Dictionary<string, Accessibility>();
             _typeKindMap = new Dictionary<string, TypeKind>();
@@ -722,7 +722,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             _generateTypeDialogOptions = generateTypeDialogOptions;
 
-            InitialSetup(document.Project.Language);
+            InitialSetup();
             var dependencyGraph = document.Project.Solution.GetProjectDependencyGraph();
 
             // Initialize the dependencies

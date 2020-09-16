@@ -5,8 +5,8 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string SuppressMessageTarget = "Target";
 
         private static readonly ImmutableDictionary<string, TargetScope> s_targetScopesMap = CreateTargetScopesMap();
-        private static readonly ObjectPool<List<ISymbol>> s_listPool = new ObjectPool<List<ISymbol>>(() => new List<ISymbol>());
 
         private readonly Compilation _compilation;
         private readonly INamedTypeSymbol _suppressMessageAttributeType;
@@ -82,9 +81,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return namedAttributeArguments.Length > 0;
         }
 
-        public bool HasInvalidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
+        public static bool HasValidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
         {
-            if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageScope, out var scopeString) ||
+            if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageScope, out var scopeString, out _) ||
                 RoslynString.IsNullOrEmpty(scopeString))
             {
                 // Missing/Null/Empty scope values are treated equivalent to a compilation wide suppression.
@@ -93,21 +92,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else if (!s_targetScopesMap.TryGetValue(scopeString, out targetScope))
             {
                 targetScope = TargetScope.None;
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool HasInvalidOrMissingTarget(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, TargetScope targetScope)
-        {
-            if (targetScope == TargetScope.Resource)
-            {
-                // Legacy scope which we do not handle.
                 return false;
             }
 
-            if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageTarget, out var targetSymbolString))
+            return true;
+        }
+
+        public bool HasValidTarget(
+            ImmutableArray<(string name, IOperation value)> namedAttributeArguments,
+            TargetScope targetScope,
+            out bool targetHasDocCommentIdFormat,
+            out string? targetSymbolString,
+            out IOperation? targetValueOperation,
+            out ImmutableArray<ISymbol> resolvedSymbols)
+        {
+            targetHasDocCommentIdFormat = false;
+            targetSymbolString = null;
+            targetValueOperation = null;
+            resolvedSymbols = ImmutableArray<ISymbol>.Empty;
+
+            if (targetScope == TargetScope.Resource)
+            {
+                // Legacy scope which we do not handle.
+                return true;
+            }
+
+            if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageTarget, out targetSymbolString, out targetValueOperation))
             {
                 targetSymbolString = null;
             }
@@ -115,24 +125,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (targetScope == TargetScope.Module)
             {
                 // Compilation wide suppression with a non-null target is considered invalid.
-                return targetSymbolString != null;
+                return targetSymbolString == null;
+            }
+            else if (targetScope == TargetScope.NamespaceAndDescendants)
+            {
+                // TargetSymbolResolver expects the callers to normalize 'NamespaceAndDescendants' and 'Namespace' scopes to 'Namespace' scope.
+                targetScope = TargetScope.Namespace;
             }
 
-            var resolvedSymbols = s_listPool.Allocate();
-            try
-            {
-                var resolver = new TargetSymbolResolver(_compilation, targetScope, targetSymbolString);
-                resolvedSymbols.Clear();
-                resolver.Resolve(resolvedSymbols);
-                return resolvedSymbols.Count == 0;
-            }
-            finally
-            {
-                s_listPool.Free(resolvedSymbols);
-            }
+            var resolver = new TargetSymbolResolver(_compilation, targetScope, targetSymbolString);
+            resolvedSymbols = resolver.Resolve(out targetHasDocCommentIdFormat);
+            return !resolvedSymbols.IsEmpty;
         }
 
-        private bool TryGetNamedArgument(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, string argumentName, out string? argumentValue)
+        private static bool TryGetNamedArgument(
+            ImmutableArray<(string name, IOperation value)> namedAttributeArguments,
+            string argumentName,
+            out string? argumentValue,
+            [NotNullWhen(returnValue: true)] out IOperation? argumentValueOperation)
         {
             foreach (var (name, value) in namedAttributeArguments)
             {
@@ -141,11 +151,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     value.ConstantValue.Value is string stringValue)
                 {
                     argumentValue = stringValue;
+                    argumentValueOperation = value;
                     return true;
                 }
             }
 
             argumentValue = null;
+            argumentValueOperation = null;
             return false;
         }
     }

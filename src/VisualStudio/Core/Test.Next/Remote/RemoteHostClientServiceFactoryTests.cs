@@ -3,162 +3,118 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-using Roslyn.Test.Utilities.Remote;
-using Roslyn.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.Remote
+namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void Creation()
-        {
-            var service = CreateRemoteHostClientService();
-            Assert.NotNull(service);
-        }
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task Enable_Disable()
-        {
-            var service = CreateRemoteHostClientService();
+        private static AdhocWorkspace CreateWorkspace()
+            => new AdhocWorkspace(s_composition.GetHostServices());
 
-            service.Enable();
-
-            var enabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            Assert.NotNull(enabledClient);
-
-            service.Disable();
-
-            var disabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            Assert.Null(disabledClient);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task UpdaterService()
         {
-            var exportProvider = TestHostServices.CreateMinimalExportProvider();
+            var hostServices = s_composition.GetHostServices();
+            using var workspace = new AdhocWorkspace(hostServices);
 
-            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
+            var options = workspace.CurrentSolution.Options
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
-            var options = workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
-            var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
+            var listenerProvider = ((IMefHostExportProvider)hostServices).GetExportedValue<AsynchronousOperationListenerProvider>();
 
-            var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-
-            var service = CreateRemoteHostClientService(workspace, listenerProvider);
-
-            service.Enable();
+            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+            var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
             // make sure client is ready
-            _ = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            // add solution
+            // add solution, change document
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
+            var project = workspace.AddProject("proj", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
+            workspace.ApplyTextChanges(document.Id, new[] { new TextChange(new TextSpan(0, 1), "abc") }, CancellationToken.None);
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
             await workspaceListener.ExpeditedWaitAsync();
 
-            var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
+            var listener = listenerProvider.GetWaiter(FeatureAttribute.SolutionChecksumUpdater);
             await listener.ExpeditedWaitAsync();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out _));
 
-            service.Disable();
+            checksumUpdater.Shutdown();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestSessionWithNoSolution()
         {
-            var service = CreateRemoteHostClientService();
+            using var workspace = CreateWorkspace();
 
-            service.Enable();
+            var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogAndProgressService();
+            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            await session.RunRemoteAsync(
+            using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
+            await connection.RunRemoteAsync(
                 nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                 solution: null,
                 new object[] { "emptySource", Path.GetTempPath() },
                 CancellationToken.None);
-
-            service.Disable();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestSessionClosed()
         {
-            // enable local remote host service
-            var service = CreateRemoteHostClientService();
-            service.Enable();
+            using var workspace = CreateWorkspace();
 
-            var client = (InProcRemoteHostClient)await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
             var serviceName = new RemoteServiceName("Test");
 
             // register local service
             TestService testService = null;
-            client.RegisterService(serviceName, (s, p) =>
+            client.RegisterService(serviceName, (s, p, o) =>
             {
                 testService = new TestService(s, p);
                 return testService;
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            using var session = await client.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, CancellationToken.None);
+            using var connection = await client.CreateConnectionAsync(serviceName, callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
+            var task = connection.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
 
             // make client to go away
-            service.Disable();
+            client.Dispose();
 
             // let the service to return
             testService.Event.Set();
 
             // make sure task finished gracefully
             await task;
-        }
-
-        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
-            Workspace workspace = null,
-            IAsynchronousOperationListenerProvider listenerProvider = null)
-        {
-            workspace ??= new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
-
-            var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
-            var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider);
-            return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
         private class TestService : ServiceBase
@@ -194,15 +150,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
+        private class MockLogService : ISymbolSearchLogService
         {
             public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
             public Task LogInfoAsync(string text) => Task.CompletedTask;
-
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
         }
     }
 }

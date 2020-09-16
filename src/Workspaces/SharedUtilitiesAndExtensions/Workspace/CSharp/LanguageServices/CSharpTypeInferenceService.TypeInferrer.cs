@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MemberAccessExpressionSyntax memberAccessExpression => InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token),
                     NameColonSyntax nameColon => InferTypeInNameColon(nameColon, token),
                     NameEqualsSyntax nameEquals => InferTypeInNameEquals(nameEquals, token),
-                    ObjectCreationExpressionSyntax objectCreation => InferTypeInObjectCreationExpression(objectCreation, token),
+                    BaseObjectCreationExpressionSyntax objectCreation => InferTypeInObjectCreationExpression(objectCreation, token),
                     LambdaExpressionSyntax lambdaExpression => InferTypeInLambdaExpression(lambdaExpression, token),
                     PostfixUnaryExpressionSyntax postfixUnary => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     PrefixUnaryExpressionSyntax prefixUnary => InferTypeInPrefixUnaryExpression(prefixUnary, token),
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, methods, argument, parentInvocationExpressionToTypeInfer: null);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
+            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(BaseObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
             {
                 // A couple of broken code scenarios where the new keyword in objectcreationexpression
                 // appears to be a part of a subsequent assignment.  For example:
@@ -426,11 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypes(expression);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(BaseObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
             {
-                var info = SemanticModel.GetSymbolInfo(creation.Type, CancellationToken);
+                var info = SemanticModel.GetTypeInfo(creation, CancellationToken);
 
-                if (!(info.Symbol is INamedTypeSymbol type))
+                if (!(info.Type is INamedTypeSymbol type))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -500,19 +500,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case InvocationExpressionSyntax invocation:
                         {
-                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInInvocationExpression(invocation, index);
                         }
 
-                    case ObjectCreationExpressionSyntax objectCreation:
+                    case BaseObjectCreationExpressionSyntax objectCreation:
                         {
-                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInObjectCreationExpression(objectCreation, index);
                         }
 
                     case ConstructorInitializerSyntax constructorInitializer:
                         {
-                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInConstructorInitializer(constructorInitializer, index);
                         }
                 }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (attributeArgumentList.Parent is AttributeSyntax attribute)
                 {
-                    var index = this.GetArgumentListIndex(attributeArgumentList, previousToken);
+                    var index = GetArgumentListIndex(attributeArgumentList, previousToken);
                     return InferTypeInAttribute(attribute, index);
                 }
 
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, parameterizedSymbols, name, RefKind.None);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
+            private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 ArgumentSyntax argumentOpt)
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
+            private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 string name,
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private int GetArgumentListIndex(BaseArgumentListSyntax argumentList, SyntaxToken previousToken)
+            private static int GetArgumentListIndex(BaseArgumentListSyntax argumentList, SyntaxToken previousToken)
             {
                 if (previousToken == argumentList.GetOpenToken())
                 {
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (tokenIndex + 1) / 2;
             }
 
-            private int GetArgumentListIndex(AttributeArgumentListSyntax attributeArgumentList, SyntaxToken previousToken)
+            private static int GetArgumentListIndex(AttributeArgumentListSyntax attributeArgumentList, SyntaxToken previousToken)
             {
                 if (previousToken == attributeArgumentList.OpenParenToken)
                 {

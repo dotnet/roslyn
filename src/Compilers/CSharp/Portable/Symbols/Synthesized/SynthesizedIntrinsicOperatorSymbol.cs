@@ -277,6 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // operators are never 'readonly' because there is no 'this' parameter
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -409,6 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => null;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         // Analyzers folder context menu items
         private MenuCommand _addMenuItem;
-        private MenuCommand _openRuleSetMenuItem;
 
         // Analyzer context menu items
         private MenuCommand _removeMenuItem;
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 // Analyzers folder context menu items
                 _addMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.AddAnalyzer, AddAnalyzerHandler);
-                _openRuleSetMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
+                _ = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
 
                 // Analyzer context menu items
                 _removeMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.RemoveAnalyzer, RemoveAnalyzerHandler);
@@ -280,18 +279,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     continue;
                 }
 
-                var analyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+                var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = ReportDiagnostic.Default;
-                    if (project.CompilationOptions.SpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id) ||
-                        analyzerConfigSpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id))
-                    {
-                        // Severity is overridden by end user.
-                        severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigSpecificDiagnosticOptions);
-                    }
-
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions);
                     selectedItemSeverities.Add(severity);
                 }
             }

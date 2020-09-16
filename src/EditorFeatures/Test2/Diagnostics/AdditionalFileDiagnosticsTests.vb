@@ -16,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
     Public Class AdditionalFileDiagnosticsTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New AdditionalFileAnalyzer(), New AdditionalFileFixer())
         End Function
@@ -38,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input)
+            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)
@@ -75,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
+        Private Shared Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
                 If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
@@ -87,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             Return serializationAllowed
         End Function
 
-        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+        Public Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             Dim namedType = DirectCast(context.Symbol, INamedTypeSymbol)
 
             If namedType.AllInterfaces.Contains(context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable")) Then

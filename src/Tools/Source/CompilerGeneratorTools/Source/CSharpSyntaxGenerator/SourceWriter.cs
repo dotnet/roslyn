@@ -67,8 +67,8 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
-            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
+            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
@@ -639,7 +639,7 @@ namespace CSharpSyntaxGenerator
             }
 
             // validate parameters
-            WriteLine("#if DEBUG");
+            WriteLineWithoutIndent("#if DEBUG");
             foreach (var field in nodeFields)
             {
                 var pname = CamelCase(field.Name);
@@ -687,7 +687,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            WriteLine("#endif");
+            WriteLineWithoutIndent("#endif");
 
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -912,6 +912,17 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
+                WriteComment($"<remarks>");
+                WriteComment($"<para>This node is associated with the following syntax kinds:</para>");
+                WriteComment($"<list type=\"bullet\">");
+
+                foreach (var kind in nd.Kinds)
+                {
+                    WriteComment($"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
@@ -1140,9 +1151,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedAcceptMethod(Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
-            if (genericResult)
-                WriteLine("[return: MaybeNull]");
-            WriteLine($"public override {(genericResult ? "TResult" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
+            WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
         private void WriteRedVisitors()
@@ -1166,9 +1175,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
-                if (genericResult)
-                    WriteLine("[return: MaybeNull]");
-                WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
+                WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
         }
@@ -1231,7 +1238,7 @@ namespace CSharpSyntaxGenerator
                     if (baseType != null)
                     {
                         Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
-                        if (IsOptional(baseField) && !IsOptional(field))
+                        if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
                         {
                             Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
                         }
@@ -1787,7 +1794,7 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLine("#pragma warning disable RS0027");
+                WriteLineWithoutIndent("#pragma warning disable RS0027");
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
@@ -1846,7 +1853,7 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLine("#pragma warning restore RS0027");
+                WriteLineWithoutIndent("#pragma warning restore RS0027");
             }
         }
 

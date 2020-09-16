@@ -30,27 +30,27 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationStartContext
-                => SymbolAnalyzer.CreateAndRegisterActions(compilationStartContext));
+            context.RegisterCompilationStartAction(context
+                => SymbolAnalyzer.CreateAndRegisterActions(context));
         }
 
         private sealed class SymbolAnalyzer
         {
             private readonly INamedTypeSymbol _namedTypeSymbol;
-            private bool _hasTypeInstanceAssigment;
+            private bool _hasTypeInstanceAssignment;
 
             private SymbolAnalyzer(INamedTypeSymbol namedTypeSymbol)
                 => _namedTypeSymbol = namedTypeSymbol;
 
-            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
+            public static void CreateAndRegisterActions(CompilationStartAnalysisContext context)
             {
-                compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
+                context.RegisterSymbolStartAction(context =>
                 {
                     // We report diagnostic only if these requirements are met:
                     // 1. The type is struct
                     // 2. Struct contains at least one 'readonly' field
                     // 3. Struct contains assignment to 'this' outside the scope of constructor
-                    var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
+                    var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
                     // We are only interested in struct declarations
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     }
 
                     var symbolAnalyzer = new SymbolAnalyzer(namedTypeSymbol);
-                    symbolAnalyzer.RegisterActions(symbolStartContext);
+                    symbolAnalyzer.RegisterActions(context);
                 }, SymbolKind.NamedType);
             }
 
@@ -78,42 +78,39 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     .Any(field => field.IsReadOnly);
             }
 
-            private void RegisterActions(SymbolStartAnalysisContext symbolStartContext)
+            private void RegisterActions(SymbolStartAnalysisContext context)
             {
-                symbolStartContext.RegisterOperationBlockStartAction(blockAction =>
+                context.RegisterOperationBlockStartAction(context =>
                 {
-                    var isConstructor = blockAction.OwningSymbol is IMethodSymbol method &&
-                        method.MethodKind == MethodKind.Constructor;
-                    blockAction.RegisterOperationAction(
-                        operationAction => AnalyzeAssignment(operationAction, isConstructor), OperationKind.SimpleAssignment);
+                    if (context.OwningSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor })
+                    {
+                        // We are looking for assignment to 'this' outside the constructor scope
+                        return;
+                    }
+
+                    context.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
                 });
-                symbolStartContext.RegisterSymbolEndAction(SymbolEndAction);
+
+                context.RegisterSymbolEndAction(SymbolEndAction);
             }
 
-            private void AnalyzeAssignment(OperationAnalysisContext operationContext, bool isConstructor)
+            private void AnalyzeAssignment(OperationAnalysisContext context)
             {
-                // We are looking for assignment to 'this' outside the constructor scope
-                if (isConstructor)
+                var operationAssigmnent = (IAssignmentOperation)context.Operation;
+                if (operationAssigmnent.Target is IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.ContainingTypeInstance })
                 {
-                    return;
-                }
-
-                var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
-                if (operationAssigmnent.Target is IInstanceReferenceOperation instance &&
-                    instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
-                {
-                    Volatile.Write(ref _hasTypeInstanceAssigment, true);
+                    Volatile.Write(ref _hasTypeInstanceAssignment, true);
                 }
             }
 
-            private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
+            private void SymbolEndAction(SymbolAnalysisContext context)
             {
-                if (_hasTypeInstanceAssigment)
+                if (_hasTypeInstanceAssignment)
                 {
                     var diagnostic = Diagnostic.Create(
                                     s_diagnosticDescriptor,
                                     _namedTypeSymbol.Locations[0]);
-                    symbolEndContext.ReportDiagnostic(diagnostic);
+                    context.ReportDiagnostic(diagnostic);
                 }
             }
         }

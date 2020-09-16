@@ -15,9 +15,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
-    // HACK: The Export attribute (as ISnippetInfoService) is used by EditorTestApp to create this
-    // SnippetInfoService on the UI thread.
-    [Export(typeof(ISnippetInfoService))]
     [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp), Shared]
     internal class CSharpSnippetInfoService : AbstractSnippetInfoService
     {
@@ -31,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
+            : base(threadingContext, (IAsyncServiceProvider)serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
         {
         }
 

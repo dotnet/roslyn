@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         }
                     }
 
-                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: fileInfo.Encoding))
+                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
                     {
-                        text.Write(textWriter);
+                        text.Write(textWriter, cancellationToken);
                     }
 
                     // Mark read-only
@@ -267,13 +267,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             Contract.ThrowIfNull(documentId);
             Contract.ThrowIfNull(_workspace);
 
-            _workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, fileInfo.Encoding));
+            _workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding));
             _workspace.OnProjectRemoved(documentId.ProjectId);
 
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
+        private static async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(compilation, "We are trying to produce a key for a language that doesn't support compilations.");
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return null;
             }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             if (resolutionResult.Symbol == null)
             {

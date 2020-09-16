@@ -6,12 +6,9 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
@@ -48,8 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private static SyntaxNode CreateIsNotNullCheck(ExpressionSyntax argument)
         {
             var parseOptions = (CSharpParseOptions)argument.SyntaxTree.Options;
-
-#if !CODE_STYLE
             if (parseOptions.LanguageVersion.IsCSharp9OrAbove())
             {
                 return IsPatternExpression(
@@ -58,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                         Token(SyntaxKind.NotKeyword),
                         s_nullLiteralPattern)).Parenthesize();
             }
-#endif
 
             return BinaryExpression(
                 SyntaxKind.IsExpression,

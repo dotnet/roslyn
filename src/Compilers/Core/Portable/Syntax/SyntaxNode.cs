@@ -833,9 +833,9 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="getInnermostNodeForTie"/> is true, then it returns lowest descending node encompassing the given <paramref name="span"/>.
         /// Otherwise, it returns the outermost node encompassing the given <paramref name="span"/>.
         /// </summary>
-        /// <remarks>
+        /// <devdoc>
         /// TODO: This should probably be reimplemented with <see cref="ChildThatContainsPosition"/>
-        /// </remarks>
+        /// </devdoc>
         /// <exception cref="ArgumentOutOfRangeException">This exception is thrown if <see cref="FullSpan"/> doesn't contain the given span.</exception>
         public SyntaxNode FindNode(TextSpan span, bool findInsideTrivia = false, bool getInnermostNodeForTie = false)
         {
@@ -1469,7 +1469,7 @@ recurse:
         /// <summary>
         /// Creates a new tree of nodes with the specified node removed.
         /// </summary>
-        protected internal abstract SyntaxNode RemoveNodesCore(
+        protected internal abstract SyntaxNode? RemoveNodesCore(
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 

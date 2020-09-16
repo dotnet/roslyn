@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
 
                 Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
                 If Not symbols.Any() Then
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(
+        Private Shared Iterator Function CreateCompletionItems(
                 semanticModel As SemanticModel,
                 symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
 
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End Try
         End Function
 
-        Private Function CreateCompletionItem(
+        Private Shared Function CreateCompletionItem(
                 semanticModel As SemanticModel,
                 symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
 
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetRules(displayString))
         End Function
 
-        Private Function CreateOfCompletionItem() As CompletionItem
+        Private Shared Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create(
                 "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
-        Private Function GetRules(displayText As String) As CompletionItemRules
+        Private Shared Function GetRules(displayText As String) As CompletionItemRules
             Dim commitRules = s_defaultRules.CommitCharacterRules
 
             If displayText.Contains("(") Then

@@ -149,7 +149,6 @@ namespace Roslyn.Test.Utilities
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanEndString, NamedSpanStartString));
                         }
 
-
                         PopSpan(namedSpanStartStack, tempSpans, matchIndexInOutput);
                         break;
 

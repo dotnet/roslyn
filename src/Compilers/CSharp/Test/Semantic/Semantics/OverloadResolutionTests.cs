@@ -845,6 +845,93 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
+        public void NormalizeTaskTypes_FunctionPointers()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static delegate*<int, int, C<MyTask<int>>> F0;
+    static delegate*<C<MyTask<int>>, int, int> F1;
+    static delegate*<int, C<MyTask<int>>, int> F2;
+    static delegate*<int, int, int> F3;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics();
+
+            assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
+            assert("F1", "delegate*<C<MyTask<System.Int32>>, System.Int32, System.Int32>", "delegate*<C<System.Threading.Tasks.Task<System.Int32>>, System.Int32, System.Int32>");
+            assert("F2", "delegate*<System.Int32, C<MyTask<System.Int32>>, System.Int32>", "delegate*<System.Int32, C<System.Threading.Tasks.Task<System.Int32>>, System.Int32>");
+            assert("F3", "delegate*<System.Int32, System.Int32, System.Int32>", normalized: null);
+
+            void assert(string fieldName, string original, string normalized)
+            {
+                var type = compilation.GetMember<FieldSymbol>($"C.{fieldName}").Type;
+                FunctionPointerUtilities.CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)type);
+                var normalizedType = type.NormalizeTaskTypes(compilation);
+                Assert.Equal(original, type.ToTestDisplayString());
+                if (normalized is object)
+                {
+                    Assert.Equal(normalized, normalizedType.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Same(type, normalizedType);
+                }
+            }
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_FunctionPointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static method class MyTask modopt(class MyTask) *(class MyTask modopt(class MyTask)) F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("delegate*<MyTask modopt(MyTask), MyTask modopt(MyTask)>", type.ToTestDisplayString());
+            Assert.Equal("delegate*<System.Threading.Tasks.Task modopt(MyTask), System.Threading.Tasks.Task modopt(MyTask)>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
         public void NormalizeTaskTypes_Errors()
         {
             string source =
@@ -8105,7 +8192,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8141,7 +8228,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -10953,7 +11040,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
 
 
             var code = @"
@@ -11175,6 +11262,153 @@ public static class Extensions
 }";
 
             CompileAndVerify(code, expectedOutput: @"2");
+        }
+
+        [Fact]
+        public void GenericTypeOverriddenMethod()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue F(TKey key) => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue F(A key) => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d.F(a);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<MethodSymbol>();
+                Assert.Equal("B Derived<B>.F(A key)", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenMethod(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.F(A key)", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenProperty()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue this[TKey key] => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue this[A key] => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d[a];
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<PropertySymbol>();
+                Assert.Equal("B Derived<B>.this[A key] { get; }", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenProperty(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.this[A key] { get; }", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenEvent()
+        {
+            var source0 =
+@"public delegate TValue D<TKey, TValue>(TKey key);
+public abstract class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public abstract event D<TKey, TValue> E;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override event D<A, TValue> E { add { } remove { } }
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        d.E += (A a) => default(B);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<EventSymbol>();
+                Assert.Equal("event D<A, B> Derived<B>.E", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
+                Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
+            }
         }
     }
 }

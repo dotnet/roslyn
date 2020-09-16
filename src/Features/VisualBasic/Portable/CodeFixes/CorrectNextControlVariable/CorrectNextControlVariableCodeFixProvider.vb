@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
             context.RegisterCodeFix(New CorrectNextControlVariableCodeAction(context.Document, nodeToReplace, newNode), context.Diagnostics)
         End Function
 
-        Private Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
+        Private Shared Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
             Debug.Assert(nestingLevel >= 0)
 
             ' If we have code like this:

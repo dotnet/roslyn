@@ -8,9 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -18,16 +16,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticServiceTests
     {
+        private static DiagnosticService GetDiagnosticService(TestWorkspace workspace)
+        {
+            var diagnosticService = Assert.IsType<DiagnosticService>(workspace.ExportProvider.GetExportedValue<IDiagnosticService>());
+
+            // These tests were originally written under the assumption that the diagnostic service will not be
+            // initialized with listeners. If this check ever fails, the tests that use this method should be reviewed
+            // for impact.
+            Assert.Empty(diagnosticService.GetTestAccessor().EventListenerTracker.GetTestAccessor().EventListeners);
+
+            return diagnosticService;
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestGetDiagnostics1()
         {
-            using var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var mutex = new ManualResetEvent(false);
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
             var source = new TestDiagnosticUpdateSource(false, null);
-            var diagnosticService = new DiagnosticService(
-                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var diagnosticService = GetDiagnosticService(workspace);
             diagnosticService.Register(source);
 
             diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
@@ -51,14 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestGetDiagnostics2()
         {
-            using var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var mutex = new ManualResetEvent(false);
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
             var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
             var source = new TestDiagnosticUpdateSource(false, null);
-            var diagnosticService = new DiagnosticService(
-                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var diagnosticService = GetDiagnosticService(workspace);
             diagnosticService.Register(source);
 
             diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
@@ -94,13 +102,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestCleared()
         {
-            using var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var mutex = new ManualResetEvent(false);
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
             var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
-            var diagnosticService = new DiagnosticService(
-                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var diagnosticService = GetDiagnosticService(workspace);
 
             var source1 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
             diagnosticService.Register(source1);

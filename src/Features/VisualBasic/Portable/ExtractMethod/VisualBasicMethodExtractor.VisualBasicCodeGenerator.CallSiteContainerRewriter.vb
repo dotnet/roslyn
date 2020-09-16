@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return statements.InsertRange(firstStatementIndex, Join(Me._statementsOrFieldToInsert, colon).ToArray())
                 End Function
 
-                Private Function Join(statements As IEnumerable(Of StatementSyntax), colon As Boolean) As IEnumerable(Of StatementSyntax)
+                Private Shared Function Join(statements As IEnumerable(Of StatementSyntax), colon As Boolean) As IEnumerable(Of StatementSyntax)
                     If Not colon Then
                         Return statements
                     End If

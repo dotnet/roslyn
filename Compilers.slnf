@@ -2,6 +2,18 @@
   "solution": {
     "path": "Roslyn.sln",
     "projects": [
+      "src\\Analyzers\\CSharp\\Analyzers\\CSharpAnalyzers.shproj",
+      "src\\Analyzers\\CSharp\\CodeFixes\\CSharpCodeFixes.shproj",
+      "src\\Analyzers\\Core\\Analyzers\\Analyzers.shproj",
+      "src\\Analyzers\\Core\\CodeFixes\\CodeFixes.shproj",
+      "src\\Analyzers\\VisualBasic\\Analyzers\\VisualBasicAnalyzers.shproj",
+      "src\\Analyzers\\VisualBasic\\CodeFixes\\VisualBasicCodeFixes.shproj",
+      "src\\CodeStyle\\CSharp\\Analyzers\\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj",
+      "src\\CodeStyle\\CSharp\\CodeFixes\\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj",
+      "src\\CodeStyle\\Core\\Analyzers\\Microsoft.CodeAnalysis.CodeStyle.csproj",
+      "src\\CodeStyle\\Core\\CodeFixes\\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj",
+      "src\\CodeStyle\\VisualBasic\\Analyzers\\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj",
+      "src\\CodeStyle\\VisualBasic\\CodeFixes\\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj",
       "src\\Compilers\\CSharp\\CSharpAnalyzerDriver\\CSharpAnalyzerDriver.shproj",
       "src\\Compilers\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.csproj",
       "src\\Compilers\\CSharp\\Test\\CommandLine\\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj",
@@ -46,7 +58,16 @@
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\IOperationGenerator\\CompilersIOperationGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj",
-      "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj"
+      "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj",
+      "src\\Workspaces\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj",
+      "src\\Workspaces\\Core\\Portable\\Microsoft.CodeAnalysis.Workspaces.csproj",
+      "src\\Workspaces\\SharedUtilitiesAndExtensions\\Compiler\\CSharp\\CSharpCompilerExtensions.shproj",
+      "src\\Workspaces\\SharedUtilitiesAndExtensions\\Compiler\\Core\\CompilerExtensions.shproj",
+      "src\\Workspaces\\SharedUtilitiesAndExtensions\\Compiler\\VisualBasic\\VisualBasicCompilerExtensions.shproj",
+      "src\\Workspaces\\SharedUtilitiesAndExtensions\\Workspace\\CSharp\\CSharpWorkspaceExtensions.shproj",
+      "src\\Workspaces\\SharedUtilitiesAndExtensions\\Workspace\\Core\\WorkspaceExtensions.shproj",
+      "src\\Workspaces\\SharedUtilitiesAndExtensions\\Workspace\\VisualBasic\\VisualBasicWorkspaceExtensions.shproj",
+      "src\\Workspaces\\VisualBasic\\Portable\\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj"
     ]
   }
 }

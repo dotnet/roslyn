@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class BitArrayTests
+    public class BitVectorTests
     {
         private const int seed = 128129347;
         private const int rounds = 200;
@@ -251,6 +248,75 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Assert.False(i2.MoveNext());
             i2.Dispose();
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(0, 1)]
+        [InlineData(0, 128)]
+        [InlineData(65, 64)]
+        [InlineData(65, 65)]
+        [InlineData(65, 128)]
+        public void IndexerGet(int capacity, int index)
+        {
+            var b = BitVector.Create(capacity);
+            Assert.Equal(capacity, b.Capacity);
+
+            Assert.False(b[index]);
+            Assert.Equal(capacity, b.Capacity);
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(0, 1)]
+        [InlineData(0, 128)]
+        [InlineData(65, 64)]
+        [InlineData(65, 65)]
+        [InlineData(65, 128)]
+        public void IndexerSet(int capacity, int index)
+        {
+            var b = BitVector.Create(capacity);
+            Assert.Equal(capacity, b.Capacity);
+            capacity = Math.Max(capacity, index + 1);
+
+            b[index] = true;
+            Assert.True(b[index]);
+            Assert.Equal(capacity, b.Capacity);
+
+            b[index] = false;
+            Assert.False(b[index]);
+            Assert.Equal(capacity, b.Capacity);
+        }
+
+        [Theory]
+        [InlineData(0, -1)]
+        [InlineData(0, -128)]
+        [InlineData(65, -1)]
+        [InlineData(65, -128)]
+        public void IndexerGet_OutOfRange(int capacity, int index)
+        {
+            var b = BitVector.Create(capacity);
+            Assert.Equal(capacity, b.Capacity);
+
+            Assert.Throws<IndexOutOfRangeException>(() => _ = b[index]);
+            Assert.Equal(capacity, b.Capacity);
+        }
+
+        [Theory]
+        [InlineData(0, -1)]
+        [InlineData(0, -128)]
+        [InlineData(65, -1)]
+        [InlineData(65, -128)]
+        public void IndexerSet_OutOfRange(int capacity, int index)
+        {
+            var b = BitVector.Create(capacity);
+            Assert.Equal(capacity, b.Capacity);
+
+            Assert.Throws<IndexOutOfRangeException>(() => b[index] = false);
+            Assert.Equal(capacity, b.Capacity);
+
+            Assert.Throws<IndexOutOfRangeException>(() => b[index] = true);
+            Assert.Equal(capacity, b.Capacity);
         }
     }
 

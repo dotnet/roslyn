@@ -62,7 +62,7 @@ class A
         private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, LSP.Location caret)
         {
             var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
-                solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
             Array.Sort(results, (h1, h2) =>
             {
                 var compareKind = h1.Kind.CompareTo(h2.Kind);
@@ -73,7 +73,7 @@ class A
             return results;
         }
 
-        private LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
+        private static LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
             => new LSP.DocumentHighlight()
             {
                 Kind = kind,

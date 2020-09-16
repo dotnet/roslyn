@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return result.ToImmutableAndFree();
         }
 
-        private async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
+        private static async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var compilation = await context.Document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

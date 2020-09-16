@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Host
                     MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames));
             }
 
-
             IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
                 => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 

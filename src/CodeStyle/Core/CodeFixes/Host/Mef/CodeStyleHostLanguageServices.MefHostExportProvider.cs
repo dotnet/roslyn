@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override string Language => _hostLanguageServices.Language;
 
-        [return: MaybeNull]
-        public override TLanguageService GetService<TLanguageService>()
+        public override TLanguageService? GetService<TLanguageService>()
+            where TLanguageService : default
             => _codeStyleLanguageServices.GetService<TLanguageService>() ?? _hostLanguageServices.GetService<TLanguageService>();
     }
 }

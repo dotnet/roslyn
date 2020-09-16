@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             };
         }
 
-        private TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)
+        private static TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)
         {
             var eventName = functionId.GetEventName();
             return AppendProperties(new TelemetryEvent(eventName), functionId, logMessage);

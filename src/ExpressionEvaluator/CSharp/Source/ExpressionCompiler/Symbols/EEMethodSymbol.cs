@@ -418,10 +418,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => throw ExceptionUtilities.Unreachable;
 
         internal ResultProperties ResultProperties
         {

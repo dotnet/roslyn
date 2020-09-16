@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Text;
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return CSharpParseOptions.Default; }
             }
 
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
                 => throw ExceptionUtilities.Unreachable;
 
@@ -96,11 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxTree WithFilePath(string path)
             {
                 return SyntaxFactory.SyntaxTree(_node, options: this.Options, path: path, encoding: null);
-            }
-
-            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
-            {
-                throw ExceptionUtilities.Unreachable;
             }
         }
     }

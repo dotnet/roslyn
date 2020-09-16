@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return null;
         }
 
-        private bool ShouldImplementDisposePattern(State state, bool explicitly)
+        private static bool ShouldImplementDisposePattern(State state, bool explicitly)
         {
             // Dispose pattern should be implemented only if -
             // 1. An interface named 'System.IDisposable' is unimplemented.
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return await AddFinalizerCommentAsync(docWithAllMembers, finalizer, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<Document> AddFinalizerCommentAsync(
+            private static async Task<Document> AddFinalizerCommentAsync(
                 Document document, SyntaxNode finalizer, CancellationToken cancellationToken)
             {
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return result;
             }
 
-            private async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
+            private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
                 Document document,
                 INamedTypeSymbol containingType,
                 CancellationToken cancellationToken)

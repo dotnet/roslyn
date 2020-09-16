@@ -96,7 +96,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
 
             // Add members to interface
-            var codeGenerationOptions = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+            var codeGenerationOptions = new CodeGenerationOptions(
+                generateMethodBodies: false,
+                generateMembers: false,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, options: codeGenerationOptions, cancellationToken: cancellationToken);
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
@@ -252,8 +255,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         return memberResult.Member;
                     }
                 });
-            var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
-            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options);
+            var options = new CodeGenerationOptions(
+                reuseSyntax: true,
+                generateMethodBodies: false,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
             // Remove some original members since we are pulling members into class.
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,

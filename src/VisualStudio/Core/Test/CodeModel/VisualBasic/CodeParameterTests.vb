@@ -688,7 +688,6 @@ End Class
             TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Sub
 
-
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterKind_ParamArray()
             Dim code =
@@ -1544,7 +1543,6 @@ Class C
 End Class
 </Code>
 
-
             TestGetParameterArrayCount(code, 0)
         End Sub
 
@@ -1557,7 +1555,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             TestGetParameterArrayCount(code, 1)
         End Sub
@@ -1572,7 +1569,6 @@ Class C
 End Class
 </Code>
 
-
             TestGetParameterArrayCount(code, 2)
         End Sub
 
@@ -1585,7 +1581,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             TestGetParameterArrayCount(code, 1)
         End Sub
@@ -1604,7 +1599,6 @@ Class C
 End Class
 </Code>
 
-
             TestGetParameterArrayDimensions(code, index:=0, expected:=1)
         End Sub
 
@@ -1617,7 +1611,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             TestGetParameterArrayDimensions(code, index:=0, expected:=2)
         End Sub
@@ -1632,7 +1625,6 @@ Class C
 End Class
 </Code>
 
-
             TestGetParameterArrayDimensions(code, index:=0, expected:=3)
         End Sub
 
@@ -1645,7 +1637,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             TestGetParameterArrayDimensions(code, index:=1, expected:=1)
         End Sub
@@ -1660,7 +1651,6 @@ Class C
 End Class
 </Code>
 
-
             TestGetParameterArrayDimensions(code, index:=1, expected:=2)
         End Sub
 
@@ -1673,7 +1663,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             TestGetParameterArrayDimensions(code, index:=2, expected:=1)
         End Sub

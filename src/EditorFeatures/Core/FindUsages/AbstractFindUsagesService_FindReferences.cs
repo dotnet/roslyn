@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return FindLiteralOrSymbolReferencesAsync(document, position, new DefinitionTrackingContext(context));
         }
 
-        private async Task FindLiteralOrSymbolReferencesAsync(
+        private static async Task FindLiteralOrSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             // First, see if we're on a literal.  If so search for literals in the solution with
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document, position, context).ConfigureAwait(false);
         }
 
-        private ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
+        private static ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
             Solution solution,
             ImmutableArray<DefinitionItem> definitions,
             CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                               .ToImmutableArray();
         }
 
-        private async Task FindSymbolReferencesAsync(
+        private static async Task FindSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -111,9 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public static async Task FindSymbolReferencesAsync(
             IFindUsagesContext context, ISymbol symbol, Project project)
         {
-            var solution = project.Solution;
-            var monikerUsagesService = solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
-
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
@@ -123,14 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
-            //
-            // Kick off work to search the online code index system in parallel.
-            //
-            // Do both in parallel so we can get all the results as soon as possible.
-
-            await Task.WhenAll(
-                FindReferencesAsync(context, symbol, project, options),
-                FindSymbolMonikerReferencesAsync(monikerUsagesService, symbol, context)).ConfigureAwait(false);
+            await FindReferencesAsync(context, symbol, project, options).ConfigureAwait(false);
         }
 
         public static async Task FindReferencesAsync(
@@ -149,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
 
-                var success = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteFindUsagesService.FindReferencesAsync),
                     solution,
@@ -160,14 +150,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
-
-                if (success)
-                    return;
             }
-
-            // Couldn't effectively search in OOP. Perform the search in-process.
-            await FindReferencesInCurrentProcessAsync(
-                context, symbol, project, options).ConfigureAwait(false);
+            else
+            {
+                // Couldn't effectively search in OOP. Perform the search in-process.
+                await FindReferencesInCurrentProcessAsync(
+                    context, symbol, project, options).ConfigureAwait(false);
+            }
         }
 
         private static Task FindReferencesInCurrentProcessAsync(
@@ -181,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 symbol, project.Solution, progress, documents: null, options, context.CancellationToken);
         }
 
-        private async Task<bool> TryFindLiteralReferencesAsync(
+        private static async Task<bool> TryFindLiteralReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;

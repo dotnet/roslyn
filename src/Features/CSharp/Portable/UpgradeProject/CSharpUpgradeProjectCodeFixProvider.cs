@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8107", // error CS8059: Feature is not available in C# 7.0. Please use language version X or greater.
                 "CS8302", // error CS8302: Feature is not available in C# 7.1. Please use language version X or greater.
                 "CS8306", // error CS8306: ... Please use language version 7.1 or greater to access a un-named element by its inferred name.
-                "CS8314", // error CS9003: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
+                "CS8314", // error CS8314: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
                 "CS8320", // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
                 "CS1738", // error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 "CS8370", // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8400", // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
                 "CS8401", // error CS8401: To use '@$' instead of '$@" for a verbatim interpolated string, please use language version 8.0 or greater.
                 "CS8511", // error CS8511: An expression of type 'T' cannot be handled by a pattern of type '<null>'. Please use language version 'preview' or greater to match an open type with a constant pattern.
+                "CS8627", // error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
                 "CS8652", // error CS8652: The feature '' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 "CS8703", // error CS8703: The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.
                 "CS8706", // error CS8706: '{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater. 

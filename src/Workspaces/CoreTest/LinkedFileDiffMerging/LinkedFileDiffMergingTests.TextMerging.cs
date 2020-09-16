@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
@@ -45,12 +46,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
             TestLinkedFileSet(
-                "a b c d e",
-                new List<string> { "a zzz c xx e", "a b c xx e" },
-                @"a zzz c xx e",
+                "a; b; c; d; e;",
+                new List<string> { "a; zzz; c; xx; e;", "a; b; c; xx; e;" },
+                @"a; zzz; c; xx; e;",
                 LanguageNames.CSharp);
         }
 
@@ -128,46 +130,47 @@ Four",
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(
-                @"One
-Two
-Three
-Four
-Five",
+                @"One;
+Two;
+Three;
+Four;
+Five;",
                 new List<string>
                 {
-                    @"One
-TwoY
-Three
-FourY
-Five",
-                    @"One
-TwoZ
-Three
-FourZ
-Five"
+                    @"One;
+TwoY;
+Three;
+FourY;
+Five;",
+                    @"One;
+TwoZ;
+Three;
+FourZ;
+Five;"
                 },
-                @"One
+                @"One;
 
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
 " + WorkspacesResources.Before_colon + @"
-Two
+Two;
 " + WorkspacesResources.After_colon + @"
-TwoZ
+TwoZ;
 */
-TwoY
-Three
+TwoY;
+Three;
 
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
 " + WorkspacesResources.Before_colon + @"
-Four
+Four;
 " + WorkspacesResources.After_colon + @"
-FourZ
+FourZ;
 */
-FourY
-Five",
+FourY;
+Five;",
                 LanguageNames.CSharp);
         }
 

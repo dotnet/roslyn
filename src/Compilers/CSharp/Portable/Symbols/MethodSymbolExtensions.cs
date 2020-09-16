@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // At this point, we know method originated with a DestructorDeclarationSyntax in source,
                 // so it can't have the "new" modifier.
                 // First is fine, since there should only be one, since there are no parameters.
-                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out _);
                 skipFirstMethodKindCheck = false;
             }
 
@@ -189,12 +190,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
+            if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)
+            {
+                return (CSharpSyntaxNode)synthesized.ReturnTypeSyntax;
+            }
+
             method = method.PartialDefinitionPart ?? method;
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
-                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                SyntaxNode node = reference.GetSyntax();
+                if (node is MethodDeclarationSyntax methodDeclaration)
                 {
                     return methodDeclaration.ReturnType;
+                }
+                else if (node is LocalFunctionStatementSyntax statement)
+                {
+                    return statement.ReturnType;
                 }
             }
 

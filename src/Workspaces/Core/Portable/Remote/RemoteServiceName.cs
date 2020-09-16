@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -20,8 +19,12 @@ namespace Microsoft.CodeAnalysis.Remote
     internal readonly struct RemoteServiceName : IEquatable<RemoteServiceName>
     {
         internal const string Prefix = "roslyn";
+        internal const string Suffix64 = "64";
         internal const string IntelliCodeServiceName = "pythia";
         internal const string RazorServiceName = "razorLanguageService";
+        internal const string UnitTestingAnalysisServiceName = "UnitTestingAnalysis";
+        internal const string LiveUnitTestingBuildServiceName = "LiveUnitTestingBuild";
+        internal const string UnitTestingSourceLookupServiceName = "UnitTestingSourceLookup";
 
         public readonly WellKnownServiceHubService WellKnownService;
         public readonly string? CustomServiceName;
@@ -43,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public string ToString(bool isRemoteHost64Bit)
         {
-            const string Suffix64 = "64";
-
             return CustomServiceName ?? (WellKnownService, isRemoteHost64Bit) switch
             {
                 (WellKnownServiceHubService.RemoteHost, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost),
@@ -53,12 +54,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.CodeAnalysis, true) => Prefix + nameof(WellKnownServiceHubService.CodeAnalysis) + Suffix64,
                 (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, false) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine),
                 (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, true) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine) + Suffix64,
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService),
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService) + Suffix64,
-                (WellKnownServiceHubService.RemoteProjectTelemetryService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService),
-                (WellKnownServiceHubService.RemoteProjectTelemetryService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService) + Suffix64,
-                (WellKnownServiceHubService.RemoteTodoCommentsService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService),
-                (WellKnownServiceHubService.RemoteTodoCommentsService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService) + Suffix64,
                 (WellKnownServiceHubService.LanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.LanguageServer),
                 (WellKnownServiceHubService.LanguageServer, true) => Prefix + nameof(WellKnownServiceHubService.LanguageServer) + Suffix64,
 
@@ -66,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.IntelliCode, true) => IntelliCodeServiceName + Suffix64,
                 (WellKnownServiceHubService.Razor, false) => RazorServiceName,
                 (WellKnownServiceHubService.Razor, true) => RazorServiceName + Suffix64,
+                (WellKnownServiceHubService.UnitTestingAnalysisService, false) => UnitTestingAnalysisServiceName,
+                (WellKnownServiceHubService.UnitTestingAnalysisService, true) => UnitTestingAnalysisServiceName + Suffix64,
+                (WellKnownServiceHubService.LiveUnitTestingBuildService, false) => LiveUnitTestingBuildServiceName,
+                (WellKnownServiceHubService.LiveUnitTestingBuildService, true) => LiveUnitTestingBuildServiceName + Suffix64,
+                (WellKnownServiceHubService.UnitTestingSourceLookupService, false) => UnitTestingSourceLookupServiceName,
+                (WellKnownServiceHubService.UnitTestingSourceLookupService, true) => UnitTestingSourceLookupServiceName + Suffix64,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(WellKnownService),
             };
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(CustomServiceName, (int)WellKnownService);
 
-        public bool Equals([AllowNull] RemoteServiceName other)
+        public bool Equals(RemoteServiceName other)
             => CustomServiceName == other.CustomServiceName && WellKnownService == other.WellKnownService;
 
         public static bool operator ==(RemoteServiceName left, RemoteServiceName right)

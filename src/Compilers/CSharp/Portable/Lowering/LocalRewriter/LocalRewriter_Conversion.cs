@@ -370,6 +370,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         explicitCastInCode: explicitCastInCode,
                         rewrittenType: (NamedTypeSymbol)rewrittenType);
 
+                case ConversionKind.MethodGroup when oldNodeOpt is { Type: { TypeKind: TypeKind.FunctionPointer } funcPtrType }:
+                    {
+                        var mg = (BoundMethodGroup)rewrittenOperand;
+                        Debug.Assert(oldNodeOpt.SymbolOpt is { });
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt, type: funcPtrType, hasErrors: false);
+                    }
+
                 case ConversionKind.MethodGroup:
                     {
                         // we eliminate the method group conversion entirely from the bound nodes following local lowering
@@ -1230,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (t0Type == SpecialType.System_IntPtr)
             {
-                if (source.TypeKind == TypeKind.Pointer)
+                if (source.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_IntPtr__op_Explicit_FromPointer;
                 }
@@ -1255,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (t0Type == SpecialType.System_UIntPtr)
             {
-                if (source.TypeKind == TypeKind.Pointer)
+                if (source.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_UIntPtr__op_Explicit_FromPointer;
                 }
@@ -1280,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (s0Type == SpecialType.System_IntPtr)
             {
-                if (target.TypeKind == TypeKind.Pointer)
+                if (target.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_IntPtr__op_Explicit_ToPointer;
                 }
@@ -1305,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (s0Type == SpecialType.System_UIntPtr)
             {
-                if (target.TypeKind == TypeKind.Pointer)
+                if (target.IsPointerOrFunctionPointer())
                 {
                     return SpecialMember.System_UIntPtr__op_Explicit_ToPointer;
                 }

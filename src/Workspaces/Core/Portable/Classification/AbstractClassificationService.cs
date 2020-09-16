@@ -44,38 +44,28 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var remoteSuccess = await TryAddSemanticClassificationsInRemoteProcessAsync(
-                document, textSpan, result, cancellationToken).ConfigureAwait(false);
-            if (remoteSuccess)
-                return;
-
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-            await AddSemanticClassificationsInCurrentProcessAsync(
-                document, textSpan, temp, cancellationToken).ConfigureAwait(false);
-            AddRange(temp, result);
-        }
-
-        /// <returns><see langword="true"/> if the remote call was made successfully and we should
-        /// use the results of it. Otherwise, fall back to processing locally</returns>
-        private async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return false;
+            if (client != null)
+            {
+                var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
+                   document.Project.Solution,
+                   (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, cancellationToken),
+                   callbackTarget: null,
+                   cancellationToken).ConfigureAwait(false);
 
-            var classifiedSpans = await client.TryRunRemoteAsync<SerializableClassifiedSpans>(
-                WellKnownServiceHubService.CodeAnalysis,
-                nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
-                document.Project.Solution,
-                new object[] { document.Id, textSpan },
-                callbackTarget: null,
-                cancellationToken).ConfigureAwait(false);
-
-            if (!classifiedSpans.HasValue)
-                return false;
-
-            classifiedSpans.Value.Rehydrate(result);
-            return true;
+                // if the remote call fails do nothing (error has already been reported)
+                if (classifiedSpans.HasValue)
+                {
+                    classifiedSpans.Value.Rehydrate(result);
+                }
+            }
+            else
+            {
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
+                await AddSemanticClassificationsInCurrentProcessAsync(
+                    document, textSpan, temp, cancellationToken).ConfigureAwait(false);
+                AddRange(temp, result);
+            }
         }
 
         public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

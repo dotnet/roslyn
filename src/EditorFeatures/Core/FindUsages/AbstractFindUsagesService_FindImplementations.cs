@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
 
-                var success = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteFindUsagesService.FindImplementationsAsync),
                     solution,
@@ -62,14 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
-
-                if (success)
-                    return;
             }
-
-            // Couldn't effectively search in OOP. Perform the search in-process.
-            await FindImplementationsInCurrentProcessAsync(
-                symbol, project, context).ConfigureAwait(false);
+            else
+            {
+                // Couldn't effectively search in OOP. Perform the search in-process.
+                await FindImplementationsInCurrentProcessAsync(
+                    symbol, project, context).ConfigureAwait(false);
+            }
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(

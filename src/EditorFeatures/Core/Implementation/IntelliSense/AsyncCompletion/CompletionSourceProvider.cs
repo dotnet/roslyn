@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -32,6 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
-            => new CompletionSource(textView, _streamingPresenter, _threadingContext);
+        {
+            if (textView.TextBuffer.IsInCloudEnvironmentClientContext())
+            {
+                return null;
+            }
+
+            return new CompletionSource(textView, _streamingPresenter, _threadingContext);
+        }
     }
 }

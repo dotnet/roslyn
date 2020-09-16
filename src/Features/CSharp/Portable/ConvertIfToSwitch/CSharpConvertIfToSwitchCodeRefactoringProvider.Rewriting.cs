@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
             Debug.Assert(whenClause == null || section.Labels.Length == 1, "We shouldn't have guards when we're combining multiple cases into a single arm");
 
-            for (int i = 1; i < section.Labels.Length; i++)
+            for (var i = 1; i < section.Labels.Length; i++)
             {
                 var label = section.Labels[i];
                 Debug.Assert(label.Guards.Length == 0, "We shouldn't have guards when we're combining multiple cases into a single arm");
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
                 openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
                 sections: List(sectionList.Cast<SwitchSectionSyntax>()),
-                closeBraceToken: block?.CloseBraceToken ?? Token(SyntaxKind.CloseBraceToken));
+                closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? Token(SyntaxKind.CloseBraceToken));
         }
 
         private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     statements.AddRange(block.Statements);
                     if (requiresBreak)
                     {
-                        statements.Add(BreakStatement());
+                        statements.Add(BreakStatement().WithLeadingTrivia(block.CloseBraceToken.LeadingTrivia));
                     }
                 }
             }

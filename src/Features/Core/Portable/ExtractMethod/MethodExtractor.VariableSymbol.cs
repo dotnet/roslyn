@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return (_parameterSymbol.Ordinal > other._parameterSymbol.Ordinal) ? 1 : -1;
             }
 
-            private int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
+            private static int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
             {
                 if (left == null && right == null)
                 {

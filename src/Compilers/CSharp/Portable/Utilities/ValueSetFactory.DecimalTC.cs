@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
 
-            public decimal FromConstantValue(ConstantValue constantValue) => constantValue.DecimalValue;
+            decimal INumericTC<decimal>.Zero => 0M;
+
+            public decimal FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0m : constantValue.DecimalValue;
 
             public ConstantValue ToConstantValue(decimal value) => ConstantValue.Create(value);
 

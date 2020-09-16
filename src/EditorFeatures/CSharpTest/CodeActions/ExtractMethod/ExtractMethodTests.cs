@@ -2056,9 +2056,6 @@ class Program
         System.Console.WriteLine([|^1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 @"
 class Program
@@ -2068,7 +2065,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Index NewMethod()
+    private static System.Index NewMethod()
     {
         return ^1;
     }
@@ -2086,9 +2083,6 @@ class Program
         System.Console.WriteLine([|..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2098,7 +2092,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return ..;
     }
@@ -2116,9 +2110,6 @@ class Program
         System.Console.WriteLine([|..1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2128,7 +2119,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return ..1;
     }
@@ -2146,9 +2137,6 @@ class Program
         System.Console.WriteLine([|1..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2158,7 +2146,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return 1..;
     }
@@ -2176,9 +2164,6 @@ class Program
         System.Console.WriteLine([|1..2|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2188,7 +2173,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return 1..2;
     }
@@ -2228,7 +2213,6 @@ class C
         return x;
     }
 }");
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters1()
@@ -2888,7 +2872,6 @@ class C
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableObjectWithExplicitCast()
@@ -3926,6 +3909,296 @@ class Program
         {
             return y;
         }
+    }
+}");
+        }
+
+        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        public async Task TestRecursivePatternRewrite()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+namespace N
+{
+    class Context
+    {
+    }
+    class C
+    {
+        public void DoAction(Action<Context> action)
+        {
+        }
+        private void Recursive(object context)
+        {
+            DoAction(context =>
+            {
+                if (context is Context { })
+                {
+                    DoAction(
+                        [|context =>|] context.ToString());
+                }
+            });
+        }
+    }
+}", @"
+using System;
+namespace N
+{
+    class Context
+    {
+    }
+    class C
+    {
+        public void DoAction(Action<Context> action)
+        {
+        }
+        private void Recursive(object context)
+        {
+            DoAction(context =>
+            {
+                if (context is Context { })
+                {
+                    DoAction(
+                        {|Rename:NewMethod|}());
+                }
+            });
+        }
+
+        private static Action<Context> NewMethod()
+        {
+            return context => context.ToString();
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess1()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess2()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]().Length;
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static int? NewMethod(List<int> b)
+    {
+        return b?.ToString().Length;
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess3()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.Count.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.Count.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess4()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|Count|].ToString();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.Count.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess5()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]()?.ToString();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess6()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.ToString()?.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess7()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?[|[0]|];
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static int? NewMethod(List<int> b)
+    {
+        return b?[0];
     }
 }");
         }

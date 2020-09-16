@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
 
                 if (node is BaseArgumentListSyntax argument &&
-                    argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
+                    !argument.Parent.IsKind(SyntaxKind.ThisConstructorInitializer) &&
                     !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
                     AddIndentBlockOperations(list, argument);
@@ -163,10 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax? node)
                 => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
-            private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
+            private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {
@@ -189,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
+                RoslynDebug.AssertNotNull(node.Parent);
+
                 // only add indent block operation if the base token is the first token on line
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 

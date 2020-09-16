@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return nextOperation.Invoke(previousToken, currentToken)
             End Function
 
-            Private Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
+            Private Shared Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
                 ' < in attribute
                 If token.Kind = SyntaxKind.LessThanToken AndAlso
                    token.Parent.Kind = SyntaxKind.AttributeList AndAlso

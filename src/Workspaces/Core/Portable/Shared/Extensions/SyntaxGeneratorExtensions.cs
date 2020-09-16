@@ -38,35 +38,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : factory.CreateArguments(constructor.Parameters));
         }
 
-        public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
+        public static ImmutableArray<ISymbol> CreateMemberDelegatingConstructor(
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
-            IDictionary<string, ISymbol> parameterToExistingFieldMap,
-            IDictionary<string, string> parameterToNewFieldMap,
+            ImmutableDictionary<string, ISymbol> parameterToExistingMemberMap,
+            ImmutableDictionary<string, string> parameterToNewMemberMap,
             bool addNullChecks,
-            bool preferThrowExpression)
+            bool preferThrowExpression,
+            bool generateProperties,
+            bool isContainedInUnsafeType)
         {
-            var fields = CreateFieldsForParameters(parameters, parameterToNewFieldMap);
+            var newMembers = generateProperties
+                ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
+                : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
             var statements = factory.CreateAssignmentStatements(
-                semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
+                semanticModel, parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
-                modifiers: new DeclarationModifiers(),
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingFieldMap)
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingMemberMap)
                     ? ImmutableArray<SyntaxNode>.Empty
                     : default);
 
-            return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
+            return newMembers.Concat(constructor);
         }
 
         private static bool ShouldGenerateThisConstructorCall(
@@ -91,34 +95,56 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
-            IList<IParameterSymbol> parameters,
-            IDictionary<string, string> parameterToNewFieldMap)
+        public static ImmutableArray<ISymbol> CreateFieldsForParameters(
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap, bool isContainedInUnsafeType)
         {
-            var result = ArrayBuilder<IFieldSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
             {
-                var refKind = parameter.RefKind;
-                var parameterType = parameter.Type;
-                var parameterName = parameter.Name;
-
-                if (refKind != RefKind.Out)
+                // For non-out parameters, create a field and assign the parameter to it.
+                if (parameter.RefKind != RefKind.Out &&
+                    TryGetValue(parameterToNewFieldMap, parameter.Name, out var fieldName))
                 {
-                    // For non-out parameters, create a field and assign the parameter to it.
-                    // TODO: I'm not sure that's what we really want for ref parameters.
-                    if (TryGetValue(parameterToNewFieldMap, parameterName, out _))
-                    {
-                        result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: default,
-                            accessibility: Accessibility.Private,
-                            modifiers: default,
-                            type: parameterType,
-                            name: parameterToNewFieldMap[parameterName]));
-                    }
+                    result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        attributes: default,
+                        accessibility: Accessibility.Private,
+                        modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                        type: parameter.Type,
+                        name: fieldName));
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
+        }
+
+        public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap, bool isContainedInUnsafeType)
+        {
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            foreach (var parameter in parameters)
+            {
+                // For non-out parameters, create a property and assign the parameter to it.
+                if (parameter.RefKind != RefKind.Out &&
+                    TryGetValue(parameterToNewPropertyMap, parameter.Name, out var propertyName))
+                {
+                    result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
+                        attributes: default,
+                        accessibility: Accessibility.Public,
+                        modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                        type: parameter.Type,
+                        refKind: RefKind.None,
+                        explicitInterfaceImplementations: ImmutableArray<IPropertySymbol>.Empty,
+                        name: propertyName,
+                        parameters: ImmutableArray<IParameterSymbol>.Empty,
+                        getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                            attributes: default,
+                            accessibility: default,
+                            statements: default),
+                        setMethod: null));
+                }
+            }
+
+            return result.ToImmutable();
         }
 
         private static bool TryGetValue(IDictionary<string, string> dictionary, string key, out string value)
@@ -157,8 +183,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var identifier = factory.IdentifierName(parameter.Name);
             var nullExpr = factory.NullLiteralExpression();
-            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
-                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
+            var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
 
             // generates: if (s == null) throw new ArgumentNullException(nameof(s))

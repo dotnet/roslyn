@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         {
             _languagesProvider = languagesProvider;
             SyntaxTokenKinds =
-                languagesProvider.Languages.SelectMany(p => p.Classifier.SyntaxTokenKinds).Distinct().ToImmutableArray();
+                languagesProvider.Languages.Where(p => p.Classifier != null)
+                                           .SelectMany(p => p.Classifier.SyntaxTokenKinds)
+                                           .Distinct()
+                                           .ToImmutableArray();
         }
 
         public override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

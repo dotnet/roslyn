@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             }
         }
 
-        private bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
+        private static bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();

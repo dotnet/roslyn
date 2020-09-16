@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-            => typeof(ObjectInitializerCompletionProvider);
+            => typeof(ObjectAndWithInitializerCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingToInitialize()
@@ -43,6 +43,25 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        public async Task ImplicitObjectCreation_NothingToInitialize()
+        {
+            var markup = @"
+class C { }
+
+class D
+{
+    void goo()
+    {
+       C goo = new() { $$
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OneItem1()
         {
             var markup = @"
@@ -53,6 +72,45 @@ class D
     void goo()
     {
        C goo = new C { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        public async Task ImplicitObjectCreation_OneItem1()
+        {
+            var markup = @"
+class C { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       C goo = new() { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ImplicitObjectCreation_NullableStruct_OneItem1()
+        {
+            var markup = @"
+struct S { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       S? goo = new() { v$$
     }
 }";
 

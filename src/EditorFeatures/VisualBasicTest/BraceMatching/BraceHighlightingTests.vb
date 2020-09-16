@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
-        Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
+        Private Shared Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
             Return array
         End Function
 
@@ -72,7 +72,6 @@ End Module")
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
             End Using
         End Function
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestNestedTouchingItems() As Tasks.Task

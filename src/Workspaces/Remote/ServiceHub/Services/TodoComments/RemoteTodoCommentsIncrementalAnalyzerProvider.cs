@@ -5,6 +5,8 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -13,16 +15,16 @@ namespace Microsoft.CodeAnalysis.Remote
     /// and then calls into OOP to tell it to start analyzing the solution.  At that point we'll get
     /// created and added to the solution crawler.
     /// </remarks>
-    internal class RemoteTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
+    internal sealed class RemoteTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteEndPoint _endPoint;
+        private readonly RemoteCallback<ITodoCommentsListener> _callback;
 
-        public RemoteTodoCommentsIncrementalAnalyzerProvider(RemoteEndPoint endPoint)
+        public RemoteTodoCommentsIncrementalAnalyzerProvider(RemoteCallback<ITodoCommentsListener> callback)
         {
-            _endPoint = endPoint;
+            _callback = callback;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteTodoCommentsIncrementalAnalyzer(_endPoint);
+            => new RemoteTodoCommentsIncrementalAnalyzer(_callback);
     }
 }

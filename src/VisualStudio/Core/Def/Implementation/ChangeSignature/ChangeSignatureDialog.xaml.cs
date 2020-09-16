@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         // Expose localized strings for binding
         public string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
+        public string CurrentParameter { get { return ServicesVSResources.Current_parameter; } }
         public string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
         public string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
         public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
@@ -30,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string Add { get { return ServicesVSResources.Add; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
+        public string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
 
         public Brush ParameterText { get; }
         public Brush RemovedParameterText { get; }
@@ -82,6 +85,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
+            MoveUp_UpdateSelectedIndex();
+            SetFocusToSelectedRow(false);
+        }
+
+        private void MoveUp_Click_FocusRow(object sender, EventArgs e)
+        {
+            MoveUp_UpdateSelectedIndex();
+            SetFocusToSelectedRow(true);
+        }
+
+        private void MoveUp_UpdateSelectedIndex()
+        {
             var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveUp && oldSelectedIndex >= 0)
             {
@@ -89,11 +104,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
                 Members.SelectedIndex = oldSelectedIndex - 1;
             }
-
-            SetFocusToSelectedRow();
         }
 
         private void MoveDown_Click(object sender, EventArgs e)
+        {
+            MoveDown_UpdateSelectedIndex();
+            SetFocusToSelectedRow(false);
+        }
+
+        private void MoveDown_Click_FocusRow(object sender, EventArgs e)
+        {
+            MoveDown_UpdateSelectedIndex();
+            SetFocusToSelectedRow(true);
+        }
+
+        private void MoveDown_UpdateSelectedIndex()
         {
             var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveDown && oldSelectedIndex >= 0)
@@ -102,8 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
                 Members.SelectedIndex = oldSelectedIndex + 1;
             }
-
-            SetFocusToSelectedRow();
         }
 
         private void Remove_Click(object sender, RoutedEventArgs e)
@@ -114,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void Restore_Click(object sender, RoutedEventArgs e)
@@ -125,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -144,21 +167,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     addParameterViewModel.TypeSymbol,
                     addParameterViewModel.TypeName,
                     addParameterViewModel.ParameterName,
-                    (addParameterViewModel.IsCallsiteOmitted || addParameterViewModel.IsCallsiteTodo) ? "" : addParameterViewModel.CallSiteValue,
+                    GetCallSiteKind(addParameterViewModel),
+                    addParameterViewModel.IsCallsiteRegularValue ? addParameterViewModel.CallSiteValue : string.Empty,
                     addParameterViewModel.IsRequired,
-                    addParameterViewModel.IsRequired ? "" : addParameterViewModel.DefaultValue,
-                    addParameterViewModel.UseNamedArguments,
-                    addParameterViewModel.IsCallsiteOmitted,
-                    addParameterViewModel.IsCallsiteTodo,
+                    addParameterViewModel.IsRequired ? string.Empty : addParameterViewModel.DefaultValue,
                     addParameterViewModel.TypeBinds);
 
                 _viewModel.AddParameter(addedParameter);
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(false);
         }
 
-        private void SetFocusToSelectedRow()
+        private CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
+        {
+            if (addParameterViewModel.IsCallsiteInferred)
+                return CallSiteKind.Inferred;
+
+            if (addParameterViewModel.IsCallsiteOmitted)
+                return CallSiteKind.Omitted;
+
+            if (addParameterViewModel.IsCallsiteTodo)
+                return CallSiteKind.Todo;
+
+            Debug.Assert(addParameterViewModel.IsCallsiteRegularValue);
+
+            return addParameterViewModel.UseNamedArguments
+                ? CallSiteKind.ValueWithName
+                : CallSiteKind.Value;
+        }
+
+        private void SetFocusToSelectedRow(bool focusRow)
         {
             if (Members.SelectedIndex >= 0)
             {
@@ -168,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;
                 }
 
-                if (row != null)
+                if (row != null && focusRow)
                 {
                     FocusRow(row);
                 }
@@ -196,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void MoveSelectionDown_Click(object sender, EventArgs e)
@@ -207,17 +246,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.SelectedIndex = oldSelectedIndex + 1;
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void Members_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
+            Members.SelectedIndex = Members.Items.IndexOf(Members.CurrentItem);
             if (Members.SelectedIndex == -1)
             {
                 Members.SelectedIndex = _viewModel.GetStartingSelectionIndex();
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void ToggleRemovedState(object sender, ExecutedRoutedEventArgs e)
@@ -232,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             Members.Items.Refresh();
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         internal TestAccessor GetTestAccessor()

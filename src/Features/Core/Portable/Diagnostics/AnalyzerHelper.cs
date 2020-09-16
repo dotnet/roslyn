@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -298,115 +299,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Contract.ThrowIfFalse(compilation1 == compilation2);
         }
 
-        /// <summary>
-        /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) by calculating them
-        /// </summary>
-        public static async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
-            DiagnosticAnalyzer analyzer,
-            Document document,
-            AnalysisKind kind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            CompilationWithAnalyzers? compilationWithAnalyzers,
-            TextSpan? span,
-            CancellationToken cancellationToken)
-        {
-            var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-
-            if (analyzer == FileContentLoadAnalyzer.Instance)
-            {
-                return loadDiagnostic != null ?
-                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, document)) :
-                    SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
-
-            if (loadDiagnostic != null)
-            {
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
-
-            if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
-            {
-                var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                    documentAnalyzer, document, kind, compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
-
-                return diagnostics.ConvertToLocalDiagnostics(document);
-            }
-
-            // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !analyzer.SupportAnalysisKind(kind))
-            {
-                if (kind == AnalysisKind.Syntax)
-                {
-                    Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
-                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", compilationWithAnalyzers, document, analyzer, kind);
-                }
-
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
-
-            // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer())
-            {
-                var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
-                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, document, isEnabled);
-
-                if (!isEnabled)
-                {
-                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                }
-            }
-
-            // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
-            var singleAnalyzer = ImmutableArray.Create(analyzer);
-            var skippedAnalyzerInfo = document.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
-            ImmutableArray<string> filteredIds;
-
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    if (tree == null)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                    }
-
-                    var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, singleAnalyzer, cancellationToken).ConfigureAwait(false);
-
-                    if (diagnostics.IsDefaultOrEmpty)
-                    {
-                        Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic, (d, a, t) => $"{d.Id}, {d.Project.Id}, {a}, {t.Length}", document, analyzer, tree);
-                    }
-                    else if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
-                    {
-                        diagnostics = diagnostics.Filter(filteredIds);
-                    }
-
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
-                    return diagnostics.ConvertToLocalDiagnostics(document);
-
-                case AnalysisKind.Semantic:
-                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    if (model == null)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                    }
-
-                    diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
-
-                    if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
-                    {
-                        diagnostics = diagnostics.Filter(filteredIds);
-                    }
-
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
-                    return diagnostics.ConvertToLocalDiagnostics(document);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
-        }
-
         public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
             DocumentDiagnosticAnalyzer analyzer,
             Document document,
@@ -567,181 +459,70 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 #endif
 
-        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, Document targetDocument, TextSpan? span = null)
+        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
         {
-            var project = targetDocument.Project;
-
-            if (project.SupportsCompilation)
+            foreach (var diagnostic in diagnostics)
             {
-                return ConvertToLocalDiagnosticsWithCompilation();
-            }
-
-            return ConvertToLocalDiagnosticsWithoutCompilation();
-
-            IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithoutCompilation()
-            {
-                Contract.ThrowIfTrue(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
+                if (!IsReportedInDocument(diagnostic, targetTextDocument))
                 {
-                    var location = diagnostic.Location;
-                    if (location.Kind != LocationKind.ExternalFile)
-                    {
-                        continue;
-                    }
-
-                    var lineSpan = location.GetLineSpan();
-
-                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    if (documentIds.IsEmpty || documentIds.All(id => id != targetDocument.Id))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(diagnostic, targetDocument);
+                    continue;
                 }
-            }
 
-            IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation()
-            {
-                Contract.ThrowIfFalse(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
+                if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
                 {
-                    var document = project.GetDocument(diagnostic.Location.SourceTree);
-                    if (document == null || document != targetDocument)
-                    {
-                        continue;
-                    }
-
-                    if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(diagnostic, document);
+                    continue;
                 }
-            }
-        }
 
-        public static bool? IsCompilationEndAnalyzer(this DiagnosticAnalyzer analyzer, Project project, Compilation? compilation)
-        {
-            if (!project.SupportsCompilation)
+                yield return DiagnosticData.Create(diagnostic, targetTextDocument);
+            }
+
+            static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
             {
+                if (diagnostic.Location.SourceTree != null)
+                {
+                    return targetTextDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetTextDocument;
+                }
+                else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+                {
+                    var lineSpan = diagnostic.Location.GetLineSpan();
+
+                    var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+                    return documentIds.Any(id => id == targetTextDocument.Id);
+                }
+
                 return false;
             }
-
-            Contract.ThrowIfNull(compilation);
-
-            try
-            {
-                // currently, this is only way to see whether analyzer has compilation end analysis or not.
-                // also, analyzer being compilation end analyzer or not is dynamic. so this can return different value based on
-                // given compilation or options.
-                //
-                // but for now, this is what we decided in design meeting until we decide how to deal with compilation end analyzer
-                // long term
-                var context = new CollectCompilationActionsContext(compilation, project.AnalyzerOptions);
-                analyzer.Initialize(context);
-
-                return context.IsCompilationEndAnalyzer;
-            }
-            catch
-            {
-                // analyzer.initialize can throw. when that happens, we will try again next time.
-                // we are not logging anything here since it will be logged by CompilationWithAnalyzer later
-                // in the error list
-                return null;
-            }
         }
 
-        /// <summary>
-        /// Right now, there is no API compiler will tell us whether DiagnosticAnalyzer has compilation end analysis or not
-        /// 
-        /// </summary>
-        private class CollectCompilationActionsContext : AnalysisContext
+#if DEBUG
+        internal static bool AreEquivalent(Diagnostic[] diagnosticsA, Diagnostic[] diagnosticsB)
         {
-            private readonly Compilation _compilation;
-            private readonly AnalyzerOptions _analyzerOptions;
+            var set = new HashSet<Diagnostic>(diagnosticsA, DiagnosticComparer.Instance);
+            return set.SetEquals(diagnosticsB);
+        }
 
-            public CollectCompilationActionsContext(Compilation compilation, AnalyzerOptions analyzerOptions)
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
+        {
+            internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
+
+            public bool Equals(Diagnostic? x, Diagnostic? y)
             {
-                _compilation = compilation;
-                _analyzerOptions = analyzerOptions;
+                if (x is null)
+                    return y is null;
+                else if (y is null)
+                    return false;
+
+                return x.Id == y.Id && x.Location == y.Location;
             }
 
-            public bool IsCompilationEndAnalyzer { get; private set; } = false;
-
-            public override void RegisterCompilationAction(Action<CompilationAnalysisContext> action)
+            public int GetHashCode(Diagnostic? obj)
             {
-                if (action == null)
-                {
-                    return;
-                }
+                if (obj is null)
+                    return 0;
 
-                IsCompilationEndAnalyzer = true;
-            }
-
-            public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
-            {
-                if (action == null)
-                {
-                    return;
-                }
-
-                var nestedContext = new CollectNestedCompilationContext(_compilation, _analyzerOptions, CancellationToken.None);
-                action(nestedContext);
-
-                IsCompilationEndAnalyzer |= nestedContext.IsCompilationEndAnalyzer;
-            }
-
-            #region not used
-            public override void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action) { }
-            public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) { }
-            public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action) { }
-            public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds) { }
-            public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) { }
-            public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action) { }
-            public override void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode) { }
-            public override void EnableConcurrentExecution() { }
-            public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds) { }
-            public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action) { }
-            public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action) { }
-            public override void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind) { }
-            #endregion
-
-            private class CollectNestedCompilationContext : CompilationStartAnalysisContext
-            {
-                public bool IsCompilationEndAnalyzer { get; private set; } = false;
-
-                public CollectNestedCompilationContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-                    : base(compilation, options, cancellationToken)
-                {
-                }
-
-                public override void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action)
-                {
-                    if (action == null)
-                    {
-                        return;
-                    }
-
-                    IsCompilationEndAnalyzer = true;
-                }
-
-                #region not used
-                public override void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action) { }
-                public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) { }
-                public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action) { }
-                public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds) { }
-                public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) { }
-                public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action) { }
-                public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds) { }
-                public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action) { }
-                public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action) { }
-                public override void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind) { }
-                #endregion
+                return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
             }
         }
+#endif
     }
 }

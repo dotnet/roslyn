@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractVisualBasicSignatureHelpProvider
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetFunctionAggregation(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason,
+        Private Shared Function TryGetFunctionAggregation(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason,
                                                    cancellationToken As CancellationToken, ByRef functionAggregation As FunctionAggregationSyntax) As Boolean
             Return CommonSignatureHelpUtilities.TryGetSyntax(
                 root,
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(method As IMethodSymbol,
+        Private Overloads Shared Function Convert(method As IMethodSymbol,
                                            functionAggregation As FunctionAggregationSyntax,
                                            semanticModel As SemanticModel,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Function GetPreambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetPreambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             AddExtensionPreamble(method, result)
             result.AddMethodName(method.Name)
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetPostambleParts(method As IMethodSymbol,
+        Private Shared Function GetPostambleParts(method As IMethodSymbol,
                                            semanticModel As SemanticModel,
                                            position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return parts
         End Function
 
-        Private Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer,
+        Private Shared Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer,
                                            documentationCommentFormattingService As IDocumentationCommentFormattingService) As IList(Of SignatureHelpSymbolParameter)
             ' Function <name>() As <type>
             If method.Parameters.Length <> 1 Then

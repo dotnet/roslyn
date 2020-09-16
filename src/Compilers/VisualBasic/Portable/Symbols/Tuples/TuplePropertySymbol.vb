@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TuplePropertySymbol
         Inherits WrappedPropertySymbol
 
-        Private _containingType As TupleTypeSymbol
+        Private ReadOnly _containingType As TupleTypeSymbol
 
         Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 

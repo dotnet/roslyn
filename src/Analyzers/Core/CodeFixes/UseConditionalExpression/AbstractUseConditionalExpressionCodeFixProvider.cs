@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        private TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
+        private static TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
             => isRef ? (TExpressionSyntax)generator.RefExpression(syntaxNode) : syntaxNode;
 
         /// <summary>

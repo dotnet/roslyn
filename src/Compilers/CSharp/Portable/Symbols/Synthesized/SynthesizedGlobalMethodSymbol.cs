@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => null;
+
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return ImmutableArray<string>.Empty;
@@ -314,6 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsDeclaredReadOnly => false;
+
+        internal sealed override bool IsInitOnly => false;
 
         internal override bool SynthesizesLoweredBoundBody
         {

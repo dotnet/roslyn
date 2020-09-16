@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
             => descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
 
-        private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
+        private static DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
             => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -79,6 +79,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         int x = 1 + $$(2 * 3);
     }
 }", new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(44629, "https://github.com/dotnet/roslyn/issues/44629")]
+        public async Task TestStackAlloc()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        var span = $$(stackalloc byte[8]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(47365, "https://github.com/dotnet/roslyn/issues/47365")]
+        public async Task TestDynamic()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        dynamic i = 1;
+        dynamic s = ""s"";
+        Console.WriteLine(s + $$(1 + i));
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -2476,7 +2506,78 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-#if !CODE_STYLE
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithConstantExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(1)..];
+    }
+}",
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[1..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithMemberAccessExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(s.Length)..];
+    }
+}",
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[s.Length..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithElementAccessExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s, int[] indices)
+    {
+        _ = s[$$(indices[0])..];
+    }
+}",
+@"class C
+{
+    void M(string s, int[] indices)
+    {
+        _ = s[indices[0]..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithBinaryExpression()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(s.Length - 5)..];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestAlwaysUnnecessaryForPrimaryPattern1()
@@ -2517,7 +2618,5 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
-
-#endif
     }
 }

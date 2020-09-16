@@ -14,7 +14,7 @@ namespace Microsoft.DiaSymReader
 {
     internal sealed class SymUnmanagedWriterImpl : SymUnmanagedWriter
     {
-        private static object s_zeroInt32 = 0;
+        private static readonly object s_zeroInt32 = 0;
 
         private ISymUnmanagedWriter5 _symWriter;
         private readonly ComMemoryStream _pdbStream;
@@ -583,7 +583,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void SetSourceServerData(byte[] data)
+        public override unsafe void SetSourceServerData(byte[] data)
         {
             if (data == null)
             {
@@ -610,7 +610,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void SetSourceLinkData(byte[] data)
+        public override unsafe void SetSourceLinkData(byte[] data)
         {
             if (data == null)
             {
@@ -690,7 +690,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void GetSignature(out Guid guid, out uint stamp, out int age)
+        public override unsafe void GetSignature(out Guid guid, out uint stamp, out int age)
         {
             var symWriter = GetSymWriter();
 

@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         ''' Gets the DisplayName for the given node.
         ''' </summary>
         Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode) As String Implements ICodeLensDisplayInfoService.GetDisplayName
-            If VisualBasicSyntaxFacts.Instance.IsGlobalAttribute(node) Then
+            If VisualBasicSyntaxFacts.Instance.IsGlobalAssemblyAttribute(node) Then
                 Return node.ToString()
             End If
 

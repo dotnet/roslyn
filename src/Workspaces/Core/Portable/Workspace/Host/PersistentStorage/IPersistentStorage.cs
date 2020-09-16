@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
     public interface IPersistentStorage : IDisposable
     {
         Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
+
         Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
         Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
 

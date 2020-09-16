@@ -201,6 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => null;
+
         internal override Cci.CallingConvention CallingConvention
         {
             get { return 0; }
@@ -217,6 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsDeclaredReadOnly => false;
+
+        internal sealed override bool IsInitOnly => false;
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {

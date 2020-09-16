@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
-        <target state="new">Delegate invocation can be simplified.</target>
+        <target state="translated">可简化委托调用。</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
         <source>Inline variable declaration</source>
-        <target state="new">Inline variable declaration</target>
+        <target state="translated">内联变量声明</target>
         <note />
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -62,6 +62,26 @@
         <target state="translated">使本地函数成为静态函数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Negate_expression_changes_semantics">
+        <source>Negate expression (changes semantics)</source>
+        <target state="translated">请使用求反表达式(更改语义)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_operator_preserves_semantics">
+        <source>Remove operator (preserves semantics)</source>
+        <target state="translated">请删除运算符(保留语义)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_suppression_operators">
+        <source>Remove suppression operators</source>
+        <target state="translated">请删除忽略运算符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression_operator">
+        <source>Remove unnecessary suppression operator</source>
+        <target state="translated">请删除不必要的忽略运算符</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">简化 "default" 表达式</target>
@@ -71,6 +91,11 @@
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct 包含对构造函数之外的 "this" 的赋值。使只读字段可写</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
+        <source>Suppression operator has no effect and can be misinterpreted</source>
+        <target state="translated">请禁止使用不起任何作用且可能被误解的运算符</target>
+        <note />
       </trans-unit>
       <trans-unit id="Unreachable_code_detected">
         <source>Unreachable code detected</source>
@@ -174,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
-        <target state="new">Use local function</target>
+        <target state="translated">使用本地函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
@@ -214,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
-        <target state="new">Variable declaration can be inlined</target>
+        <target state="translated">可以内联变量声明</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
@@ -235,6 +260,11 @@
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">可简化“If”语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="translated">"typeof" 可以转换为 "nameof"</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return result;
             }
 
-            public void VerifyResult(MetadataAsSourceFile file, string expected)
+            public static void VerifyResult(MetadataAsSourceFile file, string expected)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 VerifyResult(result, expected);
             }
 
-            public void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
+            public static void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
                 => Assert.Same(a.FilePath, b.FilePath);
 
-            public void VerifyDocumentNotReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
+            public static void VerifyDocumentNotReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
                 => Assert.NotSame(a.FilePath, b.FilePath);
 
             public void Dispose()
@@ -256,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             {
                 using var reader = File.OpenRead(file.FilePath);
                 var stringText = EncodedStringText.Create(reader);
-
 
                 Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container));
 

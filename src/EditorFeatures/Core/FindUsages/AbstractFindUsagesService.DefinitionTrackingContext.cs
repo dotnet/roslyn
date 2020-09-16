@@ -46,9 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public Task OnReferenceFoundAsync(SourceReferenceItem reference)
                 => _underlyingContext.OnReferenceFoundAsync(reference);
 
-            public Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
-                => _underlyingContext.OnExternalReferenceFoundAsync(reference);
-
             [Obsolete("Use ProgressTracker instead", error: false)]
             public Task ReportProgressAsync(int current, int maximum)
                 => _underlyingContext.ReportProgressAsync(current, maximum);

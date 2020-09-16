@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                     c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)),
                 awaitable.Span);
 
-
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitleWithConfigureAwait(),
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 awaitable.Span);
         }
 
-        private bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
+        private static bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
         {
             if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
             {
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             return false;
         }
 
-        private async Task<Document> AddAwaitAsync(
+        private static async Task<Document> AddAwaitAsync(
             Document document,
             TInvocationExpressionSyntax invocation,
             bool withConfigureAwait,

@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
+            if (SyntaxFacts.HasYieldOperations(syntax.Body))
+            {
+                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
+            }
+
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
 
             ScopeBinder = binder;
@@ -130,6 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AsyncMethodChecks(_declarationDiagnostics);
 
             addTo.AddRange(_declarationDiagnostics);
+
+            if (IsEntryPointCandidate && !IsGenericMethod &&
+                ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
+                DeclaringCompilation.HasEntryPointSignature(this, new DiagnosticBag()).IsCandidate)
+            {
+                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
+            }
         }
 
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
@@ -251,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // span-like types are returnable in general
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                // Method or delegate cannot return type '{0}'
+                // The return type of a method, delegate, or function pointer cannot be '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
@@ -301,10 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
+                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || (_lazyIteratorElementType is object && TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2)));
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
             }
         }
+
+        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         public override MethodKind MethodKind => MethodKind.LocalFunction;
 
@@ -356,6 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
@@ -411,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
+
+                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, this.DeclaringCompilation, diagnostics, location);
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)
