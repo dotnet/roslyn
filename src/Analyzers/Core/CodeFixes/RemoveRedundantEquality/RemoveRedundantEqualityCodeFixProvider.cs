@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
@@ -48,12 +50,57 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var replacementNode = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
-                replacementNode = replacementNode.WithTrailingTrivia(replacementNode.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-                editor.ReplaceNode(node, (_, _) => replacementNode);
+
+                editor.ReplaceNode(node, (n, _) =>
+                {
+                    if (!syntaxFacts.IsBinaryExpression(node) ||
+                        semanticModel.GetOperation(node, cancellationToken) is not IBinaryOperation operation ||
+                        operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals) ||
+                        operation.RightOperand.Type.SpecialType != SpecialType.System_Boolean ||
+                        operation.LeftOperand.Type.SpecialType != SpecialType.System_Boolean)
+                    {
+                        // This should happen only in error cases.
+                        return node;
+                    }
+
+                    var redundantBoolValue = operation.OperatorKind == BinaryOperatorKind.Equals;
+                    if (TryGetLiteralValue(operation.RightOperand) == redundantBoolValue)
+                    {
+                        return WithElasticTrailingTrivia(operation.LeftOperand.Syntax);
+                    }
+                    else if (TryGetLiteralValue(operation.RightOperand) == redundantBoolValue)
+                    {
+                        // Elastic trivia is not needed here.
+                        // LeftExpression                 ==                     RightExpression
+                        // |This is the left operand span|This is the token span|This is the right operand span
+                        return operation.RightOperand.Syntax;
+                    }
+
+                    return node;
+                });
+            }
+
+            return;
+
+            static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
+            {
+                return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
+            }
+
+            static bool? TryGetLiteralValue(IOperation operand)
+            {
+                if (operand.ConstantValue.HasValue && operand.Kind == OperationKind.Literal &&
+                    operand.ConstantValue.Value is bool constValue)
+                {
+                    return constValue;
+                }
+                return null;
             }
         }
 

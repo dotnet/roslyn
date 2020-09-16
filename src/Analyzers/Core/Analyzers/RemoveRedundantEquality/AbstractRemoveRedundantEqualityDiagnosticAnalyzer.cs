@@ -58,41 +58,24 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             var isOperatorEquals = operation.OperatorKind == BinaryOperatorKind.Equals;
             _syntaxFacts.GetPartsOfBinaryExpression(operation.Syntax, out _, out var operatorToken, out _);
-            // Example: if (x == true) {}
-            //     The primary location will be on the operator.
-            //     additionalLocations[0] will be on the whole expression "x == true".
-            //     additionalLocations[1] will be on the non-constant side "x"
-            // additionalLocations is used by the codefix as follows:
-            //     Replace(node at additionalLocations[0], node at AdditionalLocations[1]). i.e. Replace(`x == true`, `x`)
-            if (TryGetLiteralValue(rightOperand) == isOperatorEquals)
+
+            if (TryGetLiteralValue(rightOperand) == isOperatorEquals ||
+                TryGetLiteralValue(leftOperand) == isOperatorEquals)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                     operatorToken.GetLocation(),
-                    additionalLocations: new[] { operation.Syntax.GetLocation(), leftOperand.Syntax.GetLocation() }));
-            }
-            else if (TryGetLiteralValue(leftOperand) == isOperatorEquals)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor,
-                    operatorToken.GetLocation(),
-                    additionalLocations: new[] { operation.Syntax.GetLocation(), rightOperand.Syntax.GetLocation() }));
+                    additionalLocations: new[] { operation.Syntax.GetLocation() }));
             }
 
             return;
 
             static bool? TryGetLiteralValue(IOperation operand)
             {
-                if (operand.ConstantValue.HasValue && operand.Kind == OperationKind.Literal)
+                if (operand.ConstantValue.HasValue && operand.Kind == OperationKind.Literal &&
+                    operand.ConstantValue.Value is bool constValue)
                 {
-                    if (operand.ConstantValue.Value is true)
-                    {
-                        return true;
-                    }
-                    if (operand.ConstantValue.Value is false)
-                    {
-                        return false;
-                    }
+                    return constValue;
                 }
-
                 return null;
             }
         }
