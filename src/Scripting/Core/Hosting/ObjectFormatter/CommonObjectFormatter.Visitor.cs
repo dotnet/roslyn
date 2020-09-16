@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private readonly BuilderOptions _builderOptions;
             private CommonPrimitiveFormatterOptions _primitiveOptions;
-            private CommonTypeNameFormatterOptions _typeNameOptions;
+            private readonly CommonTypeNameFormatterOptions _typeNameOptions;
             private MemberDisplayFormat _memberDisplayFormat;
 
             private HashSet<object> _lazyVisitedObjects;

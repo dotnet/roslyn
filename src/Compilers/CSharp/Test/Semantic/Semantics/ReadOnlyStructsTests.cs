@@ -1036,7 +1036,7 @@ public struct S2
             verifier.VerifyDiagnostics();
         }
 
-        private static string ilreadonlyStructWithWriteableFieldIL = @"
+        private static readonly string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
 {

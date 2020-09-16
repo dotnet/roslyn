@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolNameWithoutExtension
+        protected override string ToolNameWithoutExtension
         {
             get
             {

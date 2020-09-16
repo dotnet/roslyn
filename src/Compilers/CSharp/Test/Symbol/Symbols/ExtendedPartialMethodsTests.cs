@@ -3393,5 +3393,39 @@ partial class C
                 //     internal partial IEnumerable<nint> F4() => null; // 4
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
         }
+
+        [Fact]
+        public void PublicAPI()
+        {
+            var source = @"
+#nullable enable
+
+partial class C
+{
+    public partial string M1();
+    public partial string M1() => ""a"";
+
+    partial void M2();
+    partial void M2() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol());
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol());
+
+            void verifyPublicAPI(IMethodSymbol defSymbol)
+            {
+                var implSymbol = defSymbol.PartialImplementationPart;
+                Assert.NotNull(implSymbol);
+                Assert.NotEqual(implSymbol, defSymbol);
+
+                Assert.Null(defSymbol.PartialDefinitionPart);
+                Assert.Null(implSymbol.PartialImplementationPart);
+
+                Assert.Equal(implSymbol.PartialDefinitionPart, defSymbol);
+                Assert.Equal(implSymbol.ToTestDisplayString(includeNonNullable: false), defSymbol.ToTestDisplayString(includeNonNullable: false));
+            }
+        }
     }
 }

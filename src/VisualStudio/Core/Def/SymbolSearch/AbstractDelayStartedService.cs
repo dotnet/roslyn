@@ -6,14 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Base type for services that we want to delay running until certain criteria is met.
     /// For example, we don't want to run the <see cref="VisualStudioSymbolSearchService"/> core codepath
@@ -34,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private bool _enabled = false;
 
+        protected CancellationToken DisposalToken { get; }
+
         protected AbstractDelayStartedService(
             IThreadingContext threadingContext,
             Workspace workspace,
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             Workspace = workspace;
             _serviceOnOffOption = onOffOption;
             _perLanguageOptions = perLanguageOptions.ToImmutableArray();
+            DisposalToken = threadingContext.DisposalToken;
         }
 
         protected abstract void EnableService();

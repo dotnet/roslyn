@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class WellKnownMembers
     {
-        private readonly static ImmutableArray<MemberDescriptor> s_descriptors;
+        private static readonly ImmutableArray<MemberDescriptor> s_descriptors;
 
         static WellKnownMembers()
         {

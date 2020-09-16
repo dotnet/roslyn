@@ -5566,7 +5566,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
             VerifyOperationTreeForTest<BlockSyntax>(source, expectedOperationTree);
         }
 
-        private static string s_ValueTask = @"
+        private static readonly string s_ValueTask = @"
 namespace System.Threading.Tasks
 {
     [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(System.Runtime.CompilerServices.ValueTaskMethodBuilder))]

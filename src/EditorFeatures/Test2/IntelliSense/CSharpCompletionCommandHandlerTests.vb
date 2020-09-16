@@ -26,6 +26,38 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
 
+        <WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnImplicitObjectCreationExpressionInitializer(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    public int Alice;
+    public int Bob;
+
+    void M(int value)
+    {
+        C c = new() $$
+    }
+}
+                              </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { Alice", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" = va")
+                Await state.AssertSelectedCompletionItem(displayText:="value", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { Alice = value", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -80,6 +112,37 @@ record Base(int Alice, int Bob)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("with { Alice = value, Bob = value", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(47430, "https://github.com/dotnet/roslyn/issues/47430")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnWithExpressionForTypeParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public abstract record MyRecord
+{
+    public string Name { get; init; }
+}
+
+public static class Test
+{
+    public static TRecord WithNameSuffix&lt;TRecord&gt;(this TRecord record, string nameSuffix)
+        where TRecord : MyRecord
+        => record with
+        {
+            $$
+        };
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
+
+                state.SendTypeChars("N")
+                Await state.AssertSelectedCompletionItem(displayText:="Name", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("Name", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
