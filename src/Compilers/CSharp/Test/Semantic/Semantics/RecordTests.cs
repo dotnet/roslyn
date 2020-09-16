@@ -4419,9 +4419,9 @@ record C1(int I1)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "C1 { I1 = 42, P2 = 43, P3 = 44 }", verify: Verification.Skipped /* init-only */);
             comp.VerifyEmitDiagnostics(
-                // (10,32): warning CS0067: The event 'C1.a' is never used
+                // (12,32): warning CS0067: The event 'C1.a' is never used
                 //     public event System.Action a;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(10, 32)
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(12, 32)
                 );
         }
 
