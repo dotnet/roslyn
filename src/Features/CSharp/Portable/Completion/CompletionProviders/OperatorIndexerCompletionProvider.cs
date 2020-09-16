@@ -152,12 +152,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 // expr. -> ((type)expr).
                 var newNode =
-                    ParenthesizedExpression(
+                    (SyntaxNode)ParenthesizedExpression(
                         CastExpression(IdentifierName(typeName), expression.WithoutTrivia()));
+                var syntaxToReplace = (SyntaxNode)expression;
+                var identifier = token.Parent as IdentifierNameSyntax;
+                if (identifier is { })
+                {
+                    // The user typed parts of the type name. This needs to be removed. We need to replace the expression and the identifier.
+                    // expr.ty$$ -> ((type)expr).$$
+                    syntaxToReplace = expression.GetCommonRoot(identifier);
+                    newNode = syntaxToReplace
+                        .ReplaceNodes(new[] { expression, identifier }, (n1, n2) => n1 switch
+                        {
+                            var n when ReferenceEquals(n, expression) => newNode,
+                            var n when ReferenceEquals(n, identifier) => IdentifierName(""),
+                            var n => n,
+                        });
+                }
                 var newNodeText = newNode.ToFullString();
-                var expressionSpan = expression.Span;
-                var textChange = new TextChange(expressionSpan, newNodeText);
-                var newPosition = position + (newNodeText.Length - expressionSpan.Length);
+                var replaceSpan = syntaxToReplace.Span;
+                var textChange = new TextChange(replaceSpan, newNodeText);
+                var newPosition = position + (newNodeText.Length - replaceSpan.Length);
                 return CompletionChange.Create(textChange, newPosition);
             }
 
