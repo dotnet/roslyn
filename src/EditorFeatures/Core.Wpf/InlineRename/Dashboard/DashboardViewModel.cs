@@ -50,10 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
 
-            // Set the flag to true by default if we're showing the option. Use
-            // the property so we correctly update the session as well
+            // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
-            DefaultRenameFileFlag = session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename;
+            ComputeDefaultRenameFileFlag();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -73,21 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            if (!_isReplacementTextValid && isReplacementTextValid)
-            {
-                _isReplacementTextValid = isReplacementTextValid;
-                // if the previous text is not valid, but the new one is valid
-                // Reset DefaultRenameFileFlag to default value
-                DefaultRenameFileFlag = _session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename;
-            }
+            _isReplacementTextValid = isReplacementTextValid;
+            ComputeDefaultRenameFileFlag();
+            NotifyPropertyChanged(nameof(AllowFileRename));
+        }
 
-            if (_isReplacementTextValid && !isReplacementTextValid)
-            {
-                _isReplacementTextValid = isReplacementTextValid;
-                // if the previous text is valid, but the new one is invalid
-                // Disable DefaultRenameFileFlag so that user know we won't rename the file
-                DefaultRenameFileFlag = false;
-            }
+        private void ComputeDefaultRenameFileFlag()
+        {
+            // If replacementText is invalid, we won't rename the file.
+            DefaultRenameFileFlag = _isReplacementTextValid
+                && (_session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename);
         }
 
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
