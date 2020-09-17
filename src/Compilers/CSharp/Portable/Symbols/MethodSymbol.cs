@@ -104,30 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <summary>
-        /// Returns the UnmanagedCallersOnlyAttribute data for this method, if there is any. If there is no data, <see langword="null"/>
-        /// will be returned. If the data has not yet been loaded (because attributes have not yet been parsed),
-        /// <see cref="UnmanagedCallersOnlyAttributeData.Uninitialized"/> will be returned. If early attribute binding has occurred, but
-        /// fully attribute binding has not, <see cref="UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound"/> will be returned.
-        /// To force data to load, call <see cref="ForceCompleteUnmanagedCallersOnlyAttribute()"/>, but be sure to ensure that cycles will
-        /// not occur.
+        /// Returns the UnmanagedCallersOnlyAttribute data for this method, if there is any. If the data has not yet been
+        /// loaded or only early attribute binding has occurred, and forceComplete is false, then either
+        /// <see cref="UnmanagedCallersOnlyAttributeData.Uninitialized"/> or
+        /// <see cref="UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound"/> will be returned, respectively.
+        /// If passing true for forceComplete, ensure that cycles will not occur by not calling in the process of binding
+        /// an attribute argument.
         /// </summary>
-        internal abstract UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData { get; }
-
-        /// <summary>
-        /// Forces <see cref="UnmanagedCallersOnlyAttributeData"/> to be loaded. This can cause cycles if called in the process of attribute
-        /// binding, so be sure that attribute binding is not currently occuring when calling.
-        /// </summary>
-        internal void ForceCompleteUnmanagedCallersOnlyAttribute()
-        {
-            if (ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized)
-                || ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
-            {
-                this.GetAttributes();
-            }
-
-            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized));
-            Debug.Assert(!ReferenceEquals(UnmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-        }
+        internal abstract UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete);
 #nullable restore
 
         /// <summary>

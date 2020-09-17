@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
         internal static readonly UnmanagedCallersOnlyAttributeData AttributePresentDataNotBound = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
         private static readonly UnmanagedCallersOnlyAttributeData PlatformDefault = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: true);
-        internal static readonly UnmanagedCallersOnlyAttributeData Invalid = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
 
         internal static UnmanagedCallersOnlyAttributeData Create(ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes, bool isValid)
             => (callingConventionTypes, isValid) switch
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         {
             return key == "CallConvs"
                    && value.Kind == TypedConstantKind.Array
-                   && value.Values.All(v => v.Kind == TypedConstantKind.Type);
+                   && (value.Values.IsDefaultOrEmpty || value.Values.All(v => v.Kind == TypedConstantKind.Type));
         }
     }
 }

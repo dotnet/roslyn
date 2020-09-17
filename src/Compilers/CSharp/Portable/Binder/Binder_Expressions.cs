@@ -8250,19 +8250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // If we're performing function pointer overload resolution and we're not in an attribute
-                // argument, then we force complete UnmanagedCallersOnly data for all methods to ensure
-                // they are loaded to be considered for calling convention comparison. If we're in an
-                // attribute argument, then it's an error case and overload resolution will treat it as
-                // matching to suppress potentially spurious diagnostics
-                if (!InAttributeArgument && isFunctionPointerResolution)
-                {
-                    foreach (var method in methodGroup.Methods)
-                    {
-                        method.ForceCompleteUnmanagedCallersOnlyAttribute();
-                    }
-                }
-
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(

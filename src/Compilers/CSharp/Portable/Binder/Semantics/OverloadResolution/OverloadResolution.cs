@@ -439,7 +439,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Debug.Assert(expectedConvention.CallingConventionTypes is not null);
+            Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes is not null);
+            Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes.IsEmpty || expectedConvention.CallKind == Cci.CallingConvention.Unmanaged);
+
+            Debug.Assert(!_binder.IsEarlyAttributeBinder);
+            if (_binder.InAttributeArgument)
+            {
+                // We're at a location where the unmanaged data might not yet been bound. This cannot be valid code
+                // anyway, as attribute arguments can't be method references, so we'll just assume that the conventions
+                // match, as there will be other errors that superscede these anyway
+                return;
+            }
 
             for (int i = 0; i < results.Count; i++)
             {
@@ -453,20 +463,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var unmanagedCallersOnlyData = member.UnmanagedCallersOnlyAttributeData;
-                    if (ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound)
-                        || ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized))
-                    {
-                        // If we're at a location where the unmanaged data has actually not yet been bound, it cannot be
-                        // valid code anyway, as the only place that can occur is when we're actually doing an address of
-                        // in an attribute.
-                        continue;
-                    }
+                    // We're not in an attribute, so cycles shouldn't be possible
+                    var unmanagedCallersOnlyData = member.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
+
+                    Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound)
+                                 && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized));
 
                     if (unmanagedCallersOnlyData is null)
                     {
+                        // There are 2 possible errors here:
+                        // 1. The expected CallKind and the actual CallKind don't match
+                        // 2. The expected convention is expected to be a extension convention, where the CallKind is Unmanaged
+                        //    and there are UnmanagedCallingConventionTypes expected. In that case, it is possible for the actual
+                        //    CallKind to be Unmanaged, but we don't read extension convention modopts from metadata, so we need
+                        //    to ensure that the expected UnmanagedCallingConventionTypes are empty.
                         if (!member.CallingConvention.IsCallingConvention(expectedConvention.CallKind)
-                            || !expectedConvention.CallingConventionTypes.IsEmpty)
+                            || !expectedConvention.UnmanagedCallingConventionTypes.IsEmpty)
                         {
                             results[i] = makeWrongCallingConvention(result);
                         }
@@ -477,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(unmanagedCallersOnlyData.CallingConventionTypes.All(
                         u => FunctionPointerTypeSymbol.IsCallingConventionModifier((NamedTypeSymbol)u)));
 
-                    // If there is only one type in the unmanagedData, and that type is one of the 4 special names known to the
+                    // If there is only one type in the unmanagedCallersOnlyData, and that type is one of the 4 special names known to the
                     // compiler, then we treat the CallKind of the method as if it were that calling convention. Otherwise, we
                     // treat the CallKind as Unmanaged and do comparison from the calling convention types expected in the function
                     // pointer.
@@ -502,23 +514,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!checkConventionAgainstActual(Cci.CallingConvention.Unmanaged, in expectedConvention))
                     {
-                        return;
+                        continue;
                     }
 
                     // Now, we make sure that the actual expected types match up
-                    switch (expectedConvention.CallingConventionTypes, unmanagedCallersOnlyData.CallingConventionTypes)
+                    switch (expectedConvention.UnmanagedCallingConventionTypes, unmanagedCallersOnlyData.CallingConventionTypes)
                     {
                         case ({ IsEmpty: true }, { IsEmpty: true }):
-                            return;
+                            continue;
 
                         case ({ IsEmpty: true }, _) or (_, { IsEmpty: true }):
                         case ({ Count: var expectedCount }, { Count: var actualCount }) when expectedCount != actualCount:
                             results[i] = makeWrongCallingConvention(result);
-                            return;
+                            continue;
 
                     }
 
-                    foreach (var expectedModifier in expectedConvention.CallingConventionTypes)
+                    foreach (var expectedModifier in expectedConvention.UnmanagedCallingConventionTypes)
                     {
                         if (!unmanagedCallersOnlyData.CallingConventionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
                         {

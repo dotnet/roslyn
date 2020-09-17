@@ -8614,7 +8614,7 @@ class D
 
             var c = comp.GetTypeByMetadataName("C");
             var m1 = c.GetMethod("M1");
-            var unmanagedData = m1.UnmanagedCallersOnlyAttributeData;
+            var unmanagedData = m1.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
             Assert.NotSame(unmanagedData, UnmanagedCallersOnlyAttributeData.Uninitialized);
             Assert.NotSame(unmanagedData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound);
             Assert.False(unmanagedData!.IsValid);
@@ -9882,14 +9882,15 @@ class A
                 // (5,69): error CS1003: Syntax error, ',' expected
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(Bad, Expression) })]
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",", ")").WithLocation(5, 69),
-                // (8,33): error CS8786: Calling convention of 'A.F()' is not compatible with 'Default'.
-                //         delegate*<void> ptr1 = &F;
-                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "F", isSuppressed: false).WithArguments("A.F()", "Default").WithLocation(8, 33)
+                // (9,43): error CS8786: Calling convention of 'A.F()' is not compatible with 'Unmanaged'.
+                //         delegate* unmanaged<void> ptr2 = &F;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "F", isSuppressed: false).WithArguments("A.F()", "Unmanaged").WithLocation(9, 43)
             );
         }
 
         [Theory]
         [InlineData("", 1)]
+        [InlineData("CallConvs = null", 1)]
         [InlineData("CallConvs = new System.Type[0]", 1)]
         [InlineData("CallConvs = new[] { typeof(CallConvCdecl) }", 2)]
         [InlineData("CallConvs = new[] { typeof(CallConvCdecl), typeof(CallConvCdecl) }", 2)]
