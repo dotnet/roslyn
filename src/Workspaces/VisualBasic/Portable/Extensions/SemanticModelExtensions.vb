@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Humanizer
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
@@ -158,21 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Otherwise, figure out the type of the expression and generate a name from that
             ' instead.
             Dim info = semanticModel.GetTypeInfo(expression, cancellationToken)
-
-            ' If we can't determine the type, then fallback to some placeholders.
-            Dim type = info.Type
-            Dim makePlural = Pluralize(semanticModel, type)
-
-            Dim parameterName = ""
-            If makePlural And TryGenerateNameFromTypeArgument(type, capitalize, parameterName) Then
-                Return parameterName
-            End If
-
-            If makePlural Then
-                Return type.CreateParameterName(capitalize).Pluralize()
-            Else
-                Return type.CreateParameterName(capitalize)
-            End If
+            Return semanticModel.GenerateNameFromType(info.Type, VisualBasicSyntaxFacts.Instance, capitalize)
         End Function
 
         Private Function TryGenerateNameForArgumentExpression(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As String
@@ -199,31 +186,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return Nothing
-        End Function
-
-        Private Function TryGenerateNameFromTypeArgument(type As ITypeSymbol, capitalize As Boolean, ByRef parameterName As String) As Boolean
-            Dim typeArguments = type.GetAllTypeArguments()
-
-            If typeArguments.Length = 1 Then
-                Dim typeArgument = typeArguments.Single().ToNameDisplayString()
-
-                If SyntaxFacts.IsValidIdentifier(typeArgument) Then
-                    typeArgument = typeArgument.Pluralize()
-                    parameterName = If(capitalize, typeArgument.ToPascalCase(), typeArgument.ToCamelCase())
-                    Return True
-                End If
-            End If
-
-            parameterName = Nothing
-            Return False
-        End Function
-
-        Private Function Pluralize(semanticModel As SemanticModel, type As ITypeSymbol) As Boolean
-            If type Is Nothing Then Return False
-            If type.SpecialType = SpecialType.System_String Then Return False
-
-            Dim enumerableType = semanticModel.Compilation.IEnumerableOfTType()
-            Return type.AllInterfaces.Any(Function(i) i.OriginalDefinition.Equals(enumerableType))
         End Function
     End Module
 End Namespace

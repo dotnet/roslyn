@@ -6,10 +6,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Humanizer;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -170,6 +173,58 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
+        }
+
+        public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
+        {
+            var pluralize = semanticModel.Pluralize(type);
+
+            // We may be able to use the type's arguments to generate a name if we're working
+            // with an enumerable type.
+            if (pluralize && TryGenerateNameFromTypeArgument(syntaxFacts, type, capitalize, out var typeArgumentParameterName))
+            {
+                return typeArgumentParameterName;
+            }
+
+            var parameterName = type.CreateParameterName(capitalize);
+            return pluralize ? parameterName.Pluralize() : parameterName;
+        }
+
+        private static bool Pluralize(this SemanticModel semanticModel, ITypeSymbol type)
+        {
+            if (type == null)
+                return false;
+
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+        }
+
+        private static bool TryGenerateNameFromTypeArgument(
+            ISyntaxFacts syntaxFacts,
+            ITypeSymbol type,
+            bool capitalize,
+            [NotNullWhen(true)] out string? parameterName)
+        {
+            var typeArguments = type.GetAllTypeArguments();
+
+            // We only consider generating a name if there's one type argument.
+            // This logic can potentially be expanded upon in the future.
+            if (typeArguments.Length == 1)
+            {
+                var typeArgument = typeArguments.Single().ToNameDisplayString();
+                if (syntaxFacts.IsValidIdentifier(typeArgument))
+                {
+                    typeArgument = typeArgument.Pluralize();
+                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
+                    return true;
+                }
+            }
+
+            parameterName = null;
+            return false;
         }
     }
 }

@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Utilities;
 using Humanizer;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -219,52 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Otherwise, figure out the type of the expression and generate a name from that
             // instead.
             var info = semanticModel.GetTypeInfo(expression, cancellationToken);
-
-            var type = info.Type;
-            var pluralize = Pluralize(semanticModel, type);
-
-            // We may be able to use the type's arguments to generate a name if we're working
-            // with an enumerable type.
-            if (pluralize && TryGenerateNameFromTypeArgument(type, capitalize, out var typeArgumentParameterName))
-            {
-                return typeArgumentParameterName;
-            }
-
-            var parameterName = type.CreateParameterName(capitalize);
-            return pluralize ? parameterName.Pluralize() : parameterName;
-        }
-
-        private static bool TryGenerateNameFromTypeArgument(ITypeSymbol type, bool capitalize, out string parameterName)
-        {
-            var typeArguments = type.GetAllTypeArguments();
-
-            // We only consider generating a name if there's one type argument.
-            // This logic can potentially be expanded upon in the future.
-            if (typeArguments.Length == 1)
-            {
-                var typeArgument = typeArguments.Single().ToNameDisplayString();
-                if (SyntaxFacts.IsValidIdentifier(typeArgument))
-                {
-                    typeArgument = typeArgument.Pluralize();
-                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
-                    return true;
-                }
-            }
-
-            parameterName = null;
-            return false;
-        }
-
-        private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
-        {
-            if (type == null)
-                return false;
-
-            if (type.SpecialType == SpecialType.System_String)
-                return false;
-
-            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
-            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+            return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
         }
 
         private static string TryGenerateNameForArgumentExpression(
