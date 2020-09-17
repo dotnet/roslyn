@@ -1176,53 +1176,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
-            MethodSymbol overriddenMethod,
-            MethodSymbol overridingMethod,
+            MethodSymbol baseMethod,
+            MethodSymbol overrideMethod,
             DiagnosticBag diagnostics,
             ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument,
             bool invokedAsExtensionMethod = false)
         {
-            if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
+            if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
             {
                 return;
             }
 
-            if ((overriddenMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
-                (overridingMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
+            if ((baseMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
+                (overrideMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
-                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overridingMethod.Locations[0], new FormattedSymbol(overridingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.Locations[0], new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
-            var overriddenParameters = overriddenMethod.Parameters;
-            var overridingParameters = overridingMethod.Parameters;
-            var overridingMethodOffset = invokedAsExtensionMethod ? 1 : 0;
-            Debug.Assert(overriddenMethod.ParameterCount == overridingMethod.ParameterCount - overridingMethodOffset);
+            var baseParameters = baseMethod.Parameters;
+            var overrideParameters = overrideMethod.Parameters;
+            var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(baseMethod.ParameterCount == overrideMethod.ParameterCount - overrideParameterOffset);
             if (reportMismatchInReturnType != null)
             {
-                var overridingReturnType = getNotNullIfNotNullOutputType(overridingMethod.ReturnTypeWithAnnotations, overridingMethod.ReturnNotNullIfParameterNotNull);
+                var overrideReturnType = getNotNullIfNotNullOutputType(overrideMethod.ReturnTypeWithAnnotations, overrideMethod.ReturnNotNullIfParameterNotNull);
                 // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
-                        overridingMethod.RefKind,
-                        overridingReturnType.Type,
-                        overriddenMethod.ReturnTypeWithAnnotations.Type))
+                        overrideMethod.RefKind,
+                        overrideReturnType.Type,
+                        baseMethod.ReturnTypeWithAnnotations.Type))
                 {
-                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
+                    reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, false, extraArgument);
                     return;
                 }
 
                 // check top-level nullability including flow analysis annotations
                 if (!NullableWalker.AreParameterAnnotationsCompatible(
-                        overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
-                        overriddenMethod.ReturnTypeWithAnnotations,
-                        overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
-                        overridingReturnType,
-                        overridingMethod.ReturnTypeFlowAnalysisAnnotations))
+                        overrideMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
+                        baseMethod.ReturnTypeWithAnnotations,
+                        baseMethod.ReturnTypeFlowAnalysisAnnotations,
+                        overrideReturnType,
+                        overrideMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
-                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
+                    reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, true, extraArgument);
                     return;
                 }
             }
@@ -1232,30 +1232,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            for (int i = 0; i < overriddenParameters.Length; i++)
+            for (int i = 0; i < baseParameters.Length; i++)
             {
-                var overriddenParameter = overriddenParameters[i];
-                var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
-                var overridingParameter = overridingParameters[i + overridingMethodOffset];
-                var overridingParameterType = getNotNullIfNotNullOutputType(overridingParameter.TypeWithAnnotations, overridingParameter.NotNullIfParameterNotNull);
+                var baseParameter = baseParameters[i];
+                var baseParameterType = baseParameter.TypeWithAnnotations;
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
                 // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
-                        overridingParameter.RefKind,
-                        overriddenParameterType.Type,
-                        overridingParameterType.Type))
+                        overrideParameter.RefKind,
+                        baseParameterType.Type,
+                        overrideParameterType.Type))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, false, extraArgument);
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
                 }
                 // check top-level nullability including flow analysis annotations
                 else if (!NullableWalker.AreParameterAnnotationsCompatible(
-                        overridingParameter.RefKind,
-                        overriddenParameterType,
-                        overriddenParameter.FlowAnalysisAnnotations,
-                        overridingParameterType,
-                        overridingParameter.FlowAnalysisAnnotations))
+                        overrideParameter.RefKind,
+                        baseParameterType,
+                        baseParameter.FlowAnalysisAnnotations,
+                        overrideParameterType,
+                        overrideParameter.FlowAnalysisAnnotations))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, true, extraArgument);
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
                 }
             }
 
@@ -1263,10 +1263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!notNullIfParameterNotNull.IsEmpty)
                 {
-                    for (var i = 0; i < overriddenParameters.Length; i++)
+                    for (var i = 0; i < baseParameters.Length; i++)
                     {
-                        var overridingParam = overridingParameters[i + overridingMethodOffset];
-                        if (notNullIfParameterNotNull.Contains(overridingParam.Name) && !overriddenParameters[i].TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                        var overrideParam = overrideParameters[i + overrideParameterOffset];
+                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && !baseParameters[i].TypeWithAnnotations.NullableAnnotation.IsAnnotated())
                         {
                             return outputType.AsNotAnnotated();
                         }
