@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+        private const string DefaultParameterName = "p";
+
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             ArgumentListSyntax argumentList,
@@ -220,6 +222,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Otherwise, figure out the type of the expression and generate a name from that
             // instead.
             var info = semanticModel.GetTypeInfo(expression, cancellationToken);
+            if (info.Type == null)
+            {
+                return DefaultParameterName;
+            }
+
             return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
         }
 

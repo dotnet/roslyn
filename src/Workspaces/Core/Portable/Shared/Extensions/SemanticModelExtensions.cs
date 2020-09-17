@@ -177,11 +177,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
         {
-            var pluralize = semanticModel.Pluralize(type);
+            var pluralize = semanticModel.ShouldPluralize(type);
             var typeArguments = type.GetAllTypeArguments();
 
             // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
-            if (pluralize && TryGenerateNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
+            if (pluralize && TryGeneratePluralizedNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
             {
                 return typeArgumentParameterName;
             }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.CreateParameterName(capitalize);
         }
 
-        private static bool Pluralize(this SemanticModel semanticModel, ITypeSymbol type)
+        private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
         {
             if (type == null)
                 return false;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
         }
 
-        private static bool TryGenerateNameFromTypeArgument(
+        private static bool TryGeneratePluralizedNameFromTypeArgument(
             ISyntaxFacts syntaxFacts,
             ImmutableArray<ITypeSymbol> typeArguments,
             bool capitalize,

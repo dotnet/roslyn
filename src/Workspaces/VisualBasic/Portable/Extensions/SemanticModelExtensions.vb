@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
 
-        Private Const s_defaultParameterName = "p"
+        Private Const DefaultParameterName = "p"
 
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                                 argument As ArgumentSyntax,
                                                 cancellationToken As CancellationToken) As String
             Dim result = GenerateNameForArgumentWorker(semanticModel, argument, cancellationToken)
-            Return If(String.IsNullOrWhiteSpace(result), s_defaultParameterName, result)
+            Return If(String.IsNullOrWhiteSpace(result), DefaultParameterName, result)
         End Function
 
         Private Function GenerateNameForArgumentWorker(semanticModel As SemanticModel,
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return semanticModel.GenerateNameForExpression(
                     argument.GetExpression(), capitalize:=False, cancellationToken:=cancellationToken)
             Else
-                Return s_defaultParameterName
+                Return DefaultParameterName
             End If
         End Function
 
@@ -158,6 +158,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Otherwise, figure out the type of the expression and generate a name from that
             ' instead.
             Dim info = semanticModel.GetTypeInfo(expression, cancellationToken)
+            If info.Type Is Nothing Then
+                Return DefaultParameterName
+            End If
+
             Return semanticModel.GenerateNameFromType(info.Type, VisualBasicSyntaxFacts.Instance, capitalize)
         End Function
 
