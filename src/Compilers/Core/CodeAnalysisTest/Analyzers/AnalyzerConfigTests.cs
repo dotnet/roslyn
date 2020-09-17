@@ -2109,6 +2109,15 @@ option2 = config3
         [InlineData("?abc.cs", false)]
         [InlineData("/path/to/**", false)]
         [InlineData("/path/[a]/to/*.cs", false)]
+        [InlineData("/path{", false)]
+        [InlineData("/path}", false)]
+        [InlineData("/path?", false)]
+        [InlineData("/path,", false)]
+        [InlineData("/path\"", true)]
+        [InlineData("/path\\", false)]
+        [InlineData("//path", true)]
+        [InlineData("//", true)]
+        [InlineData("/\\{\\}\\,\\[\\]\\*", true)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
