@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
-                if (canGenerateMember)
+                if (canGenerateMember && state.CanGeneratePropertyOrField())
                 {
                     // prefer fields over properties (and vice versa) depending on the casing of the member.
                     // lowercase -> fields.  title case -> properties.
@@ -106,11 +106,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return;
             }
 
-            if (!state.CanGeneratePropertyOrField())
-            {
-                return;
-            }
-
             var isOnlyReadAndIsInInterface = state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo;
 
             if (isOnlyReadAndIsInInterface || state.IsInConstructor)
@@ -134,11 +129,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
-                if (!state.CanGeneratePropertyOrField())
-                {
-                    return;
-                }
-
                 if (state.IsConstant)
                 {
                     result.Add(new GenerateVariableCodeAction(
