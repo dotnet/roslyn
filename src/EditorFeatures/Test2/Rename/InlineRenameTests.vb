@@ -112,6 +112,37 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameWithInvalidIdentifier(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class [|Test1$$|]
+{
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim options = workspace.CurrentSolution.Options
+                workspace.TryApplyChanges(
+                    workspace.CurrentSolution.WithOptions(options.WithChangedOption(RenameOptions.RenameFile, True)))
+
+                Dim session = StartSession(workspace)
+
+                Dim selectedSpan = workspace.DocumentWithCursor.CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+                ' User could use copy & paste to enter invalid character
+                textBuffer.Insert(selectedSpan, "<>")
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace, "Test1<>")
+                VerifyFileName(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
         Public Async Function RenameDeconstructionForeachCollection(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -377,14 +408,14 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
-public partial class [|$$C|] { } 
+public partial class [|$$C|] { }
 // [|C|]
 ]]></Document>
                         </Project>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             <Document FilePath="C2.cs"><![CDATA[
-public partial class C { } 
+public partial class C { }
 // [|C|]
 ]]></Document>
                         </Project>
@@ -404,13 +435,13 @@ public partial class C { }
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
-public partial class C { private void [|$$F|](){} } 
+public partial class C { private void [|$$F|](){} }
 ]]></Document>
                         </Project>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2" AssemblyName="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             <Document FilePath="C2.cs"><![CDATA[
-public partial class C { } 
+public partial class C { }
 // [|F|]
 ]]></Document>
                         </Project>
@@ -436,13 +467,13 @@ public partial class C { }
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
-public partial class C { public void [|$$F|](){} } 
+public partial class C { public void [|$$F|](){} }
 ]]></Document>
                         </Project>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2" AssemblyName="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             <Document FilePath="C2.cs"><![CDATA[
-public partial class C { } 
+public partial class C { }
 // [|F|]
 ]]></Document>
                         </Project>
@@ -1618,23 +1649,23 @@ End Module
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Public Class Class1 
+Public Class Class1
   Public Property [|$$Field1|] As Integer
-End Class 
+End Class
 
-Public Class Class2 
-  Public Shared Property DataSource As IEnumerable(Of Class1) 
-  Public ReadOnly Property Dict As IReadOnlyDictionary(Of Integer, IEnumerable(Of Class1)) = 
-  ( 
-    From data 
-    In DataSource 
-    Group By 
+Public Class Class2
+  Public Shared Property DataSource As IEnumerable(Of Class1)
+  Public ReadOnly Property Dict As IReadOnlyDictionary(Of Integer, IEnumerable(Of Class1)) =
+  (
+    From data
+    In DataSource
+    Group By
     data.Field1
-    Into Group1 = Group 
-  ).ToDictionary( 
+    Into Group1 = Group
+  ).ToDictionary(
     Function(group) group.Field1,
-    Function(group) group.Group1) 
-End Class 
+    Function(group) group.Group1)
+End Class
                             </Document>
                         </Project>
                     </Workspace>, host)
@@ -1881,7 +1912,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                ' Disable document changes to make sure file rename is not supported. 
+                ' Disable document changes to make sure file rename is not supported.
                 ' Linked workspace files will report that applying changes to document
                 ' info is not allowed; this is intended to mimic that behavior
                 ' and make sure inline rename works as intended.
