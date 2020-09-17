@@ -27,17 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenFunctionPointersTests : CSharpTestBase
     {
         private CompilationVerifier CompileAndVerifyFunctionPointers(
-            string source,
-            MetadataReference[]? references = null,
-            Action<ModuleSymbol>? symbolValidator = null,
-            string? expectedOutput = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
-            CSharpCompilationOptions? options = null,
-            bool overrideUnmanagedSupport = false)
-            => CompileAndVerifyFunctionPointers(new[] { source }, references, symbolValidator, expectedOutput, targetFramework, options, overrideUnmanagedSupport);
-
-        private CompilationVerifier CompileAndVerifyFunctionPointers(
-                string[] sources,
+                CSharpTestSource sources,
                 MetadataReference[]? references = null,
                 Action<ModuleSymbol>? symbolValidator = null,
                 string? expectedOutput = null,
@@ -57,20 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CompileAndVerify(comp, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
+        private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
+        {
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+        }
+
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
         {
             var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.Regular9, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
-        }
-
-        private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
-        {
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
-        }
-
-        private static CSharpCompilation CreateCompilationWithFunctionPointers(string[] source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
-        {
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
         }
 
         private static CSharpCompilation CreateCompilationWithFunctionPointersAndIl(string source, string ilStub, IEnumerable<MetadataReference>? references = null)
