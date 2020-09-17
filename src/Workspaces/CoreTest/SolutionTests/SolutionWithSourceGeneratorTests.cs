@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     VersionStamp.Default,
                     name: "TestProject",
                     assemblyName: "TestProject",
-                    language: LanguageNames.CSharp,
-                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview))).Projects.Single();
+                    language: LanguageNames.CSharp)).Projects.Single();
         }
 
         [Theory]
