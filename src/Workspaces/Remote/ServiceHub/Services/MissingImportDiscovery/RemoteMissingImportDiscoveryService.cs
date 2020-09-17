@@ -13,17 +13,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteAddImportService : BrokeredServiceBase, IRemoteAddImportService
+    internal sealed class RemoteMissingImportDiscoveryService : BrokeredServiceBase, IRemoteMissingImportDiscoveryService
     {
-        internal sealed class Factory : FactoryBase<IRemoteAddImportService, IRemoteAddImportService.ICallback>
+        internal sealed class Factory : FactoryBase<IRemoteMissingImportDiscoveryService, IRemoteMissingImportDiscoveryService.ICallback>
         {
-            protected override IRemoteAddImportService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteAddImportService.ICallback> callback)
-                => new RemoteAddImportService(arguments, callback);
+            protected override IRemoteMissingImportDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback)
+                => new RemoteMissingImportDiscoveryService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteAddImportService.ICallback> _callback;
+        private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback;
 
-        public RemoteAddImportService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteAddImportService.ICallback> callback)
+        public RemoteMissingImportDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
@@ -60,15 +60,15 @@ namespace Microsoft.CodeAnalysis.Remote
         /// by remoting *from* the OOP server back to the host, which can then forward this 
         /// appropriately to wherever the real <see cref="ISymbolSearchService"/> is running.  This is necessary
         /// because it's not guaranteed that the real <see cref="ISymbolSearchService"/> will be running in 
-        /// the same process that is supplying the <see cref="RemoteAddImportService"/>.
+        /// the same process that is supplying the <see cref="RemoteMissingImportDiscoveryService"/>.
         /// 
         /// Ideally we would not need to bounce back to the host for this.
         /// </summary>
         private sealed class SymbolSearchService : ISymbolSearchService
         {
-            private readonly RemoteCallback<IRemoteAddImportService.ICallback> _callback;
+            private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback;
 
-            public SymbolSearchService(RemoteCallback<IRemoteAddImportService.ICallback> callback)
+            public SymbolSearchService(RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback)
             {
                 _callback = callback;
             }

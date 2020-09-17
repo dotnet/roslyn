@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../RemoteWorkspacesResources.resx">
     <body>
-      <trans-unit id="FeatureName_AddImport">
-        <source>Add import</source>
-        <target state="new">Add import</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
         <source>CodeLens references</source>
         <target state="new">CodeLens references</target>
@@ -22,7 +17,7 @@
         <target state="new">Dependent type finder</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_DesignerAttribute">
+      <trans-unit id="FeatureName_DesignerAttributeDiscovery">
         <source>DesignerAttribute discovery</source>
         <target state="new">DesignerAttribute discovery</target>
         <note />
@@ -55,6 +50,11 @@
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
         <target state="new">Global notification delivery</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="new">Missing import discovery</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_NavigateToSearch">
@@ -92,7 +92,7 @@
         <target state="new">Symbol search</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoComments">
+      <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="new">TODO comments discovery</target>
         <note />

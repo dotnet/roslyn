@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteDesignerAttributeService : BrokeredServiceBase, IRemoteDesignerAttributeService
+    internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
     {
-        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeService, IDesignerAttributeListener>
+        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IDesignerAttributeListener>
         {
-            protected override IRemoteDesignerAttributeService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
-                => new RemoteDesignerAttributeService(arguments, callback);
+            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
+                => new RemoteDesignerAttributeDiscoveryService(arguments, callback);
         }
 
         private readonly RemoteCallback<IDesignerAttributeListener> _callback;
 
-        public RemoteDesignerAttributeService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
+        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
             : base(arguments)
         {
             _callback = callback;

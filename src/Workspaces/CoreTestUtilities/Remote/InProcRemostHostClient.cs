@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDesignerAttributeService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTodoCommentsService.Factory());
+                RegisterRemoteBrokeredService(new RemoteTodoCommentsDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationCacheService.Factory());
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
-                RegisterRemoteBrokeredService(new RemoteAddImportService.Factory());
+                RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());

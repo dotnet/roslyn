@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal interface IRemoteAddImportService
+    internal interface IRemoteMissingImportDiscoveryService
     {
         internal interface ICallback
         {

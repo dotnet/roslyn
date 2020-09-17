@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var callbackTarget = new RemoteAddImportServiceCallback(symbolSearchService);
 
-                var result = await client.TryInvokeAsync<IRemoteAddImportService, ImmutableArray<AddImportFixData>>(
+                var result = await client.TryInvokeAsync<IRemoteMissingImportDiscoveryService, ImmutableArray<AddImportFixData>>(
                     document.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.GetFixesAsync(solutionInfo, document.Id, span, diagnosticId, maxResults, placeSystemNamespaceFirst, searchReferenceAssemblies, packageSources, cancellationToken),
                     callbackTarget,

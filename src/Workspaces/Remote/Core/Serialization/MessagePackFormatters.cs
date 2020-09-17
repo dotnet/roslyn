@@ -223,8 +223,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             static EnumFormatter()
             {
-                Debug.Assert(typeof(TEnum).GetEnumUnderlyingType() != typeof(long));
-                Debug.Assert(typeof(TEnum).GetEnumUnderlyingType() != typeof(ulong));
+                var underlyingType = typeof(TEnum).GetEnumUnderlyingType();
+                Contract.ThrowIfTrue(underlyingType == typeof(long) || underlyingType == typeof(ulong));
             }
 
             public EnumFormatter(Func<TEnum, int> toInt, Func<int, TEnum> toEnum)
@@ -257,15 +257,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public Nullable CreateNullable()
-                => new Nullable(_toInt, _toEnum);
+            public NullableEnum CreateNullable()
+                => new NullableEnum(_toInt, _toEnum);
 
-            internal sealed class Nullable : IMessagePackFormatter<TEnum?>
+            internal sealed class NullableEnum : IMessagePackFormatter<TEnum?>
             {
                 private readonly Func<TEnum, int> _toInt;
                 private readonly Func<int, TEnum> _toEnum;
 
-                public Nullable(Func<TEnum, int> toInt, Func<int, TEnum> toEnum)
+                public NullableEnum(Func<TEnum, int> toInt, Func<int, TEnum> toEnum)
                 {
                     _toInt = toInt;
                     _toEnum = toEnum;

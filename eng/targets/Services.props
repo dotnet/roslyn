@@ -22,15 +22,15 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolFinderService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.FindUsages" ClassName="Microsoft.CodeAnalysis.Remote.RemoteFindUsagesService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.NavigateToSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteNavigateToSearchService+Factory" IsBrokered="true" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.AddImport" ClassName="Microsoft.CodeAnalysis.Remote.RemoteAddImportService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.MissingImportDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteMissingImportDiscoveryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMethodImportCompletion" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMethodImportCompletionService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DependentTypeFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDependentTypeFinderService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.GlobalNotificationDelivery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteGlobalNotificationDeliveryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CodeLensReferences" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCodeLensReferencesService+Factory" IsBrokered="true" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttribute" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttributeDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeDiscoveryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProjectTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolSearchUpdate" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateService+Factory" IsBrokered="true" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.TodoComments" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.TodoCommentsDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsDiscoveryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.LanguageServer" />
   </ItemGroup>
   

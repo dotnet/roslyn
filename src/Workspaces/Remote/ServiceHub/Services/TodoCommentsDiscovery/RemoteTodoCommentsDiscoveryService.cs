@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsService : BrokeredServiceBase, IRemoteTodoCommentsService
+    internal partial class RemoteTodoCommentsDiscoveryService : BrokeredServiceBase, IRemoteTodoCommentsDiscoveryService
     {
-        internal sealed class Factory : FactoryBase<IRemoteTodoCommentsService, ITodoCommentsListener>
+        internal sealed class Factory : FactoryBase<IRemoteTodoCommentsDiscoveryService, ITodoCommentsListener>
         {
-            protected override IRemoteTodoCommentsService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
-                => new RemoteTodoCommentsService(arguments, callback);
+            protected override IRemoteTodoCommentsDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
+                => new RemoteTodoCommentsDiscoveryService(arguments, callback);
         }
 
         private readonly RemoteCallback<ITodoCommentsListener> _callback;
 
-        public RemoteTodoCommentsService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
+        public RemoteTodoCommentsDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<ITodoCommentsListener> callback)
             : base(arguments)
         {
             _callback = callback;

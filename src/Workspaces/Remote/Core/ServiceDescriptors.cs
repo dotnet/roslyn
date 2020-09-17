@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)> Descriptors = ImmutableDictionary.CreateRange(new[]
         {
-            CreateDescriptors(typeof(IRemoteTodoCommentsService), callbackInterface: typeof(ITodoCommentsListener)),
-            CreateDescriptors(typeof(IRemoteDesignerAttributeService), callbackInterface: typeof(IDesignerAttributeListener)),
+            CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(ITodoCommentsListener)),
+            CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IDesignerAttributeListener)),
             CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IProjectTelemetryListener)),
             CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
             CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteSymbolFinderService), callbackInterface: typeof(IRemoteSymbolFinderService.ICallback)),
             CreateDescriptors(typeof(IRemoteFindUsagesService), callbackInterface: typeof(IRemoteFindUsagesService.ICallback)),
             CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
-            CreateDescriptors(typeof(IRemoteAddImportService), callbackInterface: typeof(IRemoteAddImportService.ICallback)),
+            CreateDescriptors(typeof(IRemoteMissingImportDiscoveryService), callbackInterface: typeof(IRemoteMissingImportDiscoveryService.ICallback)),
             CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
             CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
             CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
