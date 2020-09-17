@@ -2121,7 +2121,7 @@ option2 = config3
         [InlineData("\\", false)] //editorconfig sees a single backslash
         [InlineData("\\\\", false)] //editorconfig sees an escaped backslash, which is not a valid absolute path
         [InlineData("/\\{\\}\\,\\[\\]\\*", true)]
-        [InlineData("c:\\my\\file.cs", false)] // s: editorconfig sees a single file called 'c:\my\file.cs' 
+        [InlineData("c:\\my\\file.cs", false)] // invalid: editorconfig sees a single file called 'c:\my\file.cs' 
         [InlineData("\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\my\file.cs' 
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
