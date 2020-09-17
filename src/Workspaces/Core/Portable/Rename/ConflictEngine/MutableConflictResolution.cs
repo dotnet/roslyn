@@ -106,13 +106,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return intermediateSolution;
         }
 
-        internal void TryRenameDocumentToMatchNewSymbol(Document document)
+        internal void RenameDocumentToMatchNewSymbol(Document document)
         {
-            if (ReplacementText.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
-            {
-                return;
-            }
-
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 

@@ -66,12 +66,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             UpdateSearchText(totalSpansCount, totalFilesCount);
         }
 
+        private void OnIsReplacementTextValidChanged(bool isReplacementTextValid)
+        {
+            if (isReplacementTextValid == _isReplacementTextValid)
+            {
+                return;
+            }
+
+            if (!_isReplacementTextValid && isReplacementTextValid)
+            {
+                _isReplacementTextValid = isReplacementTextValid;
+                // if the previous text is not valid, but the new one is valid
+                // Reset DefaultRenameFileFlag to default value
+                DefaultRenameFileFlag = _session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename;
+            }
+
+            if (_isReplacementTextValid && !isReplacementTextValid)
+            {
+                _isReplacementTextValid = isReplacementTextValid;
+                // if the previous text is valid, but the new one is invalid
+                // Disable DefaultRenameFileFlag so that user know we won't rename the file
+                DefaultRenameFileFlag = false;
+            }
+        }
+
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
         {
             var session = (InlineRenameSession)sender;
             _resolvableConflictCount = 0;
             _unresolvableConflictCount = 0;
-            _isReplacementTextValid = DefaultRenameFileFlag = result.ReplacementTextValid;
+            OnIsReplacementTextValidChanged(result.ReplacementTextValid);
             if (result.ReplacementTextValid)
             {
                 _errorText = null;

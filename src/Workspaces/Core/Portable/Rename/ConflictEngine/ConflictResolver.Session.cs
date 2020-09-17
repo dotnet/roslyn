@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         if (definitionDocuments.Count() == 1)
                         {
                             // At the moment, only single document renaming is allowed
-                            conflictResolution.TryRenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
                         }
                     }
 
