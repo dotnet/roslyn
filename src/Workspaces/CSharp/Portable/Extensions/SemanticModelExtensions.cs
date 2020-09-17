@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Utilities;
 using Humanizer;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
