@@ -5559,6 +5559,10 @@ tryAgain:
                     // This is useful for parsing expressions in isolation
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
+                case SyntaxKind.EqualsGreaterThanToken:  // e.g. `e switch { A<B> => 1 }`
+                    // This token was added to 7.5.4.2 Grammar Ambiguities in C# 9.0
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
                 default:
                     return ScanTypeArgumentListKind.PossibleTypeArgumentList;
             }

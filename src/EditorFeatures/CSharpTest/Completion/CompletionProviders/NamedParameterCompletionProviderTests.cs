@@ -481,7 +481,7 @@ class Program
     }
 }
 ";
-            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "args");
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -492,7 +492,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Main(ar$$)
+        Main(arg$$)
     }
 }
 ";
@@ -506,7 +506,7 @@ class Program
     }
 }
 ";
-            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "arg");
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
     }
 }

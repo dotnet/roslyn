@@ -3434,7 +3434,7 @@ class C
                 );
         }
 
-        // Attempting to call `ConstantValue` on every constiuent string component times out the IOperation runner.
+        // Attempting to call `ConstantValue` on every constituent string component times out the IOperation runner.
         // Instead, we manually validate just the top level
         [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()

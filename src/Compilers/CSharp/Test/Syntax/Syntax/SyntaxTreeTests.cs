@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithRootAndOptions_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.UTF7, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
-            Assert.Same(Encoding.UTF7, newText.Encoding);
+            Assert.Same(Encoding.Unicode, newText.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithFilePath_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.UTF7, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path: "old.cs");
 
             var newTree = oldTree.WithFilePath("new.cs");
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
-            Assert.Same(Encoding.UTF7, newText.Encoding);
+            Assert.Same(Encoding.Unicode, newText.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
         }
 

@@ -242,7 +242,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string itemToCommit,
             string expectedCodeAfterCommit,
             char? commitChar,
-            string textTypedSoFar,
             SourceCodeKind? sourceCodeKind = null)
         {
             WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider);
@@ -253,12 +252,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
             if (sourceCodeKind.HasValue)
             {
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, sourceCodeKind.Value);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, sourceCodeKind.Value);
             }
             else
             {
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, SourceCodeKind.Regular);
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, SourceCodeKind.Script);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, SourceCodeKind.Regular);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, SourceCodeKind.Script);
             }
         }
 
@@ -458,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -498,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -526,20 +525,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyProviderCommitWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitChar, string textTypedSoFar, SourceCodeKind sourceCodeKind)
+            char? commitChar, SourceCodeKind sourceCodeKind)
         {
             var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
-            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
+            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
-                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
+                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
         private async Task VerifyProviderCommitCheckResultsAsync(
-            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
+            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt)
         {
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
@@ -551,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
+                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar))
             {
                 var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, disallowAddingImports: false, CancellationToken.None)).TextChange;
 
@@ -1036,13 +1035,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 foreach (var ch in validChars)
                 {
                     Assert.True(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
+                        service.GetRules(), item, ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
                     Assert.False(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
+                        service.GetRules(), item, ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
             // The first 4 bytes are using platform dependent hashcode and 
             // are not deterministic. This is a known limitation and corrected 
             // with the last 8 bytes of the GUID
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 actualBytes[i] = 0;
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 
@@ -16,21 +18,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Triggered when a document is opened.
         /// </summary>
-        /// <param name="moniker">the non-null moniker of the opened document.</param>
-        /// <param name="textBuffer">the non-null text buffer of the opened document)</param>
+        /// <param name="moniker">the moniker of the opened document.</param>
+        /// <param name="textBuffer">the text buffer of the opened document)</param>
         /// <param name="hierarchy">the hierarchy of the text buffer if available.</param>
-        void OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy);
+        void OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame);
 
         /// <summary>
         /// Triggered when a document is closed.
         /// </summary>
-        /// <param name="moniker">the non-null moniker of the closed document.</param>
+        /// <param name="moniker">the moniker of the closed document.</param>
         void OnCloseDocument(string moniker);
 
         /// <summary>
         /// Triggered when a document context is refreshed with a new hierarchy.
         /// </summary>
-        /// <param name="moniker">the non-null moniker of the document that changed.</param>
+        /// <param name="moniker">the moniker of the document that changed.</param>
         /// <param name="hierarchy">the hierarchy of the text buffer if available.</param>
         void OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy);
 

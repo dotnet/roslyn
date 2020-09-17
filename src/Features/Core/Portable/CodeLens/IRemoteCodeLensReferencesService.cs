@@ -16,12 +16,5 @@ namespace Microsoft.CodeAnalysis.CodeLens
         Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
         Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
         Task<string> GetFullyQualifiedNameAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
-
-        Task TrackCodeLensAsync(DocumentId documentId, CancellationToken cancellationToken);
-    }
-
-    internal interface IRemoteCodeLensDataPoint
-    {
-        void Invalidate();
     }
 }

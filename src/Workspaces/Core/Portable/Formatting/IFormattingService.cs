@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options, CancellationToken cancellationToken);
+        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet? options, CancellationToken cancellationToken);
     }
 }

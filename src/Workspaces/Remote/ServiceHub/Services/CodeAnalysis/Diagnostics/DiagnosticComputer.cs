@@ -80,8 +80,17 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
-            return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
-                reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
+                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
+                s_compilationWithAnalyzersCache.Remove(_project);
+                throw;
+            }
         }
 
         private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(

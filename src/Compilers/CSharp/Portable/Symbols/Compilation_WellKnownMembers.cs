@@ -434,6 +434,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
+        internal SynthesizedAttributeData? TrySynthesizeAttribute(
+            SpecialMember constructor,
+            bool isOptionalUse = false)
+        {
+            var ctorSymbol = (MethodSymbol)this.GetSpecialTypeMember(constructor);
+
+            if ((object)ctorSymbol == null)
+            {
+                Debug.Assert(isOptionalUse);
+                return null;
+            }
+
+            return new SynthesizedAttributeData(
+                ctorSymbol,
+                arguments: ImmutableArray<TypedConstant>.Empty,
+                namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+        }
+
         internal SynthesizedAttributeData? SynthesizeDecimalConstantAttribute(decimal value)
         {
             bool isNegative;

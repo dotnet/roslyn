@@ -12,7 +12,7 @@ namespace Microsoft.DiaSymReader
     /// <summary>
     /// Minimal implementation of IMetadataImport that implements APIs used by SymReader and SymWriter.
     /// </summary>
-    internal unsafe sealed class SymWriterMetadataAdapter : MetadataAdapterBase
+    internal sealed unsafe class SymWriterMetadataAdapter : MetadataAdapterBase
     {
         private readonly ISymWriterMetadataProvider _metadataProvider;
 

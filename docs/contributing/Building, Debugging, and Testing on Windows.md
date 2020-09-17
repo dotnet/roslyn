@@ -25,6 +25,10 @@ The minimal required version of .NET Framework is 4.7.2.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
+## Developing with Visual Studio Code
+
+See the [Building, Debugging, and Testing on Unix](Building,%20Debugging,%20and%20Testing%20on%20Unix.md#working-in-visual-studio-code) documentation to get started developing Roslyn using Visual Studio Code.
+
 ## Running Tests
 
 There are a number of options for running the core Roslyn unit tests:

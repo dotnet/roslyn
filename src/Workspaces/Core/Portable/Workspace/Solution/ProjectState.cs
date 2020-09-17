@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis
             return configSet.GetOptionsForSourcePath(path).AnalyzerOptions;
         }
 
-        public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+        public AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
         {
             // We need to find the analyzer config options at the root of the project.
             // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
             var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
             if (!PathUtilities.IsAbsolute(projectDirectory))
             {
-                return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                return null;
             }
 
             var fileName = Guid.NewGuid().ToString();
@@ -298,10 +298,10 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 default:
-                    return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                    return null;
             }
 
-            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath).TreeOptions;
+            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
         private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
@@ -341,17 +341,24 @@ namespace Microsoft.CodeAnalysis
             public WorkspaceSyntaxTreeOptionsProvider(ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
-            public override bool? IsGenerated(SyntaxTree tree)
+            public override bool? IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
             {
                 var options = _lazyAnalyzerConfigSet
-                    .GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath);
+                    .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
                 return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options.AnalyzerOptions);
             }
 
-            public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, out ReportDiagnostic severity)
+            public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
             {
                 var options = _lazyAnalyzerConfigSet
-                    .GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath);
+                    .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
+                return options.TreeOptions.TryGetValue(diagnosticId, out severity);
+            }
+
+            public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+            {
+                var options = _lazyAnalyzerConfigSet
+                    .GetValue(cancellationToken).GlobalConfigOptions;
                 return options.TreeOptions.TryGetValue(diagnosticId, out severity);
             }
 

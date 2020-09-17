@@ -257,6 +257,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return null;
         }
 
+        /// <summary>
+        /// Similar to <see cref="ISyntaxFacts.GetStandaloneExpression(SyntaxNode)"/>, this gets the containing
+        /// expression that is actually a language expression and not just typed as an ExpressionSyntax for convenience.
+        /// However, this goes beyond that that method in that if this expression is the RHS of a conditional access
+        /// (i.e. <c>a?.b()</c>) it will also return the root of the conditional access expression tree.
+        /// <para/> The intuition here is that this will give the topmost expression node that could realistically be
+        /// replaced with any other expression.  For example, with <c>a?.b()</c> technically <c>.b()</c> is an
+        /// expression.  But that cannot be replaced with something like <c>(1 + 1)</c> (as <c>a?.(1 + 1)</c> is not
+        /// legal).  However, in <c>a?.b()</c>, then <c>a</c> itself could be replaced with <c>(1 + 1)?.b()</c> to form
+        /// a legal expression.
+        /// </summary>
+        public static SyntaxNode GetRootStandaloneExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            // First, make sure we're on a construct the language things is a standalone expression.
+            var standalone = syntaxFacts.GetStandaloneExpression(node);
+
+            // Then, if this is the RHS of a `?`, walk up to the top of that tree to get the final standalone expression.
+            return syntaxFacts.GetRootConditionalAccessExpression(standalone) ?? standalone;
+        }
+
         #region ISyntaxKinds forwarding methods
 
         #region trivia

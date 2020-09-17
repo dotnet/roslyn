@@ -87,6 +87,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementTests.cs" />

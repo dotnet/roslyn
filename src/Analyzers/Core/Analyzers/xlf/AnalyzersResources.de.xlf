@@ -274,7 +274,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="translated">Bedingten Ausdruck vereinfachen</target>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

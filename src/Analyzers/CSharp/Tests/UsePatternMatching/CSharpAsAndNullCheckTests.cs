@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         [InlineData("(x = o as string) is null", "!(o is string x)")]
-#if !CODE_STYLE
         [InlineData("x == null", "o is not string x", LanguageVersion.CSharp9)]
-#endif
         public async Task InlineTypeCheck1(string input, string output, LanguageVersion version = LanguageVersion.CSharp8)
         {
             await TestStatement($"if ({input}) {{ }}", $"if ({output}) {{ }}", version);

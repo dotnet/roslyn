@@ -5262,7 +5262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider)
+            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
                 ? NullableContextOptions.Disable
                 : Compilation.Options.NullableContextOptions;
 

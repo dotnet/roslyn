@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {

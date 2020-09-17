@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntax = syntax;
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             if (_syntax.Declaration != null)
             {

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (vbOptions != null)
             {
-                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString( vbOptions.LanguageVersion));
+                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(vbOptions.LanguageVersion));
             }
             else
             {

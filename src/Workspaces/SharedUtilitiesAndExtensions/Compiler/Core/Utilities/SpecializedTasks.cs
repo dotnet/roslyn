@@ -28,12 +28,12 @@ namespace Roslyn.Utilities
             => task!;
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<T> Default<T>() where T : struct
-            => TasksOfStruct<T>.Default;
+        public static Task<T?> Default<T>()
+            => EmptyTasks<T>.Default;
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T?> Null<T>() where T : class
-            => TasksOfClass<T>.Null;
+            => Default<T>();
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
@@ -88,18 +88,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static class TasksOfStruct<T> where T : struct
-        {
-            public static readonly Task<T> Default = Task.FromResult<T>(default);
-        }
-
-        private static class TasksOfClass<T> where T : class
-        {
-            public static readonly Task<T?> Null = Task.FromResult<T?>(null);
-        }
-
         private static class EmptyTasks<T>
         {
+            public static readonly Task<T?> Default = Task.FromResult<T?>(default);
             public static readonly Task<IEnumerable<T>> EmptyEnumerable = Task.FromResult<IEnumerable<T>>(SpecializedCollections.EmptyEnumerable<T>());
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());

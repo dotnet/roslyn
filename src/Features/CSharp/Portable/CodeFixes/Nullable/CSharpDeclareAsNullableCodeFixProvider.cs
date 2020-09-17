@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string equivalenceKey, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string? equivalenceKey, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             return equivalenceKey == GetEquivalenceKey(node, model);

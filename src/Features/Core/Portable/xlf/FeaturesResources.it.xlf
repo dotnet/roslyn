@@ -345,6 +345,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Esempi:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="new">Extract base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Estrai interfaccia...</target>
@@ -493,6 +498,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
         <target state="translated">Imposta rientro per parametri con ritorno a capo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_0">
+        <source>Inline '{0}'</source>
+        <target state="new">Inline '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="new">Inline and keep '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -993,7 +1008,7 @@ L'ancoraggio $ corrisponde a \n, ma non a \r\n (combinazione di ritorno a capo e
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">espressione</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1263,7 +1278,7 @@ L'ancoraggio $ corrisponde a \n, ma non a \r\n (combinazione di ritorno a capo e
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">nome</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1363,7 +1378,7 @@ Due o più intervalli di caratteri possono essere concatenati. Ad esempio, per s
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">no</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1746,7 +1761,7 @@ Se viene specificato il comportamento conforme a ECMAScript, \w equivale a [a-zA
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">sì</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2077,12 +2092,12 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">'{0}' non è Null in questo punto.</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">'{0}' può essere Null in questo punto.</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

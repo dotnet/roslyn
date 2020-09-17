@@ -3971,5 +3971,236 @@ namespace N
     }
 }");
         }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess1()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess2()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]().Length;
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static int? NewMethod(List<int> b)
+    {
+        return b?.ToString().Length;
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess3()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.Count.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.Count.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess4()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|Count|].ToString();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.Count.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess5()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]()?.ToString();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess6()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.ToString()?.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess7()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?[|[0]|];
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static int? NewMethod(List<int> b)
+    {
+        return b?[0];
+    }
+}");
+        }
     }
 }

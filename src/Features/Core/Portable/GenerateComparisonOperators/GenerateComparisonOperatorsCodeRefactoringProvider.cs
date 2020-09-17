@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var containingType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+            var containingType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
             var compareMethod = TryGetCompareMethodImpl(containingType, comparableType)!;
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();

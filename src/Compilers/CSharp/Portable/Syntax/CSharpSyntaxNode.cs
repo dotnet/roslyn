@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tree;
         }
 
-        public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
+        public abstract TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
 
         public abstract void Accept(CSharpSyntaxVisitor visitor);
 

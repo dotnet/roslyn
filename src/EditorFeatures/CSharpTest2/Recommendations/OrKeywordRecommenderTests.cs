@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         private const string InitializeObjectE = @"var e = new object();
 ";
 
-#if !CODE_STYLE
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterConstant()
         {
@@ -533,6 +532,5 @@ x = e switch
 {
     global::$$"));
         }
-#endif
     }
 }

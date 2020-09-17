@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
             var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace);
 
+            var options = new CodeGenerationOptions(
+                generateMethodBodies: true,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, cancellationToken: cancellationToken)
+            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, options: options, cancellationToken: cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             var typeAnnotation = new SyntaxAnnotation();

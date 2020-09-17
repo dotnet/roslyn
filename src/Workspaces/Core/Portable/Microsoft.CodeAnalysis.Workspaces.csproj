@@ -47,15 +47,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.UnitTests" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.UnitTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator.UnitTests" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator.UnitTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Test.Utilities" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Test.Utilities" Partner="UnitTesting" Key="$(UnitTestingKey)"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
@@ -63,9 +58,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.UnitTests" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.UnitTests" Partner="UnitTesting" Key="$(UnitTestingKey)"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />

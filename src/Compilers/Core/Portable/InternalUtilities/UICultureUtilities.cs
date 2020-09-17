@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
     {
         // TODO (DevDiv 1117307): Replace with CultureInfo.CurrentUICulture.set when available.
         private const string currentUICultureName = "CurrentUICulture";
-        private readonly static Action<CultureInfo>? s_setCurrentUICulture;
+        private static readonly Action<CultureInfo>? s_setCurrentUICulture;
 
         private static bool TryGetCurrentUICultureSetter([NotNullWhen(returnValue: true)] out Action<CultureInfo>? setter)
         {

@@ -12,6 +12,11 @@
         <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">디버깅 중에는 어셈블리 참조의 버전 변경이 허용되지 않습니다. '{0}'이(가) 버전을 '{1}'(으)로 변경했습니다.</target>
@@ -113,6 +118,11 @@
         <source>Only a single {0} can be registered per generator.</source>
         <target state="translated">생성기당 하나의 {0}만 등록할 수 있습니다.</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>

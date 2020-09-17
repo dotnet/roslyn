@@ -59,6 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementCodeFixProvider.cs" />

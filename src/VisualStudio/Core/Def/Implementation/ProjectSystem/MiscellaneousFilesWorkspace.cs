@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
 

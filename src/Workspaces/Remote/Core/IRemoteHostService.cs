@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         void InitializeGlobalState(int uiCultureLCID, int cultureLCID, CancellationToken cancellationToken);
 
-        void InitializeTelemetrySession(string host, string serializedSession, CancellationToken cancellationToken);
+        void InitializeTelemetrySession(int hostProcessId, string serializedSession, CancellationToken cancellationToken);
 
         /// <summary>
         /// This is only for debugging
