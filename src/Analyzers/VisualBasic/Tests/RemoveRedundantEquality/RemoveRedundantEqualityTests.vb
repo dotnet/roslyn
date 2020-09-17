@@ -7,7 +7,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.RemoveRedundantEquality.RemoveRedundantEqualityCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveRedundantEquality
-    Public Class RemoveUnnecessaryByValTests
+    Public Class RemoveRedundantEqualityTests
         <Fact>
         Public Async Function TestSimpleCaseForEqualsTrue() As Task
             Dim code = "
