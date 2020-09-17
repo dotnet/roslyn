@@ -178,16 +178,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
         {
             var pluralize = semanticModel.Pluralize(type);
+            var typeArguments = type.GetAllTypeArguments();
 
-            // We may be able to use the type's arguments to generate a name if we're working
-            // with an enumerable type.
-            if (pluralize && TryGenerateNameFromTypeArgument(syntaxFacts, type, capitalize, out var typeArgumentParameterName))
+            // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
+            if (pluralize && TryGenerateNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
             {
                 return typeArgumentParameterName;
             }
 
-            var parameterName = type.CreateParameterName(capitalize);
-            return pluralize ? parameterName.Pluralize() : parameterName;
+            // If there's no type argument and we have an array type, we should pluralize, e.g. frogs[] instead of frog[]
+            if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
+            {
+                return type.CreateParameterName(capitalize).Pluralize();
+            }
+
+            // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
+            // plural forms
+            return type.CreateParameterName(capitalize);
         }
 
         private static bool Pluralize(this SemanticModel semanticModel, ITypeSymbol type)
@@ -204,12 +211,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool TryGenerateNameFromTypeArgument(
             ISyntaxFacts syntaxFacts,
-            ITypeSymbol type,
+            ImmutableArray<ITypeSymbol> typeArguments,
             bool capitalize,
             [NotNullWhen(true)] out string? parameterName)
         {
-            var typeArguments = type.GetAllTypeArguments();
-
             // We only consider generating a name if there's one type argument.
             // This logic can potentially be expanded upon in the future.
             if (typeArguments.Length == 1)

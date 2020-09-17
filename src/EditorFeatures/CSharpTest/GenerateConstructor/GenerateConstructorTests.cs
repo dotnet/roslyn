@@ -4279,5 +4279,65 @@ class C
     }
 }");
         }
+
+        [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateNameFromTypeArgumentForErrorType()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System.Collections.Generic;
+
+class Frog { }
+
+class C
+{
+    C M() => new [||]C(new List<>());
+}",
+ @"using System.Collections.Generic;
+
+class Frog { }
+
+class C
+{
+    private List<T> ts;
+
+    public C(List<T> ts)
+    {
+        this.ts = ts;
+    }
+
+    C M() => new C(new List<>());
+}");
+        }
+
+        [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateNameFromTypeArgumentForTupleType()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System.Collections.Generic;
+
+class Frog { }
+
+class C
+{
+    C M() => new [||]C(new List<(int, string)>());
+}",
+ @"using System.Collections.Generic;
+
+class Frog { }
+
+class C
+{
+    private List<(int, string)> list;
+
+    public C(List<(int, string)> list)
+    {
+        this.list = list;
+    }
+
+    C M() => new C(new List<(int, string)>());
+}");
+        }
     }
 }
