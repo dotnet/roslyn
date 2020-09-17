@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
         }
 
-        protected abstract Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
 
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             // Just report this back as there being no more comments for this document.
-            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken);
+            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)

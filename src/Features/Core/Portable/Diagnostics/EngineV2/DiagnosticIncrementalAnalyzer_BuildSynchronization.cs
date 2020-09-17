@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        public async Task SynchronizeWithBuildAsync(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics, bool onBuildCompleted)
         {
             var options = Workspace.Options;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!PreferBuildErrors(options))
                 {
-                    // prefer live errors over build errors
+                    // Prefer live errors over build errors
                     return;
                 }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // REVIEW: do build diagnostics include suppressed diagnostics?
                     var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
 
-                    // we load data since we don't know right version.
+                    // We load data since we don't know right version.
                     var oldAnalysisData = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
                     var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
 
@@ -66,10 +66,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, oldAnalysisData.Result, newResult);
                 }
 
-                // if we have updated errors, refresh open files
-                if (buildDiagnostics.Count > 0 && PreferLiveErrorsOnOpenedFiles(options))
+                // Refresh diagnostics for open files after solution build completes.
+                if (onBuildCompleted && PreferLiveErrorsOnOpenedFiles(options))
                 {
-                    // enqueue re-analysis of open documents.
+                    // Enqueue re-analysis of active document.
+                    if (_documentTrackingService?.GetActiveDocument(solution) is { } activeDocument)
+                    {
+                        AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
+                    }
+
+                    // Enqueue re-analysis of open documents.
                     AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }

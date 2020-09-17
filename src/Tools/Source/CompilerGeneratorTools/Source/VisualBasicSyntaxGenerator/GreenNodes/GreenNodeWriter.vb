@@ -85,7 +85,7 @@ Friend Class GreenNodeWriter
     ' Generate a class declaration for a node structure.
     Private Sub GenerateNodeStructureClass(nodeStructure As ParseNodeStructure)
         ' XML comment
-        GenerateXmlComment(_writer, nodeStructure, 4)
+        GenerateXmlComment(_writer, nodeStructure, 4, includeRemarks:=False)
 
         ' Class name
         _writer.Write("    ")

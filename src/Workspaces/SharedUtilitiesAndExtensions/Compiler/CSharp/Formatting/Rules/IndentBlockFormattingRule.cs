@@ -178,6 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SwitchExpressionSyntax switchExpression:
                     SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
+                case WithExpressionSyntax withExpression:
+                    SetAlignmentBlockOperation(list, withExpression.GetFirstToken(), withExpression.Initializer.OpenBraceToken, withExpression.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
                 case PropertyPatternClauseSyntax propertyPatternClause:
                     if (propertyPatternClause.Parent is RecursivePatternSyntax { Parent: { } recursivePatternParent })
                     {
