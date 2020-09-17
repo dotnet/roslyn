@@ -2114,15 +2114,18 @@ option2 = config3
         [InlineData("/path?", false)]
         [InlineData("/path,", false)]
         [InlineData("/path\"", true)]
-        [InlineData("/path\\", false)] //editorconfig sees a single backslash
+        [InlineData("/path\\", false)] //editorconfig sees a single escape character (special)
         [InlineData("/path\\\\", true)] //editorconfig sees an escaped backslash
         [InlineData("//path", true)]
         [InlineData("//", true)]
-        [InlineData("\\", false)] //editorconfig sees a single backslash
-        [InlineData("\\\\", false)] //editorconfig sees an escaped backslash, which is not a valid absolute path
+        [InlineData("\\", false)] //invalid: editorconfig sees a single escape character
+        [InlineData("\\\\", false)] //invalid: editorconfig sees an escaped, literal backslash
         [InlineData("/\\{\\}\\,\\[\\]\\*", true)]
-        [InlineData("c:\\my\\file.cs", false)] // invalid: editorconfig sees a single file called 'c:\my\file.cs' 
-        [InlineData("\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\my\file.cs' 
+        [InlineData("c:\\my\\file.cs", false)] // invalid: editorconfig sees a single file called 'c:(\m)y(\f)ile.cs' (i.e. \m and \f are escape chars)
+        [InlineData("\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '(\m)y(\f)ile.cs' 
+        [InlineData("\\\\my\\\\file.cs", false)] // invalid: editorconfig sees a single file called '\my\file.cs' with literal backslashes
+        [InlineData("\\\\\\\\my\\\\file.cs", false)] // invalid: editorconfig sees a single file called '\\my\file.cs' not a UNC path
+        [InlineData("//server/file.cs", true)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
