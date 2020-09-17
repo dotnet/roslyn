@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.UnusedReferences
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
 {
     // Interface to be implemented and MEF exported by Project System
-    internal interface IReferenceUpdateService
+    internal interface IProjectSystemReferenceService
     {
         /// <summary>
         /// For the given project, returns the full path to the project.assets.json file
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// Return the set of direct references for the given project. This is used to
         /// get the initial state of the TreatAsUsed attribute for each reference.
         /// </summary>
-        Task<ImmutableArray<Reference>> GetProjectReferencesAsync(
+        Task<ImmutableArray<ProjectSystemReference>> GetProjectReferencesAsync(
             string projectPath,
             CancellationToken cancellationToken);
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         Task<bool> UpdateReferencesAsync(
             string projectPath,
             string targetFramework,
-            ImmutableArray<ReferenceUpdate> referenceUpdates,
+            ImmutableArray<ProjectSystemReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken);
     }
 }

@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.UnusedReferences
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
 {
-    internal class Reference
+    internal class ProjectSystemReference
     {
         /// <summary>
         /// Indicates the type of reference.
         /// </summary>
-        public ReferenceType Type { get; }
+        public ProjectSystemReferenceType Type { get; }
 
         /// <summary>
         /// Uniquely identifies the reference.

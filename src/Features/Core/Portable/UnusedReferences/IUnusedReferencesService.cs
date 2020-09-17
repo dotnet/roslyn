@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// </summary>
         Task<ImmutableArray<UnusedReference>> GetUnusedReferencesAsync(
             Project project,
-            Compilation compilation,
             CancellationToken cancellationToken);
 
         /// <summary>
