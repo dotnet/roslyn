@@ -12978,12 +12978,12 @@ static class C
             };
 
             // in /warn:5 we diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            var strictComp = CreateCompilation(text);
             strictComp.VerifyDiagnostics(strictDiagnostics);
 
             // these rest of the diagnostics correspond to those produced by the native compiler.
             var regularDiagnostics = strictDiagnostics.Where(d => !d.Code.Equals((int)ErrorCode.WRN_StaticInAsOrIs)).ToArray();
-            var regularComp = CreateCompilation(text);
+            var regularComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             regularComp.VerifyDiagnostics(regularDiagnostics);
         }
 
@@ -13183,7 +13183,7 @@ static class S
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                // new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
 
