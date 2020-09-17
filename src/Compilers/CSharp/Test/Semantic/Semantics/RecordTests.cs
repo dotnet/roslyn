@@ -4459,7 +4459,7 @@ record C1
         }
 
         [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
-        public void ToString_OverridenProperty_NoRepetition()
+        public void ToString_OverriddenProperty_NoRepetition()
         {
             var src = @"
 System.Console.WriteLine(new B() { P = 2 }.ToString());
@@ -4473,7 +4473,7 @@ record B : A
     public override int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
         }
