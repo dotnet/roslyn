@@ -220,7 +220,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // This logic can potentially be expanded upon in the future.
             if (typeArguments.Length == 1)
             {
-                var typeArgument = typeArguments.Single().ToNameDisplayString();
+                // We only want the last part of the type, i.e. we don't want namespaces.
+                var typeArgument = typeArguments.Single().ToDisplayParts().Last().ToString();
                 if (syntaxFacts.IsValidIdentifier(typeArgument))
                 {
                     typeArgument = typeArgument.Pluralize();

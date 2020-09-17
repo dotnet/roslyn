@@ -4339,5 +4339,39 @@ class C
     C M() => new C(new List<(int, string)>());
 }");
         }
+
+        [WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateNameFromTypeArgumentInNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System.Collections.Generic;
+
+namespace N {
+    class Frog { }
+
+    class C
+    {
+        C M() => new [||]C(new List<Frog>());
+    }
+}",
+ @"using System.Collections.Generic;
+
+namespace N {
+    class Frog { }
+
+    class C
+    {
+        private List<Frog> frogs;
+
+        public C(List<Frog> frogs)
+        {
+            this.frogs = frogs;
+        }
+
+        C M() => new C(new List<Frog>());
+    }
+}");
+        }
     }
 }
