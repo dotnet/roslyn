@@ -49,6 +49,7 @@ abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetGlobalDiagnostic
 Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
 Microsoft.CodeAnalysis.SpecialType.Count = 45 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute = 45 -> Microsoft.CodeAnalysis.SpecialType
+const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
 Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider

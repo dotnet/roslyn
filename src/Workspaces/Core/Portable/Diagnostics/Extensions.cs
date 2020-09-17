@@ -457,11 +457,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 await suppressionAnalyzer.AnalyzeAsync(semanticModel, span, compilationWithAnalyzers,
-                    analyzerInfoCache.GetDiagnosticDescriptors, IsCompilationEndAnalyzer, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+                    analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
             }
-
-            bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
-                => analyzerInfoCache.IsCompilationEndAnalyzer(analyzer, compilationWithAnalyzers.AnalysisOptions.Options!, compilationWithAnalyzers.Compilation) ?? true;
         }
     }
 }

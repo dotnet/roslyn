@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -89,5 +85,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             severity = default;
             return false;
         }
+
+        public static bool IsCompilationEnd(this DiagnosticDescriptor descriptor)
+            => descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CompilationEnd);
     }
 }
