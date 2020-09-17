@@ -4459,7 +4459,7 @@ record C1
         }
 
         [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
-        public void ToString_OverriddenProperty_NoRepetition()
+        public void ToString_OverriddenVirtualProperty_NoRepetition()
         {
             var src = @"
 System.Console.WriteLine(new B() { P = 2 }.ToString());
@@ -4476,6 +4476,33 @@ record B : A
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
+        }
+
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverriddenAbstractProperty_NoRepetition()
+        {
+            var src = @"
+System.Console.Write(new B1() { P = 1 });
+System.Console.Write("" "");
+System.Console.Write(new B2(2));
+
+abstract record A1
+{
+    public abstract int P { get; set; }
+}
+
+record B1 : A1
+{
+    public override int P { get; set; }
+}
+
+abstract record A2(int P);
+
+record B2(int P) : A2(P);
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B1 { P = 1 } B2 { P = 2 }", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
