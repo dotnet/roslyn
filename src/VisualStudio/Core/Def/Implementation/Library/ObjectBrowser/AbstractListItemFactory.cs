@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 var isHidden = !symbol.IsEditorBrowsable(
                     hideAdvancedMembers,
                     compilation,
-                    editorBrowsableAttributeConstructor,
+                    new(editorBrowsableAttributeConstructor),
                     typeLibFuncAttributeConstructors,
                     typeLibTypeAttributeConstructors,
                     typeLibVarAttributeConstructors);

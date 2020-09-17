@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            var hideAdvancedmembers = currentProject.Solution.Workspace.Options.GetOption(CompletionOptions.HideAdvancedMembers, currentProject.Language);
+            var hideAdvancedmembers = currentProject.Solution.Options.GetOption(CompletionOptions.HideAdvancedMembers, currentProject.Language);
             var getCacheResults = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
             if (getCacheResults == null)
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             public Optional<IMethodSymbol?> EditorBrowsableAttributeConstructor
                 => _editorBrowsableAttributeConstructor ??= new(EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(Compilation));
 
-            public ImmutableArray<IMethodSymbol> typeLibTypeAttributeConstructors
+            public ImmutableArray<IMethodSymbol> TypeLibTypeAttributeConstructors
                 => _typeLibTypeAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(Compilation);
 
             public ImmutableArray<IMethodSymbol> TypeLibFuncAttributeConstructors

@@ -56,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 // 3. asked to hide advanced members and there is advanced member in the cache
                 // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;
-                if (isSameLanguage && !isAttributeContext && !(hideAdvancedMembers && ContainsAdvancedMembers))
+                if (isSameLanguage &&
+                    !isAttributeContext &&
+                    !(hideAdvancedMembers && ContainsAdvancedMembers))
                 {
                     return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
                 }
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         hideAdvancedMembers: false,
                         _editorBrowsableInfo.Compilation,
                         _editorBrowsableInfo.EditorBrowsableAttributeConstructor,
-                        _editorBrowsableInfo.typeLibTypeAttributeConstructors,
+                        _editorBrowsableInfo.TypeLibTypeAttributeConstructors,
                         _editorBrowsableInfo.TypeLibFuncAttributeConstructors,
                         _editorBrowsableInfo.TypeLibVarAttributeConstructors,
                         _editorBrowsableInfo.HideModuleNameAttribute);
