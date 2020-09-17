@@ -362,7 +362,7 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void DeconstructionFlow_05()
+        public void MixedDeconstruction()
         {
             string source = @"
 class C
@@ -372,15 +372,48 @@ class C
         int i2;
         (int i1, i2) = b ? (1, 2) : (3, 4);
     }/*</bind>*/
-
-    public void M2(out (int, int) i)
-    {
-        i = (0, 0);
-    }
-}
-
-";
+}";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: System.Int32 i2
+    Local_2: System.Int32 i1
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i2;')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
+            Initializer: 
+              null
+      Initializer: 
+        null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(int i1, i2 ... ) : (3, 4);')
+    Expression: 
+      IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, i2 ... 2) : (3, 4)')
+        Left: 
+          ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, i2)')
+            NaturalType: (System.Int32 i1, System.Int32 i2)
+            Elements(2):
+                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
+                  ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+        Right: 
+          IConditionalOperation (OperationKind.Conditional, Type: (System.Int32, System.Int32)) (Syntax: 'b ? (1, 2) : (3, 4)')
+            Condition: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+            WhenTrue: 
+              ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+                NaturalType: (System.Int32, System.Int32)
+                Elements(2):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            WhenFalse: 
+              ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(3, 4)')
+                NaturalType: (System.Int32, System.Int32)
+                Elements(2):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')";
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
 
             string expectedFlowGraph = @"
 Block[B0] - Entry
@@ -444,6 +477,152 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MixedNestedDeconstruction()
+        {
+            string source = @"
+class C
+{
+    void M(bool b)
+    /*<bind>*/{
+        int i2;
+        (int i1, (i2, int i3)) = b ? (1, (2, 3)) : (4, (5, 6));
+    }/*</bind>*/
+}";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IBlockOperation (2 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: System.Int32 i2
+    Local_2: System.Int32 i1
+    Local_3: System.Int32 i3
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i2;')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
+            Initializer: 
+              null
+      Initializer: 
+        null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(int i1, (i ... 4, (5, 6));')
+    Expression: 
+      IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 i1, (System.Int32 i2, System.Int32 i3))) (Syntax: '(int i1, (i ... (4, (5, 6))')
+        Left: 
+          ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, (System.Int32 i2, System.Int32 i3))) (Syntax: '(int i1, (i2, int i3))')
+            NaturalType: (System.Int32 i1, (System.Int32 i2, System.Int32 i3))
+            Elements(2):
+                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
+                  ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i2, System.Int32 i3)) (Syntax: '(i2, int i3)')
+                  NaturalType: (System.Int32 i2, System.Int32 i3)
+                  Elements(2):
+                      ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i3')
+                        ILocalReferenceOperation: i3 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+        Right: 
+          IConditionalOperation (OperationKind.Conditional, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: 'b ? (1, (2, ... (4, (5, 6))')
+            Condition: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+            WhenTrue: 
+              ITupleOperation (OperationKind.Tuple, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: '(1, (2, 3))')
+                NaturalType: (System.Int32, (System.Int32, System.Int32))
+                Elements(2):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(2, 3)')
+                      NaturalType: (System.Int32, System.Int32)
+                      Elements(2):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            WhenFalse: 
+              ITupleOperation (OperationKind.Tuple, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: '(4, (5, 6))')
+                NaturalType: (System.Int32, (System.Int32, System.Int32))
+                Elements(2):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(5, 6)')
+                      NaturalType: (System.Int32, System.Int32)
+                      Elements(2):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')";
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32 i2] [System.Int32 i1] [System.Int32 i3]
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+              Value: 
+                ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(1, (2, 3))')
+              Value: 
+                ITupleOperation (OperationKind.Tuple, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: '(1, (2, 3))')
+                  NaturalType: (System.Int32, (System.Int32, System.Int32))
+                  Elements(2):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(2, 3)')
+                        NaturalType: (System.Int32, System.Int32)
+                        Elements(2):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(4, (5, 6))')
+              Value: 
+                ITupleOperation (OperationKind.Tuple, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: '(4, (5, 6))')
+                  NaturalType: (System.Int32, (System.Int32, System.Int32))
+                  Elements(2):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                      ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(5, 6)')
+                        NaturalType: (System.Int32, System.Int32)
+                        Elements(2):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(int i1, (i ... 4, (5, 6));')
+              Expression: 
+                IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 i1, (System.Int32 i2, System.Int32 i3))) (Syntax: '(int i1, (i ... (4, (5, 6))')
+                  Left: 
+                    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, (System.Int32 i2, System.Int32 i3))) (Syntax: '(int i1, (i2, int i3))')
+                      NaturalType: (System.Int32 i1, (System.Int32 i2, System.Int32 i3))
+                      Elements(2):
+                          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
+                            ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                          ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i2, System.Int32 i3)) (Syntax: '(i2, int i3)')
+                            NaturalType: (System.Int32 i2, System.Int32 i3)
+                            Elements(2):
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+                                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i3')
+                                  ILocalReferenceOperation: i3 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, (System.Int32, System.Int32)), IsImplicit) (Syntax: 'b ? (1, (2, ... (4, (5, 6))')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 

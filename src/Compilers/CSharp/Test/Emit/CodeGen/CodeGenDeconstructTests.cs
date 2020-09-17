@@ -7134,6 +7134,14 @@ class Program
             var x1 = GetDeconstructionVariable(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+            var symbolInfo = model.GetSymbolInfo(x1Ref);
+            Assert.Equal(symbolInfo.Symbol, model.GetDeclaredSymbol(x1));
+            Assert.Equal(SpecialType.System_Int32, symbolInfo.Symbol.GetTypeOrReturnType().SpecialType);
+
+            var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            Assert.Equal(@"(int x1, z)", lhs.ToString());
+            Assert.Equal("(System.Int32 x1, System.Int32 z)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x1, System.Int32 z)", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -7332,6 +7340,48 @@ class Program
 
             VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref.ToArray());
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref.ToArray());
+        }
+
+        [Fact]
+        public void MixedDeconstruction_07()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, ("""", true));
+        string y;
+        for ((int x, (y, var z)) = t; ; )
+        {
+            System.Console.WriteLine(x);
+            System.Console.WriteLine(z);
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xRef = GetReference(tree, "x");
+            VerifyModelForDeconstructionLocal(model, x, xRef);
+            var xSymbolInfo = model.GetSymbolInfo(xRef);
+            Assert.Equal(xSymbolInfo.Symbol, model.GetDeclaredSymbol(x));
+            Assert.Equal(SpecialType.System_Int32, xSymbolInfo.Symbol.GetTypeOrReturnType().SpecialType);
+
+            var z = GetDeconstructionVariable(tree, "z");
+            var zRef = GetReference(tree, "z");
+            VerifyModelForDeconstructionLocal(model, z, zRef);
+            var zSymbolInfo = model.GetSymbolInfo(zRef);
+            Assert.Equal(zSymbolInfo.Symbol, model.GetDeclaredSymbol(z));
+            Assert.Equal(SpecialType.System_Boolean, zSymbolInfo.Symbol.GetTypeOrReturnType().SpecialType);
+
+            var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
+            Assert.Equal(@"(int x, (y, var z))", lhs.ToString());
+            Assert.Equal("(System.Int32 x, (System.String y, System.Boolean z))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x, (System.String y, System.Boolean z))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
