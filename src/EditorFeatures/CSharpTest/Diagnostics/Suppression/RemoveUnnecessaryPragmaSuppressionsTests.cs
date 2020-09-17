@@ -412,6 +412,33 @@ class Class
 |]", new TestParameters(options: options));
             }
 
+            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
+            {
+                var options = new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, "category: ExcludedCategory" }
+                };
+
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableAssignedButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+        int y;
+        y = 1;
+
+        int z = 1;
+        z++;
+    }}
+}}
+|]", new TestParameters(options: options));
+            }
+
             [Fact]
             public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
             {
