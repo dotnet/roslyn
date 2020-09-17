@@ -259,20 +259,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             var index = tree.Text.IndexOf(previousVirtualChar);
             if (index >= 2 &&
-                tree.Text[index - 2] == '\\' &&
-                tree.Text[index - 1] == 'p')
+                tree.Text[index - 2] == '\\')
             {
-                var slashChar = tree.Text[index - 1];
-                var result = FindToken(tree.Root, slashChar);
-                if (result == null)
+                var escapeChar = tree.Text[index - 1];
+                if (escapeChar == 'p' || escapeChar == 'P')
                 {
-                    return;
-                }
+                    var result = FindToken(tree.Root, escapeChar);
+                    if (result == null)
+                        return;
 
-                var (parent, _) = result.Value;
-                if (parent is RegexEscapeNode)
-                {
-                    ProvideEscapeCategoryCompletions(context);
+                    if (result.Value.parent is RegexEscapeNode)
+                        ProvideEscapeCategoryCompletions(context);
                 }
             }
         }
