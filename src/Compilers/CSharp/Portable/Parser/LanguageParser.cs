@@ -10578,7 +10578,7 @@ tryAgain:
                 tk = this.CurrentToken.Kind;
                 // Nullable suppression operators should only be consumed by a conditional access
                 // if there are further conditional operations performed after the suppression
-                if (isExclamationSequenceFollowedByConditionalConsequencePart())
+                if (isOptionalExclamationsFollowedByConditionalOperation())
                 {
                     while (tk == SyntaxKind.ExclamationToken)
                     {
@@ -10616,7 +10616,7 @@ tryAgain:
                 }
             }
 
-            bool isExclamationSequenceFollowedByConditionalConsequencePart()
+            bool isOptionalExclamationsFollowedByConditionalOperation()
             {
                 var tk = this.CurrentToken.Kind;
                 for (int i = 1; tk == SyntaxKind.ExclamationToken; i++)

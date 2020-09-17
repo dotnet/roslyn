@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_02()
         {
             UsingNode("x?.y!.z.ToString()");
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_03()
         {
             UsingNode("x?.y!?.z.ToString()");
@@ -361,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_04()
         {
             UsingNode("x?.y?!.z.ToString()", options: null,
@@ -435,7 +436,229 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
+        public void ConditionalAccess_05()
+        {
+            UsingNode("x?.y?![0].ToString()", options: null,
+                // (1,7): error CS1525: Invalid expression term '['
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[", isSuppressed: false).WithArguments("[").WithLocation(1, 7),
+                // (1,21): error CS1003: Syntax error, ':' expected
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 21));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.MemberBindingExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.LogicalNotExpression);
+                {
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ToString");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
+        public void ConditionalAccess_06()
+        {
+            UsingNode("x?.y?!().ToString()", options: null,
+                // (1,8): error CS1525: Invalid expression term ')'
+                // x?.y?!().ToString()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")", isSuppressed: false).WithArguments(")").WithLocation(1, 8),
+                // (1,20): error CS1003: Syntax error, ':' expected
+                // x?.y?!().ToString()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 20),
+                // (1,20): error CS1733: Expected expression
+                // x?.y?!().ToString()
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 20));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.MemberBindingExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.LogicalNotExpression);
+                {
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ToString");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
+        public void ConditionalAccess_07()
+        {
+            UsingNode("x?.y!?!.ToString()", options: null,
+                // (1,8): error CS1525: Invalid expression term '.'
+                // x?.y!?!.ToString()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".", isSuppressed: false).WithArguments(".").WithLocation(1, 8),
+                // (1,19): error CS1003: Syntax error, ':' expected
+                // x?.y!?!.ToString()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 19),
+                // (1,19): error CS1733: Expected expression
+                // x?.y!?!.ToString()
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 19));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SuppressNullableWarningExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.LogicalNotExpression);
+                {
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "ToString");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_ElementAccess()
         {
             UsingNode("x?.y![1].z.ToString()");
@@ -501,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_SuppressInvocation()
         {
             UsingNode("x?.y!(0)");
@@ -543,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_PostfixSuppression()
         {
             UsingNode("x?.y!");
@@ -570,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Suppression_LangVersion()
         {
             UsingNode("x?.y!.z", options: TestOptions.Regular7_3,
@@ -616,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Repeated_01()
         {
             UsingNode("x?.y!!.z");
@@ -655,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Repeated_02()
         {
             UsingNode("x?.y!!!!.z");
@@ -702,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Repeated_03()
         {
             UsingNode("x?.y.z!!");
