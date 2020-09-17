@@ -2103,6 +2103,38 @@ namespace System
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        public void MixedDeclarationAndAssignmentInTupleDeconstructCSharp9()
+        {
+            var source =
+@"
+class C
+{
+    int x2, x3;
+    void M()
+    {
+        (int x1, x2) = (1, 2);
+        (x3, int x4) = (1, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                    // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         (int x1, x2) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x1, x2) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
+                    // (8,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         (x3, int x4) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x3, int x4) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
         public void SwapAssignmentShouldNotBeParsedAsDeconstructionDeclaration()
         {
             var source =

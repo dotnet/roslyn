@@ -6152,6 +6152,36 @@ class C
         }
 
         [Fact]
+        public void EscapedUnderscoreInDeclarationCSharp9()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (@_, var x) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (@_, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(@_, var x) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(6, 9),
+                // (6,10): error CS0103: The name '_' does not exist in the current context
+                //         (@_, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_", isSuppressed: false).WithArguments("_").WithLocation(6, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            Assert.Empty(GetDiscardIdentifiers(tree));
+        }
+
+        [Fact]
         public void UnderscoreLocalInDeconstructDeclaration()
         {
             var source =
@@ -6648,7 +6678,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
@@ -6667,9 +6697,23 @@ class C
     }
 }
 ";
+            var compCSharp9 = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            compCSharp9.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (var x, x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(var x, x) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(6, 9),
+                // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
+                //         (var x, x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x", isSuppressed: false).WithArguments("x").WithLocation(6, 17),
+                // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(y, var y) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
+                // (7,10): error CS0841: Cannot use local variable 'y' before it is declared
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y", isSuppressed: false).WithArguments("y").WithLocation(7, 10)
+                );
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
-            // mixing declaration and expressions isn't supported yet
             comp.VerifyDiagnostics(
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (var x, x) = (1, 2);
@@ -7082,9 +7126,38 @@ class Program
         }
     }
 }";
-
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+        }
+
+        [Fact]
+        public void MixedDeconstruction_03CSharp9()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        int z;
+        for ((int x1, z) = t; ; )
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (8,14): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         for ((int x1, z) = t; ; )
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x1, z) = t", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(8, 14));
+
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -9632,33 +9705,55 @@ class C
         }
 
         [Fact]
-        public void MixedDeclarationAndAssignmentCSharpEight()
+        public void MixedDeclarationAndAssignmentCSharpNine()
         {
             string source = @"
-class C
+class Program
 {
     static void Main()
     {
         int x1;
-        (x1, string y1) = new C();
+        (x1, string y1) = new A();
         string y2;
-        (int x2, y2) = new C();
+        (int x2, y2) = new A();
+        bool z3;
+        (int x3, (string y3, z3)) = new B();
+        int x4;
+        (x4, var (y4, z4)) = new B();
     }
+}
 
+class A
+{
     public void Deconstruct(out int a, out string b)
     {
         a = 1;
         b = ""hello"";
     }
 }
+
+class B
+{
+    public void Deconstruct(out int a, out (string b, bool c) tuple)
+    {
+        a = 1;
+        tuple = (""hello"", true);
+    }
+}
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         (x1, string y1) = new C();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x1, string y1) = new C()").WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
+                //         (x1, string y1) = new A();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x1, string y1) = new A()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
                 // (9,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         (int x2, y2) = new C();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x2, y2) = new C()").WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(9, 9));
+                //         (int x2, y2) = new A();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x2, y2) = new A()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(9, 9),
+                // (11,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (int x3, (string y3, z3)) = new B();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x3, (string y3, z3)) = new B()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(11, 9),
+                // (13,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (x4, var (y4, z4)) = new B();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x4, var (y4, z4)) = new B()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(13, 9));
         }
 
         [Fact]
