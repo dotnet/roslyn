@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var document = CurrentSolution.GetDocument(documentId);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    // For the computeReplacementToken and computeReplacementNode functions, use
+                    // For the computeReplacementToken and computeReplacementNode functions, use 
                     // the "updated" node to maintain any annotation removals from descendants.
                     var newRoot = root.ReplaceSyntax(
                         nodes: annotationSet.GetAnnotatedNodes(root),

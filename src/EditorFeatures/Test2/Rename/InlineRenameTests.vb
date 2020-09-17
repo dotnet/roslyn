@@ -112,6 +112,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(46208, "https://github.com/dotnet/roslyn/issues/46208")>
         Public Async Function RenameWithInvalidIdentifier(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -408,14 +409,14 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
-public partial class [|$$C|] { }
+public partial class [|$$C|] { } 
 // [|C|]
 ]]></Document>
                         </Project>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             <Document FilePath="C2.cs"><![CDATA[
-public partial class C { }
+public partial class C { } 
 // [|C|]
 ]]></Document>
                         </Project>
@@ -435,13 +436,13 @@ public partial class C { }
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
-public partial class C { private void [|$$F|](){} }
+public partial class C { private void [|$$F|](){} } 
 ]]></Document>
                         </Project>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2" AssemblyName="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             <Document FilePath="C2.cs"><![CDATA[
-public partial class C { }
+public partial class C { } 
 // [|F|]
 ]]></Document>
                         </Project>
@@ -467,13 +468,13 @@ public partial class C { }
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
-public partial class C { public void [|$$F|](){} }
+public partial class C { public void [|$$F|](){} } 
 ]]></Document>
                         </Project>
                         <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2" AssemblyName="Proj2">
                             <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                             <Document FilePath="C2.cs"><![CDATA[
-public partial class C { }
+public partial class C { } 
 // [|F|]
 ]]></Document>
                         </Project>
@@ -1649,23 +1650,23 @@ End Module
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Public Class Class1
+Public Class Class1 
   Public Property [|$$Field1|] As Integer
-End Class
+End Class 
 
-Public Class Class2
-  Public Shared Property DataSource As IEnumerable(Of Class1)
-  Public ReadOnly Property Dict As IReadOnlyDictionary(Of Integer, IEnumerable(Of Class1)) =
-  (
-    From data
-    In DataSource
-    Group By
+Public Class Class2 
+  Public Shared Property DataSource As IEnumerable(Of Class1) 
+  Public ReadOnly Property Dict As IReadOnlyDictionary(Of Integer, IEnumerable(Of Class1)) = 
+  ( 
+    From data 
+    In DataSource 
+    Group By 
     data.Field1
-    Into Group1 = Group
-  ).ToDictionary(
+    Into Group1 = Group 
+  ).ToDictionary( 
     Function(group) group.Field1,
-    Function(group) group.Group1)
-End Class
+    Function(group) group.Group1) 
+End Class 
                             </Document>
                         </Project>
                     </Workspace>, host)
@@ -1912,7 +1913,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                ' Disable document changes to make sure file rename is not supported.
+                ' Disable document changes to make sure file rename is not supported. 
                 ' Linked workspace files will report that applying changes to document
                 ' info is not allowed; this is intended to mimic that behavior
                 ' and make sure inline rename works as intended.
