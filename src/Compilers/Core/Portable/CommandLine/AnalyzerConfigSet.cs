@@ -500,7 +500,11 @@ namespace Microsoft.CodeAnalysis
                 MergeSection(config.PathToFile, config.GlobalSection, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
-                    if (Path.IsPathRooted(section.Name) && !ContainsSpecialCharacters(section.Name))
+                    if (Path.IsPathRooted(section.Name) && !ContainsSpecialCharacters(section.Name)
+                        // all paths in editorconfig are converted to forward slash, 
+                        // but on windows a literal backslash is still a valid rooted path,
+                        // so we explicitly ignore any sections that start with it
+                        && !section.Name.StartsWith("\\\\", StringComparison.OrdinalIgnoreCase))
                     {
                         MergeSection(config.PathToFile, section, isGlobalSection: false);
                     }
