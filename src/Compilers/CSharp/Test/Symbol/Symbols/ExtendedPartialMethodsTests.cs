@@ -3226,11 +3226,11 @@ partial class C
 @"partial class C
 {
     partial void F1(object o);
-    partial void F1(dynamic o) { }
+    partial void F1(dynamic o) { } // 1
     internal partial void F2(object o);
-    internal partial void F2(dynamic o) { } // 1
+    internal partial void F2(dynamic o) { } // 2
     internal partial dynamic F3();
-    internal partial object F3() => null; // 2
+    internal partial object F3() => null; // 3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
@@ -3238,14 +3238,14 @@ partial class C
             comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
             comp.VerifyDiagnostics(
                 // (4,18): warning CS8824: Partial method declarations 'void C.F1(object o)' and 'void C.F1(dynamic o)' have differences in parameter or return types.
-                //     partial void F1(dynamic o) { }
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void C.F1(object o)", "void C.F1(dynamic o)").WithLocation(4, 18),
+                //     partial void F1(dynamic o) { } // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1", isSuppressed: false).WithArguments("void C.F1(object o)", "void C.F1(dynamic o)").WithLocation(4, 18),
                 // (6,27): warning CS8824: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' have differences in parameter or return types.
-                //     internal partial void F2(dynamic o) { } // 1
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
+                //     internal partial void F2(dynamic o) { } // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2", isSuppressed: false).WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
                 // (8,29): warning CS8824: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' have differences in parameter or return types.
-                //     internal partial object F3() => null; // 2
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3").WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
+                //     internal partial object F3() => null; // 3
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3", isSuppressed: false).WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
         }
 
         [Fact]

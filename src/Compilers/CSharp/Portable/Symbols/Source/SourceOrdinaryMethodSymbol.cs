@@ -607,6 +607,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
             }
+            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
+            {
+                hasTypeDifferences = true;
+                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
+            }
 
             if (definition.RefKind != implementation.RefKind)
             {
@@ -654,40 +659,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
+            if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                implementation.DeclaringCompilation,
+                constructedDefinition,
+                implementation,
+                diagnostics,
+                static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
+                {
+                    // report only if this is an unsafe *nullability* difference
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                },
+                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                },
+                extraArgument: (object)null))
+            {
+                hasTypeDifferences = true;
+            }
+
             if (!hasTypeDifferences &&
                 !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation))
             {
-                if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
-                }
-                else
-                {
-                    SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
-                        implementation.DeclaringCompilation,
-                        constructedDefinition,
-                        implementation,
-                        diagnostics,
-                        (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
-                        {
-                            hasTypeDifferences = true;
-                            // report only if this is an unsafe *nullability* difference
-                            diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
-                        },
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
-                        {
-                            hasTypeDifferences = true;
-                            diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
-                        },
-                        extraArgument: (object)null);
-
-                    if (!hasTypeDifferences)
-                    {
-                        diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
-                            new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                            new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                    }
-                }
+                diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
+                    new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                    new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
         }
 
