@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             try
             {
                 ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers()
-                    .WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public && (m.Kind is SymbolKind.Field or SymbolKind.Property));
+                    .WhereAsArray(m => !m.IsOverride && m.DeclaredAccessibility == Accessibility.Public && (m.Kind is SymbolKind.Field or SymbolKind.Property));
 
                 if (ReturnType.IsErrorType() ||
                     printableMembers.Any(m => m.GetTypeOrReturnType().Type.IsErrorType()))
