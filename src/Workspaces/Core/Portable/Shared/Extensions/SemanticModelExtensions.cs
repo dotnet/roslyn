@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return typeArgumentParameterName;
             }
 
-            // If there's no type argument and we have an array type, we should pluralize, e.g. frogs[] instead of frog[]
+            // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
             if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
             {
                 return type.CreateParameterName(capitalize).Pluralize();
