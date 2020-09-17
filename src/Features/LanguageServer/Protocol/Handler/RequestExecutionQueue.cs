@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Tell the queue that this was successful so that mutations (if any) can be applied
                         return true;
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException ex)
                     {
-                        completion.SetCanceled();
+                        completion.TrySetCanceled(ex.CancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             // Since the cancellationToken passed to the callback is a linked source it could be cancelled
                             // without the queue token being cancelled, but ranToCompletion will be false so no need to
                             // do anything special here.
+                            RoslynDebug.Assert(ranToCompletion == false);
                         }
 
                         // If the handling of the request failed, the exception will bubble back up to the caller, but we
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
             {
                 // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
                 // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.

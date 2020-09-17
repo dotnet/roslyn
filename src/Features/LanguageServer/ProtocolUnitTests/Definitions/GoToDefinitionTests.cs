@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(Solution solution, LSP.Location caret)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(queue, LSP.Methods.TextDocumentDefinitionName,
                            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }

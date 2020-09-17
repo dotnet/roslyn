@@ -44,7 +44,7 @@ void M()
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(queue, LSP.Methods.TextDocumentFormattingName,
                            CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }

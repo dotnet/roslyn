@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = StartTestRun(requests);
 
             // first task should fail
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
 
             // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
@@ -167,10 +167,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = StartTestRun(requests);
 
             // first task should fail
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
 
             // remaining tasks should be canceled
-            await Assert.ThrowsAsync<TaskCanceledException>(async () => await Task.WhenAll(waitables.Skip(1)));
+            await Assert.ThrowsAsync<TaskCanceledException>(() => Task.WhenAll(waitables.Skip(1)));
 
             Assert.All(waitables.Skip(1), w => Assert.True(w.IsCanceled));
         }
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             using var workspace = CreateTestWorkspace("class C { }", out _);
             var solution = workspace.CurrentSolution;
 
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             var languageServer = GetLanguageServer(solution);
             var clientCapabilities = new LSP.ClientCapabilities();
 

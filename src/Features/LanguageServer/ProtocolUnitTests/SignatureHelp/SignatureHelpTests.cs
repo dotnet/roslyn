@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
 
         private static async Task<LSP.SignatureHelp> RunGetSignatureHelpAsync(Solution solution, LSP.Location caret)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(queue, LSP.Methods.TextDocumentSignatureHelpName,
                            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }

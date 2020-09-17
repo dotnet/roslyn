@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             VSCodeAction unresolvedCodeAction,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(queue,
                 LSP.MSLSPMethods.TextDocumentCodeActionResolveName, unresolvedCodeAction,
                 clientCapabilities, null, CancellationToken.None);

@@ -129,7 +129,7 @@ class A
                 SupportsVisualStudioExtensions = true
             };
 
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret), vsClientCapabilities, null, CancellationToken.None);
         }

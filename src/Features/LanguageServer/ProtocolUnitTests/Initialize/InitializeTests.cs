@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
 
         private static async Task<LSP.InitializeResult> RunInitializeAsync(Solution solution, LSP.InitializeParams request)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(queue, LSP.Methods.InitializeName,
                            request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }

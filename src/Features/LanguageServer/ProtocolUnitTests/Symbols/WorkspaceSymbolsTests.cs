@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 Query = query
             };
 
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(queue, LSP.Methods.WorkspaceSymbolName,
                 request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }

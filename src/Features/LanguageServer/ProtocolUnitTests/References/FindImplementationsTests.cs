@@ -125,7 +125,7 @@ class {|implementation:C|} : A { }";
 
         private static async Task<LSP.Location[]> RunFindImplementationAsync(Solution solution, LSP.Location caret)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(queue, LSP.Methods.TextDocumentImplementationName,
                            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }

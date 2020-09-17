@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
         private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(queue, LSP.Methods.TextDocumentCompletionResolveName,
                            completionItem, clientCapabilities, null, CancellationToken.None);
         }

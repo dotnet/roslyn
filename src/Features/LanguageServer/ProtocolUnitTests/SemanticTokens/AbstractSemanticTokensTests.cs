@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(
             Solution solution, LSP.Location caret)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(queue,
                            LSP.SemanticTokensMethods.TextDocumentSemanticTokensName,
                            CreateSemanticTokensParams(caret), new LSP.VSClientCapabilities(), null, CancellationToken.None);
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(
             Solution solution, LSP.Location caret, LSP.Range range)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(queue,
                            LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
                            CreateSemanticTokensRangeParams(caret, range), new LSP.VSClientCapabilities(), null, CancellationToken.None);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> RunGetSemanticTokensEditsAsync(
             Solution solution, LSP.Location caret, string previousResultId)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>(queue,
                            LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
                            CreateSemanticTokensParams(caret, previousResultId), new LSP.VSClientCapabilities(), null, CancellationToken.None);

@@ -341,7 +341,7 @@ namespace Roslyn.Test.Utilities
             return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
         }
 
-        private protected static RequestExecutionQueue GetRequestQueue(Solution solution)
+        private protected static RequestExecutionQueue CreateRequestQueue(Solution solution)
         {
             var workspace = (TestWorkspace)solution.Workspace;
             var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();

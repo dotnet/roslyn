@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             LSP.Location caret,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var queue = GetRequestQueue(solution);
+            var queue = CreateRequestQueue(solution);
             var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.VSCodeAction[]>(queue,
                 LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret),
                 clientCapabilities, null, CancellationToken.None);
