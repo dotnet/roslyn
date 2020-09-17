@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefKindDifferences: true,
-            typeComparison: TypeCompareKind.ConsiderEverything);
+            typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
