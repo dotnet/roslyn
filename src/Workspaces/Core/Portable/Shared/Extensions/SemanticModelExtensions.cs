@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (type == null)
                 return false;
 
+            // string implements IEnumerable<char>, so we need to specifically exclude it.
             if (type.SpecialType == SpecialType.System_String)
                 return false;
 
