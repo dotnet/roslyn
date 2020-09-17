@@ -4428,7 +4428,7 @@ record C1(int I1)
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "C1 { I1 = 42, P2 = 43, P3 = 44 }", verify: Verification.Skipped /* init-only */);
             comp.VerifyEmitDiagnostics(
                 // (12,32): warning CS0067: The event 'C1.a' is never used
@@ -4438,6 +4438,44 @@ record C1(int I1)
                 //     private int field1 = 100;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field1", isSuppressed: false).WithArguments("C1.field1").WithLocation(14, 17)
                 );
+        }
+
+        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        public void ToString_PrivateGetter()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public int P1 { private get => 43; set => throw null; }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }", verify: Verification.Skipped /* init-only */);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverridenProperty_NoRepetition()
+        {
+            var src = @"
+System.Console.WriteLine(new B() { P = 2 }.ToString());
+
+abstract record A
+{
+    public virtual int P { get; set; }
+}
+record B : A
+{
+    public override int P { get; set; }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
         }
 
         [Fact]

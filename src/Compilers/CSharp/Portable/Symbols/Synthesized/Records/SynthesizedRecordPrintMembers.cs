@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind is SymbolKind.Property)
                 {
                     var property = (PropertySymbol)m;
-                    return !property.IsIndexer && property.GetMethod is not null;
+                    return !property.IsIndexer && !property.IsOverride && property.GetMethod is not null;
                 }
 
                 return false;
