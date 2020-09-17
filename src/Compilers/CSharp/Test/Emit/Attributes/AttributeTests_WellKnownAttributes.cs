@@ -8658,6 +8658,65 @@ class C2 : C1
         }
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_05()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+            verify(comp1.EmitToImageReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(comp1.ToMetadataReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+            verify(comp1.EmitToImageReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+
+            void verify(MetadataReference reference, CSharpCompilationOptions options, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference }, options: options);
+                var diags = comp2.GetDiagnostics();
+
+                var diag = diags.Single();
+                Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+
+                diags.Verify(expectedDiagnostics);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_01()
         {
             var source1 = @"
