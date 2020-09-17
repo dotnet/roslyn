@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -8682,35 +8683,78 @@ class C2 : C1
             var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
             comp1.VerifyDiagnostics();
 
-            verify(comp1.ToMetadataReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
-                // (6,9): warning TEST1: 'C1.M1()' is obsolete
-                //         M1(); // 1
-                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
-                );
-            verify(comp1.EmitToImageReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
+            // WithGeneralDiagnosticOption
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
                 // (6,9): warning TEST1: 'C1.M1()' is obsolete
                 //         M1(); // 1
                 Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
                 );
 
-            verify(comp1.ToMetadataReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
-                // (6,9): error TEST1: 'C1.M1()' is obsolete
-                //         M1(); // 1
-                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
-                );
-            verify(comp1.EmitToImageReference(), TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
                 // (6,9): error TEST1: 'C1.M1()' is obsolete
                 //         M1(); // 1
                 Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
                 );
 
-            void verify(MetadataReference reference, CSharpCompilationOptions options, params DiagnosticDescription[] expectedDiagnostics)
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9));
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+
+
+            // WithSpecificDiagnosticOption for id TEST1
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Warn)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Error)),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Hidden)),
+                // (6,9): hidden TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Suppress)));
+
+
+            // WithSpecificDiagnosticOption for id CS0618
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Error)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Suppress)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            void verify(CSharpCompilationOptions options, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                verifyReference(comp1.ToMetadataReference(), options, expectedDiagnostics);
+                verifyReference(comp1.EmitToImageReference(), options, expectedDiagnostics);
+            }
+
+            void verifyReference(MetadataReference reference, CSharpCompilationOptions options, DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp2 = CreateCompilation(source2, references: new[] { reference }, options: options);
                 var diags = comp2.GetDiagnostics();
 
-                var diag = diags.Single();
-                Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+                if (expectedDiagnostics.Any())
+                {
+                    var diag = diags.Single();
+                    Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+                }
 
                 diags.Verify(expectedDiagnostics);
             }
