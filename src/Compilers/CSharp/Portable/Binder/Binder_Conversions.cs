@@ -505,8 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(source),
             };
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
-            BoundExpression? receiverOpt = group.ReceiverOpt;
-            MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
             if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, destination, diagnostics))
