@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/34688")]
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
         public void TestDiscoverEditorConfigFiles()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -423,6 +423,154 @@ some_prop = some_val");
                     Path.Combine(ProjectDir.Path, ".editorconfig"),
                     editorConfigFile2.Path
                 });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void TestDiscoverEditorConfigFilesCanBeDisabled()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var editorConfigFile2 = subdir.CreateFile(".editorconfig").WriteAllText(@"[*.cs]
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: @"
+<PropertyGroup>
+    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+</PropertyGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                expectedResults: new[] { "" });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void TestDiscoverGlobalConfigFiles()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var globalConfigFile = ProjectDir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var globalConfigFile2 = subdir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: null,
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                expectedResults: new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                    globalConfigFile.Path,
+                    globalConfigFile2.Path
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void TestDiscoverGlobalConfigFilesCanBeDisabled()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var globalConfigFile = ProjectDir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var globalConfigFile2 = subdir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: @"
+<PropertyGroup>
+    <DiscoverGlobalConfigFiles>false</DiscoverGlobalConfigFiles>
+</PropertyGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                 expectedResults: new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                });
+        }
+
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void TestDiscoverGlobalConfigFilesWhenEditorConfigDisabled()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var globalConfigFile = ProjectDir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var globalConfigFile2 = subdir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: @"
+<PropertyGroup>
+    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+</PropertyGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                 expectedResults: new[]
+                {
+                    globalConfigFile.Path,
+                    globalConfigFile2.Path
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void TestDiscoverEditorAndGlobalConfigFilesCanBeDisabled()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var globalConfigFile = ProjectDir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var globalConfigFile2 = subdir.CreateFile(".globalconfig").WriteAllText(@"is_global = true
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: @"
+<PropertyGroup>
+    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+    <DiscoverGlobalConfigFiles>false</DiscoverGlobalConfigFiles>
+</PropertyGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                 expectedResults: new[] { "" });
         }
     }
 }
