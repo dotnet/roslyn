@@ -2114,9 +2114,12 @@ option2 = config3
         [InlineData("/path?", false)]
         [InlineData("/path,", false)]
         [InlineData("/path\"", true)]
-        [InlineData("/path\\", false)]
+        [InlineData("/path\\", false)] //editorconfig sees a single backslash
+        [InlineData("/path\\\\", true)] //editorconfig sees an escaped backslash
         [InlineData("//path", true)]
         [InlineData("//", true)]
+        [InlineData("\\", false)] //editorconfig sees a single backslash
+        [InlineData("\\\\", true)] //editorconifg sees an escaped backslash
         [InlineData("/\\{\\}\\,\\[\\]\\*", true)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
