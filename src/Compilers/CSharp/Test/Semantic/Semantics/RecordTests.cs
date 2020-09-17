@@ -4124,6 +4124,32 @@ record C1;
 ");
         }
 
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverridenProperty_NoRepetition()
+        {
+            var src = @"
+abstract record A
+{
+    public virtual int P { get; set; }
+}
+record B : A
+{
+    public override int P { get; set; }
+}
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(new B() { P = 2 }.ToString());
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
+        }
+
         [Fact]
         public void ToString_TopLevelRecord_AbstractRecord()
         {
