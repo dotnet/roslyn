@@ -712,9 +712,9 @@ record C(int X, int Y)
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
-                "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 C.<X>k__BackingField",
                 "System.Int32 C.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.X.init",
@@ -8681,9 +8681,9 @@ record C(int X, int Y, int Z) : B
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
-                "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 C.X { get; }",
                 "System.Int32 C.X.get",
                 "System.Int32 C.<Y>k__BackingField",
@@ -9195,9 +9195,9 @@ record C(object P)
 
             var expectedMembers = new[]
             {
+                "B..ctor(System.Object P, System.Object Q)",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
-                "B..ctor(System.Object P, System.Object Q)",
                 "System.Object B.<P>k__BackingField",
                 "System.Object B.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
@@ -9222,9 +9222,9 @@ record C(object P)
 
             expectedMembers = new[]
             {
+                "C..ctor(System.Object P)",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
-                "C..ctor(System.Object P)",
                 "System.Object C.<P>k__BackingField",
                 "System.Object C.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
@@ -9558,9 +9558,9 @@ End Class
                 // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
-                // (1,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(object P, object Q, object R)").WithArguments("b", "B.B(B)").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
                 // (1,42): error CS8864: Records may only inherit from object or another record
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
@@ -13830,9 +13830,9 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
-                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
@@ -13882,9 +13882,9 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
-                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
@@ -21314,9 +21314,9 @@ False").VerifyDiagnostics();
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "B1..ctor(System.Int32 P)",
                 "System.Type B1.EqualityContract.get",
                 "System.Type B1.EqualityContract { get; }",
-                "B1..ctor(System.Int32 P)",
                 "System.Int32 B1.<P>k__BackingField",
                 "System.Int32 B1.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B1.P.init",
@@ -22354,9 +22354,9 @@ record R(ref int P1, out int P2);
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,9): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
+                // (2,8): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
                 // record R(ref int P1, out int P2);
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int P1, out int P2)").WithArguments("P2").WithLocation(2, 9),
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "R").WithArguments("P2").WithLocation(2, 8),
                 // (2,10): error CS0631: ref and out are not valid in this context
                 // record R(ref int P1, out int P2);
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 10),

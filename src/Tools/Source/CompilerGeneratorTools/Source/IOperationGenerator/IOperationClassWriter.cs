@@ -189,7 +189,7 @@ namespace IOperationGenerator
 
         private void WriteInterface(AbstractNode node)
         {
-            WriteComments(node.Comments, writeReservedRemark: true);
+            WriteComments(node.Comments, getNodeKinds(node), writeReservedRemark: true);
 
             WriteObsoleteIfNecessary(node.Obsolete);
             WriteLine($"{(node.IsInternal ? "internal" : "public")} interface {node.Name} : {node.Base}");
@@ -201,9 +201,25 @@ namespace IOperationGenerator
             }
 
             Unbrace();
+
+            IEnumerable<string> getNodeKinds(AbstractNode node)
+            {
+                if (node.OperationKind is { } kind)
+                {
+                    if (kind.Include is false)
+                        return Enumerable.Empty<string>();
+
+                    return node.OperationKind.Entries.Select(entry => entry.Name);
+                }
+
+                if (node.IsAbstract || node.IsInternal)
+                    return Enumerable.Empty<string>();
+
+                return new[] { GetSubName(node.Name) };
+            }
         }
 
-        private void WriteComments(Comments? comments, bool writeReservedRemark)
+        private void WriteComments(Comments? comments, IEnumerable<string> operationKinds, bool writeReservedRemark)
         {
             if (comments is object)
             {
@@ -244,8 +260,19 @@ namespace IOperationGenerator
 
             void writeReservedRemarkText()
             {
-                WriteLine("/// This interface is reserved for implementation by its associated APIs. We reserve the right to");
-                WriteLine("/// change it in the future.");
+                if (operationKinds.Any())
+                {
+                    WriteLine("/// <para>This node is associated with the following operation kinds:</para>");
+                    WriteLine("/// <list type=\"bullet\">");
+
+                    foreach (var kind in operationKinds)
+                        WriteLine($"/// <item><description><see cref=\"OperationKind.{kind}\"/></description></item>");
+
+                    WriteLine("/// </list>");
+                }
+
+                WriteLine("/// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to");
+                WriteLine("/// change it in the future.</para>");
             }
         }
 
@@ -253,7 +280,7 @@ namespace IOperationGenerator
         {
             if (prop.IsInternal)
                 return;
-            WriteComments(prop.Comments, writeReservedRemark: false);
+            WriteComments(prop.Comments, operationKinds: Enumerable.Empty<string>(), writeReservedRemark: false);
             var modifiers = prop.IsNew ? "new " : "";
             WriteLine($"{modifiers}{prop.Type} {prop.Name} {{ get; }}");
         }

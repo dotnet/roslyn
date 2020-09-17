@@ -99,8 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
                 {
                     var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
-                        BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false, out bool requiresFalseWhenClause);
-                    ErrorCode warningCode = requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen : ErrorCode.WRN_SwitchExpressionNotExhaustive;
+                        BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false, out bool requiresFalseWhenClause, out bool unnamedEnumValue);
+                    ErrorCode warningCode =
+                        requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen :
+                        unnamedEnumValue ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue :
+                        ErrorCode.WRN_SwitchExpressionNotExhaustive;
                     diagnostics.Add(
                         warningCode,
                         node.SwitchKeyword.GetLocation(),
