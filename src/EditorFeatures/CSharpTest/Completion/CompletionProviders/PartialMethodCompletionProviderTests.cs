@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     extern void partial $$
 }";
-            await VerifyNoItemsExistAsync(text);
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
