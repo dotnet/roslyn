@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis
                 MergeSection(config.PathToFile, config.GlobalSection, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
-                    // Check that the path is rooted according to the OS we're on, doesn't contain any glob characters, and has an .editorconfig path seperator in it
+                    // Check that the path is rooted according to the OS we're on, doesn't contain any glob characters, and has an .editorconfig path separator in it
                     if (Path.IsPathRooted(section.Name) && !ContainsSpecialCharacters(section.Name, out bool sawPathSeparator) && sawPathSeparator)
                     {
                         MergeSection(config.PathToFile, section, isGlobalSection: false);
