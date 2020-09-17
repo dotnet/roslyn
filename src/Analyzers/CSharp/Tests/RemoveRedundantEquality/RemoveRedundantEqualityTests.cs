@@ -187,17 +187,17 @@ public class C
 {
     public bool M1(bool x)
     {
-        return true {|FixAllInDocument:==|} x;
+        return true [|==|] x;
     }
 
     public bool M2(bool x)
     {
-        return x != false;
+        return x [|!=|] false;
     }
 
     public bool M3(bool x)
     {
-        return x == true == true;
+        return x [|==|] true [|==|] true;
     }
 }";
             var fixedCode = @"
