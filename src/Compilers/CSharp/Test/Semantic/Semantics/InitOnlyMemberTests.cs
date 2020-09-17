@@ -3787,7 +3787,7 @@ public readonly struct S
 {
     public int I { get; init; }
 }
-" }, expectedOutput: "1");
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
 
 
 
