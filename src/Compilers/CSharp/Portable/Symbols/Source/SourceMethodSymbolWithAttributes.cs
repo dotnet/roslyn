@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (lateData is { UnmanagedCallersOnlyAttributeData: not null })
                 {
                     // We can't verify the symmetric case here. Error conditions (such as if a bad expression was provided to the array initializer)
-                    // can cause the attribute to be skipped regular attribute binding. Early binding doesn't know that though, so
+                    // can cause the attribute to be skipped during regular attribute binding. Early binding doesn't know that though, so
                     // it still gets marked as present.
                     Debug.Assert(earlyData is { UnmanagedCallersOnlyAttributePresent: true });
                 }
