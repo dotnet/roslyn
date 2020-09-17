@@ -59,27 +59,23 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
                 editor.ReplaceNode(node, (n, _) =>
                 {
-                    if (!syntaxFacts.IsBinaryExpression(n) ||
-                        semanticModel.GetOperation(n, cancellationToken) is not IBinaryOperation operation ||
-                        operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals) ||
-                        operation.RightOperand.Type.SpecialType != SpecialType.System_Boolean ||
-                        operation.LeftOperand.Type.SpecialType != SpecialType.System_Boolean)
+                    if (!syntaxFacts.IsBinaryExpression(n))
                     {
                         // This should happen only in error cases.
                         return n;
                     }
 
-                    var redundantBoolValue = operation.OperatorKind == BinaryOperatorKind.Equals;
-                    if (TryGetLiteralValue(operation.RightOperand) == redundantBoolValue)
+                    syntaxFacts.GetPartsOfBinaryExpression(n, out var left, out var right);
+                    if (diagnostic.Properties["RedundantSide"] == "Right")
                     {
-                        return WithElasticTrailingTrivia(operation.LeftOperand.Syntax);
+                        return WithElasticTrailingTrivia(left);
                     }
-                    else if (TryGetLiteralValue(operation.LeftOperand) == redundantBoolValue)
+                    else if (diagnostic.Properties["RedundantSide"] == "Left")
                     {
                         // Elastic trivia is not needed here.
                         // LeftExpression                 ==                     RightExpression
                         // |This is the left operand span|This is the token span|This is the right operand span
-                        return operation.RightOperand.Syntax;
+                        return right;
                     }
 
                     return n;
@@ -91,16 +87,6 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
             {
                 return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
-
-            static bool? TryGetLiteralValue(IOperation operand)
-            {
-                if (operand.ConstantValue.HasValue && operand.Kind == OperationKind.Literal &&
-                    operand.ConstantValue.Value is bool constValue)
-                {
-                    return constValue;
-                }
-                return null;
             }
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -58,13 +59,22 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             var isOperatorEquals = operation.OperatorKind == BinaryOperatorKind.Equals;
             _syntaxFacts.GetPartsOfBinaryExpression(operation.Syntax, out _, out var operatorToken, out _);
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+            if (TryGetLiteralValue(rightOperand) == isOperatorEquals)
+            {
+                properties.Add("RedundantSide", "Right");
+            }
+            else if (TryGetLiteralValue(leftOperand) == isOperatorEquals)
+            {
+                properties.Add("RedundantSide", "Left");
+            }
 
-            if (TryGetLiteralValue(rightOperand) == isOperatorEquals ||
-                TryGetLiteralValue(leftOperand) == isOperatorEquals)
+            if (properties.Count == 1)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                     operatorToken.GetLocation(),
-                    additionalLocations: new[] { operation.Syntax.GetLocation() }));
+                    additionalLocations: new[] { operation.Syntax.GetLocation() },
+                    properties: properties.ToImmutable()));
             }
 
             return;
