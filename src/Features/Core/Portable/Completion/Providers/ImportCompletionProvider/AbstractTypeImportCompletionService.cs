@@ -397,33 +397,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
         }
 
+        // Things needed for determining whether a symbol is EditorBrowsable.
+        // Grouped together and reused within each compilation.
         private class EditorBrowsableInfo
         {
+            private Optional<IMethodSymbol?>? _editorBrowsableAttributeConstructor;
+            private ImmutableArray<IMethodSymbol>? _typeLibTypeAttributeConstructors;
+            private ImmutableArray<IMethodSymbol>? _typeLibFuncAttributeConstructors;
+            private ImmutableArray<IMethodSymbol>? _typeLibVarAttributeConstructors;
+
             public Compilation Compilation { get; }
-            private IMethodSymbol? _editorBrowsableAttributeConstructor;
-            private List<IMethodSymbol>? _typeLibTypeAttributeConstructors;
-            private List<IMethodSymbol>? _typeLibFuncAttributeConstructors;
-            private List<IMethodSymbol>? _typeLibVarAttributeConstructors;
+
+            public Optional<IMethodSymbol?> EditorBrowsableAttributeConstructor
+                => _editorBrowsableAttributeConstructor ??= new(EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(Compilation));
+
+            public ImmutableArray<IMethodSymbol> typeLibTypeAttributeConstructors
+                => _typeLibTypeAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(Compilation);
+
+            public ImmutableArray<IMethodSymbol> TypeLibFuncAttributeConstructors
+                => _typeLibFuncAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(Compilation);
+
+            public ImmutableArray<IMethodSymbol> TypeLibVarAttributeConstructors
+                => _typeLibVarAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(Compilation);
+
+            public Optional<INamedTypeSymbol?> HideModuleNameAttribute { get; }
 
             public EditorBrowsableInfo(Compilation compilation)
             {
                 Compilation = compilation;
-                HideModuleNameAttribute = Compilation.HideModuleNameAttribute();
+                HideModuleNameAttribute = new(Compilation.HideModuleNameAttribute());
             }
-
-            public IMethodSymbol EditorBrowsableAttributeConstructor
-                => _editorBrowsableAttributeConstructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(Compilation);
-
-            public List<IMethodSymbol> typeLibTypeAttributeConstructors
-                => _typeLibTypeAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(Compilation);
-
-            public List<IMethodSymbol> TypeLibFuncAttributeConstructors
-                => _typeLibFuncAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(Compilation);
-
-            public List<IMethodSymbol> TypeLibVarAttributeConstructors
-                => _typeLibVarAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(Compilation);
-
-            public INamedTypeSymbol? HideModuleNameAttribute { get; }
         }
     }
 }
