@@ -42,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly CodeAnalysis.Workspace _workspace;
+        private readonly RequestExecutionQueue _queue;
 
-        private RequestExecutionQueue _queue;
         private VSClientCapabilities _clientCapabilities;
         private bool _shuttingDown;
 
