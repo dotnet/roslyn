@@ -83,8 +83,10 @@
     <!-- Work around a GetPathsOfAllDirectoriesAbove() bug where it can return multiple equivalent paths when the 
          compilation includes linked files with relative paths - https://github.com/microsoft/msbuild/issues/4392 -->
     <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
-    <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalConfigFiles)' != 'false'" />
-    <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false' or '$(DiscoverGlobalConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    
+    <GlobalEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(GlobalEditorConfigFiles->Exists())" Condition="'$(DiscoverGlobalConfigFiles)' != 'false'" />
   </ItemGroup>
 
   <!--

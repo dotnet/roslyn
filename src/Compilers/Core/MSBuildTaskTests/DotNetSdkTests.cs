@@ -572,5 +572,33 @@ some_prop = some_val");
                 },
                  expectedResults: new[] { "" });
         }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void TestGlobalConfigsCanBeManuallyAdded()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var globalConfigFile = ProjectDir.CreateFile("mycustom.config").WriteAllText(@"is_global = true
+some_prop = some_val");
+
+            VerifyValues(
+                customProps: @"
+<ItemGroup>
+    <GlobalEditorConfigFiles Include=""mycustom.config"" />
+</ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                 expectedResults: new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                    "mycustom.config"
+                });
+        }
     }
 }
