@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        private const string MinimalTypeNamePropertyName = "MinimalTypeName";
         private const string CompletionHandlerPropertyName = "CompletionHandler";
         private const string CompletionHandlerConversion = "Conversion";
         private const string CompletionHandlerIndexer = "Indexer";
@@ -51,10 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation)
+        private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation, params (string, string)[] otherKVPs)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder.Add(CompletionHandlerPropertyName, operation);
+            foreach (var (key, value) in otherKVPs)
+            {
+                builder.Add(key, value);
+            }
+
             return builder.ToImmutable();
         }
 
@@ -89,12 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              m.IsConversion() && // MethodKind.Conversion
                                              m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
                                              container.Equals(m.Parameters[0].Type) // Convert from container type to other type
+                                         let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
                                          select SymbolCompletionItem.CreateWithSymbolId(
-                                             displayText: $"({m.ReturnType.ToMinimalDisplayString(semanticModel, position)})", // The type to convert to
+                                             displayText: $"({typeName})", // The type to convert to
                                              symbols: ImmutableList.Create(m),
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
-                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion));
+                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion, (MinimalTypeNamePropertyName, typeName)));
             var indexers = from p in allMembers.OfType<IPropertySymbol>()
                            where p.IsIndexer
                            select SymbolCompletionItem.CreateWithSymbolId(
@@ -153,18 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var symbol = symbols.FirstOrDefault() as IMethodSymbol;
-            if (symbol is null)
+            if (!item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName))
             {
                 return null;
             }
-
-            var convertToType = symbol.ReturnType;
-            // TODO: Transport type name in property of completion item
-            // GetRequiredSemanticModelAsync is required because some test fail, because the namespace is wrong in some circumstances.
-            var typeName = convertToType.ToMinimalDisplayString(await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false), position);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(position);
