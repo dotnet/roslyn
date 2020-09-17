@@ -258,17 +258,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // we're providing the set of unicode categories that are legal there.
 
             var index = tree.Text.IndexOf(previousVirtualChar);
-            if (index >= 2 &&
-                tree.Text[index - 2] == '\\')
+            if (index >= 2 && tree.Text[index - 2] == '\\')
             {
                 var escapeChar = tree.Text[index - 1];
                 if (escapeChar == 'p' || escapeChar == 'P')
                 {
-                    var result = FindToken(tree.Root, escapeChar);
-                    if (result == null)
-                        return;
-
-                    if (result.Value.parent is RegexEscapeNode)
+                    var token = FindToken(tree.Root, escapeChar);
+                    if (token?.parent is RegexEscapeNode)
                         ProvideEscapeCategoryCompletions(context);
                 }
             }
