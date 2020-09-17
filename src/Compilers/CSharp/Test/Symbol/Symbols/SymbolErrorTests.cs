@@ -13347,7 +13347,7 @@ interface I
     C this[C c] { get; set; } // 5, 6, 7
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8897: 'C': static types cannot be used as parameters
@@ -13373,7 +13373,7 @@ interface I
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
             );
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             comp.VerifyDiagnostics();
         }
 
