@@ -4413,6 +4413,18 @@ record C1(int I1)
     public int P2 { get => 43; }
     public ref int P3 { get => ref field; }
     public event System.Action a;
+
+    private int field1 = 100;
+    internal int field2 = 100;
+    protected int field3 = 100;
+    private protected int field4 = 100;
+    internal protected int field5 = 100;
+
+    private int Property1 { get; set; } = 100;
+    internal int Property2 { get; set; } = 100;
+    protected int Property3 { get; set; } = 100;
+    private protected int Property4 { get; set; } = 100;
+    internal protected int Property5 { get; set; } = 100;
 }
 ";
 
@@ -4421,7 +4433,10 @@ record C1(int I1)
             comp.VerifyEmitDiagnostics(
                 // (12,32): warning CS0067: The event 'C1.a' is never used
                 //     public event System.Action a;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(12, 32)
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(12, 32),
+                // (14,17): warning CS0414: The field 'C1.field1' is assigned but its value is never used
+                //     private int field1 = 100;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field1", isSuppressed: false).WithArguments("C1.field1").WithLocation(14, 17)
                 );
         }
 
