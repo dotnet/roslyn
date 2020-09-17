@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (LocalDeclaredReadOnly || _property.HasReadOnlyModifier)
+                if (LocalDeclaredReadOnly || (_property.HasReadOnlyModifier && IsValidReadOnlyTarget))
                 {
                     return true;
                 }
@@ -673,7 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
-            else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertySet && !_usesInit)
+            else if (LocalDeclaredReadOnly && IsInitOnly)
+            {
+                // 'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.
+                diagnostics.Add(ErrorCode.ERR_InitCannotBeReadonly, location, _property);
+            }
+            else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertySet)
             {
                 // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);

@@ -447,6 +447,11 @@
         <target state="translated">Impossible d'utiliser les arguments avec le modificateur 'in' dans les expressions dispatchées dynamiquement.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="new">Instance properties in interfaces cannot have initializers.</target>
