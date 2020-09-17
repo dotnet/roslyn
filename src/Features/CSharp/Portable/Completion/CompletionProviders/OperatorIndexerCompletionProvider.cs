@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var expression = GetExpressionOfInvocation(token);
+            var expression = GetParentExpressionOfInvocation(token);
             if (expression is null)
             {
                 return;
@@ -106,15 +106,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             context.AddItems(allExplicitConversions.Union(indexers));
         }
 
-        private static ExpressionSyntax? GetExpressionOfInvocation(SyntaxToken token)
+        private static ExpressionSyntax? GetParentExpressionOfInvocation(SyntaxToken token)
         {
             var syntaxNode = token.IsKind(SyntaxKind.IdentifierToken)
                 ? token.Parent?.Parent
                 : token.Parent;
             return syntaxNode switch
             {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? memberAccess.Expression,
-                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression()?.Expression,
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
+                MemberBindingExpressionSyntax memberBinding => memberBinding.GetParentConditionalAccessExpression()?.Expression,
+                _ => null,
+            };
+        }
+
+        private static ExpressionSyntax? GetRootExpressionOfInvocation(SyntaxToken token)
+        {
+            var syntaxNode = token.IsKind(SyntaxKind.IdentifierToken)
+                ? token.Parent?.Parent
+                : token.Parent;
+            return syntaxNode switch
+            {
+                MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression.GetRootConditionalAccessExpression() as ExpressionSyntax) ?? memberAccess,
+                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression(),
                 _ => null,
             };
         }
@@ -142,42 +155,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var symbol = (IMethodSymbol)symbols.Single();
-            var convertToType = symbol.ReturnType;
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(position);
-            var expression = GetExpressionOfInvocation(token);
-            if (expression is { })
+            var symbol = symbols.FirstOrDefault() as IMethodSymbol;
+            if (symbol is null)
             {
-                var typeName = convertToType.ToMinimalDisplayString(await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false), expression.SpanStart);
-
-                // expr. -> ((type)expr).
-                var newNode =
-                    (SyntaxNode)ParenthesizedExpression(
-                        CastExpression(IdentifierName(typeName), expression.WithoutTrivia()));
-                var syntaxToReplace = (SyntaxNode)expression;
-                var identifier = token.Parent as IdentifierNameSyntax;
-                if (identifier is { })
-                {
-                    // The user typed parts of the type name. This needs to be removed. We need to replace the expression and the identifier.
-                    // expr.ty$$ -> ((type)expr).$$
-                    syntaxToReplace = expression.GetCommonRoot(identifier);
-                    newNode = syntaxToReplace
-                        .ReplaceNodes(new[] { expression, identifier }, (n1, n2) => n1 switch
-                        {
-                            var n when ReferenceEquals(n, expression) => newNode,
-                            var n when ReferenceEquals(n, identifier) => IdentifierName(""),
-                            var n => n,
-                        });
-                }
-                var newNodeText = newNode.ToFullString();
-                var replaceSpan = syntaxToReplace.Span;
-                var textChange = new TextChange(replaceSpan, newNodeText);
-                var newPosition = position + (newNodeText.Length - replaceSpan.Length);
-                return CompletionChange.Create(textChange, newPosition);
+                return null;
             }
 
-            return null;
+            var convertToType = symbol.ReturnType;
+            // TODO: Transport type name in property of completion item
+            // GetRequiredSemanticModelAsync is required because some test fail, because the namespace is wrong in some circumstances.
+            var typeName = convertToType.ToMinimalDisplayString(await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false), position);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindTokenOnLeftOfPosition(position);
+            // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
+            //                      ↓               | cursor position
+            // white?.Black.White.Black?.White      | current user input
+            // white?.Black.White.Black?.White      | rootExpression (text manipulation starts with this)
+            //       .Black.White                   | parentExpression (needed to calculate the position to insert the closing brace)
+            //                    Black             | identifier at cursor position (gets removed, because the user typed the name of a type)
+            // |----------------------|             | part to replace (TextChange.Span), if identifier is not present: ends at rootExpression.End (after White.)
+            //                   ↑                  | insert closing brace after parentExpression.Span.End
+            // ((Black)white?.Black.White).?.White  | The result. Because we removed the identifier, the remainder after the identifier may be syntactically wrong 
+            //                             ↑        | cursor after the manipulation is placed after the dot
+            var rootExpression = GetRootExpressionOfInvocation(token);
+            var parentExpression = GetParentExpressionOfInvocation(token);
+            var identifier = token.Parent as IdentifierNameSyntax;
+            if (rootExpression is null || parentExpression is null)
+            {
+                return null;
+            }
+
+            var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, identifier is null ? rootExpression.Span.End : identifier.Span.End);
+            var cursorPositionOffset = spanToReplace.End - position;
+            var fromRootToParent = rootExpression.ToString();
+            if (identifier is { })
+            {
+                // Cut of the identifier
+                var length = identifier.Span.Start - rootExpression.SpanStart;
+                fromRootToParent = fromRootToParent.Substring(0, length);
+                // place cursor right behind ).
+                cursorPositionOffset = 0;
+            }
+            var fromRootToParentWithInsertedClosingBracket = fromRootToParent.Insert(parentExpression.Span.End - rootExpression.SpanStart, ")");
+            var conversion = $"(({typeName}){fromRootToParentWithInsertedClosingBracket}";
+            var newPosition = spanToReplace.Start + conversion.Length - cursorPositionOffset;
+            return CompletionChange.Create(new TextChange(spanToReplace, conversion), newPosition);
         }
 
         private static async Task<CompletionChange?> HandleIndexerChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

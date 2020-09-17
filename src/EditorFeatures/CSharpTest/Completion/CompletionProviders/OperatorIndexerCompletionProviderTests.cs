@@ -236,54 +236,90 @@ public class Program
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("c.$$", "((float)c).$$")]
-        [InlineData("c.$$;", "((float)c).$$;")]
-        [InlineData("c.fl$$", "((float)c).$$")]
-        [InlineData("c.fl$$;", "((float)c).$$;")]
-        [InlineData("c?.fl$$;", "((float)c)?.$$;")]
-        [InlineData("c.$$fl;", "((float)c).$$fl;")]
-        [InlineData("var f = c.$$;", "var f = ((float)c).$$;")]
-        [InlineData("c?.$$", "((float)c)?.$$")]
-        [InlineData("c?.$$b", "((float)c)?.$$b")]
-        [InlineData("c?.$$b.c()", "((float)c)?.$$b.c()")]
-        [InlineData("c?.$$b()", "((float)c)?.$$b()")]
-        [InlineData("c.Parent?.$$", "((float)c.Parent)?.$$")]
-        [InlineData("c.Parent.$$", "((float)c.Parent).$$")]
-        [InlineData("c?.Parent?.$$", "((float)c?.Parent)?.$$")]
-        [InlineData("c?.Parent?.fl$$", "((float)c?.Parent)?.$$")]
-        [InlineData("c?.Parent.fl$$", "((float)c?.Parent).$$")]
-        [InlineData("((C)c).$$", "((float)((C)c)).$$")]
-        [InlineData("(true ? c : c).$$", "((float)(true ? c : c)).$$")]
-        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvcations(string invocation, string fixedCode)
+        [InlineData("white.$$", "(Black)",
+           "((Black)white).$$")]
+        [InlineData("white.$$;", "(Black)",
+           "((Black)white).$$;")]
+        [InlineData("white.Bl$$", "(Black)",
+           "((Black)white).$$")]
+        [InlineData("white.Bl$$;", "(Black)",
+           "((Black)white).$$;")]
+        [InlineData("white?.Bl$$;", "(Black)",
+           "((Black)white)?.$$;")]
+        [InlineData("white.$$Bl;", "(Black)",
+           "((Black)white).$$Bl;")]
+        [InlineData("var f = white.$$;", "(Black)",
+           "var f = ((Black)white).$$;")]
+        [InlineData("white?.$$", "(Black)",
+           "((Black)white)?.$$")]
+        [InlineData("white?.$$b", "(Black)",
+           "((Black)white)?.$$b")]
+        [InlineData("white?.$$b.c()", "(Black)",
+           "((Black)white)?.$$b.c()")]
+        [InlineData("white?.$$b()", "(Black)",
+           "((Black)white)?.$$b()")]
+        [InlineData("white.Black?.$$", "(White)",
+           "((White)white.Black)?.$$")]
+        [InlineData("white.Black.$$", "(White)",
+           "((White)white.Black).$$")]
+        [InlineData("white?.Black?.$$", "(White)",
+           "((White)white?.Black)?.$$")]
+        [InlineData("white?.Black?.fl$$", "(White)",
+           "((White)white?.Black)?.$$")]
+        [InlineData("white?.Black.fl$$", "(White)",
+           "((White)white?.Black).$$")]
+        [InlineData("white?.Black.White.Bl$$ack?.White", "(Black)",
+           "((Black)white?.Black.White).$$?.White")]
+        [InlineData("((White)white).$$", "(Black)",
+           "((Black)((White)white)).$$")]
+        [InlineData("(true ? white : white).$$", "(Black)",
+           "((Black)(true ? white : white)).$$")]
+        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvcations(string invocation, string conversionOffering, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
-public class C
+namespace N
 {{
-    public C Parent {{ get; }}
-    public static explicit operator float(C c) => 0;
-}}
-
-public class Program
-{{
-    public void Main()
+    public class Black
     {{
-        var c = new C();
-        {invocation}
+        public White White {{ get; }}
+        public static explicit operator White(Black _) => new White();
+    }}
+    public class White
+    {{
+        public Black Black {{ get; }}
+        public static explicit operator Black(White _) => new Black();
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var white = new White();
+            {invocation}
+        }}
     }}
 }}
-", "(float)", @$"
-public class C
+", conversionOffering, @$"
+namespace N
 {{
-    public C Parent {{ get; }}
-    public static explicit operator float(C c) => 0;
-}}
-
-public class Program
-{{
-    public void Main()
+    public class Black
     {{
-        var c = new C();
-        {fixedCode}
+        public White White {{ get; }}
+        public static explicit operator White(Black _) => new White();
+    }}
+    public class White
+    {{
+        public Black Black {{ get; }}
+        public static explicit operator Black(White _) => new Black();
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var white = new White();
+            {fixedCode}
+        }}
     }}
 }}
 ");
@@ -294,7 +330,7 @@ public class Program
         [InlineData("/* Leading */c.$$", "/* Leading */((float)c).$$")]
         [InlineData("/* Leading */c.fl$$", "/* Leading */((float)c).$$")]
         [InlineData("c.  $$", "((float)c).  $$")]
-        [InlineData("c.fl  $$", "((float)c).  $$")]
+        [InlineData("c.fl  $$", "((float)c).$$  ")]
         [InlineData("(true ? /* Inline */ c : c).$$", "((float)(true ? /* Inline */ c : c)).$$")]
         public async Task ExplicitUserDefinedConversionTriviaHandling(string invocation, string fixedCode)
         {
