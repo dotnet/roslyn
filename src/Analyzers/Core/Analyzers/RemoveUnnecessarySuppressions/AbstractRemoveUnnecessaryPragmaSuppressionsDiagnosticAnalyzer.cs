@@ -377,6 +377,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     trimmedPart = trimmedPart[categoryPrefix.Length..].Trim();
                     categoryBuilder.Add(trimmedPart);
                 }
+                else
                 {
                     idBuilder.Add(trimmedPart);
                 }
