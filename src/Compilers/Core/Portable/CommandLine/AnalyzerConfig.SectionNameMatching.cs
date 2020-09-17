@@ -113,16 +113,17 @@ namespace Microsoft.CodeAnalysis
                 numberRangePairs.ToImmutableAndFree());
         }
 
-        internal static bool ContainsSpecialCharacters(string sectionName)
+        internal static bool ContainsSpecialCharacters(string sectionName, out bool sawPathSeparator)
         {
             SectionNameLexer nameLexer = new SectionNameLexer(sectionName);
+            sawPathSeparator = false;
             while (!nameLexer.IsDone)
             {
                 if (nameLexer.Lex() != TokenKind.SimpleCharacter)
                 {
                     return true;
                 }
-                nameLexer.EatCurrentCharacter();
+                sawPathSeparator |= nameLexer.EatCurrentCharacter() == '/';
             }
             return false;
         }
