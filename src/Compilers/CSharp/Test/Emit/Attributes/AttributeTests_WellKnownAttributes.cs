@@ -8697,7 +8697,7 @@ class C2 : C1
                 );
 
             verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden),
-                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                // (6,9): hidden TEST1: 'C1.M1()' is obsolete
                 //         M1(); // 1
                 Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9));
 
