@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Test if a section name is an abosulte path with no special chars
+        /// Test if a section name is an absolute path with no special chars
         /// </summary>
         internal static bool IsAbsoluteEditorConfigPath(string sectionName)
         {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
             // Note that this check has no impact on config correctness. Files on windows
             // will still be compared using their full path (including drive root) so it's
             // not possible to target the wrong file. It's just possible that the user won't
-            // recevive a warning that this section is ignored on windows in this edge case.
+            // receive a warning that this section is ignored on windows in this edge case.
 
             SectionNameLexer nameLexer = new SectionNameLexer(sectionName);
             bool sawStartChar = false;
