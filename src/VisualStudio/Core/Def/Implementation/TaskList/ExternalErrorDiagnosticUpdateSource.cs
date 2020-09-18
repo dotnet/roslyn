@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.
     /// VS workspaces calls into us when a build is invoked or completed in Visual Studio.
     /// <see cref="ProjectExternalErrorReporter"/> calls into us to clear reported diagnostics or to report new diagnostics during the build.
-    /// For each of these callbacks, we create/capture the current <see cref="GetBuildInProgressStateAndToken"/> and
+    /// For each of these callbacks, we create/capture the current <see cref="BuildInProgressState"/> and
     /// schedule updating/processing this state on a serialized <see cref="_taskQueue"/> in the background.
     /// The processing phase de-dupes the diagnostics reported from build and intellisense to ensure that the error list does not contain duplicate diagnostics.
     /// It raises events about diagnostic updates, which eventually trigger the "Build + Intellisense" and "Build only" error list diagnostic
