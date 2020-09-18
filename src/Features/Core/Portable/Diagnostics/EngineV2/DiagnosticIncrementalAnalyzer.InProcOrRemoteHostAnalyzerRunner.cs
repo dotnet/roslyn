@@ -192,39 +192,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 project.Id,
                 analyzerMap.Keys.ToArray());
 
-            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>>(
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
                 solution,
-                invocation: (service, solutionInfo, stream, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, stream, cancellationToken),
-                reader: (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, documentAnalysisScope, project, cancellationToken),
+                invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-        }
-
-        private static async ValueTask<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
-            Stream stream,
-            Dictionary<string, DiagnosticAnalyzer> analyzerMap,
-            DocumentAnalysisScope? documentAnalysisScope,
-            Project project,
-            CancellationToken cancellationToken)
-        {
-            // handling of cancellation and exception
-            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken);
-
-            // We only get a reader for data transmitted between live processes.
-            // This data should always be correct as we're never persisting the data between sessions.
-            Contract.ThrowIfNull(reader);
-
-            if (!DiagnosticResultSerializer.TryReadDiagnosticAnalysisResults(reader, analyzerMap,
-                    documentAnalysisScope, project, version, cancellationToken, out var result))
+            if (!result.HasValue)
             {
                 return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            return result.Value;
+            // handling of cancellation and exception
+            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+
+            var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
+
+            return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
+                result.Value.Diagnostics.ToImmutableDictionary(
+                    entry => analyzerMap[entry.analyzerId],
+                    entry => DiagnosticAnalysisResult.Create(
+                        project,
+                        version,
+                        syntaxLocalMap: entry.diagnosticMap.Syntax.ToImmutableDictionary(entry => entry.Item1, entry => entry.Item2),
+                        semanticLocalMap: entry.diagnosticMap.Semantic.ToImmutableDictionary(entry => entry.Item1, entry => entry.Item2),
+                        nonLocalMap: entry.diagnosticMap.NonLocal.ToImmutableDictionary(entry => entry.Item1, entry => entry.Item2),
+                        others: entry.diagnosticMap.Other,
+                        documentIds)),
+                result.Value.Telemetry.ToImmutableDictionary(entry => analyzerMap[entry.analyzerId], entry => entry.telemetry));
         }
     }
 }

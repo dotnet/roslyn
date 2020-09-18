@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
         }
 
-        public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
+        public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
@@ -74,12 +74,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var analyzers = GetAnalyzers(analyzerToIdMap, analyzerIds);
             if (analyzers.IsEmpty)
             {
-                return DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>.Empty;
+                return SerializableDiagnosticAnalysisResults.Empty;
             }
 
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+
             try
             {
                 return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(
+        private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(
             CompilationWithAnalyzers compilationWithAnalyzers,
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
@@ -123,43 +124,64 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _project, VersionStamp.Default, compilationWithAnalyzers.Compilation,
                 analyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-            var result = builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerToIdMap, kv.Key), kv => kv.Value);
             var telemetry = getTelemetryInfo
                 ? GetTelemetryInfo(analysisResult, analyzers, analyzerToIdMap)
-                : ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty;
-            return DiagnosticAnalysisResultMap.Create(result, telemetry);
+                : ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)>.Empty;
 
-            static ImmutableDictionary<string, AnalyzerTelemetryInfo> GetTelemetryInfo(
-                AnalysisResult analysisResult,
-                ImmutableArray<DiagnosticAnalyzer> analyzers,
-                BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, analyzerToIdMap), telemetry);
+        }
+
+        private static ImmutableArray<(string analyzerId, SerializableDiagnosticMap diagnosticMap)> Dehydrate(
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> builderMap,
+            BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+        {
+            using var _ = ArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>.GetInstance(out var diagnostics);
+
+            foreach (var (analyzer, analyzerResults) in builderMap)
             {
-                Func<DiagnosticAnalyzer, bool> shouldInclude;
-                if (analyzers.Length < analysisResult.AnalyzerTelemetryInfo.Count)
-                {
-                    // Filter the telemetry info to the executed analyzers.
-                    using var _ = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var analyzersSet);
-                    analyzersSet.AddRange(analyzers);
+                var analyzerId = GetAnalyzerId(analyzerToIdMap, analyzer);
 
-                    shouldInclude = analyzer => analyzersSet.Contains(analyzer);
-                }
-                else
-                {
-                    shouldInclude = _ => true;
-                }
-
-                var telemetryBuilder = ImmutableDictionary.CreateBuilder<string, AnalyzerTelemetryInfo>();
-                foreach (var (analyzer, analyzerTelemetry) in analysisResult.AnalyzerTelemetryInfo)
-                {
-                    if (shouldInclude(analyzer))
-                    {
-                        var analyzerId = GetAnalyzerId(analyzerToIdMap, analyzer);
-                        telemetryBuilder.Add(analyzerId, analyzerTelemetry);
-                    }
-                }
-
-                return telemetryBuilder.ToImmutable();
+                diagnostics.Add((analyzerId,
+                    new SerializableDiagnosticMap(
+                        analyzerResults.SyntaxLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
+                        analyzerResults.SemanticLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
+                        analyzerResults.NonLocals.SelectAsArray(entry => (entry.Key, entry.Value)),
+                        analyzerResults.Others)));
             }
+
+            return diagnostics.ToImmutable();
+        }
+
+        private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
+            AnalysisResult analysisResult,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+        {
+            Func<DiagnosticAnalyzer, bool> shouldInclude;
+            if (analyzers.Length < analysisResult.AnalyzerTelemetryInfo.Count)
+            {
+                // Filter the telemetry info to the executed analyzers.
+                using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var analyzersSet);
+                analyzersSet.AddRange(analyzers);
+
+                shouldInclude = analyzer => analyzersSet.Contains(analyzer);
+            }
+            else
+            {
+                shouldInclude = _ => true;
+            }
+
+            using var _2 = ArrayBuilder<(string analyzerId, AnalyzerTelemetryInfo)>.GetInstance(out var telemetryBuilder);
+            foreach (var (analyzer, analyzerTelemetry) in analysisResult.AnalyzerTelemetryInfo)
+            {
+                if (shouldInclude(analyzer))
+                {
+                    var analyzerId = GetAnalyzerId(analyzerToIdMap, analyzer);
+                    telemetryBuilder.Add((analyzerId, analyzerTelemetry));
+                }
+            }
+
+            return telemetryBuilder.ToImmutable();
         }
 
         private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
