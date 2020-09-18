@@ -651,9 +651,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Given a string, parses it to find out whether it's an error or warning and, if so,
         /// make sure it's validated properly.  
         /// </summary>
-        /// <comments>
-        /// INTERNAL FOR UNITTESTING ONLY
-        /// </comments>
         /// <param name="singleLine">The line to parse</param>
         /// <param name="messageImportance">The MessageImportance to use when reporting the error.</param>
         internal void ParseVBErrorOrWarning(string singleLine, MessageImportance messageImportance)
@@ -692,7 +689,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string originalVBErrorString = originalVBError.Message;
 
                     int column = singleLine.IndexOf('~') + 1;
-                    int endParenthesisLocation = originalVBErrorString.IndexOf(')');
+                    int endParenthesisLocation = originalVBErrorString.LastIndexOf(')');
 
                     // If for some reason the line does not contain any ~ then something went wrong
                     // so abort and return the original string.
