@@ -23,6 +23,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
@@ -65,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationContext = node.Parent;
 
-            TypeSyntax typeSyntax = null;
-            ParenthesizedVariableDesignationSyntax parensDesignation = null;
+            TypeSyntax? typeSyntax = null;
+            ParenthesizedVariableDesignationSyntax? parensDesignation = null;
             SyntaxToken? variableIdentifier = null;
 
             if (declarationContext is RefTypeSyntax refType)
@@ -90,14 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax variableDesignation))
+                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax? variableDesignation))
                 {
                     parensDesignation = variableDesignation;
                 }
             }
             else
             {
-                throw ExceptionUtilities.UnexpectedValue(declarationContext.Kind());
+                throw ExceptionUtilities.UnexpectedValue(declarationContext?.Kind());
             }
 
             if (parensDesignation is null)
@@ -105,16 +107,20 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 typeSyntax = typeSyntax.StripRefIfNeeded();
 
                 var newTypeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+                RoslynDebug.AssertNotNull(newTypeSymbol);
 
-                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && variableIdentifier.HasValue)
+                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && variableIdentifier.HasValue && variableIdentifier.Value.Parent is not null)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                     // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
                     // determine if it needs to be null
                     var encapsulatingNode = node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFacts.IsMethodBody(n) || n is CompilationUnitSyntax);
+                    RoslynDebug.AssertNotNull(encapsulatingNode);
+
                     var operationScope = semanticModel.GetOperation(encapsulatingNode, cancellationToken);
                     var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent);
+
                     if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
                     {
                         // If the symbol is never assigned null we can update the type symbol to also be non-null
@@ -134,7 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
+                RoslynDebug.AssertNotNull(typeSyntax.Parent);
+
                 var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
+                RoslynDebug.AssertNotNull(tupleTypeSymbol);
 
                 var leadingTrivia = node.GetLeadingTrivia()
                     .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));

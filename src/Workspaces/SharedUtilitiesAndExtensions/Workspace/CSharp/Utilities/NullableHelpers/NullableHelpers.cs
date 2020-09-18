@@ -20,8 +20,13 @@ namespace Microsoft.CodeAnalysis
         /// is ever assigned a possibly null value as determined by nullable flow state. Returns
         /// null if no references are found, letting the caller determine what to do with that information
         /// </summary>
-        public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
+        public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation? containingOperation, ISymbol? symbol)
         {
+            if (containingOperation is null || symbol is null)
+            {
+                return null;
+            }
+
             var references = containingOperation.DescendantsAndSelf()
                 .Where(o => IsSymbolReferencedByOperation(o, symbol, allowNullInitializer: false));
 
