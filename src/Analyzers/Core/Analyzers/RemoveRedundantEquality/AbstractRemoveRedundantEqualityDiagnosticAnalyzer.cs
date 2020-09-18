@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             var properties = ImmutableDictionary.CreateBuilder<string, string>();
             if (TryGetLiteralValue(rightOperand) == isOperatorEquals)
             {
-                properties.Add("RedundantSide", "Right");
+                properties.Add(RedundantEqualityConstants.RedundantSide, RedundantEqualityConstants.Right);
             }
             else if (TryGetLiteralValue(leftOperand) == isOperatorEquals)
             {
-                properties.Add("RedundantSide", "Left");
+                properties.Add(RedundantEqualityConstants.RedundantSide, RedundantEqualityConstants.Left);
             }
 
             if (properties.Count == 1)
@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
             static bool? TryGetLiteralValue(IOperation operand)
             {
+                // Make sure we only simplify literals to avoid changing
+                // something like the following example:
+                // const bool Activated = true; ... if (state == Activated)
                 if (operand.ConstantValue.HasValue && operand.Kind == OperationKind.Literal &&
                     operand.ConstantValue.Value is bool constValue)
                 {
