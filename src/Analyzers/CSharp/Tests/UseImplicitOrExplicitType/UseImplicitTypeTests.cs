@@ -2903,5 +2903,145 @@ class C
 }",
 options: ImplicitTypeEverywhere());
 
+        [Fact]
+        public Task SuggestForNullableOut1()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNullString(out [|string?|] a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNullString(out string? s)
+    {
+        s = null;
+        return true;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNullString(out var a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNullString(out string? s)
+    {
+        s = null;
+        return true;
+    }
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullableOut2()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out [|string?|] a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out var a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullableOut3()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out [|string|] a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out var a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+options: ImplicitTypeEverywhere());
     }
 }
