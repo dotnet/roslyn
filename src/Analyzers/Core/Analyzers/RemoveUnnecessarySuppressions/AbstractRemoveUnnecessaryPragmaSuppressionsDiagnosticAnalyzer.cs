@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     attribute.ConstructorArguments[0] is {
                     	Kind: TypedConstantKind.Primitive,
                     	Value: string categoryArg
-                    }
+                    })
                 {
                     category = categoryArg;
                 }
