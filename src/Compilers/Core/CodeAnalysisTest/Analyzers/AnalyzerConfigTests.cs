@@ -2127,6 +2127,7 @@ option2 = config3
         [InlineData("\\\\\\\\my\\\\file.cs", false)] // invalid: editorconfig sees a single file called '\\my\file.cs' not a UNC path
         [InlineData("//server/file.cs", true)]
         [InlineData("//server\\file.cs", true)]
+        [InlineData("\\/file.cs", false)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();

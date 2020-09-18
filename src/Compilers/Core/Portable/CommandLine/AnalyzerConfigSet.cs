@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var section in config.NamedSections)
                 {
                     // Check that the path is rooted according to the OS we're on, doesn't contain any glob characters, and has an .editorconfig path separator in it
-                    if (Path.IsPathRooted(section.Name) && !ContainsSpecialCharacters(section.Name, out bool sawPathSeparator) && sawPathSeparator)
+                    if (isEditorConfigPathRooted(section.Name) && !ContainsSpecialCharacters(section.Name, out bool sawPathSeparator) && sawPathSeparator)
                     {
                         MergeSection(config.PathToFile, section, isGlobalSection: false);
                     }
@@ -513,6 +513,13 @@ namespace Microsoft.CodeAnalysis
                             section.Name,
                             config.PathToFile));
                     }
+                }
+
+                static bool isEditorConfigPathRooted(string name)
+                {
+                    return Path.IsPathRooted(name) &&
+                        // on windows '\' is a valid path root, but editor configs must use forward slashes, so we disallow it
+                        !name.StartsWith("\\");
                 }
             }
 
