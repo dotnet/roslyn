@@ -458,10 +458,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var info = SemanticModel.GetSymbolInfo(invocation, CancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
 
-                // Overload resolution (see DevDiv 611477) in certain extension method cases
-                // can result in GetSymbolInfo returning nothing. In this case, get the 
-                // method group info, which is what signature help already does.
-                if (info.Symbol == null)
+                // 1. Overload resolution (see DevDiv 611477) in certain extension method cases
+                // can result in GetSymbolInfo returning nothing. 
+                // 2. when trying to infer the type of the first argument, it's possible that nothing correspinding to
+                // the argument is typed and there exists an overload with 0 parameter as a viable match.
+                // In one of these cases, get the method group info, which is what signature help already does.
+                if (info.Symbol == null ||
+                    info.Symbol is IMethodSymbol method && method.Parameters.Length == 0)
                 {
                     var memberGroupMethods =
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
