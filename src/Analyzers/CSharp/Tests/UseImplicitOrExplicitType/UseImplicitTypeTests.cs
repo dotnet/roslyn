@@ -2809,5 +2809,99 @@ class Program
 
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [Fact]
+        public Task SuggestForNullable1()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        [|string?|] a = NullableString();
+        return a;
+    }
+
+    string? NullableString() => null;
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        var a = NullableString();
+        return a;
+    }
+
+    string? NullableString() => null;
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullable2()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        [|string?|] a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        var a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullable3()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        [|string|] a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        var a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+options: ImplicitTypeEverywhere());
+
     }
 }
