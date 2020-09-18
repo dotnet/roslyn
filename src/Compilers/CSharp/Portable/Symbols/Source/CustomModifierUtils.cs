@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <param name="sourceType">Type that already has custom modifiers.</param>
-        /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.  May differ in object/dynamic.</param>
+        /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.
+        /// May differ in object/dynamic, tuple element names, or other differences ignored by the runtime.</param>
         /// <param name="containingAssembly">The assembly containing the signature referring to the destination type.</param>
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
         internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly)
@@ -69,10 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             const RefKind refKind = RefKind.None;
 
-            // NOTE: overrides can differ by object/dynamic.  If they do, we'll need to tweak newType before
-            // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
-            // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
-            // NOTE: ref is irrelevant here since we are just encoding/decoding the type out of the signature context
+            // NOTE: overrides can differ by object/dynamic, tuple element names, etc.
+            // If they do, we'll need to tweak destinationType before we can use it in place of sourceType.
+            // NOTE: refKind is irrelevant here since we are just encoding/decoding the type.
             ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
             TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
