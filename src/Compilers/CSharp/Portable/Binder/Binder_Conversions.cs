@@ -66,12 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)destination != null);
             RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
-            if (source is BoundDelegateCreationExpression delegateCreationExpression &&
-                delegateCreationExpression.MethodOpt is not null)
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, delegateCreationExpression.MethodOpt, delegateCreationExpression.Argument.Syntax, hasBaseReceiver: false);
-            }
-
             if (conversion.IsIdentity)
             {
                 if (source is BoundTupleLiteral sourceTuple)
@@ -92,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-
             if (conversion.IsMethodGroup)
             {
                 return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
+
+            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
@@ -1126,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
-
+            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
             // that chose selectedMethod.
