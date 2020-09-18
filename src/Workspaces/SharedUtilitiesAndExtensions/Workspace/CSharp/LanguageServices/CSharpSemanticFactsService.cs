@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Get all the symbols visible to the current location.
             var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
 
+            // Local function parameter is allowed to shadow varaibles since C# 8.
+            if (((CSharpCompilation)semanticModel.Compilation).LanguageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
+                {
+                    visibleSymbols = visibleSymbols.WhereAsArray(s => !s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter));
+                }
+            }
+
             // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
             // E.g. symbols inside if statements / try catch statements.
             var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
