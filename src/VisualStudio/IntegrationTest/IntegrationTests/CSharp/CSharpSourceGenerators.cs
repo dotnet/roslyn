@@ -27,8 +27,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             await base.InitializeAsync();
 
-            // Right now source generators are still restricted to /langver:preview
-            VisualStudio.SolutionExplorer.SetLanguageVersion(new ProjectUtils.Project(ProjectName), "preview");
             VisualStudio.SolutionExplorer.AddAnalyzerReference(typeof(IntegrationTestSourceGenerator).Assembly.Location, new ProjectUtils.Project(ProjectName));
         }
 
