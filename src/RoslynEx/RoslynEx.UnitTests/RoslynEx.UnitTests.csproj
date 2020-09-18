@@ -15,4 +15,10 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Test\CommandLine\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="TransformerOrderTransformers.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
 </Project>
