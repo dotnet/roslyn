@@ -5837,6 +5837,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_SwitchExpressionNotExhaustiveWithWhen_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</value>
+  </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
   </data>
@@ -6299,6 +6305,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
     <value>Partial method declarations must have matching ref return values.</value>
   </data>
+  <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</value>
+  </data>
+  <data name="WRN_PartialMethodTypeDifference_Title" xml:space="preserve">
+    <value>Partial method declarations have differences in parameter or return types.</value>
+  </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>
   </data>
@@ -6530,9 +6542,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Both 'GetHashCode' and 'Equals' was expected to be declared. Only '{0}' was found.</value>
     <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
   </data>
-    <data name="WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined_Title" xml:space="preserve">
+  <data name="WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined_Title" xml:space="preserve">
     <value>Records defining 'GetHashCode' or 'Equals' are expected to define both, not only one of them.</value>
     <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
+  </data>
+  <data name="ERR_InitCannotBeReadonly" xml:space="preserve">
+    <value>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</value>
   </data>
   <data name="IDS_FeatureDiscards" xml:space="preserve">
     <value>discards</value>

@@ -2842,11 +2842,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            var discardedDiagnostics = new DiagnosticBag();
-            var expr = _binder!.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
-            discardedDiagnostics.Free();
-            Visit(expr);
-            SetResultType(node, TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            // This method is only involved in method inference with unbound lambdas.
+            // The diagnostics on arguments are reported by VisitObjectCreationExpression.
+            SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
             return null;
         }
 
@@ -4108,8 +4106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression originalConsequence,
             BoundExpression originalAlternative)
         {
-            Debug.Assert(node.Type is object);
-
             VisitCondition(condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
@@ -4127,7 +4123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
-                TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbol? refResultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
@@ -4204,8 +4200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState;
             if (resultType is null)
             {
-                resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
-                resultState = NullableFlowState.NotNull;
+                resultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
+                resultState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 var resultTypeWithState = TypeWithState.Create(resultType, resultState);
 
@@ -6541,9 +6537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
-                    // These are not represented as a separate conversion in the bound tree.
-                    // Instead they are folded into the operand.
-                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+                    return operandType;
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
@@ -6920,13 +6914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
             // (see NullableReferenceTypesTests.ImplicitConversions_07).
-            var methodOpt = conversion.Method;
-            Debug.Assert(methodOpt is object);
-            Debug.Assert(methodOpt.ParameterCount == 1);
+            var method = conversion.Method;
+            Debug.Assert(method is object);
+            Debug.Assert(method.ParameterCount == 1);
             Debug.Assert(operandType.Type is object);
 
-            var parameter = methodOpt.Parameters[0];
-            var parameterType = parameter.TypeWithAnnotations;
+            var parameter = method.Parameters[0];
+            var parameterAnnotations = GetParameterAnnotations(parameter);
+            var parameterType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
             TypeWithState underlyingOperandType = default;
             bool isLiftedConversion = false;
 
@@ -6951,12 +6946,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExplicitCast: false,
                 diagnosticLocation: operandLocation);
 
-            // method parameter type -> method return type
-            var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
-            operandType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
+            // in the case of a lifted conversion, we assume that the call to the operator occurs only if the argument is not-null
             if (!isLiftedConversion)
             {
-                // Analyze operator call return value (honoring [Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
+                CheckDisallowedNullAssignment(operandType, parameterAnnotations, conversionOperand.Syntax.Location);
+            }
+
+            // method parameter type -> method return type
+            var methodReturnType = method.ReturnTypeWithAnnotations;
+            operandType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
+            if (!isLiftedConversion || operandState.IsNotNull())
+            {
+                var returnNotNull = operandState.IsNotNull() && method.ReturnNotNullIfParameterNotNull.Contains(parameter.Name);
+                if (returnNotNull)
+                {
+                    operandType = operandType.WithNotNullState();
+                }
+                else
+                {
+                    operandType = ApplyUnconditionalAnnotations(operandType, GetRValueAnnotations(method));
+                }
             }
 
             // method return type -> conversion "to" type
@@ -8780,9 +8789,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDefaultLiteral(BoundDefaultLiteral node)
         {
-            // Can occur in error scenarios
+            // Can occur in error scenarios and lambda scenarios
             var result = base.VisitDefaultLiteral(node);
-            SetUnknownResultNullability(node);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.MaybeDefault));
             return result;
         }
 

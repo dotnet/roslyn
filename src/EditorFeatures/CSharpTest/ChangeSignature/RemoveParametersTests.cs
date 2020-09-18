@@ -377,5 +377,34 @@ class C{i}
             state = handler.GetCommandState(new ReorderParametersCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);
         }
+
+        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task RemoveParameters_TargetTypedNew()
+        {
+            var markup = @"
+public class C
+{
+    public $$C(int a, string b) { }
+
+    void M()
+    {
+        C c = new(1, ""b"");
+    }
+}";
+            var updatedSignature = new[] { 1 };
+            var updatedCode = @"
+public class C
+{
+    public C(string b) { }
+
+    void M()
+    {
+        C c = new(""b"");
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }
