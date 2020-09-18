@@ -15,7 +15,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -214,12 +216,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     entry => DiagnosticAnalysisResult.Create(
                         project,
                         version,
-                        syntaxLocalMap: entry.diagnosticMap.Syntax.ToImmutableDictionary(entry => entry.Item1, entry => entry.Item2),
-                        semanticLocalMap: entry.diagnosticMap.Semantic.ToImmutableDictionary(entry => entry.Item1, entry => entry.Item2),
-                        nonLocalMap: entry.diagnosticMap.NonLocal.ToImmutableDictionary(entry => entry.Item1, entry => entry.Item2),
+                        syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
+                        semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
+                        nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
                         others: entry.diagnosticMap.Other,
                         documentIds)),
                 result.Value.Telemetry.ToImmutableDictionary(entry => analyzerMap[entry.analyzerId], entry => entry.telemetry));
         }
+
+        // TODO: filter in OOP https://github.com/dotnet/roslyn/issues/47859
+        private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Hydrate(ImmutableArray<(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)> diagnosticByDocument, Project project)
+            => diagnosticByDocument
+                .Where(entry => project.GetTextDocument(entry.documentId)?.SupportsDiagnostics() == true)
+                .ToImmutableDictionary(entry => entry.documentId, entry => entry.diagnostics);
     }
 }
