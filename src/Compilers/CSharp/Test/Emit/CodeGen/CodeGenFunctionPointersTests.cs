@@ -9619,6 +9619,30 @@ class D
             );
         }
 
+        [Fact, WorkItem(47858, "https://github.com/dotnet/roslyn/issues/47858")]
+        public void UnmanagedCallersOnlyOnMain_GetEntryPoint()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    public static void Main()
+    {
+    }
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            var method = comp.GetEntryPoint(System.Threading.CancellationToken.None);
+            Assert.Equal("void C.Main()", method.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
+                // (6,24): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static void Main()
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main", isSuppressed: false).WithLocation(6, 24)
+            );
+        }
+
         [Fact]
         public void UnmanagedCallersOnlyOnModuleInitializer()
         {
