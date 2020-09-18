@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <summary>
-        /// Returns the UnmanagedCallersOnlyAttribute data for this method, if there is any. If the data has not yet been
-        /// loaded or only early attribute binding has occurred, and forceComplete is false, then either
+        /// Returns the <see cref="UnmanagedCallersOnlyAttributeData"/> data for this method, if there is any. If forceComplete
+        /// is false and the data has not yet been loaded or only early attribute binding has occurred, then either
         /// <see cref="UnmanagedCallersOnlyAttributeData.Uninitialized"/> or
         /// <see cref="UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound"/> will be returned, respectively.
         /// If passing true for forceComplete, ensure that cycles will not occur by not calling in the process of binding

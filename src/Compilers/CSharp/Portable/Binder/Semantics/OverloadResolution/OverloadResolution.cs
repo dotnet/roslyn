@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +9,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -469,85 +469,99 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound)
                                  && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized));
 
+                    Cci.CallingConvention actualCallKind;
+                    ImmutableHashSet<INamedTypeSymbolInternal> actualUnmanagedCallingConvetionTypes;
+
                     if (unmanagedCallersOnlyData is null)
                     {
-                        // There are 2 possible errors here:
-                        // 1. The expected CallKind and the actual CallKind don't match
-                        // 2. The expected convention is expected to be a extension convention, where the CallKind is Unmanaged
-                        //    and there are UnmanagedCallingConventionTypes expected. In that case, it is possible for the actual
-                        //    CallKind to be Unmanaged, but we don't read extension convention modopts from metadata, so we need
-                        //    to ensure that the expected UnmanagedCallingConventionTypes are empty.
-                        if (!member.CallingConvention.IsCallingConvention(expectedConvention.CallKind)
-                            || !expectedConvention.UnmanagedCallingConventionTypes.IsEmpty)
-                        {
-                            results[i] = makeWrongCallingConvention(result);
-                        }
+                        actualCallKind = member.CallingConvention;
+                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                    }
+                    else
+                    {
+                        // There's data from an UnmanagedCallersOnlyAttribute present, with takes precedence over the
+                        // CallKind bit in the method definition. We use the following rules to decode the attribute:
+                        // * If no types are specified, the CallKind is treated as Unmanaged, with no unmanaged calling convention types
+                        // * If there is one type specified, and that type is named CallConvCdecl, CallConvThiscall, CallConvStdcall, or 
+                        //   CallConvFastcall, the CallKind is treated as CDecl, ThisCall, Standard, or FastCall, respectively, with no
+                        //   calling types.
+                        // * If multiple types are specified or the single type is not named one of the specially called out types above,
+                        //   the CallKind is treated as Unmanaged, with the union of the types specified treated as calling convention types.
 
+                        var unmanagedCallingConventionTypes = unmanagedCallersOnlyData.CallingConventionTypes;
+                        Debug.Assert(unmanagedCallingConventionTypes.All(u => FunctionPointerTypeSymbol.IsCallingConventionModifier((NamedTypeSymbol)u)));
+
+                        switch (unmanagedCallingConventionTypes.Count)
+                        {
+                            case 0:
+                                actualCallKind = Cci.CallingConvention.Unmanaged;
+                                actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                break;
+                            case 1:
+                                switch (unmanagedCallingConventionTypes.Single().Name)
+                                {
+                                    case "CallConvCdecl":
+                                        actualCallKind = Cci.CallingConvention.CDecl;
+                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    case "CallConvStdcall":
+                                        actualCallKind = Cci.CallingConvention.Standard;
+                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    case "CallConvThiscall":
+                                        actualCallKind = Cci.CallingConvention.ThisCall;
+                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    case "CallConvFastcall":
+                                        actualCallKind = Cci.CallingConvention.FastCall;
+                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    default:
+                                        goto outerDefault;
+                                }
+                                break;
+
+                            default:
+outerDefault:
+                                actualCallKind = Cci.CallingConvention.Unmanaged;
+                                actualUnmanagedCallingConvetionTypes = unmanagedCallingConventionTypes;
+                                break;
+                        }
+                    }
+
+                    // The rules for matching a calling convention are:
+                    // 1. The CallKinds must match exactly
+                    // 2. If the CallKind is Unmanaged, then the set of calling convention types must match exactly, ignoring order
+                    //    and duplicates. We already have both sets in a HashSet, so we can just ensure they're the same length and
+                    //    that everything from one set is in the other set.
+
+                    if (!actualCallKind.IsCallingConvention(expectedConvention.CallKind))
+                    {
+                        results[i] = makeWrongCallingConvention(result);
                         continue;
                     }
 
-                    Debug.Assert(unmanagedCallersOnlyData.CallingConventionTypes.All(
-                        u => FunctionPointerTypeSymbol.IsCallingConventionModifier((NamedTypeSymbol)u)));
-
-                    // If there is only one type in the unmanagedCallersOnlyData, and that type is one of the 4 special names known to the
-                    // compiler, then we treat the CallKind of the method as if it were that calling convention. Otherwise, we
-                    // treat the CallKind as Unmanaged and do comparison from the calling convention types expected in the function
-                    // pointer.
-                    if (unmanagedCallersOnlyData.CallingConventionTypes.Count == 1)
+                    if (expectedConvention.CallKind.IsCallingConvention(Cci.CallingConvention.Unmanaged))
                     {
-                        switch (unmanagedCallersOnlyData.CallingConventionTypes.Single().Name)
+                        switch (expectedConvention.UnmanagedCallingConventionTypes, actualUnmanagedCallingConvetionTypes)
                         {
-                            case "CallConvCdecl":
-                                _ = checkConventionAgainstActual(Cci.CallingConvention.CDecl, in expectedConvention);
+                            case ({ IsEmpty: true }, { IsEmpty: true }):
                                 continue;
-                            case "CallConvStdcall":
-                                _ = checkConventionAgainstActual(Cci.CallingConvention.Standard, in expectedConvention);
-                                continue;
-                            case "CallConvThiscall":
-                                _ = checkConventionAgainstActual(Cci.CallingConvention.ThisCall, in expectedConvention);
-                                continue;
-                            case "CallConvFastcall":
-                                _ = checkConventionAgainstActual(Cci.CallingConvention.FastCall, in expectedConvention);
+
+                            case ({ IsEmpty: true }, _) or (_, { IsEmpty: true }):
+                            case ({ Count: var expectedCount }, { Count: var actualCount }) when expectedCount != actualCount:
+                                results[i] = makeWrongCallingConvention(result);
                                 continue;
                         }
-                    }
 
-                    if (!checkConventionAgainstActual(Cci.CallingConvention.Unmanaged, in expectedConvention))
-                    {
-                        continue;
-                    }
-
-                    // Now, we make sure that the actual expected types match up
-                    switch (expectedConvention.UnmanagedCallingConventionTypes, unmanagedCallersOnlyData.CallingConventionTypes)
-                    {
-                        case ({ IsEmpty: true }, { IsEmpty: true }):
-                            continue;
-
-                        case ({ IsEmpty: true }, _) or (_, { IsEmpty: true }):
-                        case ({ Count: var expectedCount }, { Count: var actualCount }) when expectedCount != actualCount:
-                            results[i] = makeWrongCallingConvention(result);
-                            continue;
-
-                    }
-
-                    foreach (var expectedModifier in expectedConvention.UnmanagedCallingConventionTypes)
-                    {
-                        if (!unmanagedCallersOnlyData.CallingConventionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
+                        foreach (var expectedModifier in expectedConvention.UnmanagedCallingConventionTypes)
                         {
-                            results[i] = makeWrongCallingConvention(result);
-                            break;
+                            if (!actualUnmanagedCallingConvetionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
+                            {
+                                results[i] = makeWrongCallingConvention(result);
+                                break;
+                            }
                         }
-                    }
-
-                    bool checkConventionAgainstActual(Cci.CallingConvention resultConvention, in CallingConventionInfo expectedConvention)
-                    {
-                        if (!expectedConvention.CallKind.IsCallingConvention(resultConvention))
-                        {
-                            results[i] = makeWrongCallingConvention(result);
-                            return false;
-                        }
-
-                        return true;
                     }
                 }
             }
