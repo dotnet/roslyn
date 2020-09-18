@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IGlobalOperationNotificationService _notificationService;
+        private readonly CancellationToken _disposalToken;
 
         /// <summary>
         /// Task queue to serialize all the work for errors reported by build.
@@ -52,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private readonly object _gate = new object();
         private InProgressState? _stateDoNotAccessDirectly;
+        private CancellationTokenSource? _activeCancellationSourceDoNotAccessDirectly;
 
         /// <summary>
         /// Latest diagnostics reported during current or last build.
@@ -64,8 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext)
+            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
         {
             registrationService.Register(this);
         }
@@ -76,10 +80,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            IAsynchronousOperationListener listener)
+            IAsynchronousOperationListener listener,
+            CancellationToken disposalToken = default)
         {
             // use queue to serialize work. no lock needed
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _disposalToken = disposalToken;
 
             _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -142,6 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             // Capture state if it exists
             var state = BuildInprogressState;
+            var cancellationToken = state?.CancellationToken ?? _disposalToken;
 
             // Update the state to clear diagnostics and raise corresponding diagnostic updated events
             // on a serialized task queue.
@@ -151,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     // TODO: Is it possible that ClearErrors can be invoked while the build is not in progress?
                     // We fallback to current solution in the workspace and clear errors for the project.
-                    await ClearErrorsCoreAsync(projectId, _workspace.CurrentSolution, state).ConfigureAwait(false);
+                    await ClearErrorsCoreAsync(projectId, _workspace.CurrentSolution, state, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -168,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     var solution = state.Solution;
 
-                    await ClearErrorsCoreAsync(projectId, solution, state).ConfigureAwait(false);
+                    await ClearErrorsCoreAsync(projectId, solution, state, cancellationToken).ConfigureAwait(false);
 
                     var transitiveProjectIds = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(projectId);
                     foreach (var projectId in transitiveProjectIds)
@@ -178,14 +185,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                             continue;
                         }
 
-                        await ClearErrorsCoreAsync(projectId, solution, state).ConfigureAwait(false);
+                        await ClearErrorsCoreAsync(projectId, solution, state, cancellationToken).ConfigureAwait(false);
                     }
                 }
-            }, CancellationToken.None);
+            }, cancellationToken);
 
             return;
 
-            async Task ClearErrorsCoreAsync(ProjectId projectId, Solution solution, InProgressState? state)
+            async Task ClearErrorsCoreAsync(ProjectId projectId, Solution solution, InProgressState? state, CancellationToken cancellationToken)
             {
                 Debug.Assert(state == null || !state.WereProjectErrorsCleared(projectId));
 
@@ -197,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 ClearBuildOnlyProjectErrors(solution, projectId);
 
-                await SetLiveErrorsForProjectAsync(projectId, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
+                await SetLiveErrorsForProjectAsync(projectId, ImmutableArray<DiagnosticData>.Empty, cancellationToken).ConfigureAwait(false);
 
                 state?.MarkErrorsCleared(projectId);
 
@@ -210,20 +217,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             switch (e.Kind)
             {
                 case WorkspaceChangeKind.SolutionAdded:
+                    _taskQueue.ScheduleTask("OnSolutionAdded", async () =>
+                    {
+                        e.OldSolution.ProjectIds.Do(p => ClearBuildOnlyProjectErrors(e.OldSolution, p));
+                        if (_diagnosticService is DiagnosticAnalyzerService diagnosticAnalyzerService)
+                        {
+                            await diagnosticAnalyzerService.InitializeSynchronizeWithBuildAsync(e.NewSolution, _disposalToken).ConfigureAwait(false);
+                        }
+                    }, _disposalToken);
+                    break;
+
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
-                    _taskQueue.ScheduleTask("OnSolutionChanged", () => e.OldSolution.ProjectIds.Do(p => ClearBuildOnlyProjectErrors(e.OldSolution, p)), CancellationToken.None);
+                    _taskQueue.ScheduleTask("OnSolutionChanged", () => e.OldSolution.ProjectIds.Do(p => ClearBuildOnlyProjectErrors(e.OldSolution, p)), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectReloaded:
-                    _taskQueue.ScheduleTask("OnProjectChanged", () => ClearBuildOnlyProjectErrors(e.OldSolution, e.ProjectId), CancellationToken.None);
+                    _taskQueue.ScheduleTask("OnProjectChanged", () => ClearBuildOnlyProjectErrors(e.OldSolution, e.ProjectId), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
-                    _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), CancellationToken.None);
+                    _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearBuildOnlyDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), _disposalToken);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
@@ -287,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 // Mark build as complete.
                 OnBuildProgressChanged(inProgressState, BuildProgress.Done);
-            }, CancellationToken.None);
+            }, inProgressState?.CancellationToken ?? _disposalToken);
         }
 
         /// <summary>
@@ -300,13 +317,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var solution = inProgressState.Solution;
             var (allLiveErrors, pendingLiveErrorsToSync) = await inProgressState.GetLiveErrorsAsync().ConfigureAwait(false);
 
-            // Make those errors live errors
-            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true).ConfigureAwait(false);
-
-            // Raise events for ones left-out, i.e. build only errors.
+            // Raise events for build only errors
             var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
             foreach (var group in buildErrors)
             {
+                inProgressState.CancellationToken.ThrowIfCancellationRequested();
+
                 if (group.Key == null)
                 {
                     foreach (var projectGroup in group.GroupBy(g => g.ProjectId))
@@ -320,6 +336,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 ReportBuildErrors(group.Key, solution, group.ToImmutableArray());
             }
+
+            // Report pending live errors
+            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true, inProgressState.CancellationToken).ConfigureAwait(false);
         }
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -365,7 +384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 await ReportPreviousProjectErrorsIfRequiredAsync(projectId, state).ConfigureAwait(false);
                 state.AddError(projectId, diagnostic);
-            }, CancellationToken.None);
+            }, state.CancellationToken);
         }
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
@@ -377,7 +396,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 await ReportPreviousProjectErrorsIfRequiredAsync(documentId.ProjectId, state).ConfigureAwait(false);
                 state.AddError(documentId, diagnostic);
-            }, CancellationToken.None);
+            }, state.CancellationToken);
         }
 
         public void AddNewErrors(
@@ -396,7 +415,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
 
                 state.AddErrors(projectId, projectErrors);
-            }, CancellationToken.None);
+            }, state.CancellationToken);
         }
 
         /// <summary>
@@ -419,17 +438,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state)
         {
             var diagnostics = await state.GetLiveErrorsForProjectAsync(projectId).ConfigureAwait(false);
-            await SetLiveErrorsForProjectAsync(projectId, diagnostics).ConfigureAwait(false);
+            await SetLiveErrorsForProjectAsync(projectId, diagnostics, state.CancellationToken).ConfigureAwait(false);
             state.MarkLiveErrorsReported(projectId);
         }
 
-        private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics)
+        private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
             if (_diagnosticService is DiagnosticAnalyzerService diagnosticAnalyzerService)
             {
                 // make those errors live errors
                 var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, onBuildCompleted: false).ConfigureAwait(false);
+                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -461,10 +480,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 if (_stateDoNotAccessDirectly == null)
                 {
+                    _activeCancellationSourceDoNotAccessDirectly?.Cancel();
+                    _activeCancellationSourceDoNotAccessDirectly = CancellationTokenSource.CreateLinkedTokenSource(_disposalToken);
+
                     // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
                     // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                     // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                    _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
+                    _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution, _activeCancellationSourceDoNotAccessDirectly.Token);
                     OnBuildProgressChanged(_stateDoNotAccessDirectly, BuildProgress.Started);
                 }
 
@@ -576,13 +598,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             #endregion
 
-            public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
+            public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution, CancellationToken cancellationToken)
             {
                 _owner = owner;
                 Solution = solution;
+                CancellationToken = cancellationToken;
             }
 
             public Solution Solution { get; }
+
+            public CancellationToken CancellationToken { get; }
 
             public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
                 => GetOrCreateSupportedDiagnosticIds(projectId).Contains(id);
@@ -651,6 +676,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var pendingLiveErrorsToSyncBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
                 foreach (var projectId in GetProjectsWithErrors())
                 {
+                    CancellationToken.ThrowIfCancellationRequested();
+
                     var errors = await GetLiveErrorsForProjectAsync(projectId).ConfigureAwait(false);
                     allLiveErrorsBuilder.AddRange(errors);
 
@@ -789,9 +816,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     foreach (var analyzersPerReference in project.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project))
                     {
+                        CancellationToken.ThrowIfCancellationRequested();
+
                         foreach (var analyzer in analyzersPerReference.Value)
                         {
-                            if (await diagnosticService.IsCompilationEndAnalyzerAsync(analyzer, project, CancellationToken.None).ConfigureAwait(false))
+                            if (await diagnosticService.IsCompilationEndAnalyzerAsync(analyzer, project, CancellationToken).ConfigureAwait(false))
                             {
                                 continue;
                             }
