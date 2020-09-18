@@ -257,7 +257,7 @@ class X
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                         case ErrorCode.WRN_RecordNamedDisallowed:
-                        case ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined:
+                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

@@ -6538,12 +6538,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
-  <data name="WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined" xml:space="preserve">
-    <value>Both 'GetHashCode' and 'Equals' was expected to be declared. Only '{0}' was found.</value>
+  <data name="WRN_RecordEqualsWithoutGetHashCode" xml:space="preserve">
+    <value>'{0}' defines 'Equals' but not 'GetHashCode'</value>
     <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
   </data>
-  <data name="WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined_Title" xml:space="preserve">
-    <value>Records defining 'GetHashCode' or 'Equals' are expected to define both, not only one of them.</value>
+  <data name="WRN_RecordEqualsWithoutGetHashCode_Title" xml:space="preserve">
+    <value>Record defines 'Equals' but not 'GetHashCode'.</value>
     <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
   </data>
   <data name="ERR_InitCannotBeReadonly" xml:space="preserve">

@@ -3061,10 +3061,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var getHashCode = addGetHashCode(equalityContract);
             addEqualityOperators();
 
-            if ((thisEquals is not SynthesizedRecordEquals) ^ (getHashCode is not SynthesizedRecordGetHashCode))
+            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
             {
-                var declared = thisEquals is not SynthesizedRecordEquals ? thisEquals : getHashCode;
-                diagnostics.Add(ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined, declared.Locations[0], declared);
+                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
             }
 
             var printMembers = addPrintMembersMethod();
