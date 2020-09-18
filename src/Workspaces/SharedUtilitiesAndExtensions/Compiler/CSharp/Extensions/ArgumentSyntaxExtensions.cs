@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            if (argumentList.Parent is not ExpressionSyntax &&
-                argumentList.Parent is not PrimaryConstructorBaseTypeSyntax)
-            {
-                return null;
-            }
-
             // Get the symbol as long if it's not null or if there is only one candidate symbol
             var symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken);
             var symbol = symbolInfo.Symbol;
