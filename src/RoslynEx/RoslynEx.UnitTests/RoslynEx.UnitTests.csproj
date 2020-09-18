@@ -16,4 +16,10 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="TransformerOrderTransformers.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
 </Project>

@@ -200,9 +200,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void AddTransformerOrder(List<ImmutableArray<string>> transformerOrders)
         {
-            var attribute = GetAssembly()?.GetCustomAttribute<TransformerOrderAttribute>();
-            if (attribute != null)
-                transformerOrders.Add(attribute.TransformerNames.ToImmutableArray());
+            using var assembly = AssemblyMetadata.CreateFromFile(FullPath);
+
+            foreach (var module in assembly.GetModules())
+            {
+                foreach (var attribute in module.MetadataReader.GetAssemblyDefinition().GetCustomAttributes())
+                {
+                    if (!module.Module.IsTargetAttribute(attribute, nameof(RoslynEx), nameof(TransformerOrderAttribute), out _))
+                        continue;
+
+                    if (module.Module.TryExtractStringArrayValueFromAttribute(attribute, out var transformerNames))
+                        transformerOrders.Add(transformerNames);
+                    else
+                        throw ExceptionUtilities.Unreachable;
+                }
+            }
         }
 
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
