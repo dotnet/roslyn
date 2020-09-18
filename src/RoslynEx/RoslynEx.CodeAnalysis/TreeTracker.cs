@@ -35,10 +35,10 @@ namespace RoslynEx
         public static bool IsAnnotated(SyntaxNode node) => node.HasAnnotations(TrackingAnnotationKind);
 
         public static TNode AnnotateNodeAndChildren<TNode>(TNode node, SyntaxNode? preTransformationNode) where TNode : SyntaxNode =>
-            node.WithAdditionalAnnotations(CreateAnnotation(preTransformationNode, includeChildren: true));
+            node.WithAdditionalAnnotations(CreateAnnotation(preTransformationNode, includeChildren: preTransformationNode != null));
 
         public static TNode AnnotateNodeAndChildren<TNode>(TNode node) where TNode : SyntaxNode =>
-            node.WithAdditionalAnnotations(CreateAnnotation(node, includeChildren: true));
+            AnnotateNodeAndChildren(node, node);
 
         public static void SetAnnotationExcludeChildren(ref SyntaxAnnotation[] annotations, SyntaxNode node)
         {
@@ -125,9 +125,18 @@ namespace RoslynEx
             return preTransformationAncestor.FindNode<T>(nodeOriginalSpan);
         }
 
-        public static bool NeedsTracking<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out T? preTransformationNode) where T : SyntaxNode?
+        [return: NotNullIfNotNull("node")]
+        public static T TrackIfNeeded<T>(T node) where T : SyntaxNode?
         {
-            preTransformationNode = null;
+            if (NeedsTracking(node, out var preTransformationNode))
+                return AnnotateNodeAndChildren(node, preTransformationNode);
+
+            return node;
+        }
+
+        public static bool NeedsTracking<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out T preTransformationNode) where T : SyntaxNode?
+        {
+            preTransformationNode = null!;
 
             if (node == null)
                 return false;
@@ -185,19 +194,12 @@ namespace RoslynEx
             return LocatePreTransformationNode(node, ancestor, annotation);
         }
 
-        private static readonly ConditionalWeakTable<SyntaxTree, SyntaxTree> preTransformationTreeMap = new();
-
-        public static void SetPreTransformationTree(SyntaxTree tree, SyntaxTree preTransformationTree) => preTransformationTreeMap.Add(tree, preTransformationTree);
-
-        public static SyntaxTree? GetPreTransformationTree(SyntaxTree tree) => preTransformationTreeMap.TryGetValue(tree, out var result) ? result : null;
-
 #if DEBUG
         private static readonly ConditionalWeakTable<SyntaxTree, object?> undebuggableTrees = new();
 
-        public static bool IsUndebuggable(SyntaxTree tree) => undebuggableTrees.TryGetValue(tree, out _);
+        public static bool IsUndebuggable(SyntaxTree? tree) => tree is not null && undebuggableTrees.TryGetValue(tree, out _);
 
         public static void MarkAsUndebuggable(SyntaxTree tree) => undebuggableTrees.Add(tree, null);
-
 #endif
     }
 }

@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // local/lambda/closure defined within the body of the constructor:
             var ctorSyntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
+
             if (tree == ctorSyntax.SyntaxTree)
             {
                 if (IsWithinExpressionOrBlockBody(position, out int offset))
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // we haven't found the constructor part that declares the variable:
-            throw ExceptionUtilities.Unreachable;
+            return -1;
         }
 
         protected abstract CSharpSyntaxNode GetInitializer();

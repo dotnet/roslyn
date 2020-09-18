@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -934,7 +935,7 @@ oneMoreTime:
                 // the exception variable is not visible. 
                 if (_emitPdbSequencePoints)
                 {
-                    var syntax = catchBlock.Syntax as CatchClauseSyntax;
+                    var syntax = TreeTracker.GetPreTransformationNode(catchBlock.Syntax as CatchClauseSyntax);
                     if (syntax != null)
                     {
                         TextSpan spSpan;
@@ -949,7 +950,7 @@ oneMoreTime:
                             spSpan = TextSpan.FromBounds(syntax.SpanStart, syntax.Declaration.Span.End);
                         }
 
-                        this.EmitSequencePoint(catchBlock.SyntaxTree, spSpan);
+                        this.EmitSequencePoint(syntax.SyntaxTree, spSpan);
                     }
                 }
             }

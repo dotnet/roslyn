@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // User-defined locals have to have a distinct syntax offset, thus ordinal is always 0.
             if (localKind == SynthesizedLocalKind.UserDefined)
             {
-                return 0;
+                //return 0;
             }
 #endif
             int ordinal;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             _lazyMap[key] = ordinal + 1;
-            Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
+            //Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
             return ordinal;
         }
     }

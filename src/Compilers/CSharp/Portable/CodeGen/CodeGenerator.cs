@@ -492,9 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePoint(SyntaxNode syntax)
         {
-            var preTransformationSyntax = TreeTracker.GetPreTransformationNode(syntax);
+            syntax = TreeTracker.GetPreTransformationNode(syntax);
 
-            if (preTransformationSyntax == null)
+            if (syntax == null)
                 EmitHiddenSequencePoint();
             else
                 EmitSequencePoint(syntax.SyntaxTree, syntax.Span);

@@ -322,9 +322,9 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < items.Count; i++)
             {
                 var node = items[i].AsNode();
-                if (TreeTracker.NeedsTracking(node, out var preTransformationNode))
+                if (TreeTracker.TrackIfNeeded(node) is { } newNode)
                 {
-                    items[i] = TreeTracker.AnnotateNodeAndChildren(node, preTransformationNode);
+                    items[i] = newNode;
                 }
             }
 

@@ -64,22 +64,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
                     LowerDecisionDag(decisionDag);
 
+                SwitchExpressionSyntax? nodeSyntax = null;
+
                 if (produceDetailedSequencePoints)
                 {
-                    var syntax = (SwitchExpressionSyntax?)TreeTracker.GetPreTransformationNode(node.Syntax);
-                    if (syntax == null)
+                    nodeSyntax = (SwitchExpressionSyntax?)TreeTracker.GetPreTransformationNode(node.Syntax);
+                    if (nodeSyntax == null)
                     {
                         produceDetailedSequencePoints = false;
                     }
                     else
                     {
-                        result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForEnclosingStatement));
+                        result.Add(new BoundSavePreviousSequencePoint(nodeSyntax, restorePointForEnclosingStatement));
                         // While evaluating the state machine, we highlight the `switch {...}` part.
-                        var spanStart = syntax.SwitchKeyword.Span.Start;
-                        var spanEnd = syntax.Span.End;
+                        var spanStart = nodeSyntax.SwitchKeyword.Span.Start;
+                        var spanEnd = nodeSyntax.Span.End;
                         var spanForSwitchBody = new TextSpan(spanStart, spanEnd - spanStart);
-                        result.Add(new BoundStepThroughSequencePoint(node.Syntax, span: spanForSwitchBody));
-                        result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForSwitchBody));
+                        result.Add(new BoundStepThroughSequencePoint(nodeSyntax, span: spanForSwitchBody));
+                        result.Add(new BoundSavePreviousSequencePoint(nodeSyntax, restorePointForSwitchBody));
                     }
                 }
 
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     result.Add(_factory.Label(node.DefaultLabel));
                     if (produceDetailedSequencePoints)
-                        result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
+                        result.Add(new BoundRestorePreviousSequencePoint(nodeSyntax!, restorePointForSwitchBody));
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
                     var thrownExpression =
                         (implicitConversionExists(savedInputExpression, objectType) &&
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(_factory.HiddenSequencePoint());
                 result.Add(_factory.Label(afterSwitchExpression));
                 if (produceDetailedSequencePoints)
-                    result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForEnclosingStatement));
+                    result.Add(new BoundRestorePreviousSequencePoint(nodeSyntax!, restorePointForEnclosingStatement));
 
                 outerVariables.Add(resultTemp);
                 outerVariables.AddRange(_tempAllocator.AllTemps());

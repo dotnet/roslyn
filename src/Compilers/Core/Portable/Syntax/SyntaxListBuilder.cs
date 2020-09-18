@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void Add(SyntaxNode item)
         {
+            item = TreeTracker.TrackIfNeeded(item);
             AddInternal(item.Green);
         }
 
@@ -93,7 +95,11 @@ namespace Microsoft.CodeAnalysis.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
-                _nodes[dst].Value = list.ItemInternal(i)!.Green;
+                var node = list.ItemInternal(i);
+
+                node = TreeTracker.TrackIfNeeded(node);
+
+                _nodes[dst].Value = node!.Green;
                 dst++;
             }
 
@@ -127,7 +133,9 @@ namespace Microsoft.CodeAnalysis.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
-                _nodes[dst].Value = list[i].UnderlyingNode;
+                var nodeOrToken = TreeTracker.TrackIfNeeded(list[i].AsNode()) ?? list[i];
+
+                _nodes[dst].Value = nodeOrToken.UnderlyingNode;
                 dst++;
             }
 

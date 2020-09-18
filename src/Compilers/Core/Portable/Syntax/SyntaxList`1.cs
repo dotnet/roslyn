@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxList(SyntaxNode? node)
         {
-            if (TreeTracker.NeedsTracking(node, out var preTransformationNode))
-            {
-                node = TreeTracker.AnnotateNodeAndChildren(node, preTransformationNode).Green.CreateRed(node.Parent, node.Position);
-            }
-
             _node = node;
         }
 
@@ -64,12 +59,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (TNode node in nodes)
             {
-                var newNode = node;
-                if (TreeTracker.NeedsTracking(node, out var preTransformationNode))
-                {
-                    newNode = TreeTracker.AnnotateNodeAndChildren(node, preTransformationNode);
-                }
-
+                var newNode = TreeTracker.TrackIfNeeded(node);
                 builder.Add(newNode);
             }
 
@@ -343,10 +333,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < items.Count; i++)
             {
-                if (TreeTracker.NeedsTracking(items[i], out var preTransformationNode))
-                {
-                    items[i] = TreeTracker.AnnotateNodeAndChildren(items[i], preTransformationNode);
-                }
+                items[i] = TreeTracker.TrackIfNeeded(items[i]);
             }
 
             var newGreen = creator.CreateList(items.Select(n => n.Green));

@@ -18,6 +18,8 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
@@ -25,6 +27,7 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using RoslynEx;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -219,6 +222,48 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedIsXmlLiteral: true);
         }
 
+        public static bool ShouldExecuteTransformer = false;
+
+        private static Compilation ExecuteTransformer(Compilation compilation)
+        {
+            var transformers = ImmutableArray.Create<ISourceTransformer>(new TokenPerLineTransformer());
+            var diagnostics = new DiagnosticBag();
+
+            var result = CSharpCompiler.RunTransformers(
+                compilation, transformers, CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null);
+
+            diagnostics.ToReadOnlyAndFree().Verify();
+
+            return result;
+        }
+
+        class TokenPerLineTransformer : ISourceTransformer
+        {
+            public Compilation Execute(TransformerContext context)
+            {
+                static SyntaxToken ChangeWhitespace(SyntaxToken token)
+                {
+                    token = token.ReplaceTrivia(
+                        token.GetAllTrivia().Where(
+                            t => t.IsKind(SyntaxKind.WhitespaceTrivia) || t.IsKind(SyntaxKind.EndOfLineTrivia)),
+                        (_, _) => default);
+                    token = token.WithTrailingTrivia(
+                        token.TrailingTrivia.Add(SyntaxFactory.CarriageReturnLineFeed));
+                    return token;
+                }
+
+                var compilation = context.Compilation;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var newRoot = tree.GetRoot().ReplaceTokens(
+                        tree.GetRoot().DescendantTokens(), (_, token) => ChangeWhitespace(token));
+
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
+                }
+                return compilation;
+            }
+        }
+
         private static void VerifyPdbImpl(
             this Compilation compilation,
             IEnumerable<EmbeddedText> embeddedTexts,
@@ -231,6 +276,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
+            if (ShouldExecuteTransformer)
+                compilation = ExecuteTransformer(compilation);
+
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
             bool testWindowsPdb = (format == 0 || format == DebugInformationFormat.Pdb) && ExecutionConditionUtil.IsWindows;
@@ -395,6 +443,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptyMethods(expectedXml);
             RemoveFormatAttributes(expectedXml);
 
+            if (ShouldExecuteTransformer)
+            {
+                RemoveEnc(actualXml);
+                RemoveEnc(expectedXml);
+            }
+
             return (actualXml.ToString(), expectedXml.ToString());
         }
 
@@ -408,6 +462,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return array.Length > 0;
+        }
+
+        private static void RemoveEnc(XElement pdb)
+        {
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name.LocalName.StartsWith("enc")
+                           select e);
         }
 
         private static void RemoveEmptyCustomDebugInfo(XElement pdb)

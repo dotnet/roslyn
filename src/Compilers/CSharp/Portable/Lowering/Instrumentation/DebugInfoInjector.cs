@@ -447,9 +447,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewrittenFilter = base.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
 
+            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            if (originalSyntax == null)
+            {
+                return new BoundSequencePointExpression(null!, rewrittenFilter, rewrittenFilter.Type);
+            }
+
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            CatchFilterClauseSyntax? filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
+            CatchFilterClauseSyntax? filterClause = ((CatchClauseSyntax)originalSyntax).Filter;
             Debug.Assert(filterClause is { });
             return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
@@ -463,7 +469,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
-            return new BoundSequencePointExpression(original.Syntax, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
+            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+
+            return new BoundSequencePointExpression(originalSyntax!, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
         }
 
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)

@@ -390,7 +390,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private protected override Compilation RunTransformers(
-            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics) =>
+            RunTransformers(
+                input, transformers, analyzerConfigProvider, diagnostics,
+                resources => Arguments.ManifestResources = Arguments.ManifestResources.AddRange(resources));
+
+
+        internal static Compilation RunTransformers(
+            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
+            Action<IEnumerable<ResourceDescription>>? addManifestResources)
         {
             var compilation = input;
 
@@ -409,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics);
                     compilation = transformer.Execute(context);
-                    Arguments.ManifestResources = Arguments.ManifestResources.AddRange(context.ManifestResources);
+                    addManifestResources?.Invoke(context.ManifestResources);
                 }
                 catch (Exception ex)
                 {
@@ -434,14 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null), tree.Options));
-                }
-
-                foreach (var tree in compilation.SyntaxTrees)
-                {
-                    if (input.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath) is { } preTransformationTree)
-                    {
-                        TreeTracker.SetPreTransformationTree(tree, preTransformationTree);
-                    }
                 }
             }
 

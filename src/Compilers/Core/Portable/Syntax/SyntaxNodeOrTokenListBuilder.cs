@@ -107,12 +107,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             foreach (var n in nodeOrTokens)
             {
-                var nodeOrToken = n;
-                var node = nodeOrToken.AsNode();
-                if (TreeTracker.NeedsTracking(node, out var preTransformationNode))
-                {
-                    nodeOrToken = TreeTracker.AnnotateNodeAndChildren(node, preTransformationNode);
-                }
+                var nodeOrToken = TreeTracker.TrackIfNeeded(n.AsNode()) ?? n;
 
                 this.Add(nodeOrToken);
             }

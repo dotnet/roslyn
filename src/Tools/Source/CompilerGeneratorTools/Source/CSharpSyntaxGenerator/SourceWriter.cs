@@ -1581,19 +1581,9 @@ namespace CSharpSyntaxGenerator
                 {
                     // do nothing
                 }
-                else if (IsOptional(field))
-                {
-                    WriteLine($"if (RoslynEx.TreeTracker.NeedsTracking({CamelCase(field.Name)}, out var preTransformation{field.Name}))");
-                    Indent();
-                    WriteLine($"{CamelCase(field.Name)} = RoslynEx.TreeTracker.AnnotateNodeAndChildren({CamelCase(field.Name)}, preTransformation{field.Name});");
-                    Unindent();
-                }
                 else
                 {
-                    WriteLine($"if (RoslynEx.TreeTracker.NeedsTracking({CamelCase(field.Name)}, out var preTransformation{field.Name}))");
-                    Indent();
-                    WriteLine($"{CamelCase(field.Name)} = RoslynEx.TreeTracker.AnnotateNodeAndChildren({CamelCase(field.Name)}, preTransformation{field.Name});");
-                    Unindent();
+                    WriteLine($"{CamelCase(field.Name)} = RoslynEx.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
                 }
             }
 
