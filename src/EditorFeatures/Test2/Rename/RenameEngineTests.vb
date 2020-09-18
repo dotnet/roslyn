@@ -1482,6 +1482,35 @@ partial class Test
             End Using
         End Sub
 
+        <Theory, WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethodParameter(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+
+using System;
+
+public partial class Test
+{
+    public partial void Goo(object [|$$o|])
+    {
+    }
+}
+
+partial class Test
+{
+    public partial void Goo(object [|o|]);
+}
+
+                       </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="BarBaz")
+
+            End Using
+        End Sub
+
         <WorkItem(528820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528820")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicAnonymousKey(host As RenameTestHost)
@@ -1855,6 +1884,31 @@ End Module
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethods_1_CS(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            partial class Goo
+                            {
+                                public partial void [|F|]();
+                            }
+                            partial class Goo
+                            {
+                                public partial void [|$$F|]()
+                                {
+                                    throw new System.Exception("F");
+                                }
+                            }
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Bar")
+
+            End Using
+        End Sub
+
+        <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_CS(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1874,7 +1928,30 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
+            End Using
+        End Sub
 
+        <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethods_2_CS(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            partial class Goo
+                            {
+                                public partial void [|$$F|]();
+                            }
+                            partial class Goo
+                            {
+                                public partial void [|F|]()
+                                {
+                                    throw new System.Exception("F");
+                                }
+                            }
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Bar")
             End Using
         End Sub
 
