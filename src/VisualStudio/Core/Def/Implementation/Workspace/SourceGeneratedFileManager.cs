@@ -99,7 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // The file name we generate here is chosen to match the compiler's choice, so the debugger can recognize the files should match.
             // This can only be changed if the compiler changes the algorithm as well.
             var temporaryFilePath = Path.Combine(projectDirectory, $"{generatorType.Module.ModuleVersionId}_{generatorType.FullName}_{generatedSourceHintName}");
-            File.WriteAllText(temporaryFilePath, "");
+
+            // Don't write to the file if it's already there, as that potentially triggers a file reload
+            if (!File.Exists(temporaryFilePath))
+            {
+                File.WriteAllText(temporaryFilePath, "");
+            }
 
             var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
             var hr = openDocumentService.OpenDocumentViaProject(
