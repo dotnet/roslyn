@@ -640,15 +640,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
         {
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-
             // Build the state machine underlying the decision dag
             DecisionDag decisionDag = MakeDecisionDag(cases);
 
-            // Note: It is useful for debugging the dag state table construction to view `decisionDag.Dump()` here.
+            // Note: It is useful for debugging the dag state table construction to set a breakpoint
+            // here and view `decisionDag.Dump()`.
+            ;
 
             // Compute the bound decision dag corresponding to each node of decisionDag, and store
             // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
             ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
@@ -679,29 +680,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = new DagState(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
-                    var newRemainingValues = existingState.RemainingValues;
-                    bool changed = false;
+                    // We found an existing state that matches.  Update its set of possible remaining values
+                    // of each temp by taking the union of the sets on each incoming edge.
+                    var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
-                        if (newRemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
+                        // If one incoming edge does not have a set of possible values for the temp,
+                        // that means the temp can take on any value of its type.
+                        if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
                         {
                             var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            if (!newExistingValuesForTemp.Equals(existingValuesForTemp))
-                            {
-                                newRemainingValues = newRemainingValues.SetItem(dagTemp, newExistingValuesForTemp);
-                                changed = true;
-                            }
-                        }
-                        else
-                        {
-                            newRemainingValues = newRemainingValues.Add(dagTemp, valuesForTemp);
-                            changed = true;
+                            newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
                         }
                     }
 
-                    if (changed)
+                    if (existingState.RemainingValues.Count != newRemainingValues.Count ||
+                        !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
                     {
-                        existingState.UpdateRemainingValues(newRemainingValues);
+                        existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
                         if (!workList.Contains(existingState))
                             workList.Push(existingState);
                     }

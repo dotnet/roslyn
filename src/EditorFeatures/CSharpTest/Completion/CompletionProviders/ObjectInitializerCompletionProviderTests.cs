@@ -101,6 +101,25 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ImplicitObjectCreation_NullableStruct_OneItem1()
+        {
+            var markup = @"
+struct S { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       S? goo = new() { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowWithEqualsSign()
         {
             var markup = @"

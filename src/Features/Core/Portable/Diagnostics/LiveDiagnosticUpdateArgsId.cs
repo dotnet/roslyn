@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override string BuildTool => _analyzerPackageName;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (!(obj is LiveDiagnosticUpdateArgsId other))
             {

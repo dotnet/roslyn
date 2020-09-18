@@ -128,6 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
             }
 
+            if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
+
             return tokens.ToSyntaxTokenListAndFree();
         }
     }

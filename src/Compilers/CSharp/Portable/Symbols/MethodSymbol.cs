@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsEffectivelyReadOnly => (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
 
-        protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor;
+        protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor && !IsInitOnly;
 
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.

@@ -2653,10 +2653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
                     }
-                    else if (!(method.OtherPartOfPartial is null) && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
-                    }
                     else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
@@ -3042,16 +3038,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
 
-                // https://github.com/dotnet/roslyn/issues/44677
-                // The semantics of an empty parameter list have not been decided. Error for now
-                if (paramList.ParameterCount == 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
-                }
-
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                var existingOrAddedMembers = addProperties(ctor.Parameters);
-                addDeconstruct(ctor, existingOrAddedMembers);
+
+                if (ctor.ParameterCount != 0)
+                {
+                    var existingOrAddedMembers = addProperties(ctor.Parameters);
+                    addDeconstruct(ctor, existingOrAddedMembers);
+                }
             }
 
             addCopyCtor();
