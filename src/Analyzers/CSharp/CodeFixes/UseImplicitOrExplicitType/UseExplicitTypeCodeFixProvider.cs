@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                     RoslynDebug.AssertNotNull(encapsulatingNode);
 
                     var operationScope = semanticModel.GetOperation(encapsulatingNode, cancellationToken);
-                    var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent);
+                    var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent, cancellationToken);
 
                     if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
                     {
