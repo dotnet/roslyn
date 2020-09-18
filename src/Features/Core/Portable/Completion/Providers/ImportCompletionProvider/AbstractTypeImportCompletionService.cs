@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         {
             private readonly ItemPropertyKind _properties;
 
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced = false)
+            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced)
             {
                 Item = item;
                 _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
@@ -401,12 +401,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         // Grouped together and reused within each compilation.
         private class EditorBrowsableInfo
         {
+            private Optional<INamedTypeSymbol?>? _hideModuleNameAttribute;
             private Optional<IMethodSymbol?>? _editorBrowsableAttributeConstructor;
             private ImmutableArray<IMethodSymbol>? _typeLibTypeAttributeConstructors;
             private ImmutableArray<IMethodSymbol>? _typeLibFuncAttributeConstructors;
             private ImmutableArray<IMethodSymbol>? _typeLibVarAttributeConstructors;
 
             public Compilation Compilation { get; }
+
+            public Optional<INamedTypeSymbol?> HideModuleNameAttribute
+                => _hideModuleNameAttribute ??= new(Compilation.HideModuleNameAttribute());
 
             public Optional<IMethodSymbol?> EditorBrowsableAttributeConstructor
                 => _editorBrowsableAttributeConstructor ??= new(EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(Compilation));
@@ -420,12 +424,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             public ImmutableArray<IMethodSymbol> TypeLibVarAttributeConstructors
                 => _typeLibVarAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(Compilation);
 
-            public Optional<INamedTypeSymbol?> HideModuleNameAttribute { get; }
-
             public EditorBrowsableInfo(Compilation compilation)
             {
                 Compilation = compilation;
-                HideModuleNameAttribute = new(Compilation.HideModuleNameAttribute());
             }
         }
     }

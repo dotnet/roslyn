@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 ContainsAdvancedMembers = containsAdvancedmembers;
                 ItemInfos = items;
-
             }
 
             public ImmutableArray<CompletionItem> GetItemsForContext(
