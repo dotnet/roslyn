@@ -4497,6 +4497,113 @@ sealed record C2(int I1, int I2) : C1(I1);
             CompileAndVerify(comp, expectedOutput: "C2 { I1 = 42, I2 = 43 }", verify: Verification.Skipped /* init-only */);
         }
 
+        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        public void ToString_RecordWithIndexer()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record C1(int I1)
+{
+    private int field = 44;
+    public int this[int i] => 0;
+    public int PropertyWithoutGetter { set { } }
+    public int P2 { get => 43; }
+    public ref int P3 { get => ref field; }
+    public event System.Action a;
+
+    private int field1 = 100;
+    internal int field2 = 100;
+    protected int field3 = 100;
+    private protected int field4 = 100;
+    internal protected int field5 = 100;
+
+    private int Property1 { get; set; } = 100;
+    internal int Property2 { get; set; } = 100;
+    protected int Property3 { get; set; } = 100;
+    private protected int Property4 { get; set; } = 100;
+    internal protected int Property5 { get; set; } = 100;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1 { I1 = 42, P2 = 43, P3 = 44 }", verify: Verification.Skipped /* init-only */);
+            comp.VerifyEmitDiagnostics(
+                // (12,32): warning CS0067: The event 'C1.a' is never used
+                //     public event System.Action a;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(12, 32),
+                // (14,17): warning CS0414: The field 'C1.field1' is assigned but its value is never used
+                //     private int field1 = 100;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field1", isSuppressed: false).WithArguments("C1.field1").WithLocation(14, 17)
+                );
+        }
+
+        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        public void ToString_PrivateGetter()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public int P1 { private get => 43; set => throw null; }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }", verify: Verification.Skipped /* init-only */);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverriddenVirtualProperty_NoRepetition()
+        {
+            var src = @"
+System.Console.WriteLine(new B() { P = 2 }.ToString());
+
+abstract record A
+{
+    public virtual int P { get; set; }
+}
+record B : A
+{
+    public override int P { get; set; }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
+        }
+
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverriddenAbstractProperty_NoRepetition()
+        {
+            var src = @"
+System.Console.Write(new B1() { P = 1 });
+System.Console.Write("" "");
+System.Console.Write(new B2(2));
+
+abstract record A1
+{
+    public abstract int P { get; set; }
+}
+
+record B1 : A1
+{
+    public override int P { get; set; }
+}
+
+abstract record A2(int P);
+
+record B2(int P) : A2(P);
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B1 { P = 1 } B2 { P = 2 }", verify: Verification.Skipped /* init-only */);
+        }
+
         [Fact]
         public void ToString_ErrorBase()
         {
