@@ -21,22 +21,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
+        public Action<string> OnError { get; set; } = message => Assert.False(true, message);
+
         public string HostDisplayName
             => "Test Host";
 
         public void ShowDetailedErrorInfo(Exception exception)
-            => Assert.False(true, exception.Message);
+            => OnError(exception.Message);
 
         public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-            => Assert.False(true, message);
+            => OnError(message);
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
-            => Assert.False(true, message);
+            => OnError(message);
 
         public void ShowRemoteHostCrashedErrorInfo(Exception? exception)
-            => Assert.False(true, exception?.Message ?? "Unexpected error");
+            => OnError(exception?.Message ?? "Unexpected error");
 
         public void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception)
-            => Assert.False(true, $"{message} {exception}");
+            => OnError($"{message} {exception}");
     }
 }
