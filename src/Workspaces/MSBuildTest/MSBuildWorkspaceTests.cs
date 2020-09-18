@@ -420,6 +420,46 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformDefault()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform)
+                .WithFile(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First();
+                var tree = await document.GetSyntaxTreeAsync();
+                var expectedFileName = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
+                Assert.Equal(expectedFileName, tree.FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformTrue()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform)
+                .WithFile(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace(("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString)))
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First();
+                var tree = await document.GetSyntaxTreeAsync();
+                var expectedFileName = GetSolutionFileName(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs");
+                Assert.Equal(expectedFileName, tree.FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {

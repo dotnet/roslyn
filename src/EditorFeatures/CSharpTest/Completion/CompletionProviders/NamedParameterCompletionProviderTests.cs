@@ -185,6 +185,27 @@ partial class PartialClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtendedPartialMethods()
+        {
+            var markup = @"
+partial class PartialClass
+{
+    public static partial void Goo(int declaring);
+    public static partial void Goo(int implementing)
+    {
+    }
+    static void Caller()
+    {
+        Goo($$
+    }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterColon()
         {
             var markup = @"
