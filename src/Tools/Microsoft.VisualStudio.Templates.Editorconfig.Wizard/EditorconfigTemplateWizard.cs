@@ -33,8 +33,7 @@ public partial class EditorconfigTemplateWizard : IWizard
 
             var generator = new EditorConfigFileGenerator(dte);
 
-            bool isDotnet = !(StringComparer.OrdinalIgnoreCase.Compare(result, "default") == 0);
-            isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
+            bool isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
             (bool success, string fileName) = generator.TryGenerateFile(isDotnet);
             if (success)
             {

@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VSPackage.resx">
     <body>
-      <trans-unit id="110">
-        <source>ResourcePackage Extension</source>
-        <target state="translated">Extension ResourcePackage</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="112">
-        <source>ResourcePackage Visual Studio Extension Detailed Info</source>
-        <target state="translated">Informations détaillées sur l'extension Visual Studio ResourcePackage</target>
-        <note />
-      </trans-unit>
       <trans-unit id="115">
         <source>editorconfig File (default)</source>
         <target state="translated">Fichier editorconfig (par défaut)</target>

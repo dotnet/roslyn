@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <AssemblyName>Templates.Editorconfig.Wizard</AssemblyName>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
 
   <!-- Package References -->
@@ -38,7 +39,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="WizardResource.resx">
+    <EmbeddedResource Include="WizardResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>WizardResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>

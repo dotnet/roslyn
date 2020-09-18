@@ -5,19 +5,19 @@
 
     <!-- VSIX -->
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <EnableDefaultItems>true</EnableDefaultItems>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\Editorconfig\Wizard</ExtensionInstallationFolder>
     <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
+    <UseCodebase>true</UseCodebase>
+    <Ngen>false</Ngen>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="VSPackage.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="ResourcePackage.pkgdef">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Tools\Microsoft.VisualStudio.Templates.Editorconfig.Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
@@ -51,11 +51,4 @@
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
   </ItemGroup>
 
-  <!-- We don't generate pkgdef, but we want it to end up in VSIX,
-       implement the right output group so that ProjectSystemSetup pulls it in -->
-  <Target Name="PkgdefProjectOutputGroup" Outputs="@(PkgdefOutputGroupOutput)">
-    <ItemGroup>
-      <PkgdefOutputGroupOutput Include="ResourcePackage.pkgdef" />
-    </ItemGroup>
-  </Target>
 </Project>
