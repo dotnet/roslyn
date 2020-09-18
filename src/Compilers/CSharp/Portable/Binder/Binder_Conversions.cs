@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
 
+            // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
