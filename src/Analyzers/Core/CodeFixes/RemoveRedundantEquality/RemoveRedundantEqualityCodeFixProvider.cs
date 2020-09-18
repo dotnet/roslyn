@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                     }
 
                     syntaxFacts.GetPartsOfBinaryExpression(n, out var left, out var right);
-                    if (diagnostic.Properties["RedundantSide"] == "Right")
+                    if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right)
                     {
                         return WithElasticTrailingTrivia(left);
                     }
-                    else if (diagnostic.Properties["RedundantSide"] == "Left")
+                    else if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left)
                     {
                         // Elastic trivia is not needed here.
                         // LeftExpression                 ==                     RightExpression
