@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [ExportWorkspaceService(typeof(IDocumentNavigationService), ServiceLayer.Host), Shared]
+    [Export(typeof(VisualStudioDocumentNavigationService))]
     internal sealed class VisualStudioDocumentNavigationService : ForegroundThreadAffinitizedObject, IDocumentNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
@@ -361,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return workspace.CurrentSolution.GetDocument(documentId);
         }
 
-        private bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
+        public bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
         {
             using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, CancellationToken.None))
             {

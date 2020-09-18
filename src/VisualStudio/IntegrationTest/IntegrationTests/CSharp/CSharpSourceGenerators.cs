@@ -47,6 +47,7 @@ internal static class Program
             VisualStudio.Editor.PlaceCaret(IntegrationTestSourceGenerator.GeneratedClassName);
             VisualStudio.Editor.GoToDefinition();
             Assert.Equal($"{IntegrationTestSourceGenerator.GeneratedClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal(IntegrationTestSourceGenerator.GeneratedClassName, VisualStudio.Editor.GetSelectedText());
         }
     }
 }
