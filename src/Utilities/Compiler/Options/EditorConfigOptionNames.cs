@@ -193,5 +193,10 @@ namespace Analyzer.Utilities
         /// Configurable rule: CA1711 (https://docs.microsoft.com/visualstudio/code-quality/ca1711).
         /// </summary>
         public const string AllowedSuffixes = "allowed_suffixes";
+
+        /// <summary>
+        /// Boolean option to configure whether to exclude structs when considering public fields.
+        /// </summary>
+        public const string ExcludeStructs = "exclude_structs";
     }
 }
