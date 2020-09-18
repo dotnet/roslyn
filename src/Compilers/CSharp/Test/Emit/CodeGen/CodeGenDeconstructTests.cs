@@ -6199,7 +6199,23 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1");
+            CompileAndVerify(comp, expectedOutput: "1")
+                .VerifyIL("C.Main", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  .locals init (int V_0, //_
+                int V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.2
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  IL_000c:  ret
+}");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7123,11 +7139,40 @@ class Program
         for ((int x1, z) = t; ; )
         {
             System.Console.WriteLine(x1);
+            break;
         }
     }
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1, //z
+                int V_2) //x1
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_0024
+  IL_001a:  nop
+  IL_001b:  ldloc.2
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  nop
+  IL_0022:  br.s       IL_0026
+  IL_0024:  br.s       IL_001a
+  IL_0026:  ret
+}");
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7354,12 +7399,54 @@ class Program
         string y;
         for ((int x, (y, var z)) = t; ; )
         {
-            System.Console.WriteLine(x);
-            System.Console.WriteLine(z);
+            System.Console.Write(x);
+            System.Console.Write(z);
+            break;
         }
     }
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: "1True")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (System.ValueTuple<int, System.ValueTuple<string, bool>> V_0, //t
+                string V_1, //y
+                int V_2, //x
+                bool V_3, //z
+                System.ValueTuple<string, bool> V_4)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldstr      """"
+  IL_0009:  ldc.i4.1
+  IL_000a:  newobj     ""System.ValueTuple<string, bool>..ctor(string, bool)""
+  IL_000f:  call       ""System.ValueTuple<int, System.ValueTuple<string, bool>>..ctor(int, System.ValueTuple<string, bool>)""
+  IL_0014:  ldloc.0
+  IL_0015:  dup
+  IL_0016:  ldfld      ""System.ValueTuple<string, bool> System.ValueTuple<int, System.ValueTuple<string, bool>>.Item2""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  ldfld      ""int System.ValueTuple<int, System.ValueTuple<string, bool>>.Item1""
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.s    V_4
+  IL_0025:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_0032:  stloc.3
+  IL_0033:  br.s       IL_0046
+  IL_0035:  nop
+  IL_0036:  ldloc.2
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  nop
+  IL_003d:  ldloc.3
+  IL_003e:  call       ""void System.Console.Write(bool)""
+  IL_0043:  nop
+  IL_0044:  br.s       IL_0048
+  IL_0046:  br.s       IL_0035
+  IL_0048:  ret
+}");
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -9862,6 +9949,59 @@ class C
 1 hello True
 1 hello True");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentUseBeforeDeclaration()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        (x1, string y1) = new A();
+        int x1;
+        (int x2, y2) = new A();
+        string y2;
+        (int x3, (string y3, z3)) = new B();
+        bool z3;
+        (x4, var (y4, z4)) = new B();
+        int x4;
+    }
+}
+
+class A
+{
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+
+class B
+{
+    public void Deconstruct(out int a, out (string b, bool c) tuple)
+    {
+        a = 1;
+        tuple = (""hello"", true);
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (6,10): error CS0841: Cannot use local variable 'x1' before it is declared
+                    //         (x1, string y1) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1", isSuppressed: false).WithArguments("x1").WithLocation(6, 10),
+                    // (8,18): error CS0841: Cannot use local variable 'y2' before it is declared
+                    //         (int x2, y2) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y2", isSuppressed: false).WithArguments("y2").WithLocation(8, 18),
+                    // (10,30): error CS0841: Cannot use local variable 'z3' before it is declared
+                    //         (int x3, (string y3, z3)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "z3", isSuppressed: false).WithArguments("z3").WithLocation(10, 30),
+                    // (12,10): error CS0841: Cannot use local variable 'x4' before it is declared
+                    //         (x4, var (y4, z4)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4", isSuppressed: false).WithArguments("x4").WithLocation(12, 10));
         }
     }
 }
