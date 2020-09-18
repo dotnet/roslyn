@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Get all the symbols visible to the current location.
             var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
 
-            // Local function parameter is allowed to shadow varaibles since C# 8.
+            // Local function parameter is allowed to shadow variables since C# 8.
             if (((CSharpCompilation)semanticModel.Compilation).LanguageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
                 if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
