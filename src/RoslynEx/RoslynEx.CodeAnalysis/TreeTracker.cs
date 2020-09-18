@@ -129,7 +129,9 @@ namespace RoslynEx
         public static T TrackIfNeeded<T>(T node) where T : SyntaxNode?
         {
             if (NeedsTracking(node, out var preTransformationNode))
+#pragma warning disable CS8631 
                 return AnnotateNodeAndChildren(node, preTransformationNode);
+#pragma warning restore CS8631
 
             return node;
         }
