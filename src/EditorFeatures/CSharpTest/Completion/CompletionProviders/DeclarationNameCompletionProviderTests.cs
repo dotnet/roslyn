@@ -280,11 +280,15 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
-        public async Task Parameter10()
+        public async Task Parameter10(LanguageVersion languageVersion)
         {
-            var markup = @"
+            var source = @"
 public class DbContext { }
 public class C
 {
@@ -293,16 +297,29 @@ public class C
     }
 }
 ";
+            var markup = GetMarkup(source, languageVersion);
             await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
             await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
-        public async Task Parameter11()
+        public async Task Parameter11(LanguageVersion languageVersion)
         {
-            var markup = @"
+            var source = @"
 public class DbContext { }
 public class C
 {
@@ -312,16 +329,29 @@ public class C
     }
 }
 ";
+            var markup = GetMarkup(source, languageVersion);
             await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
             await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
         [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
-        public async Task Parameter12()
+        public async Task Parameter12(LanguageVersion languageVersion)
         {
-            var markup = @"
+            var source = @"
 public class DbContext { }
 public class C
 {
@@ -331,9 +361,18 @@ public class C
     }
 }
 ";
+            var markup = GetMarkup(source, languageVersion);
             await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
             await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            }
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -1828,11 +1867,15 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCompletionDoesNotUseLocalAsLocalFunctionParameter()
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        public async Task TestUseLocalAsLocalFunctionParameter(LanguageVersion languageVersion)
         {
-            var markup = @"
+            var source = @"
 class ClassA
 {
     class ClassB { }
@@ -1843,14 +1886,28 @@ class ClassA
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markup, "classB");
+            var markup = GetMarkup(source, languageVersion);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+                        expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "classB");
+            }
         }
 
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCompletionDoesNotUseLocalAsLocalFunctionVariable()
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        public async Task TestCompletionDoesNotUseLocalAsLocalFunctionVariable(LanguageVersion languageVersion)
         {
-            var markup = @"
+            var source = @"
 class ClassA
 {
     class ClassB { }
@@ -1864,6 +1921,7 @@ class ClassA
     }
 }
 ";
+            var markup = GetMarkup(source, languageVersion);
             await VerifyItemIsAbsentAsync(markup, "classB");
         }
 
@@ -2103,5 +2161,14 @@ public class MyClass
                 EnforcementLevel = ReportDiagnostic.Error
             };
         }
+
+        private static string GetMarkup(string source, LanguageVersion languageVersion)
+            => $@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
+        <Document FilePath=""Test2.cs"">
+{source}
+        </Document>
+    </Project>
+</Workspace>";
     }
 }
