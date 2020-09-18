@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IServiceBroker _serviceBroker;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
-        private readonly IShutdownCancellationService? _shutdownCancellationService;
+        private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
             _errorReportingService = services.GetService<IErrorReportingService>();
-            _shutdownCancellationService = services.GetService<IShutdownCancellationService>();
+            _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)

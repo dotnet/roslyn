@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         where TService : class
     {
         private readonly IErrorReportingService? _errorReportingService;
-        private readonly IShutdownCancellationService? _shutdownCancellationService;
+        private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
         private readonly SolutionAssetStorage _solutionAssetStorage;
         private readonly TService _service;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             TService service,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
-            IShutdownCancellationService? shutdownCancellationService)
+            IRemoteHostClientShutdownCancellationService? shutdownCancellationService)
         {
             _errorReportingService = errorReportingService;
             _shutdownCancellationService = shutdownCancellationService;
