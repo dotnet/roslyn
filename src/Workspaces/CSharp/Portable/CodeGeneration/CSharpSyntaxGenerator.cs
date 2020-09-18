@@ -1448,6 +1448,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Static |
             DeclarationModifiers.Extern;
 
+        private static readonly DeclarationModifiers s_lambdaModifiers =
+            DeclarationModifiers.Async;
+
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
             switch (kind)
@@ -1501,6 +1504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.LocalFunctionStatement:
                     return s_localFunctionModifiers;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                    return s_lambdaModifiers;
 
                 case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.Parameter:
@@ -1550,6 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 LocalDeclarationStatementSyntax localDecl => localDecl.WithModifiers(modifiers),
                 LocalFunctionStatementSyntax localFunc => localFunc.WithModifiers(modifiers),
                 AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                LambdaExpressionSyntax lambda => lambda.WithModifiers(modifiers),
                 _ => declaration,
             };
 
@@ -3118,7 +3126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements)
         {
-            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()));
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(
+                SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList((ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
             var initializer = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, AsExpressionList(elements));
             return SyntaxFactory.ArrayCreationExpression(arrayType, initializer);
         }

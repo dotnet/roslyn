@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ExtractClass)), Shared]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ExtractInterface)]
     internal class CSharpExtractClassCodeRefactoringProvider : AbstractExtractClassRefactoringProvider
     {
         [ImportingConstructor]

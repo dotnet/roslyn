@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenLocalDeclaration;
         }
 
-        public override sealed BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
+        public sealed override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
         }

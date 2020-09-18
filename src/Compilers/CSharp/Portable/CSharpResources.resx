@@ -2099,8 +2099,20 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ParameterIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as parameters</value>
   </data>
+  <data name="WRN_ParameterIsStaticClass" xml:space="preserve">
+    <value>'{0}': static types cannot be used as parameters</value>
+  </data>
+  <data name="WRN_ParameterIsStaticClass_Title" xml:space="preserve">
+    <value>Static types cannot be used as parameters</value>
+  </data>
   <data name="ERR_ReturnTypeIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as return types</value>
+  </data>
+  <data name="WRN_ReturnTypeIsStaticClass" xml:space="preserve">
+    <value>'{0}': static types cannot be used as return types</value>
+  </data>
+  <data name="WRN_ReturnTypeIsStaticClass_Title" xml:space="preserve">
+    <value>Static types cannot be used as return types</value>
   </data>
   <data name="ERR_VarDeclIsStaticClass" xml:space="preserve">
     <value>Cannot declare a variable of static type '{0}'</value>
@@ -5825,6 +5837,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_SwitchExpressionNotExhaustiveWithWhen_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</value>
+  </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
   </data>
@@ -6287,6 +6305,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
     <value>Partial method declarations must have matching ref return values.</value>
   </data>
+  <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</value>
+  </data>
+  <data name="WRN_PartialMethodTypeDifference_Title" xml:space="preserve">
+    <value>Partial method declarations have differences in parameter or return types.</value>
+  </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>
   </data>
@@ -6497,5 +6521,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric" xml:space="preserve">
     <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_EntryPointCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_InitCannotBeReadonly" xml:space="preserve">
+    <value>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</value>
+  </data>
+  <data name="IDS_FeatureDiscards" xml:space="preserve">
+    <value>discards</value>
   </data>
 </root>

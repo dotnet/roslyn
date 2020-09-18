@@ -62,7 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private async Task InitializeAndPopulateSnippetsCacheAsync(Shell.IAsyncServiceProvider asyncServiceProvider)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var textManager = (IVsTextManager2)await asyncServiceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+            var textManager = (IVsTextManager2?)await asyncServiceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+            Assumes.Present(textManager);
+
             if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
             {
                 ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);

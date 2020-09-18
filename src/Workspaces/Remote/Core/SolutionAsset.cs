@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Threading;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -34,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SolutionAsset(object? value, Checksum checksum, WellKnownSynchronizationKind kind)
         {
+            // SolutionAsset is not allowed to hold strong references to SourceText. SerializableSourceText is used
+            // instead to allow data to be released from process address space when it is also held in temporary
+            // storage.
+            // https://github.com/dotnet/roslyn/issues/43802
+            Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText);
+
             Checksum = checksum;
             Kind = kind;
             Value = value;

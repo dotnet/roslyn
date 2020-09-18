@@ -333,20 +333,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return null;
                 }
-                else
+                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData boundAttribute, out ObsoleteAttributeData obsoleteData))
                 {
-                    CSharpAttributeData boundAttribute;
-                    ObsoleteAttributeData obsoleteData;
-
-                    if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+                    if (obsoleteData != null)
                     {
-                        if (obsoleteData != null)
-                        {
-                            arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                        }
-
-                        return boundAttribute;
+                        arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                     }
+
+                    return boundAttribute;
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
+                {
+                    arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().UnmanagedCallersOnlyAttributePresent = true;
+                    // We can't actually decode this attribute yet: CallConvs is an array, and it cannot be bound yet or we could hit a cycle
+                    // in error cases. We only detect whether or not the attribute is present for use in ensuring that we create as few lazily-computed
+                    // diagnostics that might later get thrown away as possible when binding method calls.
+                    return null;
                 }
             }
 
@@ -391,6 +393,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ObsoleteAttributeData.Uninitialized;
             }
         }
+
+#nullable enable
+        internal sealed override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                if (syntaxReferenceOpt is null)
+                {
+                    // no references -> no attributes
+                    return null;
+                }
+
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                if (lazyCustomAttributesBag is null)
+                {
+                    return UnmanagedCallersOnlyAttributeData.Uninitialized;
+                }
+
+                if (lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (MethodWellKnownAttributeData?)lazyCustomAttributesBag.DecodedWellKnownAttributeData;
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
+                    verifyDataConsistent((CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, data);
+#endif
+                    return data?.UnmanagedCallersOnlyAttributeData;
+                }
+
+                if (lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
+                {
+                    var data = (CommonMethodEarlyWellKnownAttributeData?)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+                    return data?.UnmanagedCallersOnlyAttributePresent == true
+                        ? UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound
+                        : null;
+                }
+
+                return UnmanagedCallersOnlyAttributeData.Uninitialized;
+
+#if DEBUG // Can remove ifdefs and replace with Conditional after https://github.com/dotnet/roslyn/issues/47463 is fixed
+                static void verifyDataConsistent(CommonMethodEarlyWellKnownAttributeData? earlyData, MethodWellKnownAttributeData? lateData)
+                {
+                    Debug.Assert((earlyData, lateData) is ((null or { UnmanagedCallersOnlyAttributePresent: false }), (null or { UnmanagedCallersOnlyAttributeData: null }))
+                                                          or ({ UnmanagedCallersOnlyAttributePresent: true }, { UnmanagedCallersOnlyAttributeData: not null }));
+                }
+#endif
+            }
+        }
+#nullable restore
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
@@ -495,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
             {
-                DecodeUnmanagedCallersOnlyAttribute(arguments);
+                DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
             else
             {
@@ -808,44 +857,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasError = true;
             }
 
+            // If this is an UnmanagedCallersOnly method, it means that this cannot be called by managed code, including the attempt by the CLR
+            // to run the module initializer.
+            if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is CommonMethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributePresent: true })
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
+                hasError = true;
+            }
+
             if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
             }
         }
 
-        private void DecodeUnmanagedCallersOnlyAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            Debug.Assert(arguments.AttributeSyntaxOpt != null);
             if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
                 arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
             }
 
-            if (!arguments.Attribute.CommonNamedArguments.IsDefaultOrEmpty)
-            {
-                foreach (var (key, value) in arguments.Attribute.CommonNamedArguments)
-                {
-                    if (key != "CallConvs"
-                        || value.Kind != TypedConstantKind.Array
-                        || value.Values.Any(v => v.Kind != TypedConstantKind.Type))
-                    {
-                        continue;
-                    }
-
-                    foreach (var callConvTypedConstant in value.Values)
-                    {
-                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
-                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
-                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
-                        {
-                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
-                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, arguments.AttributeSyntaxOpt.Location, callConvTypedConstant.ValueInternal ?? "null");
-                        }
-                    }
-                }
-            }
+            arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
+                DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
 
             var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
             {

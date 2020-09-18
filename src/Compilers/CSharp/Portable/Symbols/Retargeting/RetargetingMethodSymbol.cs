@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private TypeWithAnnotations.Boxed _lazyReturnType;
+
+        private UnmanagedCallersOnlyAttributeData _lazyUnmanagedAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
         {
@@ -218,6 +221,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingMethod.GetReturnTypeAttributes(), ref _lazyReturnTypeCustomAttributes);
         }
+
+#nullable enable
+        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
+                {
+                    var data = _underlyingMethod.UnmanagedCallersOnlyAttributeData;
+                    if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                        || ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
+                    {
+                        // Underlying hasn't been found yet either, just return it. We'll check again the next
+                        // time this is called
+                        return data;
+                    }
+
+                    if (data?.CallingConventionTypes.IsEmpty == false)
+                    {
+                        var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                        foreach (var identifier in data.CallingConventionTypes)
+                        {
+                            builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
+                        }
+
+                        data = UnmanagedCallersOnlyAttributeData.Create(builder.ToImmutableHashSet(), data.IsValid);
+                        builder.Free();
+                    }
+
+                    Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, data, UnmanagedCallersOnlyAttributeData.Uninitialized);
+                }
+
+                return _lazyUnmanagedAttributeData;
+            }
+        }
+#nullable restore
 
         public override AssemblySymbol ContainingAssembly
         {

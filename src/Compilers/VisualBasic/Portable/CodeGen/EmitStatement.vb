@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
         Private Sub EmitStatement(statement As BoundStatement)
             Select Case statement.Kind
 

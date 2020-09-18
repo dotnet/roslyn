@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis
             return configSet.GetOptionsForSourcePath(path).AnalyzerOptions;
         }
 
-        public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+        public AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
         {
             // We need to find the analyzer config options at the root of the project.
             // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
             var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
             if (!PathUtilities.IsAbsolute(projectDirectory))
             {
-                return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                return null;
             }
 
             var fileName = Guid.NewGuid().ToString();
@@ -298,10 +298,10 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 default:
-                    return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                    return null;
             }
 
-            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath).TreeOptions;
+            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
         private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider

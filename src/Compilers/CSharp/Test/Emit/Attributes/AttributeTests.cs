@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests : WellKnownAttributesTestBase
     {
-        static string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
-        static string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+        static readonly string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
+        static readonly string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                 "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
 
         #region Function Tests

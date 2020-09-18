@@ -9,6 +9,8 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -18,20 +20,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<AnalyzerOptions, ConcurrentDictionary<DiagnosticAnalyzer, bool?>> _compilationEndAnalyzerInfo
             = new ConditionalWeakTable<AnalyzerOptions, ConcurrentDictionary<DiagnosticAnalyzer, bool?>>();
 
-        public bool? IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer, Project project, Compilation? compilation)
+        public async Task<bool?> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer analyzer, Project project, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {
                 return false;
             }
 
-            Contract.ThrowIfNull(compilation);
-            return IsCompilationEndAnalyzer(analyzer, project.AnalyzerOptions, compilation);
+            var analyzerOptions = project.AnalyzerOptions;
+
+            // PERF: Avoid fetching compilation if we have already computed the value.
+            var endAnalyzerMap = _compilationEndAnalyzerInfo.GetOrCreateValue(analyzerOptions);
+            if (endAnalyzerMap.TryGetValue(analyzer, out var isCompilationEndAnalyzer))
+            {
+                return isCompilationEndAnalyzer;
+            }
+
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            return GetOrComputeIsCompilationEndAnalyzer(analyzer, analyzerOptions, compilation, endAnalyzerMap);
         }
 
         public bool? IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer, AnalyzerOptions analyzerOptions, Compilation compilation)
         {
             var endAnalyzerMap = _compilationEndAnalyzerInfo.GetOrCreateValue(analyzerOptions);
+            return GetOrComputeIsCompilationEndAnalyzer(analyzer, analyzerOptions, compilation, endAnalyzerMap);
+        }
+
+        private static bool? GetOrComputeIsCompilationEndAnalyzer(
+            DiagnosticAnalyzer analyzer,
+            AnalyzerOptions analyzerOptions,
+            Compilation compilation,
+            ConcurrentDictionary<DiagnosticAnalyzer, bool?> endAnalyzerMap)
+        {
             return endAnalyzerMap.AddOrUpdate(
                 analyzer,
                 addValueFactory: ComputeIsCompilationEndAnalyzer,

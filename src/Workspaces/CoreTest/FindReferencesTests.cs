@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
 
-        private static Solution GetSingleDocumentSolution(Workspace workspace, string sourceText)
+        private static Solution GetSingleDocumentSolution(Workspace workspace, string sourceText, string languageName = LanguageNames.CSharp)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
             return workspace.CurrentSolution
-                    .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
+                    .AddProject(pid, "goo", "goo", languageName)
                     .AddMetadataReference(pid, MscorlibRef)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
@@ -470,6 +470,75 @@ abstract class C<T> where T : unmanaged         // Line 4
             var result = (await SymbolFinder.FindReferencesAsync(constraint, solution)).Single();
 
             Verify(result, new HashSet<int> { 1, 4 });
+        }
+
+        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        public async Task DoNotIncludeConstructorReferenceInTypeList_CSharp()
+        {
+            var text = @"
+class C
+{
+}
+
+class Test
+{
+    void M()
+    {
+        C c = new C();
+    }
+}
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("C");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(1, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
+        }
+
+        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        public async Task DoNotIncludeConstructorReferenceInTypeList_VisualBasic()
+        {
+            var text = @"
+class C
+end class
+
+class Test
+    sub M()
+        dim c as C = new C()
+    end sub
+end class
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.VisualBasic);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("C");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(1, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
         }
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)

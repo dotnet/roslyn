@@ -307,6 +307,11 @@
         <target state="translated">'else'로 문을 시작할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">'System.Runtime.CompilerServices.NullableAttribute'의 명시적 적용은 허용되지 않습니다.</target>
@@ -442,6 +447,11 @@
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="new">Instance properties in interfaces cannot have initializers.</target>
@@ -526,6 +536,11 @@
         <source>Pattern missing</source>
         <target state="translated">패턴이 없습니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
         <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
@@ -885,6 +900,61 @@
       <trans-unit id="ERR_TypeMustBePublic">
         <source>Type '{0}' must be public to be used as a calling convention.</source>
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="new">discards</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have differences in parameter or return types.</source>
+        <target state="new">Partial method declarations have differences in parameter or return types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
+        <target state="new">The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</source>
+        <target state="new">The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SyncAndAsyncEntryPoints">
@@ -2409,16 +2479,6 @@
         <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 재정의된 멤버와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
         <source>Nullability of reference types in type doesn't match implemented member '{0}'.</source>
         <target state="translated">형식에 있는 참조 형식 Null 허용 여부가 구현된 멤버 '{0}'과(와) 일치하지 않습니다.</target>
@@ -2519,6 +2579,16 @@
         <target state="new">Parameter must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass">
+        <source>'{0}': static types cannot be used as parameters</source>
+        <target state="new">'{0}': static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="new">Static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrecedenceInversion">
         <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
         <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
@@ -2539,14 +2609,14 @@
         <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_RecordNamedDisallowed">
-        <source>Types and aliases should not be named 'record'.</source>
-        <target state="new">Types and aliases should not be named 'record'.</target>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass">
+        <source>'{0}': static types cannot be used as return types</source>
+        <target state="new">'{0}': static types cannot be used as return types</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_RecordNamedDisallowed_Title">
-        <source>Types and aliases should not be named 'record'.</source>
-        <target state="new">Types and aliases should not be named 'record'.</target>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="new">Static types cannot be used as return types</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">

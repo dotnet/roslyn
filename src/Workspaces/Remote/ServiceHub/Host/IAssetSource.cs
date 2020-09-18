@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal interface IAssetSource
     {
-        Task<ImmutableArray<(Checksum, object)>> GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
 
         // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
+        ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
     }
 }
