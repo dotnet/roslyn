@@ -8105,9 +8105,9 @@ class D
 
             comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
-                // (7,42): error CS0570: 'C.M()' is not supported by the language
+                // (6,42): error CS0570: 'C.M()' is not supported by the language
                 //         delegate* unmanaged<void> ptr = &C.M;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "C.M", isSuppressed: false).WithArguments("C.M()").WithLocation(7, 42)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "C.M", isSuppressed: false).WithArguments("C.M()").WithLocation(6, 42)
             );
         }
 

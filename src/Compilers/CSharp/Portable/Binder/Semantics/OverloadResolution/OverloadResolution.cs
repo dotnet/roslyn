@@ -530,7 +530,7 @@ outerDefault:
                     //    and duplicates. We already have both sets in a HashSet, so we can just ensure they're the same length and
                     //    that everything from one set is in the other set.
 
-                    if (actualCallKind != expectedConvention.CallKind)
+                    if (actualCallKind.HasUnknownCallingConventionAttributeBits() || !actualCallKind.IsCallingConvention(expectedConvention.CallKind))
                     {
                         results[i] = makeWrongCallingConvention(result);
                         continue;
