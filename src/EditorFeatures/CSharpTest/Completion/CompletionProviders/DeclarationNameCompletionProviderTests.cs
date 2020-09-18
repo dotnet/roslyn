@@ -303,11 +303,11 @@ public class C
 
             if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
-                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
             }
             else
             {
-                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
             }
         }
 
@@ -335,11 +335,11 @@ public class C
 
             if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
-                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
             }
             else
             {
-                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
             }
         }
 
@@ -367,11 +367,11 @@ public class C
 
             if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
-                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
             }
             else
             {
-                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
             }
         }
 
