@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using TelemetryInfo = System.Tuple<string, string, string>;
 
 namespace BuildActionTelemetryTable
 {
@@ -25,24 +26,23 @@ namespace BuildActionTelemetryTable
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Loading assemblies and finding CodeActions...");
+
             var assemblies = GetAssemblies(args);
             var codeActionTypes = GetCodeActionTypes(assemblies);
-            var telemetryInfos = codeActionTypes.Select(type => GetTelemetryInfo(type));
 
-            var hashes = new StringBuilder();
+            Console.WriteLine("Generating Kusto datatable of CodeAction hashes...");
 
-            hashes.AppendLine("let actions = datatable(ActionName: string, Prefix: string, Suffix: string)");
+            var telemetryInfos = GetTelemetryInfos(codeActionTypes);
+            var datatable = GenerateKustoDatatable(telemetryInfos);
 
-            hashes.AppendLine("[");
+            var filepath = Path.GetFullPath(".\\ActionTable.txt");
 
-            foreach (var (ActionTypeName, Prefix, Suffix) in telemetryInfos)
-            {
-                hashes.AppendLine(@$"  ""{ActionTypeName}"", ""{Prefix}"", ""{Suffix}"",");
-            }
+            Console.WriteLine($"Writing datatable to {filepath}...");
 
-            hashes.Append("];");
+            File.WriteAllText(filepath, datatable);
 
-            File.WriteAllText("ActionTable.txt", hashes.ToString());
+            Console.WriteLine("Complete.");
         }
 
         internal static ImmutableArray<Assembly> GetAssemblies(string[] paths)
@@ -70,10 +70,33 @@ namespace BuildActionTelemetryTable
                 .ToImmutableArray();
         }
 
-        internal static (string ActionTypeName, string Prefix, string Suffix) GetTelemetryInfo(Type type, short scope = 0)
+        internal static ImmutableArray<TelemetryInfo> GetTelemetryInfos(ImmutableArray<Type> codeActionTypes)
         {
-            var telemetryId = type.GetTelemetryId(scope).ToString();
-            return (type.FullName, telemetryId.Substring(0, 8), telemetryId.Substring(19));
+            return codeActionTypes.Select(GetTelemetryInfo)
+                .ToImmutableArray();
+
+            static TelemetryInfo GetTelemetryInfo(Type type)
+            {
+                var telemetryId = type.GetTelemetryId().ToString();
+                return Tuple.Create(type.FullName, telemetryId.Substring(0, 8), telemetryId.Substring(19));
+            }
+        }
+
+        internal static string GenerateKustoDatatable(ImmutableArray<TelemetryInfo> telemetryInfos)
+        {
+            var table = new StringBuilder();
+
+            table.AppendLine("let actions = datatable(ActionName: string, Prefix: string, Suffix: string)");
+            table.AppendLine("[");
+
+            foreach (var (actionTypeName, prefix, suffix) in telemetryInfos)
+            {
+                table.AppendLine(@$"  ""{actionTypeName}"", ""{prefix}"", ""{suffix}"",");
+            }
+
+            table.Append("];");
+
+            return table.ToString();
         }
     }
 }
