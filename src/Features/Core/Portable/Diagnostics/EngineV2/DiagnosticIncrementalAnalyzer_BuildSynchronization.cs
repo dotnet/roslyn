@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task InitializeSynchronizeWithBuildAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task InitializeSynchronizationStateWithBuildAsync(Solution solution, CancellationToken cancellationToken)
         {
             foreach (var project in solution.Projects)
             {

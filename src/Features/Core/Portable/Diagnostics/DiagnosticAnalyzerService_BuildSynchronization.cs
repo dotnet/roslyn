@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// no cancellationToken since this can't be cancelled
         /// </summary>
-        public Task InitializeSynchronizeWithBuildAsync(Solution solution, CancellationToken cancellationToken)
+        public Task InitializeSynchronizationStateWithBuildAsync(Solution solution, CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
-                return analyzer.InitializeSynchronizeWithBuildAsync(solution, cancellationToken);
+                return analyzer.InitializeSynchronizationStateWithBuildAsync(solution, cancellationToken);
             }
 
             return Task.CompletedTask;
