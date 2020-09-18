@@ -1843,7 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
-        ERR_BadRecordDeclaration = 8850,
+
+        // Available = 8850,
 
         // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
         // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.

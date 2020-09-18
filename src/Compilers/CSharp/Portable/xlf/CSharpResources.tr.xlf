@@ -147,11 +147,6 @@
         <target state="new">Records may only inherit from object or another record</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have a non-empty parameter list</source>
-        <target state="needs-review-translation">Konumsal bir kaydın hem 'data' değiştiricisi hem de boş olmayan bir parametre listesi olmalıdır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
@@ -998,8 +993,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
