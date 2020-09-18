@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool allowParams = false,
             CancellationToken cancellationToken = default)
         {
-            if (argument.Parent is not BaseArgumentListSyntax argumentList)
+            if (argument.Parent is not BaseArgumentListSyntax argumentList ||
+                argumentList.Parent is null)
             {
                 return null;
             }
