@@ -812,9 +812,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
                 if (attribute.AttributeConstructor.Parameters[0].Name == "category" &&
                     attribute.AttributeConstructor.Parameters[0].Type.SpecialType == SpecialType.System_String &&
-                    attribute.ConstructorArguments[0] is { } typedConstantCategory &&
-                    typedConstantCategory.Kind == TypedConstantKind.Primitive &&
-                    typedConstantCategory.Value is string categoryArg)
+                    attribute.ConstructorArguments[0] is {
+                    	Kind: TypedConstantKind.Primitive,
+                    	Value: string categoryArg
+                    }
                 {
                     category = categoryArg;
                 }
