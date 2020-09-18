@@ -53,11 +53,9 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var syntax = reference switch
-                {
-                    IVariableDeclaratorOperation variableDeclarator => variableDeclarator.GetVariableInitializer().Value.Syntax,
-                    _ => reference.Syntax
-                };
+                var syntax = reference is IVariableDeclaratorOperation variableDeclarator
+                    ? variableDeclarator.GetVariableInitializer().Value.Syntax
+                    : reference.Syntax
 
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
 

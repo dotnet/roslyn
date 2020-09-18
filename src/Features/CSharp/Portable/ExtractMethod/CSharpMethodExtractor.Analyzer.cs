@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
                 // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise
-                // we can modify the annotation to be NotAnnotated to produce more accurate code
+                // we can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
                 if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, selectionOperation, symbol) == false)
                 {
                     return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);

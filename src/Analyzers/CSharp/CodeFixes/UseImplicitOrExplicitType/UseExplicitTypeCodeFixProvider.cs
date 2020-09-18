@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 var newTypeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
                 RoslynDebug.AssertNotNull(newTypeSymbol);
 
-                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && variableIdentifier.HasValue && variableIdentifier.Value.Parent is not null)
+                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && variableIdentifier?.Parent is not null)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
