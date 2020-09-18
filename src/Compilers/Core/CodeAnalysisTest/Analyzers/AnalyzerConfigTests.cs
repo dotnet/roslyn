@@ -2127,7 +2127,11 @@ option2 = config3
         [InlineData("\\\\\\\\my\\\\file.cs", false)] // invalid: editorconfig sees a single file called '\\my\file.cs' not a UNC path
         [InlineData("//server/file.cs", true)]
         [InlineData("//server\\file.cs", true)]
-        [InlineData("\\/file.cs", false)]
+        [InlineData("\\/file.cs", true)] // allow escaped chars
+        [InlineData("<>a??/b.cs", false)]
+        [InlineData(".", false)]
+        [InlineData("/", true)]
+        [InlineData("", true)] // only true becuase [] isn't a valid editorconfig section name either and thus never gets parsed
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
@@ -2150,6 +2154,21 @@ is_global = true
                     );
             }
         }
+
+        [ConditionalTheoryAttribute(typeof(WindowsOnly))]
+        [InlineData("c:/myfile.cs", true)]
+        [InlineData("cd:/myfile.cs", false)] // windows only allows a single character as a drive specifier
+        [InlineData("\\c\\:\\/myfile.cs", true)] // allow escaped characters
+        [InlineData("/myfile.cs", true)] //absolute, with a relative drive root
+        [InlineData("c:myfile.cs", false)] //relative, with an absolute drive root
+        [InlineData("c:\\myfile.cs", false)] //not a valid editorconfig path
+        [InlineData("//?/C:/Test/Foo.txt", false)] // ? is a special char in editorconfig
+        [InlineData("//\\?/C:/Test/Foo.txt", true)]
+        [InlineData("\\\\?\\C:\\Test\\Foo.txt", false)]
+        [InlineData("c:", false)]
+        [InlineData("c\\", false)]
+        [InlineData("\\c\\:", false)]
+        public void GlobalConfigIssuesWarningWithInvalidSectionNames_WindowsOnly(string sectionName, bool isValid) => GlobalConfigIssuesWarningWithInvalidSectionNames(sectionName, isValid);
 
         #endregion
     }
