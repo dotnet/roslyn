@@ -945,9 +945,9 @@ namespace Analyzer.Utilities.Extensions
                 return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
                     ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
-            else if (operation.Parent is INameOfOperation ||
-                     operation.Parent is ITypeOfOperation ||
-                     operation.Parent is ISizeOfOperation)
+            else if (operation.Parent is INameOfOperation or
+                     ITypeOfOperation or
+                     ISizeOfOperation)
             {
                 return ValueUsageInfo.Name;
             }
