@@ -8048,21 +8048,66 @@ class C
         }
 
         [Fact]
-        public void UnmanagedCallersOnlyCallConvNull()
+        public void UnmanagedCallersOnlyCallConvNull_InSource()
         {
-            var comp = CreateCompilation(new[] { @"
+            var comp = CreateCompilationWithFunctionPointers(new[] { @"
 using System.Runtime.InteropServices;
 class C
 {
     [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
     static void M() {}
+
+    unsafe static void M1()
+    {
+        delegate* unmanaged<void> ptr = &M;
+    }
 }
 ", UnmanagedCallersOnlyAttribute });
 
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (5,6): error CS8893: 'null' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new System.Type[] { null })").WithArguments("null").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvNull_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static void M () cil managed 
+    {
+        // [UnmanagedCallersOnly(CallConvs = new Type[] { null })]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 01 00 53 1d 50 09 43 61 6c 6c 43 6f 6e 76
+            73 01 00 00 00 ff
+        )
+
+        ret
+    }
+} 
+";
+
+            var comp = CreateCompilationWithFunctionPointersAndIl(@"
+class D
+{
+    unsafe static void M1()
+    {
+        delegate* unmanaged<void> ptr = &C.M;
+    }
+}
+", il);
+
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            comp.VerifyDiagnostics(
+                // (7,42): error CS0570: 'C.M()' is not supported by the language
+                //         delegate* unmanaged<void> ptr = &C.M;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "C.M", isSuppressed: false).WithArguments("C.M()").WithLocation(7, 42)
             );
         }
 

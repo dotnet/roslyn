@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            Debug.Assert(!expectedConvention.CallKind.HasUnknownCallingConventionAttributeBits());
             Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes is not null);
             Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes.IsEmpty || expectedConvention.CallKind == Cci.CallingConvention.Unmanaged);
 
@@ -457,12 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = (MethodSymbol)(Symbol)result.Member;
                 if (result.Result.IsValid)
                 {
-                    if (member.CallingConvention.HasUnknownCallingConventionAttributeBits())
-                    {
-                        results[i] = makeWrongCallingConvention(result);
-                        continue;
-                    }
-
                     // We're not in an attribute, so cycles shouldn't be possible
                     var unmanagedCallersOnlyData = member.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
 
@@ -479,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // There's data from an UnmanagedCallersOnlyAttribute present, with takes precedence over the
+                        // There's data from an UnmanagedCallersOnlyAttribute present, which takes precedence over the
                         // CallKind bit in the method definition. We use the following rules to decode the attribute:
                         // * If no types are specified, the CallKind is treated as Unmanaged, with no unmanaged calling convention types
                         // * If there is one type specified, and that type is named CallConvCdecl, CallConvThiscall, CallConvStdcall, or 
@@ -535,7 +530,7 @@ outerDefault:
                     //    and duplicates. We already have both sets in a HashSet, so we can just ensure they're the same length and
                     //    that everything from one set is in the other set.
 
-                    if (!actualCallKind.IsCallingConvention(expectedConvention.CallKind))
+                    if (actualCallKind != expectedConvention.CallKind)
                     {
                         results[i] = makeWrongCallingConvention(result);
                         continue;
