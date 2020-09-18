@@ -45,8 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly string _localSettingsDirectory;
         private readonly LogService _logService;
 
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolSearchService(
@@ -93,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private async Task UpdateSourceInBackgroundAsync(string sourceName)
         {
-            var engine = await GetEngineAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+            var engine = await GetEngineAsync(this.ThreadingContext.DisposalToken).ConfigureAwait(false);
             await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
