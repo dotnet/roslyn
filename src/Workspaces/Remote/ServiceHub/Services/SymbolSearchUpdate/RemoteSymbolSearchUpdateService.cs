@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(cancellationToken => 
+            return RunServiceAsync(cancellationToken =>
                 _updateEngine.FindPackagesWithTypeAsync(source, name, arity, cancellationToken),
                 cancellationToken);
         }
