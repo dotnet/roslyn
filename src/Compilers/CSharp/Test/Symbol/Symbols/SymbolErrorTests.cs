@@ -13183,7 +13183,7 @@ static class S
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
 
