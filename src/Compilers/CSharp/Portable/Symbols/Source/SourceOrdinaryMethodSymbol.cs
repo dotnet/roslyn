@@ -711,6 +711,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeParameter1 = typeParameters1[i];
                 var typeParameter2 = typeParameters2[i];
 
+                if (typeParameter1.Name != typeParameter2.Name)
+                {
+                    // TODO: Do you want a new warning for this? or update the warning message to include this case?
+                    diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
+                        new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                        new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                }
+
                 if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
@@ -718,6 +726,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+            }
+
+            if (definition.Parameters.Length != implementation.Parameters.Length)
+            {
+                // TODO: Not sure if this can happen? but another error should be reported for this case anyway.
+                return;
+            }
+
+            for (int i = 0; i < definition.Parameters.Length; i++)
+            {
+                if (definition.Parameters[i].Name != implementation.Parameters[i].Name)
+                {
+                    // TODO: Do you want a new warning for this? or update the warning message to include this case?
+                    diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
+                        new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                        new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
             }
         }
