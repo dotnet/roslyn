@@ -266,7 +266,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+    <!-- <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
       <Name>InteractiveHost.Core64</Name>
 
       <SetTargetFramework>TargetFramework=netcoreapp3.1</SetTargetFramework>
@@ -278,7 +278,6 @@
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
 
-      <!-- Disable NGEN. Core assemblies are crossgened. -->
       <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
@@ -292,7 +291,7 @@
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
+    </ProjectReference> -->
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost32.csproj">
       <Name>InteractiveHost.Desktop32</Name>
 
