@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static bool ShouldExecuteTransformer = false;
 
-        private static Compilation ExecuteTransformer(Compilation compilation)
+        public static Compilation ExecuteTransformer(Compilation compilation, ISourceTransformer transformer)
         {
-            var transformers = ImmutableArray.Create<ISourceTransformer>(new TokenPerLineTransformer());
+            var transformers = ImmutableArray.Create<ISourceTransformer>(transformer);
             var diagnostics = new DiagnosticBag();
 
             var result = CSharpCompiler.RunTransformers(
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool expectedIsXmlLiteral)
         {
             if (ShouldExecuteTransformer)
-                compilation = ExecuteTransformer(compilation);
+                compilation = ExecuteTransformer(compilation, new TokenPerLineTransformer());
 
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
