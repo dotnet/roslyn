@@ -5,9 +5,8 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(EmbeddedLanguageCompletionProvider), LanguageNames.VisualBasic)>

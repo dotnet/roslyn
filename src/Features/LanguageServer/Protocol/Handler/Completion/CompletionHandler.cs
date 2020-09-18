@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return null;
                 }
 
-                if (currentRuleCache.ContainsKey(commitCharacterRules))
+                if (currentRuleCache.TryGetValue(commitCharacterRules, out var currentRules))
                 {
-                    return currentRuleCache[commitCharacterRules].ToArray();
+                    return currentRules.ToArray();
                 }
 
                 using var _ = PooledHashSet<char>.GetInstance(out var commitCharacters);

@@ -37,7 +37,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
             => _language = language;
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('\\', '[', '(', '{');
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create(
+            '\\', // any escape
+            '[', // character class
+            '(', // any group
+            '{'); // \p{
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
