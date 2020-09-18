@@ -70,10 +70,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                     }
                     else if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left)
                     {
-                        // Elastic trivia is not needed here.
-                        // LeftExpression                 ==                     RightExpression
-                        // |This is the left operand span|This is the token span|This is the right operand span
-                        return right;
+                        return WithElasticTrailingTrivia(right);
                     }
 
                     return n;
