@@ -25,15 +25,16 @@ jobs:
       debug_32:
         _configuration: Debug
         _oop64bit: false
-      debug_64:
-        _configuration: Debug
-        _oop64bit: true
+      # 64-bit disabled for https://github.com/dotnet/roslyn/issues/40476
+      # debug_64:
+      #   _configuration: Debug
+      #   _oop64bit: true
       release_32:
         _configuration: Release
         _oop64bit: false
-      release_64:
-        _configuration: Release
-        _oop64bit: true
+      # release_64:
+      #   _configuration: Release
+      #   _oop64bit: true
   timeoutInMinutes: 135
 
   steps:
