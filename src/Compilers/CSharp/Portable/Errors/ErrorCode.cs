@@ -1843,8 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
-        ERR_BadRecordDeclaration = 8850,
 
+        // Available = 8850,
         // Available = 8851,
 
         ERR_AssignmentInitOnly = 8852,
