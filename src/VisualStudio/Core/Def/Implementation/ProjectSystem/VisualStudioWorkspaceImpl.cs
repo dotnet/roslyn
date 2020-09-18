@@ -682,7 +682,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
             // Create mapped text changes using the mapped spans and original text changes' text.
-            var mappedChanges = Task.Run(async () => await GetMappedTextChanges(projectChanges, changedMappedDocuments).ConfigureAwait(true)).WaitAndGetResult(CancellationToken.None);
+
+            // Mappings for opened razor files are retrieved via the LSP client.
+            // If we make the request on the UI thread, we will hit a a bug in the LSP client that will deadlock us
+            // as there is a ConfigureAwait(true) that attempts to return back to the UI thread which is blocked here.
+            // Link - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
+            var mappedChanges = Task.Run(async () => await GetMappedTextChanges(projectChanges, changedMappedDocuments).ConfigureAwait(false)).WaitAndGetResult(CancellationToken.None);
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
@@ -702,8 +707,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
 
                     var mappingService = newDocument.Services.GetService<ISpanMappingService>();
-                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(true)).ToImmutableArray();
-                    var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(true);
+                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
+                    var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
 
                     Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
                     for (var i = 0; i < mappedSpanResults.Length; i++)
