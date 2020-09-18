@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string originalVBErrorString = originalVBError.Message;
 
                     int column = singleLine.IndexOf('~') + 1;
-                    int endParenthesisLocation = originalVBErrorString.LastIndexOf(')');
+                    int endParenthesisLocation = originalVBErrorString.IndexOf("):");
 
                     // If for some reason the line does not contain any ~ then something went wrong
                     // so abort and return the original string.
