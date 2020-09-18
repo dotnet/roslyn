@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // 1. Overload resolution (see DevDiv 611477) in certain extension method cases
                 // can result in GetSymbolInfo returning nothing. 
-                // 2. when trying to infer the type of the first argument, it's possible that nothing correspinding to
+                // 2. when trying to infer the type of the first argument, it's possible that nothing corresponding to
                 // the argument is typed and there exists an overload with 0 parameter as a viable match.
                 // In one of these cases, get the method group info, which is what signature help already does.
                 if (info.Symbol == null ||
