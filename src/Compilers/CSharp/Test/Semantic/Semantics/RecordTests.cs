@@ -611,7 +611,7 @@ record C(int X, int Y)
                 // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
-                // (5,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
                 // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
@@ -814,17 +814,116 @@ record C1(object O1)
         }
 
         [Fact]
-        public void EmptyRecord()
+        public void EmptyRecord_01()
         {
             var src = @"
-record C(); ";
+record C();
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        System.Console.WriteLine(x == y);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "True");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            comp.VerifyEmitDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C..ctor()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C.op_Inequality(C? r1, C? r2)",
+                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? obj)",
+                "System.Boolean C.Equals(C? other)",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
+                "C..ctor(C original)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void EmptyRecord_02()
+        {
+            var src = @"
+record C()
+{
+    C(int x)
+    {}
+}
+";
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,9): error CS8850: A positional record must have a non-empty parameter list
-                // record C();
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9)
-            );
+                // (4,5): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     C(int x)
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C", isSuppressed: false).WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
+        public void EmptyRecord_03()
+        {
+            var src = @"
+record B
+{
+    public B(int x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+record C() :  B(12)
+{
+    C(int x) : this()
+    {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   12
+  IL_0003:  call       ""B..ctor(int)""
+  IL_0008:  ret
+}
+");
         }
 
         [Fact(Skip = "record struct")]
@@ -4396,6 +4495,113 @@ sealed record C2(int I1, int I2) : C1(I1);
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C2 { I1 = 42, I2 = 43 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        public void ToString_RecordWithIndexer()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record C1(int I1)
+{
+    private int field = 44;
+    public int this[int i] => 0;
+    public int PropertyWithoutGetter { set { } }
+    public int P2 { get => 43; }
+    public ref int P3 { get => ref field; }
+    public event System.Action a;
+
+    private int field1 = 100;
+    internal int field2 = 100;
+    protected int field3 = 100;
+    private protected int field4 = 100;
+    internal protected int field5 = 100;
+
+    private int Property1 { get; set; } = 100;
+    internal int Property2 { get; set; } = 100;
+    protected int Property3 { get; set; } = 100;
+    private protected int Property4 { get; set; } = 100;
+    internal protected int Property5 { get; set; } = 100;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1 { I1 = 42, P2 = 43, P3 = 44 }", verify: Verification.Skipped /* init-only */);
+            comp.VerifyEmitDiagnostics(
+                // (12,32): warning CS0067: The event 'C1.a' is never used
+                //     public event System.Action a;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a", isSuppressed: false).WithArguments("C1.a").WithLocation(12, 32),
+                // (14,17): warning CS0414: The field 'C1.field1' is assigned but its value is never used
+                //     private int field1 = 100;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field1", isSuppressed: false).WithArguments("C1.field1").WithLocation(14, 17)
+                );
+        }
+
+        [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
+        public void ToString_PrivateGetter()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public int P1 { private get => 43; set => throw null; }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }", verify: Verification.Skipped /* init-only */);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverriddenVirtualProperty_NoRepetition()
+        {
+            var src = @"
+System.Console.WriteLine(new B() { P = 2 }.ToString());
+
+abstract record A
+{
+    public virtual int P { get; set; }
+}
+record B : A
+{
+    public override int P { get; set; }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B { P = 2 }");
+        }
+
+        [Fact, WorkItem(47797, "https://github.com/dotnet/roslyn/issues/47797")]
+        public void ToString_OverriddenAbstractProperty_NoRepetition()
+        {
+            var src = @"
+System.Console.Write(new B1() { P = 1 });
+System.Console.Write("" "");
+System.Console.Write(new B2(2));
+
+abstract record A1
+{
+    public abstract int P { get; set; }
+}
+
+record B1 : A1
+{
+    public override int P { get; set; }
+}
+
+abstract record A2(int P);
+
+record B2(int P) : A2(P);
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "B1 { P = 1 } B2 { P = 2 }", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
@@ -11763,7 +11969,7 @@ public record C(int j) : B(1)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                // (3,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public B(ref B b) => throw null; // 1, not recognized as copy constructor
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "B").WithLocation(3, 12)
                 );
@@ -13299,13 +13505,181 @@ record C()
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,9): error CS8850: A positional record must have a non-empty parameter list
-                // record C()
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9));
+                // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //             case C():
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
-            Assert.Equal(
-                "void C.Deconstruct()",
-                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Null(comp.GetMember("C.Deconstruct"));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList_UserDefined_01()
+        {
+            var source =
+@"using System;
+
+record C()
+{
+    public void Deconstruct()
+    {
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                Console.Write(12);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList_UserDefined_02()
+        {
+            var source =
+@"using System;
+
+record C()
+{
+    public void Deconstruct(out int X, out int Y)
+    {
+        X = 1;
+        Y = 2;
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList_UserDefined_03()
+        {
+            var source =
+@"using System;
+
+record C()
+{
+    private void Deconstruct()
+    {
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                Console.Write(12);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList_UserDefined_04()
+        {
+            var source = @"
+record C()
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+
+    public static void Deconstruct()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS0176: Member 'C.Deconstruct()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //             case C():
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "()", isSuppressed: false).WithArguments("C.Deconstruct()").WithLocation(8, 19),
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList_UserDefined_05()
+        {
+            var source = @"
+record C()
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+
+    public int Deconstruct()
+    {
+        return 1;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
         }
 
         [Fact]

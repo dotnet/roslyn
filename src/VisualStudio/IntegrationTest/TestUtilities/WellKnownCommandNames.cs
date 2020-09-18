@@ -15,7 +15,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_QuickInfo = "Edit.QuickInfo";
-        public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
+        // This will need to be reverted when we move to 16.8p3. DevDiv bug:
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1193302
+        public const string Edit_ToggleCompletionMode = "Edit.ToggleIntelliSensesuggestioncompletionmode";
         public const string Edit_Undo = "Edit.Undo";
         public const string Edit_Redo = "Edit.Redo";
         public const string Edit_SelectionCancel = "Edit.SelectionCancel";

@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
-        internal static void CheckValidNullableMethodOverride<TArg>(
+        internal static bool CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
             MethodSymbol baseMethod,
             MethodSymbol overrideMethod,
@@ -1186,13 +1186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
             {
-                return;
+                return false;
             }
+
+            bool hasErrors = false;
 
             if ((baseMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
                 (overrideMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
                 diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.Locations[0], new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                hasErrors = true;
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
@@ -1211,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseMethod.ReturnTypeWithAnnotations.Type))
                 {
                     reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, false, extraArgument);
-                    return;
+                    return true;
                 }
 
                 // check top-level nullability including flow analysis annotations
@@ -1223,41 +1226,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overrideMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
                     reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, true, extraArgument);
-                    return;
+                    return true;
                 }
             }
 
-            if (reportMismatchInParameterType == null)
+            if (reportMismatchInParameterType != null)
             {
-                return;
+                for (int i = 0; i < baseParameters.Length; i++)
+                {
+                    var baseParameter = baseParameters[i];
+                    var baseParameterType = baseParameter.TypeWithAnnotations;
+                    var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                    var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
+                    // check nested nullability
+                    if (!isValidNullableConversion(
+                            conversions,
+                            overrideParameter.RefKind,
+                            baseParameterType.Type,
+                            overrideParameterType.Type))
+                    {
+                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
+                        hasErrors = true;
+                    }
+                    // check top-level nullability including flow analysis annotations
+                    else if (!NullableWalker.AreParameterAnnotationsCompatible(
+                            overrideParameter.RefKind,
+                            baseParameterType,
+                            baseParameter.FlowAnalysisAnnotations,
+                            overrideParameterType,
+                            overrideParameter.FlowAnalysisAnnotations))
+                    {
+                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
+                        hasErrors = true;
+                    }
+                }
             }
 
-            for (int i = 0; i < baseParameters.Length; i++)
-            {
-                var baseParameter = baseParameters[i];
-                var baseParameterType = baseParameter.TypeWithAnnotations;
-                var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
-                // check nested nullability
-                if (!isValidNullableConversion(
-                        conversions,
-                        overrideParameter.RefKind,
-                        baseParameterType.Type,
-                        overrideParameterType.Type))
-                {
-                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
-                }
-                // check top-level nullability including flow analysis annotations
-                else if (!NullableWalker.AreParameterAnnotationsCompatible(
-                        overrideParameter.RefKind,
-                        baseParameterType,
-                        baseParameter.FlowAnalysisAnnotations,
-                        overrideParameterType,
-                        overrideParameter.FlowAnalysisAnnotations))
-                {
-                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
-                }
-            }
+            return hasErrors;
 
             TypeWithAnnotations getNotNullIfNotNullOutputType(TypeWithAnnotations outputType, ImmutableHashSet<string> notNullIfParameterNotNull)
             {
