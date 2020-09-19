@@ -409,7 +409,7 @@ class X
                     ErrorCode.WRN_ParameterIsStaticClass,
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
-                    ErrorCode.WRN_OnlyOneOfGetHashCodeAndEqualsIsDefined,
+                    ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
                     ErrorCode.WRN_PartialMethodTypeDifference,
                 };
 
