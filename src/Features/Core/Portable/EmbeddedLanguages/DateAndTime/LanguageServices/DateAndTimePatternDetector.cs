@@ -121,6 +121,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             if (syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
                 return syntaxFacts.GetIdentifierOfSimpleName(syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression)).ValueText;
 
+            if (syntaxFacts.IsMemberBindingExpression(invokedExpression))
+                invokedExpression = syntaxFacts.GetNameOfMemberBindingExpression(invokedExpression);
+
             if (syntaxFacts.IsIdentifierName(invokedExpression))
                 return syntaxFacts.GetIdentifierOfSimpleName(invokedExpression).ValueText;
 
