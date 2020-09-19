@@ -18710,7 +18710,7 @@ False False True True
 ").VerifyDiagnostics(
     // (6,25): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
     //     public virtual bool Equals(A other)
-    Diagnostic(ErrorCode.RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(6, 25)
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(6, 25)
 );
 
             var comp = (CSharpCompilation)verifier.Compilation;
