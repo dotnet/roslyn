@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
     /// reporting results back to the host.
     /// </summary>
-    internal interface IRemoteTodoCommentsService
+    internal interface IRemoteTodoCommentsDiscoveryService
     {
         ValueTask ComputeTodoCommentsAsync(CancellationToken cancellation);
     }
