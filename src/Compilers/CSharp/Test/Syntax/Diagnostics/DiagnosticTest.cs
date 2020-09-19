@@ -348,6 +348,7 @@ class X
                         case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                         case ErrorCode.WRN_ParameterIsStaticClass:
                         case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                        case ErrorCode.WRN_PartialMethodTypeDifference:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -407,6 +408,7 @@ class X
                     ErrorCode.WRN_ParameterIsStaticClass,
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
+                    ErrorCode.WRN_PartialMethodTypeDifference,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
