@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicSemanticFactsService
+    Partial Friend NotInheritable Class VisualBasicSemanticFactsService
         Inherits AbstractSemanticFactsService
         Implements ISemanticFactsService
 

@@ -315,6 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
 
+        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData => UnderlyingMethod.UnmanagedCallersOnlyAttributeData;
+
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)

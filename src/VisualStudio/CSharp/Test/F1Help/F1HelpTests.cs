@@ -184,6 +184,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestExtendedPartialMethod()
+        {
+            await Test_KeywordAsync(
+@"partial class C
+{
+    public par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestWhereClause()
         {
             await Test_KeywordAsync(
@@ -745,6 +755,35 @@ class Program
         var v = [||]nameof(goo);
     }
 }", "nameof");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNullForgiving()
+        {
+            await Test_KeywordAsync(
+@"#nullable enable
+class C
+{
+    int goo(string? x)
+    {
+        return x[||]!.GetHashCode();
+    }
+}", "nullForgiving");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLogicalNot()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    bool goo(bool x)
+    {
+        return [||]!x;
+    }
+}", "!");
         }
     }
 }

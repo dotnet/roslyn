@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        static internal void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
+        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
         {
             if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
                 compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
@@ -733,19 +734,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return managedKind;
         }
 
-        public override bool IsStatic => _declModifiers.HasFlag(DeclarationModifiers.Static);
+        public override bool IsStatic => HasFlag(DeclarationModifiers.Static);
 
-        public sealed override bool IsRefLikeType => _declModifiers.HasFlag(DeclarationModifiers.Ref);
+        public sealed override bool IsRefLikeType => HasFlag(DeclarationModifiers.Ref);
 
-        public override bool IsReadOnly => _declModifiers.HasFlag(DeclarationModifiers.ReadOnly);
+        public override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
 
-        public override bool IsSealed => _declModifiers.HasFlag(DeclarationModifiers.Sealed);
+        public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => _declModifiers.HasFlag(DeclarationModifiers.Abstract);
+        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
 
-        internal bool IsPartial => _declModifiers.HasFlag(DeclarationModifiers.Partial);
+        internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
-        internal bool IsNew => _declModifiers.HasFlag(DeclarationModifiers.New);
+        internal bool IsNew => HasFlag(DeclarationModifiers.New);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
 
         public override Accessibility DeclaredAccessibility
         {
@@ -1727,7 +1731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Special case: if there are two destructors, use the destructor syntax instead of "Finalize"
             var methodName = (method1.MethodKind == MethodKind.Destructor && method2.MethodKind == MethodKind.Destructor) ?
                 "~" + this.Name :
-                method1.Name;
+                (method1.IsConstructor() ? this.Name : method1.Name);
+
             // Type '{1}' already defines a member called '{0}' with the same parameter types
             diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
         }
@@ -2648,10 +2653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
                     }
-                    else if (!(method.OtherPartOfPartial is null) && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
-                    }
                     else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
@@ -3037,16 +3038,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
 
-                // https://github.com/dotnet/roslyn/issues/44677
-                // The semantics of an empty parameter list have not been decided. Error for now
-                if (paramList.ParameterCount == 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
-                }
-
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                var existingOrAddedMembers = addProperties(ctor.Parameters);
-                addDeconstruct(ctor, existingOrAddedMembers);
+
+                if (ctor.ParameterCount != 0)
+                {
+                    var existingOrAddedMembers = addProperties(ctor.Parameters);
+                    addDeconstruct(ctor, existingOrAddedMembers);
+                }
             }
 
             addCopyCtor();

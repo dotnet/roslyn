@@ -188,6 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             // * { - in the control statement context
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
@@ -394,6 +403,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (_options.NewLinesForBracesInLambdaExpressionBody)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
                 else
                 {

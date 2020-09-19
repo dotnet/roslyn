@@ -18,16 +18,6 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
-            public static bool IsBodyLevelSymbol(ISymbol symbol)
-                => symbol switch
-                {
-                    ILabelSymbol _ => true,
-                    IRangeVariableSymbol _ => true,
-                    ILocalSymbol _ => true,
-                    IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
-                    _ => false,
-                };
-
             public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));

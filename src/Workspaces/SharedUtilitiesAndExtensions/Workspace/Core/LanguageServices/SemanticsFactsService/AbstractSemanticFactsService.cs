@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract class AbstractSemanticFactsService : ISemanticFacts
+    internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISemanticFacts SemanticFacts { get; }
@@ -117,9 +117,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
             => SemanticFacts.CanReplaceWithRValue(semanticModel, expression, cancellationToken);
-
-        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
-            => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);

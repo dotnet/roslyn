@@ -1634,7 +1634,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
-        // available 8524-8596
+        WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
+        // available 8525-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1833,6 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
+        WRN_PartialMethodTypeDifference = 8824,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1841,8 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
-        ERR_BadRecordDeclaration = 8850,
 
+        // Available = 8850,
         // Available = 8851,
 
         ERR_AssignmentInitOnly = 8852,
@@ -1896,6 +1898,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
         ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric = 8895,
         ERR_UnmanagedCallersOnlyRequiresStatic = 8896,
+
+        // The following warnings correspond to errors of the same name, but are reported
+        // as warnings on interface methods and properties due in warning level 5. They
+        // were not reported at all prior to level 5.
+        WRN_ParameterIsStaticClass = 8897,
+        WRN_ReturnTypeIsStaticClass = 8898,
+
+        ERR_EntryPointCannotBeUnmanagedCallersOnly = 8899,
+        ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
+        ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8901,
+        ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8902,
+
+        ERR_InitCannotBeReadonly = 8903,
 
         #endregion diagnostics introduced for C# 9.0
 

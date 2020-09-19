@@ -74,10 +74,10 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
+                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -106,7 +106,7 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );

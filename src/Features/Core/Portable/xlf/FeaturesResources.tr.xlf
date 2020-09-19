@@ -345,6 +345,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Örnekler:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="new">Extract base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Arabirimi ayıkla...</target>

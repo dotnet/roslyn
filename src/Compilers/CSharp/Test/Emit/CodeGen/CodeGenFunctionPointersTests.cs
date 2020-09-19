@@ -7844,6 +7844,27 @@ namespace System.Runtime.InteropServices
 }
 ";
 
+        private const string UnmanagedCallersOnlyAttributeIl = @"
+.class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 40 00 00 00 01 00 54 02 09 49 6e 68 65 72
+        69 74 65 64 00
+    )
+    .field public class [mscorlib]System.Type[] CallConvs
+    .field public string EntryPoint
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+";
+
         [Fact]
         public void UnmanagedCallersOnlyRequiresStatic()
         {
@@ -7932,6 +7953,51 @@ class C
                 // (26,6): error CS8893: 'CallConvTest' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })").WithArguments("CallConvTest").WithLocation(26, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustNotBeNestedType()
+        {
+            var comp = CreateEmptyCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime.CompilerServices
+    {
+        public class CallConvTestA
+        {
+            public class CallConvTestB { }
+        }
+    }
+}
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTestA.CallConvTestB) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (31,6): error CS8893: 'CallConvTestA.CallConvTestB' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTestA.CallConvTestB) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTestA.CallConvTestB) })").WithArguments("System.Runtime.CompilerServices.CallConvTestA.CallConvTestB").WithLocation(31, 6)
             );
         }
 
@@ -8351,6 +8417,1192 @@ class C
         }
 
         [Fact]
+        public void UnmanagedCallersOnlyCannotCallMethodDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+
+    public static void M2()
+    {
+        M1();
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8901: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1()").WithArguments("C.M1()").WithLocation(10, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCallMethodDirectlyWithAlias()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+using E = D;
+public class C
+{
+    public static void M2()
+    {
+        E.M1();
+    }
+}
+public class D
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8901: 'D.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         E.M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "E.M1()").WithArguments("D.M1()").WithLocation(8, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCallMethodDirectlyWithUsingStatic()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+using static D;
+public class C
+{
+    public static void M2()
+    {
+        M1();
+    }
+}
+public class D
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8901: 'D.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "M1()").WithArguments("D.M1()").WithLocation(8, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyReferencedFromMetadata()
+        {
+            var comp0 = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            validate(comp0.ToMetadataReference());
+            validate(comp0.EmitToImageReference());
+
+            static void validate(MetadataReference reference)
+            {
+                var comp1 = CreateCompilation(@"
+class D
+{
+    public static void M2()
+    {
+        C.M1();
+    }
+}
+", references: new[] { reference });
+
+                comp1.VerifyDiagnostics(
+                    // (6,9): error CS8901: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                    //         C.M1();
+                    Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M1()").WithArguments("C.M1()").WithLocation(6, 9)
+                );
+            }
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyReferencedFromMetadata_BadTypeInList()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1 () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 01 00 53 1d 50 09 43 61 6c 6c 43 6f 6e 76
+            73 01 00 00 00 68 53 79 73 74 65 6d 2e 4f 62 6a
+            65 63 74 2c 20 53 79 73 74 65 6d 2e 50 72 69 76
+            61 74 65 2e 43 6f 72 65 4c 69 62 2c 20 56 65 72
+            73 69 6f 6e 3d 34 2e 30 2e 30 2e 30 2c 20 43 75
+            6c 74 75 72 65 3d 6e 65 75 74 72 61 6c 2c 20 50
+            75 62 6c 69 63 4b 65 79 54 6f 6b 65 6e 3d 37 63
+            65 63 38 35 64 37 62 65 61 37 37 39 38 65
+        )
+        ret
+    }
+}";
+
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2()
+    {
+        C.M1();
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'C.M1()' is not supported by the language
+                //         C.M1();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("C.M1()").WithLocation(6, 11)
+            );
+
+            var c = comp.GetTypeByMetadataName("C");
+            var m1 = c.GetMethod("M1");
+            var unmanagedData = m1.UnmanagedCallersOnlyAttributeData;
+            Assert.NotSame(unmanagedData, UnmanagedCallersOnlyAttributeData.Uninitialized);
+            Assert.NotSame(unmanagedData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound);
+            Assert.False(unmanagedData!.IsValid);
+            Assert.Empty(unmanagedData.CallingConventionTypes);
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnInstanceMethod()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig 
+        instance void M1 () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2(C c)
+    {
+        c.M1();
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'C.M1()' is not supported by the language
+                //         c.M1();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("C.M1()").WithLocation(6, 11)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnProperty_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    static int Prop
+    {
+        [UnmanagedCallersOnly] get => throw null;
+        [UnmanagedCallersOnly] set => throw null;
+    }
+    static void M()
+    {
+        Prop = 1;
+        _ = Prop;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly] get => throw null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly] set => throw null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnProperty_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig specialname static 
+        int32 get_Prop () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    }
+
+    .method public hidebysig specialname static 
+        void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    }
+
+    .property int32 Prop()
+    {
+        .get int32 C::get_Prop()
+        .set void C::set_Prop(int32)
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2()
+    {
+        C.Prop = 1;
+        _ = C.Prop;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'C.Prop.set' is not supported by the language
+                //         C.Prop = 1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Prop").WithArguments("C.Prop.set").WithLocation(6, 11),
+                // (7,15): error CS0570: 'C.Prop.get' is not supported by the language
+                //         _ = C.Prop;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Prop").WithArguments("C.Prop.get").WithLocation(7, 15)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnPropertyRefReadonlyGetterAsLvalue_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    static ref int Prop { [UnmanagedCallersOnly] get => throw null; }
+    static void M()
+    {
+        Prop = 1;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     static int Prop { [UnmanagedCallersOnly] get {} }
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 28)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnPropertyRefReadonlyGetterAsLvalue_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig specialname static 
+        int32& get_Prop () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+
+        ldnull
+        throw
+    } // end of method C::get_Prop
+
+    // Properties
+    .property int32& Prop()
+    {
+        .get int32& C::get_Prop()
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2()
+    {
+        C.Prop = 1;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'C.Prop.get' is not supported by the language
+                //         C.Prop = 1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Prop").WithArguments("C.Prop.get").WithLocation(6, 11)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnIndexer_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    // Methods
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int32 i,
+            int32 'value'
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        nop
+        ret
+    } // end of method C::set_Item
+
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int32 i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method C::get_Item
+
+    // Properties
+    .property instance int32 Item(
+        int32 i
+    )
+    {
+        .get instance int32 C::get_Item(int32)
+        .set instance void C::set_Item(int32, int32)
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2(C c)
+    {
+        c[1] = 1;
+        _ = c[0];
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0570: 'C.this[int].set' is not supported by the language
+                //         c[1] = 1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "[1]").WithArguments("C.this[int].set").WithLocation(6, 10),
+                // (7,14): error CS0570: 'C.this[int].get' is not supported by the language
+                //         _ = c[0];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "[0]").WithArguments("C.this[int].get").WithLocation(7, 14)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnIndexer_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    public int this[int i]
+    { 
+        [UnmanagedCallersOnly] set => throw null;
+        [UnmanagedCallersOnly] get => throw null;
+    }
+    static void M(C c)
+    {
+        c[1] = 1;
+        _ = c[0];
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly] set => throw null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly] get => throw null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnIndexerRefReturnAsLvalue_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    // Methods
+    .method public hidebysig specialname 
+        instance int32& get_Item (
+            int32 i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method C::get_Item
+
+    // Properties
+    .property instance int32& Item(
+        int32 i
+    )
+    {
+        .get instance int32& C::get_Item(int32)
+    }
+
+} 
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2(C c)
+    {
+        c[1] = 1;
+        _ = c[0];
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0570: 'C.this[int].get' is not supported by the language
+                //         c[1] = 1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "[1]").WithArguments("C.this[int].get").WithLocation(6, 10),
+                // (7,14): error CS0570: 'C.this[int].get' is not supported by the language
+                //         _ = c[0];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "[0]").WithArguments("C.this[int].get").WithLocation(7, 14)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnBinaryOperator_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    public static C operator +(C c1, C c2) => null;
+    static void M(C c1, C c2)
+    {
+        _ = c1 + c2;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnBinaryOperator_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        class C op_Addition (
+            class C c1,
+            class C c2
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2(C c1, C c2)
+    {
+        _ = c1 + c2;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0570: 'C.operator +(C, C)' is not supported by the language
+                //         _ = c1 + c2;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c1 + c2").WithArguments("C.operator +(C, C)").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnUnaryOperator_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    public static C operator +(C c) => null;
+    static void M(C c)
+    {
+        _ = +c;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDefinedOnUnaryOperator_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        class C op_UnaryPlus (
+            class C c1
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2(C c1, C c2)
+    {
+        _ = +c1;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0570: 'C.operator +(C)' is not supported by the language
+                //         _ = +c1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "+c1").WithArguments("C.operator +(C)").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDeclaredOnGetEnumerator_InMetadata()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig 
+        instance class [mscorlib]System.Collections.Generic.IEnumerator`1<int32> GetEnumerator () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL(@"
+class D
+{
+    public static void M2(C c)
+    {
+        foreach (var i in c) {}
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var i in c) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDeclaredOnGetEnumeratorExtension()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S
+{
+    public static void M2(S s)
+    {
+        foreach (var i in s) {}
+    }
+}
+public struct SEnumerator
+{
+    public bool MoveNext() => throw null;
+    public int Current => throw null;
+}
+public static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static SEnumerator GetEnumerator(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8901: 'CExt.GetEnumerator(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         foreach (var i in s) {}
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "foreach").WithArguments("CExt.GetEnumerator(S)").WithLocation(7, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDeclaredOnMoveNext()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S
+{
+    public static void M2(S s)
+    {
+        foreach (var i in s) {}
+    }
+}
+public struct SEnumerator
+{
+    [UnmanagedCallersOnly]
+    public bool MoveNext() => throw null;
+    public int Current => throw null;
+}
+public static class CExt
+{
+    public static SEnumerator GetEnumerator(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(12, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyDeclaredOnPatternDispose()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S
+{
+    public static void M2(S s)
+    {
+        foreach (var i in s) {}
+    }
+}
+public ref struct SEnumerator
+{
+    public bool MoveNext() => throw null;
+    public int Current => throw null;
+    [UnmanagedCallersOnly]
+    public void Dispose() => throw null;
+}
+public static class CExt
+{
+    public static SEnumerator GetEnumerator(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCaptureToDelegate()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly]
+    public static void M1() { }
+
+    public static void M2()
+    {
+        Action a = M1;
+        a = local;
+        a = new Action(M1);
+        a = new Action(local);
+
+        [UnmanagedCallersOnly]
+        static void local() {}
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (11,20): error CS8902: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         Action a = M1;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "M1").WithArguments("C.M1()").WithLocation(11, 20),
+                // (12,13): error CS8902: 'local()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         a = local;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "local").WithArguments("local()").WithLocation(12, 13),
+                // (13,24): error CS8902: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         a = new Action(M1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "M1").WithArguments("C.M1()").WithLocation(13, 24),
+                // (14,24): error CS8902: 'local()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         a = new Action(local);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "local").WithArguments("local()").WithLocation(14, 24)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCannotCaptureToDelegate_OverloadStillPicked()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+public class C 
+{
+    [UnmanagedCallersOnly]
+    public static void M(int s) { }
+
+    public static void M(object o) { }
+
+    void N()
+    {
+        Action<int> a = M;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (13,25): error CS8902: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         Action<int> a = M;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "M").WithArguments("C.M(int)").WithLocation(13, 25)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnExtensionsCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static void M(S s)
+    {
+        s.Extension();
+        CExt.Extension(s);
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static void Extension(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8901: 'CExt.Extension(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         s.Extension();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s.Extension()").WithArguments("CExt.Extension(S)").WithLocation(8, 9),
+                // (9,9): error CS8901: 'CExt.Extension(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         CExt.Extension(s);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "CExt.Extension(s)").WithArguments("CExt.Extension(S)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionDeconstructCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static void M(S s, List<S> ls)
+    {
+        var (i1, i2) = s;
+        (i1, i2) = s;
+        foreach (var (_, _) in ls) { }
+        _ = s is (int _, int _);
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static void Deconstruct(this S s, out int i1, out int i2) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (9,24): error CS8901: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         var (i1, i2) = s;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(9, 24),
+                // (10,20): error CS8901: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         (i1, i2) = s;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(10, 20),
+                // (11,32): error CS8901: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         foreach (var (_, _) in ls) { }
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "ls").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(11, 32),
+                // (12,18): error CS8901: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = s is (int _, int _);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "(int _, int _)").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(12, 18)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionAddCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+struct S : IEnumerable
+{
+    static void M(S s, List<S> ls)
+    {
+        _ = new S() { 1, 2, 3 };
+    }
+
+    public IEnumerator GetEnumerator() => throw null;
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static void Add(this S s, int i) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (10,23): error CS8901: 'CExt.Add(S, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = new S() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "1").WithArguments("CExt.Add(S, int)").WithLocation(10, 23),
+                // (10,26): error CS8901: 'CExt.Add(S, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = new S() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "2").WithArguments("CExt.Add(S, int)").WithLocation(10, 26),
+                // (10,29): error CS8901: 'CExt.Add(S, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         _ = new S() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "3").WithArguments("CExt.Add(S, int)").WithLocation(10, 29)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionGetAwaiterCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static async void M(S s)
+    {
+        await s;
+    }
+}
+public struct Result : System.Runtime.CompilerServices.INotifyCompletion
+{
+    public int GetResult() => throw null;
+    public void OnCompleted(System.Action continuation) => throw null;
+    public bool IsCompleted => throw null;
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static Result GetAwaiter(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8901: 'CExt.GetAwaiter(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         await s;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "await s").WithArguments("CExt.GetAwaiter(S)").WithLocation(8, 9)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyExtensionGetPinnableReferenceCannotBeUsedDirectly()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+
+struct S
+{
+    static void M(S s)
+    {
+        unsafe
+        {
+            fixed (int* i = s)
+            {
+
+            }
+        }
+    }
+}
+static class CExt
+{
+    [UnmanagedCallersOnly]
+    public static ref int GetPinnableReference(this S s) => throw null;
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (10,29): error CS8901: 'CExt.GetPinnableReference(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //             fixed (int* i = s)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.GetPinnableReference(S)").WithLocation(10, 29)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_1()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    public static void Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,24): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(6, 24)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_2()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static void Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,24): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(5, 24),
+                // (10,24): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(10, 24)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_3()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static void Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_4()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+class C
+{
+    public static async Task Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static async Task Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 30),
+                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 30),
+                // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
+                // (11,30): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30),
+                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnMain_5()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+class C
+{
+    public static void Main() {}
+}
+class D
+{
+    [UnmanagedCallersOnly]
+    public static async Task Main() {}
+}
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
+                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyOnModuleInitializer()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+
+public class C
+{
+    [UnmanagedCallersOnly, ModuleInitializer]
+    public static void M1() {}
+
+    [ModuleInitializer, UnmanagedCallersOnly]
+    public static void M2() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (9,28): error CS8900: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly, ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "ModuleInitializer").WithLocation(9, 28),
+                // (12,6): error CS8900: Module initializer cannot be attributed with 'UnmanagedCallersOnly'.
+                //     [ModuleInitializer, UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, "ModuleInitializer").WithLocation(12, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyMultipleApplications()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })]
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
+    public static void M1() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: 'string' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(string) })").WithArguments("string").WithLocation(5, 6),
+                // (6,6): error CS0579: Duplicate 'UnmanagedCallersOnly' attribute
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(object) })]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "UnmanagedCallersOnly").WithArguments("UnmanagedCallersOnly").WithLocation(6, 6)
+            );
+        }
+
+        [Fact]
         public void UnmanagedCallersOnlyWithLoopInDefinition_1()
         {
             var comp = CreateCompilation(@"
@@ -8444,6 +9696,8 @@ class A
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_3()
         {
+            // Remove UnmanagedCallersOnlyWithLoopInUsage_3_Release when
+            // this is unskipped.
 
             var comp = CreateCompilation(new[] { @"
 #nullable enable
@@ -8456,6 +9710,38 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
+            );
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
+        public void UnmanagedCallersOnlyWithLoopInUsage_3_Release()
+        {
+            // The bug in UnmanagedCallersOnlyWithLoopInUsage_3 is only
+            // triggered by the nullablewalker, which is unconditionally
+            // run in debug mode. We also want to verify the use-site
+            // diagnostic for unmanagedcallersonly does not cause a loop,
+            // so we have a separate version that does not have nullable
+            // enabled and only runs in release to verify. When
+            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
+            // test can be removed
+
+            var comp = CreateCompilation(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = F())]
+    static Type[] F() => null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     [UnmanagedCallersOnly(CallConvs = F())]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(6, 39),
+                // (6,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UnmanagedCallersOnly(CallConvs = F())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(6, 39)
             );
         }
 

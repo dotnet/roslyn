@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface ISemanticFactsService : ISemanticFacts, ILanguageService
+    internal partial interface ISemanticFactsService : ISemanticFacts, ILanguageService
     {
         bool IsExpressionContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);

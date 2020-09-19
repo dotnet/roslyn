@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return IsEmbeddedStatement(block);
         }
 
-        public static bool IsEmbeddedStatement(this SyntaxNode node)
+        public static bool IsEmbeddedStatement([NotNullWhen(true)] this SyntaxNode? node)
         {
             SyntaxNode? statementOrElse = node as StatementSyntax;
             if (statementOrElse == null)
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public static bool IsInitializerForArrayOrCollectionCreationExpression(this SyntaxNode node)
+        public static bool IsInitializerForArrayOrCollectionCreationExpression([NotNullWhen(true)] this SyntaxNode? node)
         {
             if (node is InitializerExpressionSyntax initializer)
             {

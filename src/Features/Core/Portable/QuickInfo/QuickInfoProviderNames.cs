@@ -14,5 +14,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         public const string Semantic = nameof(Semantic);
         public const string Syntactic = nameof(Syntactic);
+        public const string DiagnosticAnalyzer = nameof(DiagnosticAnalyzer);
     }
 }

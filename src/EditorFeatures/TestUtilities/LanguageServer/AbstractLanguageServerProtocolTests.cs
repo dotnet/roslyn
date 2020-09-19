@@ -311,7 +311,7 @@ namespace Roslyn.Test.Utilities
                 var text = document.GetTextSynchronously(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
-                    var locationsForName = locations.GetOrValue(name, new List<LSP.Location>());
+                    var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
                     locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, new Uri(document.FilePath))));
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.

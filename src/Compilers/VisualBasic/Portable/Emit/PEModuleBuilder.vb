@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _metadataName As String
 
         Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
-        Private _lazyNumberOfTypesFromOtherModules As Integer
+        Private ReadOnly _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 

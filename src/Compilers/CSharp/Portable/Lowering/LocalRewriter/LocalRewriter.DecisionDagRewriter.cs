@@ -117,10 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool MightAssignSomething(BoundExpression expr)
                 {
-                    if (expr == null || expr.ConstantValue != null)
-                    {
+                    if (expr == null)
                         return false;
-                    }
 
                     this._mightAssignSomething = false;
                     this.Visit(expr);
@@ -129,6 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode Visit(BoundNode node)
                 {
+                    // A constant expression cannot mutate anything
+                    if (node is BoundExpression { ConstantValue: { } })
+                        return null;
+
                     // Stop visiting once we determine something might get assigned
                     return this._mightAssignSomething ? null : base.Visit(node);
                 }
