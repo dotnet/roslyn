@@ -1834,6 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
+        WRN_PartialMethodTypeDifference = 8824,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1842,8 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
-        ERR_BadRecordDeclaration = 8850,
 
+        // Available = 8850,
         // Available = 8851,
 
         ERR_AssignmentInitOnly = 8852,
@@ -1908,6 +1909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
         ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8901,
         ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8902,
+
+        ERR_InitCannotBeReadonly = 8903,
 
         #endregion diagnostics introduced for C# 9.0
 
