@@ -8718,7 +8718,7 @@ namespace ConsoleApp
     {
 		public static void Main(string[] args)
         {
-            _ = Foo(() => { Bar(); return true; });
+            _ = Foo(() => { _ = Bar(); return true; });
         }
 
         public static bool Foo(Func<bool> func)
