@@ -361,7 +361,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
                     document.Project.Id,
                     ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))),
-                onBuildCompleted: true);
+                onBuildCompleted: true,
+                CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
