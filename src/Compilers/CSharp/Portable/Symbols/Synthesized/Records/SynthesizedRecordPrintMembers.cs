@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if (m.Kind is SymbolKind.Field)
+                if (m is SymbolField { IsConst: false })
                 {
                     return true;
                 }
