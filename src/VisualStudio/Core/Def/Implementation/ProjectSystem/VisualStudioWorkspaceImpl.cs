@@ -683,11 +683,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
             // Create mapped text changes using the mapped spans and original text changes' text.
 
-            // Mappings for opened razor files are retrieved via the LSP client.
-            // If we make the request on the UI thread, we will hit a a bug in the LSP client that will deadlock us
-            // as there is a ConfigureAwait(true) that attempts to return back to the UI thread which is blocked here.
-            // Link - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var mappedChanges = Task.Run(async () => await GetMappedTextChanges(projectChanges, changedMappedDocuments).ConfigureAwait(false)).WaitAndGetResult(CancellationToken.None);
+            // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
+            // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
+            // using ConfigureAwait(true).  This deadlocks as it then attempts to return to the UI thread which is already blocked by us.
+            // Instead, we invoke this in JTF run which should run the request on the threadpool thread and will mitigate deadlocks
+            // if anyone else tries to switch to the UI thread.
+            // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(async () => await GetMappedTextChanges(projectChanges, changedMappedDocuments).ConfigureAwait(false));
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)

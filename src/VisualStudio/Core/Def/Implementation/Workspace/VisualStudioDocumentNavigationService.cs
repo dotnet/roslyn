@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
+        private readonly IThreadingContext _threadingContext;
 
         public VisualStudioDocumentNavigationService(
             IThreadingContext threadingContext,
@@ -47,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            _threadingContext = threadingContext;
         }
 
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
@@ -298,12 +300,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
-        private static MappedSpanResult? GetMappedSpan(ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
+        private MappedSpanResult? GetMappedSpan(ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
         {
-            var results = System.Threading.Tasks.Task.Run(async () =>
+            // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
+            // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
+            // using ConfigureAwait(true).  This deadlocks as it then attempts to return to the UI thread which is already blocked by us.
+            // Instead, we invoke this in JTF run which should run the request on the threadpool thread and will mitigate deadlocks
+            // if anyone else tries to switch to the UI thread.
+            // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
+            var results = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(true);
-            }).WaitAndGetResult(CancellationToken.None);
+                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(false);
+            });
 
             if (!results.IsDefaultOrEmpty)
             {
