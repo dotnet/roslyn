@@ -362,6 +362,7 @@ class A
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        <WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestRecordBaseType() As Task
             Dim input =
             <Workspace>
@@ -377,6 +378,7 @@ record Derived(int Other) : Base({|Alice:2|}, {|Bob:2|});
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        <WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
         Public Async Function TestClassBaseType() As Task
             Dim input =
             <Workspace>
