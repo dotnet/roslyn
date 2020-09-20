@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
         public SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
-            => (node as MemberBindingExpressionSyntax).Name;
+            => ((MemberBindingExpressionSyntax)node).Name;
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;
