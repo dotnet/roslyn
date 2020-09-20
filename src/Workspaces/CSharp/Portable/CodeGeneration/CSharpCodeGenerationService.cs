@@ -484,7 +484,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (destinationMember is CompilationUnitSyntax compilationUnit && options is null)
             {
-                // Insert the new global statement(s) at the end of any current global statements
+                // This path supports top-level statement insertion. It only applies when 'options'
+                // is null so the fallback code below can handle cases where the insertion location
+                // is provided through options.BestLocation.
+                //
+                // Insert the new global statement(s) at the end of any current global statements.
+                // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
                 var insertionIndex = compilationUnit.Members.LastIndexOf(memberDeclaration => memberDeclaration.IsKind(SyntaxKind.GlobalStatement)) + 1;
                 var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(generated => SyntaxFactory.GlobalStatement(generated)).ToArray();
                 return Cast<TDeclarationNode>(compilationUnit.WithMembers(compilationUnit.Members.InsertRange(insertionIndex, wrappedStatements)));
