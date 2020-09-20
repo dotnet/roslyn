@@ -25630,5 +25630,55 @@ public record X(int a)
 
             CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
         }
+
+        [Fact]
+        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        public void ToString_RecordWithStaticMembers()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record C1(int I1)
+{
+    public static int field1 = 44;
+    public const int field2 = 44;
+    public static int P1 { set { } }
+    public static int P2 { get { return 1; } set { } }
+    public static int P3 { get { return 1; } }
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        public void ToString_NestedRecord()
+        {
+            var src = @"
+var c1 = new Outer.C1(42);
+System.Console.Write(c1.ToString());
+
+public class Outer
+{
+    public record C1(int I1);
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
+        }
     }
 }
