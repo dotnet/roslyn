@@ -897,15 +897,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && GetOrCreateSlot(inputParam) is > 0 and int inputSlot
                     && state[inputSlot].IsNotNull())
                 {
+                    var location = syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation();
                     if (outputParam is object)
                     {
                         // Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.
-                        Diagnostics.Add(ErrorCode.WRN_ParameterNotNullIfNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), outputParam.Name, inputParam.Name);
+                        Diagnostics.Add(ErrorCode.WRN_ParameterNotNullIfNotNull, location, outputParam.Name, inputParam.Name);
                     }
                     else
                     {
                         // Return value must be non-null because parameter '{0}' is non-null.
-                        Diagnostics.Add(ErrorCode.WRN_ReturnNotNullIfNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), inputParam.Name);
+                        Diagnostics.Add(ErrorCode.WRN_ReturnNotNullIfNotNull, location, inputParam.Name);
                     }
                     break;
                 }
