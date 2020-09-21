@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
 
                 foreach (var diagnostic in diagnostics)
-                    result.AddIfNotNull(Convert(text, diagnostic));
+                    result.Add(Convert(text, diagnostic));
             }
 
             string resultId;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return new[] { new DiagnosticReport { ResultId = resultId, Diagnostics = result.ToArray() } };
         }
 
-        private static LspDiagnostic? Convert(SourceText text, DiagnosticData diagnosticData)
+        private static LspDiagnostic Convert(SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
