@@ -157,61 +157,6 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Returns true if the given source symbol has required visibility based on options:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
-        ///      given symbol's visibility is one of the candidate visibilites.
-        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
-        ///      matches the given default symbol visibility.
-        /// </summary>
-        public static bool MatchesConfiguredVisibility(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken,
-            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
-        => symbol.MatchesConfiguredVisibility(symbol, options, rule, compilation, cancellationToken, defaultRequiredVisibility);
-
-        /// <summary>
-        /// Returns true if the given symbol has required visibility based on options in context of the given containing symbol:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
-        ///      given symbol's visibility is one of the candidate visibilites.
-        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
-        ///      matches the given default symbol visibility.
-        /// </summary>
-        public static bool MatchesConfiguredVisibility(
-            this ISymbol symbol,
-            ISymbol containingContextSymbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken,
-            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
-        {
-            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, containingContextSymbol, compilation, defaultRequiredVisibility, cancellationToken);
-            return allowedVisibilities == SymbolVisibilityGroup.All ||
-                allowedVisibilities.Contains(symbol.GetResultantVisibility());
-        }
-
-        /// <summary>
-        /// Returns true if the given symbol has required symbol modifiers based on options:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
-        ///      given symbol has all the required modifiers.
-        ///   2. Otherwise, if user has not configured modifiers.
-        /// </summary>
-        public static bool MatchesConfiguredModifiers(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken,
-            SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
-        {
-            var requiredModifiers = options.GetRequiredModifiersOption(rule, symbol, compilation, defaultRequiredModifiers, cancellationToken);
-            return symbol.GetSymbolModifiers().Contains(requiredModifiers);
-        }
-
-        /// <summary>
         /// True if the symbol is externally visible outside this assembly.
         /// </summary>
         public static bool IsExternallyVisible(this ISymbol symbol) =>
