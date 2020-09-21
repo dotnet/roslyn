@@ -652,20 +652,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
+        internal override void ApplyMappedFileChanges(SolutionChanges solutionChanges)
         {
-            base.ApplyProjectChanges(projectChanges);
-
             // After normal project changes have been applied, we need to apply changes for
             // generated razor documents that are mapped to a location in a file outside of our workspace.
             // Since these generated documents have CanApplyChange() == false, they will not
-            // be applied during the normal ApplyProjectChanges workflow.
-            var changedMappedDocuments = projectChanges.GetChangedDocuments()
-                .Where(id => ShouldApplyChangesToMappedDocuments(id))
-                .ToImmutableArray();
+            // be applied when other project changes are applied.
+            var projectChanges = solutionChanges.GetProjectChanges();
+
+            var changedMappedDocuments = new Dictionary<ProjectChanges, ImmutableArray<DocumentId>>();
+            foreach (var projectChange in projectChanges)
+            {
+                var documents = projectChange.GetChangedDocuments().Where(ShouldApplyChangesToMappedDocuments);
+                if (documents.Any())
+                {
+                    changedMappedDocuments.Add(projectChange, documents.ToImmutableArray());
+                }
+            }
+
             if (changedMappedDocuments.Any())
             {
-                ApplyChangesForMappedDocuments(projectChanges, changedMappedDocuments);
+                ApplyChangesForMappedDocuments(changedMappedDocuments);
             }
 
             return;
@@ -674,11 +681,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var document = this.CurrentSolution.GetDocument(id);
                 // Only consider files that are mapped and that we are unable to apply changes to.
+                // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
                 return document?.Services?.GetService<ISpanMappingService>() != null && document?.CanApplyChange() == false;
             }
         }
 
-        private void ApplyChangesForMappedDocuments(ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
+        private void ApplyChangesForMappedDocuments(Dictionary<ProjectChanges, ImmutableArray<DocumentId>> changedMappedDocuments)
         {
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
             // Create mapped text changes using the mapped spans and original text changes' text.
@@ -686,40 +694,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
             // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
             // using ConfigureAwait(true).  This deadlocks as it then attempts to return to the UI thread which is already blocked by us.
-            // Instead, we invoke this in JTF run which should run the request on the threadpool thread and will mitigate deadlocks
-            // if anyone else tries to switch to the UI thread.
+            // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
+            // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(async () => await GetMappedTextChanges(projectChanges, changedMappedDocuments).ConfigureAwait(false));
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(changedMappedDocuments));
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
             {
-                using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectChanges.ProjectId), needsSave: true, needsUndoDisabled: false);
-                TextEditApplication.UpdateText(changesForFile.Value.ToImmutableArray(), invisibleEditor.TextBuffer, EditOptions.None);
+                // It doesn't matter which of the file's projectIds we pass to the invisible editor, so just pick the first.
+                var projectId = changesForFile.Value.First().ProjectId;
+                // Make sure we only take distinct changes - we'll have duplicates from different projects for linked files or multi-targeted files.
+                var distinctTextChanges = changesForFile.Value.Select(change => change.TextChange).Distinct().ToImmutableArray();
+                using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectId), needsSave: true, needsUndoDisabled: false);
+                TextEditApplication.UpdateText(distinctTextChanges, invisibleEditor.TextBuffer, EditOptions.None);
             }
 
             return;
 
-            static async Task<MultiDictionary<string, TextChange>> GetMappedTextChanges(ProjectChanges projectChanges, ImmutableArray<DocumentId> changedMappedDocuments)
+            static async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(Dictionary<ProjectChanges, ImmutableArray<DocumentId>> changedMappedDocuments)
             {
-                var filePathToMappedTextChanges = new MultiDictionary<string, TextChange>();
-                foreach (var changedDocumentId in changedMappedDocuments)
+                var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
+                foreach (var projectChanges in changedMappedDocuments.Keys)
                 {
-                    var oldDocument = projectChanges.OldProject.GetRequiredDocument(changedDocumentId);
-                    var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
-
-                    var mappingService = newDocument.Services.GetService<ISpanMappingService>();
-                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
-                    var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
-
-                    Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
-                    for (var i = 0; i < mappedSpanResults.Length; i++)
+                    foreach (var changedDocumentId in changedMappedDocuments[projectChanges])
                     {
-                        // Only include changes that could be mapped.
-                        var newText = textChanges[i].NewText;
-                        if (!mappedSpanResults[i].IsDefault && newText != null)
+                        var oldDocument = projectChanges.OldProject.GetRequiredDocument(changedDocumentId);
+                        var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
+
+                        var mappingService = newDocument.Services.GetService<ISpanMappingService>()!;
+                        var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
+                        var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+
+                        Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
+
+                        for (var i = 0; i < mappedSpanResults.Length; i++)
                         {
-                            filePathToMappedTextChanges.Add(mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, newText));
+                            // Only include changes that could be mapped.
+                            var newText = textChanges[i].NewText;
+                            if (!mappedSpanResults[i].IsDefault && newText != null)
+                            {
+                                var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
+                                filePathToMappedTextChanges.Add(mappedSpanResults[i].FilePath, (newTextChange, projectChanges.ProjectId));
+                            }
                         }
                     }
                 }

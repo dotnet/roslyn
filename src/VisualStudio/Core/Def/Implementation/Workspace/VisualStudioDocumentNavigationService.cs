@@ -305,13 +305,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
             // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
             // using ConfigureAwait(true).  This deadlocks as it then attempts to return to the UI thread which is already blocked by us.
-            // Instead, we invoke this in JTF run which should run the request on the threadpool thread and will mitigate deadlocks
-            // if anyone else tries to switch to the UI thread.
+            // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
+            // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var results = _threadingContext.JoinableTaskFactory.Run(async () =>
-            {
-                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(false);
-            });
+            var results = _threadingContext.JoinableTaskFactory.Run(() => spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None));
 
             if (!results.IsDefaultOrEmpty)
             {
