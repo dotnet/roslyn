@@ -81,6 +81,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 analysisDataForUnhandledThrowOperations, TaskWrappedValuesMap, ControlFlowGraph, _defaultUnknownValue);
         }
 
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> With(ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap)
+        {
+            return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
+                _basicBlockStateMap, operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKind,
+                _interproceduralResultsMap, _standaloneLocalFunctionAnalysisResultsMap, LambdaAndLocalFunctionAnalysisInfo,
+                EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutput, MergedStateForUnhandledThrowOperations,
+                _analysisDataForUnhandledThrowOperations, TaskWrappedValuesMap, ControlFlowGraph, _defaultUnknownValue);
+        }
+
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public TBlockAnalysisResult this[BasicBlock block] => _basicBlockStateMap[block];
         public TAbstractAnalysisValue this[IOperation operation]
