@@ -495,5 +495,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
 
         RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
+        FeatureNotAvailable = 441,
     }
 }

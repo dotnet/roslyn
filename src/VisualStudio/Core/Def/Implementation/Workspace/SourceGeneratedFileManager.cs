@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsynchronousOperationListener _listener;
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
@@ -63,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace visualStudioWorkspace,
+            VisualStudioDocumentNavigationService visualStudioDocumentNavigationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = serviceProvider;
@@ -70,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _textDocumentFactoryService = textDocumentFactoryService;
             _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VisualStudioSourceGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
+            _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
             Directory.CreateDirectory(_temporaryDirectory);
 
@@ -99,7 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // The file name we generate here is chosen to match the compiler's choice, so the debugger can recognize the files should match.
             // This can only be changed if the compiler changes the algorithm as well.
             var temporaryFilePath = Path.Combine(projectDirectory, $"{generatorType.Module.ModuleVersionId}_{generatorType.FullName}_{generatedSourceHintName}");
-            File.WriteAllText(temporaryFilePath, "");
+
+            // Don't write to the file if it's already there, as that potentially triggers a file reload
+            if (!File.Exists(temporaryFilePath))
+            {
+                File.WriteAllText(temporaryFilePath, "");
+            }
 
             var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
             var hr = openDocumentService.OpenDocumentViaProject(
@@ -113,6 +122,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (ErrorHandler.Succeeded(hr) && windowFrame != null)
             {
                 windowFrame.Show();
+            }
+
+            // We should have the file now, so navigate to the right span
+            if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
+            {
+                openFile.NavigateToSpan(sourceSpan);
             }
         }
 
@@ -424,6 +439,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameMessage = _windowFrameMessageToShow;
                 _currentWindowFrameImageMoniker = _windowFrameImageMonikerToShow;
                 _currentWindowFrameInfoBarElement = infoBarUI;
+            }
+
+            public void NavigateToSpan(TextSpan sourceSpan)
+            {
+                var sourceText = _textBuffer.CurrentSnapshot.AsText();
+                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan));
             }
         }
     }
