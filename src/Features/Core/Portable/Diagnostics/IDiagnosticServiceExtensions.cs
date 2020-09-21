@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static ImmutableArray<DiagnosticData> GetDiagnostics(this IDiagnosticService service, Document document, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             var project = document.Project;
-            var solution = project.Solution;
-            var workspace = solution.Workspace;
+            var workspace = project.Solution.Workspace;
 
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
 
             foreach (var arg in service.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
             {
+                Contract.ThrowIfFalse(workspace.Equals(arg.Workspace));
                 Contract.ThrowIfFalse(document.Id.Equals(arg.DocumentId));
 
-                var diagnostics = service.GetDiagnostics(workspace, arg.ProjectId, arg.DocumentId, arg.Id, includeSuppressedDiagnostics, cancellationToken);
+                var diagnostics = service.GetDiagnostics(arg.Workspace, arg.ProjectId, arg.DocumentId, arg.Id, includeSuppressedDiagnostics, cancellationToken);
                 if (diagnostics != null)
                     result.AddRange(diagnostics);
             }
