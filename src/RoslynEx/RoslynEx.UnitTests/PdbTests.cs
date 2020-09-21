@@ -33,7 +33,7 @@ class Program
         Console.WriteLine(helloWorld);
     }
 }
-";
+".NormalizeLineEndings();
             string libraryCode = @"
 using System;
 
@@ -44,7 +44,7 @@ class Library
         Console.WriteLine(""step {0}"");
     }
 }
-";
+".NormalizeLineEndings();
 
             var programTree = ParseSyntaxTree(programCode, path: "Program.cs", encoding: Encoding.UTF8);
             var libraryTree = ParseSyntaxTree(libraryCode, path: "Library.cs", encoding: Encoding.UTF8);
