@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        EnforceNotNullIfNotNull(syntaxOpt, state, parameter.NotNullIfParameterNotNull, parameterState, parameter);
+                        EnforceNotNullIfNotNull(syntaxOpt, state, this.MethodParameters, parameter.NotNullIfParameterNotNull, parameterState, parameter);
                     }
                 }
             }
@@ -883,17 +883,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void EnforceNotNullIfNotNull(SyntaxNode? syntaxOpt, LocalState state, ImmutableHashSet<string> inputParamNames, NullableFlowState outputState, ParameterSymbol? outputParam)
+        private void EnforceNotNullIfNotNull(SyntaxNode? syntaxOpt, LocalState state, ImmutableArray<ParameterSymbol> parameters, ImmutableHashSet<string> inputParamNames, NullableFlowState outputState, ParameterSymbol? outputParam)
         {
-            if (inputParamNames.IsEmpty)
+            if (inputParamNames.IsEmpty || outputState.IsNotNull())
             {
                 return;
             }
 
-            foreach (var inputParam in this.MethodParameters)
+            foreach (var inputParam in parameters)
             {
                 if (inputParamNames.Contains(inputParam.Name)
-                    && outputState.MayBeNull()
                     && GetOrCreateSlot(inputParam) is > 0 and int inputSlot
                     && state[inputSlot].IsNotNull())
                 {
@@ -2339,9 +2338,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Unsplit();
-            if (_symbol is MethodSymbol method)
+            if (CurrentSymbol is MethodSymbol method)
             {
-                EnforceNotNullIfNotNull(node.Syntax, this.State, method.ReturnNotNullIfParameterNotNull, ResultType.State, outputParam: null);
+                EnforceNotNullIfNotNull(node.Syntax, this.State, method.Parameters, method.ReturnNotNullIfParameterNotNull, ResultType.State, outputParam: null);
             }
 
             SetUnreachable();
