@@ -12,5 +12,11 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// Gets the used transitive references brought in by this reference.
         /// </summary>
         public ImmutableArray<Reference> UsedTransitiveReferences { get; }
+
+        public UnusedReference(ReferenceType referenceType, string itemSpecification, bool treatAsUsed, ImmutableArray<Reference> usedTransitiveReferences)
+            : base(referenceType, itemSpecification, treatAsUsed)
+        {
+            UsedTransitiveReferences = usedTransitiveReferences;
+        }
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,19 +22,28 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
         }
 
-        public async Task<ImmutableArray<UnusedReference>> GetUnusedReferencesAsync(Project project, Compilation compilation, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<UnusedReference>> GetUnusedReferencesAsync(Project project, CancellationToken cancellationToken)
         {
-            var usedReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
-            var unusedReferences = compilation.References.Except(usedReferences).ToImmutableArray();
-
-            var projectAssetsDocument = project.AdditionalDocuments.SingleOrDefault(document => document.Name == "project.assets.json");
-            if (projectAssetsDocument is null)
+            var workspace = project.Solution.Workspace;
+            var referenceUpdateService = workspace.Services.GetService<IReferenceUpdateService>();
+            if (referenceUpdateService is null)
             {
                 return ImmutableArray<UnusedReference>.Empty;
             }
 
-            var projectAssetsText = await projectAssetsDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            if (compilation is null)
+            {
+                return ImmutableArray<UnusedReference>.Empty;
+            }
 
+            var usedReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
+            var unusedReferences = compilation.References.Except(usedReferences).ToImmutableArray();
+
+            var targetFrameworkMoniker = referenceUpdateService.GetTargetFramworkMoniker(project.Id);
+            var projectAssetsFilePath = await referenceUpdateService.GetProjectAssetsFilePathAsync(project.FilePath, targetFrameworkMoniker, cancellationToken).ConfigureAwait(false);
+
+            var projectAssetsText = File.ReadAllText(projectAssetsFilePath);
 
             return ImmutableArray<UnusedReference>.Empty;
         }

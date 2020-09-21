@@ -27,4 +27,3 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         Add,
     }
 }
-}

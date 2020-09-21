@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
 {
     // Interface to be implemented and MEF exported by Project System
-    internal interface IProjectSystemReferenceService
+    internal interface IProjectSystemReferenceUpdateService
     {
         /// <summary>
         /// For the given project, returns the full path to the project.assets.json file

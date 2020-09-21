@@ -4,12 +4,12 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
 {
-    internal class ProjectSystemReference
+    internal sealed class ProjectSystemReference
     {
         /// <summary>
         /// Indicates the type of reference.
         /// </summary>
-        public ProjectSystemReferenceType Type { get; }
+        public ProjectSystemReferenceType ReferenceType { get; }
 
         /// <summary>
         /// Uniquely identifies the reference.
@@ -23,5 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// Indicates that this reference should be treated as if it were used.
         /// </summary>
         public bool TreatAsUsed { get; }
+
+        public ProjectSystemReference(ProjectSystemReferenceType referenceType, string itemSpecification, bool treatAsUsed)
+        {
+            ReferenceType = referenceType;
+            ItemSpecification = itemSpecification;
+            TreatAsUsed = treatAsUsed;
+        }
     }
 }

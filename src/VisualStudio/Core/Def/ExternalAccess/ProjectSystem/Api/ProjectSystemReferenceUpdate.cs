@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
 {
-    internal class ProjectSystemReferenceUpdate
+    internal sealed class ProjectSystemReferenceUpdate
     {
         /// <summary>
         /// Indicates action to perform on the reference.
@@ -15,5 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// Gets the reference to be updated.
         /// </summary>
         public ProjectSystemReference Reference { get; }
+
+        public ProjectSystemReferenceUpdate(ProjectSystemUpdateAction action, ProjectSystemReference reference)
+        {
+            Action = action;
+            Reference = reference;
+        }
     }
 }

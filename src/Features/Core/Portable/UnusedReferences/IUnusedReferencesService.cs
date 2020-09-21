@@ -5,10 +5,11 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
 {
-    internal interface IUnusedReferencesService
+    internal interface IUnusedReferencesService : IWorkspaceService
     {
         /// <summary>
         /// Determines unused references from this compilation.

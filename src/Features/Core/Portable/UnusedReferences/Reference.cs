@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// <summary>
         /// Indicates the type of reference.
         /// </summary>
-        public ReferenceType Type { get; }
+        public ReferenceType ReferenceType { get; }
 
         /// <summary>
         /// Uniquely identifies the reference.
@@ -23,5 +23,12 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// Indicates that this reference should be treated as if it were used.
         /// </summary>
         public bool TreatAsUsed { get; }
+
+        public Reference(ReferenceType referenceType, string itemSpecification, bool treatAsUsed)
+        {
+            ReferenceType = referenceType;
+            ItemSpecification = itemSpecification;
+            TreatAsUsed = treatAsUsed;
+        }
     }
 }
