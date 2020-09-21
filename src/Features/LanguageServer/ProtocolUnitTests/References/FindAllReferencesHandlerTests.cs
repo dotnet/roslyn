@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -43,7 +46,7 @@ class B
             Assert.Equal("M", results[1].ContainingMember);
             Assert.Equal("M2", results[3].ContainingMember);
 
-            AssertValidDefinitionProperties(results, 0);
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
@@ -78,7 +81,7 @@ class B
             Assert.Equal("M", results[1].ContainingMember);
             Assert.Equal("M2", results[3].ContainingMember);
 
-            AssertValidDefinitionProperties(results, 0);
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
         }
 
         [WpfFact]
@@ -114,12 +117,13 @@ class A
             Assert.NotNull(results[0].Location.Uri);
         }
 
-        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret) =>
+        private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
             new LSP.ReferenceParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
                 Context = new LSP.ReferenceContext(),
+                PartialResultToken = progress
             };
 
         private static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret)
@@ -129,15 +133,21 @@ class A
                 SupportsVisualStudioExtensions = true
             };
 
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
-                CreateReferenceParams(caret), vsClientCapabilities, null, CancellationToken.None);
+            var progress = new ProgressCollector<LSP.VSReferenceItem>();
+
+            await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+                CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
+
+            return progress.GetItems();
         }
 
-        private static void AssertValidDefinitionProperties(LSP.ReferenceItem[] referenceItems, int definitionIndex)
+        private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
         {
             var definition = referenceItems[definitionIndex];
             var definitionId = definition.DefinitionId;
             Assert.NotNull(definition.DefinitionText);
+
+            Assert.Equal(definitionGlyph.GetImageId(), definition.DefinitionIcon.ImageId);
 
             for (var i = 0; i < referenceItems.Length; i++)
             {
@@ -147,8 +157,21 @@ class A
                 }
 
                 Assert.Null(referenceItems[i].DefinitionText);
+                Assert.Equal(0, referenceItems[i].DefinitionIcon.ImageId.Id);
                 Assert.Equal(definitionId, referenceItems[i].DefinitionId);
                 Assert.NotEqual(definitionId, referenceItems[i].Id);
+            }
+        }
+
+        private class ProgressCollector<T> : IProgress<object>
+        {
+            private readonly List<T> _items = new List<T>();
+
+            public T[] GetItems() => _items.ToArray();
+
+            public void Report(object value)
+            {
+                _items.AddRange((T[])value);
             }
         }
     }
