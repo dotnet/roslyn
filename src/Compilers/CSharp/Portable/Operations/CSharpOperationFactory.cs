@@ -1610,7 +1610,24 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                                                             ref useSiteDiagnostics).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.CurrentConversion,
-                                                    boundForEachStatement.ElementConversion);
+                                                    boundForEachStatement.ElementConversion,
+                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod
+                                                        ? Operation.SetParentOperation(
+                                                            DeriveArguments(
+                                                                boundForEachStatement,
+                                                                enumeratorInfoOpt.Binder,
+                                                                enumeratorMethod,
+                                                                enumeratorMethod,
+                                                                ImmutableArray.Create(boundForEachStatement.Expression),
+                                                                argumentNamesOpt: default,
+                                                                argumentsToParametersOpt: default,
+                                                                argumentRefKindsOpt: default,
+                                                                parameters,
+                                                                expanded: false,
+                                                                boundForEachStatement.Expression.Syntax,
+                                                                invokedAsExtensionMethod: true),
+                                                            null)
+                                                        : default);
             }
             else
             {
@@ -1917,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (part.Kind == BoundKind.StringInsert)
                 {
-                    builder.Add((IInterpolatedStringContentOperation)Create(part));
+                    builder.Add((IInterpolatedStringContentOperation)CreateInternal(part));
                 }
                 else
                 {

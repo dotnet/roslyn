@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                     case (int)ErrorCode.WRN_MainCantBeGeneric:
                     case (int)ErrorCode.ERR_NoMainInClass:
                     case (int)ErrorCode.ERR_MainClassNotFound:
+                    case (int)ErrorCode.WRN_SyncAndAsyncEntryPoints:
                         // no entry point related errors are live
                         continue;
                     case (int)ErrorCode.ERR_BadDelegateConstructor:

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     public void F1(System.IntPtr x, nint y);
     public void F2(System.UIntPtr x, nuint y);
 }"
-            Dim comp As Compilation = CreateCSharpCompilation(source0, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            Dim comp As Compilation = CreateCSharpCompilation(source0, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp9))
             Dim ref0 = comp.EmitToImageReference()
 
             Dim type = comp.GlobalNamespace.GetTypeMembers("I").Single()

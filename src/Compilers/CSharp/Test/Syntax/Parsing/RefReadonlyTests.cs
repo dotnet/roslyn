@@ -131,7 +131,7 @@ class Program
 }
 ";
 
-            ParseAndValidate(text, TestOptions.RegularPreview,
+            ParseAndValidate(text, TestOptions.Regular9,
                 // (9,27): error CS1003: Syntax error, '(' expected
                 //     ref readonly int Field;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(9, 27),

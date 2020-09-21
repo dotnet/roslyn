@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -128,10 +129,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return;
                 }
 
-                // Temporary solution until the editor provides a proper way to resolve the correct navbar.
-                // Tracked in https://github.com/dotnet/roslyn/issues/40989
-                var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-                if (document?.GetLanguageService<INavigationBarItemService>() == null)
+                var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
+                // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
+                // for the local navbar implementation.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
+                var service = document?.Project?.Solution?.Workspace?.Services?.GetRequiredService<IWorkspaceContextService>();
+                if (service != null && service.IsCloudEnvironmentClient() && document!.Project!.Language != "TypeScript")
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, out var _))

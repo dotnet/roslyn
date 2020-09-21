@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -13,9 +15,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static readonly TestComposition Features = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies)
-            .AddParts(typeof(MockWorkspaceEventListenerProvider)); // by default, avoid running Solution Crawler and other services that start in workspace event listeners
+            .AddParts(
+                typeof(MockWorkspaceEventListenerProvider),  // by default, avoid running Solution Crawler and other services that start in workspace event listeners
+                typeof(TestErrorReportingService));          // mocks the info-bar error reporting
 
-        public static readonly TestComposition RemoteHostFeatures = TestComposition.Empty
-            .AddAssemblies(RoslynServices.RemoteHostAssemblies);
+        public static readonly TestComposition RemoteHost = TestComposition.Empty
+            .AddAssemblies(RemoteWorkspaceManager.RemoteHostAssemblies);
+
+        public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)
+            => (host == TestHost.InProcess) ? composition : composition.AddAssemblies(typeof(RemoteWorkspacesResources).Assembly).AddParts(typeof(InProcRemoteHostClientProvider.Factory));
     }
 }

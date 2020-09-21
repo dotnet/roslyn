@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class CompilationEvent
@@ -12,11 +14,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Compilation Compilation { get; }
-
-        /// <summary>
-        /// Flush any cached data in this <see cref="CompilationEvent"/> to minimize space usage (at the possible expense of time later).
-        /// The principal effect of this is to free cached information on events that have a <see cref="SemanticModel"/>.
-        /// </summary>
-        public virtual void FlushCache() { }
     }
 }

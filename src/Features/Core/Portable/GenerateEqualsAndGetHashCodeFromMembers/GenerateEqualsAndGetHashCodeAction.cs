@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _generateOperators = generateOperators;
             }
 
+            public override string EquivalenceKey => Title;
+
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var methods);

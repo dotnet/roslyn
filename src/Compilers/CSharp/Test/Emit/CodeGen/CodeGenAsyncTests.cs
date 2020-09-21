@@ -5807,5 +5807,32 @@ public class C {
     }
 ");
         }
+
+        [Fact, WorkItem(46843, "https://github.com/dotnet/roslyn/issues/46843")]
+        public void LockInAsyncMethodWithAwaitInFinally()
+        {
+            var source = @"
+using System.Threading.Tasks;
+public class C
+{
+    public async Task M(object o)
+    {
+        lock(o)
+        {
+        }
+
+        try
+        {
+        }
+        finally
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+            var comp = CSharpTestBase.CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

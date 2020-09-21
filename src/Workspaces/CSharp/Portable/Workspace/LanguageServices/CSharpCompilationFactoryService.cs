@@ -45,12 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            // https://github.com/dotnet/roslyn/issues/42565: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
-            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
-            {
-                return null;
-            }
-            return new CSharpGeneratorDriver(parseOptions, generators, optionsProvider, additionalTexts);
+            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);
         }
     }
 }

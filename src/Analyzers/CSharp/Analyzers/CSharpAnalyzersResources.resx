@@ -289,4 +289,7 @@
   <data name="Suppression_operator_has_no_effect_and_can_be_misinterpreted" xml:space="preserve">
     <value>Suppression operator has no effect and can be misinterpreted</value>
   </data>
+  <data name="typeof_can_be_converted_ to_nameof" xml:space="preserve">
+    <value>'typeof' can be converted  to 'nameof'</value>
+  </data>
 </root>

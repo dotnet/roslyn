@@ -13,5 +13,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public static readonly Option2<bool> IsExpandedCompletion
             = new Option2<bool>(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
+
+        /// <summary>
+        /// Indicates if the completion should be disallowed to add imports.
+        /// </summary>
+        public static readonly Option2<bool> DisallowAddingImports
+            = new Option2<bool>(nameof(CompletionServiceOptions), nameof(DisallowAddingImports), defaultValue: false);
     }
 }

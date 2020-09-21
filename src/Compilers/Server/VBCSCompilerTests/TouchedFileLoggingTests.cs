@@ -14,8 +14,9 @@ using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CompilerServer;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class TouchedFileLoggingTests : TestBase
     {

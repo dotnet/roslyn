@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -30,6 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
+        /// <summary>
+        /// Error list diagnostic source for "Build + Intellisense" setting.
+        /// See <see cref="VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.BuildTableDataSource"/>
+        /// for error list diagnostic source for "Build only" setting.
+        /// </summary>
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
         {
             private readonly string _identifier;
@@ -37,7 +42,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+            /// <summary>
+            /// Flag indicating if a build inside Visual Studio is in progress.
+            /// We get build progress updates from <see cref="ExternalErrorDiagnosticUpdateSource.BuildProgressChanged"/>.
+            /// Build progress events are guaranteed to be invoked in a serial fashion during build.
+            /// </summary>
+            private bool _isBuildRunning;
+
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
                 : base(workspace)
             {
                 _workspace = workspace;
@@ -46,14 +58,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
 
                 _diagnosticService = diagnosticService;
-
                 ConnectToDiagnosticService(workspace, diagnosticService);
+
+                ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
+
+            private void ConnectToBuildUpdateSource(ExternalErrorDiagnosticUpdateSource? buildUpdateSource)
+            {
+                if (buildUpdateSource == null)
+                {
+                    // it can be null in unit test
+                    return;
+                }
+
+                OnBuildProgressChanged(buildUpdateSource.IsInProgress);
+                buildUpdateSource.BuildProgressChanged +=
+                    (_, progress) => OnBuildProgressChanged(running: progress != ExternalErrorDiagnosticUpdateSource.BuildProgress.Done);
+            }
+
+            private void OnBuildProgressChanged(bool running)
+            {
+                _isBuildRunning = running;
+
+                // We mark error list "Build + Intellisense" setting as stable,
+                // i.e. shown as "Error List" without the trailing "...", if both the following are true:
+                //  1. User invoked build is not running inside Visual Studio AND
+                //  2. Solution crawler is not running in background to compute intellisense diagnostics.
+                ChangeStableStateIfRequired(newIsStable: !_isBuildRunning && !IsSolutionCrawlerRunning);
+            }
 
             public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(
                 AbstractTableEntriesSource<DiagnosticTableItem> source,

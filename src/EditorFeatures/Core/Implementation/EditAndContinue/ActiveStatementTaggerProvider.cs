@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
 
-            var activeStatementSpans = await activeStatementTrackingService.GetLatestSpansAsync(document, snapshot, context.CancellationToken).ConfigureAwait(false);
+            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, context.CancellationToken).ConfigureAwait(false);
             foreach (var activeStatementSpan in activeStatementSpans)
             {
                 if (activeStatementSpan.IsLeaf)

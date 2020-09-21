@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
                 return (new NullableWalker(binder.Compilation,
                                            sharedState.Symbol,
+                                           useConstructorExitWarnings: false,
                                            useDelegateInvokeParameterTypes: false,
                                            delegateInvokeMethodOpt: null,
                                            nodeToAnalyze,

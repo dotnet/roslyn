@@ -6080,16 +6080,6 @@ checkNullable:
             _currentToken = Nothing
         End Sub
 
-        ''' <summary>
-        ''' returns true if feature is available
-        ''' </summary>
-        Private Function AssertLanguageFeature(
-            feature As ERRID
-        ) As Boolean
-
-            Return True
-        End Function
-
         '============ Methods to test properties of NodeKind. ====================
         '
 

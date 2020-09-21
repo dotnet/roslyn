@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly IAsynchronousOperationListener _listener;
 
         protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.InlineParameterNameHints);
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
@@ -83,11 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             var paramNameHintsService = document.GetLanguageService<IInlineParameterNameHintsService>();
             if (paramNameHintsService != null)
             {
-                var paramNameHintSpans = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                foreach (var span in paramNameHintSpans)
+                var parameterHints = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                foreach (var parameterHint in parameterHints)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Position, 0), new InlineParameterNameHintDataTag(span.Name)));
+                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, parameterHint.Position, 0), new InlineParameterNameHintDataTag(parameterHint.ParameterSymbolKey, parameterHint.Name)));
                 }
             }
         }

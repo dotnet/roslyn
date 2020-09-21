@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v1.Interop;
@@ -25,21 +28,27 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// to precompute all the information we'd need to put in the ID tables and perform it
         /// all at once per project.
         /// </remarks>
-        private void BulkPopulateIds(SqlConnection connection, Solution solution, bool fetchStringTable)
+        private void BulkPopulateIds(SqlConnection connection, Solution? bulkLoadSnapshot, bool fetchStringTable)
         {
-            foreach (var project in solution.Projects)
-            {
+            // Can only bulk populate if we were given a snapshot we can walk to grab data from.
+            if (bulkLoadSnapshot == null)
+                return;
+
+            foreach (var project in bulkLoadSnapshot.Projects)
                 BulkPopulateProjectIds(connection, project, fetchStringTable);
-            }
         }
 
-        private void BulkPopulateProjectIds(SqlConnection connection, Project project, bool fetchStringTable)
+        private void BulkPopulateProjectIds(SqlConnection connection, Project? bulkLoadSnapshot, bool fetchStringTable)
         {
+            // Can only bulk populate if we were given a snapshot we can walk to grab data from.
+            if (bulkLoadSnapshot == null)
+                return;
+
             // Ensure that only one caller is trying to bulk populate a project at a time.
-            var gate = _projectBulkPopulatedLock.GetOrAdd(project.Id, _ => new object());
+            var gate = _projectBulkPopulatedLock.GetOrAdd(bulkLoadSnapshot.Id, _ => new object());
             lock (gate)
             {
-                if (_projectBulkPopulatedMap.Contains(project.Id))
+                if (_projectBulkPopulatedMap.Contains(bulkLoadSnapshot.Id))
                 {
                     // We've already bulk processed this project.  No need to do so again.
                     return;
@@ -63,14 +72,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
                     }
                 }
 
-                if (!BulkPopulateProjectIdsWorker(connection, project))
+                if (!BulkPopulateProjectIdsWorker(connection, bulkLoadSnapshot))
                 {
                     // Something went wrong.  Try to bulk populate this project later.
                     return;
                 }
 
                 // Successfully bulk populated.  Mark as such so we don't bother doing this again.
-                _projectBulkPopulatedMap.Add(project.Id);
+                _projectBulkPopulatedMap.Add(bulkLoadSnapshot.Id);
             }
         }
 
@@ -93,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             // from a compound key using the IDs for the project's FilePath and Name.
             //
             // If this fails for any reason, we can't proceed.
-            var projectId = TryGetProjectId(connection, project);
+            var projectId = TryGetProjectId(connection, (ProjectKey)project);
             if (projectId == null)
             {
                 return false;
@@ -208,7 +217,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
                 return documentIdString;
             }
 
-            void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
+            void AddIfUnknownId(string? value, HashSet<string> stringsToAdd)
             {
                 // Null strings are not supported at all.  Just ignore these. Any read/writes 
                 // to null values will fail and will return 'false/null' to indicate failure

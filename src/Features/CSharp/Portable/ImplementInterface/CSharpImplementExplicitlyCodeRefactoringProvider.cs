@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (identifierName == null || !syntaxFacts.IsIdentifierName(identifierName))
                 return;
 
-            var node = syntaxFacts.IsNameOfMemberAccessExpression(identifierName) || syntaxFacts.IsMemberBindingExpression(identifierName.Parent)
+            var node = syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifierName) || syntaxFacts.IsNameOfMemberBindingExpression(identifierName)
                 ? identifierName.Parent
                 : identifierName;
 

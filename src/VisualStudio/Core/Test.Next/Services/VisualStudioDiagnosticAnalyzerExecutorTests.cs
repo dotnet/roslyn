@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -136,29 +135,6 @@ End Class";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
-        [Obsolete("Razor only")]
-        public async Task TestCancellationOnSessionWithSolution()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
-            {
-                var solution = workspace.CurrentSolution;
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-                var service = solution.Workspace.Services.GetService<IRemotableDataService>();
-
-                var source = new CancellationTokenSource();
-                using var session = new InvokeThrowsCancellationConnection(source);
-                var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(session, solution, source.Token));
-                Assert.Equal(exception.CancellationToken, source.Token);
-
-                // make sure things that should have been cleaned up are cleaned up
-                Assert.Null(await ((RemotableDataService)service).TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestHostAnalyzers_OutOfProc()
         {
             var code = @"class Test
@@ -217,7 +193,7 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var remotableDataService = workspace.Services.GetService<IRemotableDataService>();
+                var remotableDataService = workspace.Services.GetService<ISolutionAssetStorageProvider>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis
@@ -266,7 +242,7 @@ End Class";
 
         private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
-            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(InProcRemoteHostClientProvider.Factory));
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
             var workspace = (language == LanguageNames.CSharp) ?
                 TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :

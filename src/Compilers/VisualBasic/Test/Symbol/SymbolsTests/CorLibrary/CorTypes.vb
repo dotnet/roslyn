@@ -37,10 +37,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestMetadata.NetCoreApp31.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
+            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer)
+            knownMissingTypes.Add(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
+
             For i As Integer = 1 To SpecialType.Count
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
+                If knownMissingTypes.Contains(i) Then
+                    ' not present on dotnet core 3.1
+                    Assert.Equal(TypeKind.Error, t.TypeKind)
+                Else
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind)
+                End If
             Next
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
@@ -71,8 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Next
             End While
 
-            Assert.Equal(count, CType(SpecialType.Count, Integer))
-            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+            Assert.Equal(count + knownMissingTypes.Count, CType(SpecialType.Count, Integer))
+            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 
         <Fact()>

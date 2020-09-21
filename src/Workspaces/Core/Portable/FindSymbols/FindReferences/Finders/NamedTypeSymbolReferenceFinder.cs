@@ -104,7 +104,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
+            // Get the parent node that best matches what this token represents.  For example, if we have `new a.b()`
+            // then the parent node of `b` won't be `a.b`, but rather `new a.b()`.  This will actually cause us to bind
+            // to the constructor not the type.  That's a good thing as we don't want these object-creations to
+            // associate with the type, but rather with the constructor itself.
+            var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(document, namedType);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
                 namedType, namedType.Name, document, semanticModel, symbolsMatch, cancellationToken);
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => (matched: true, reason: CandidateReason.None),
+                (t, m) => new ValueTask<(bool matched, CandidateReason reason)>((matched: true, reason: CandidateReason.None)),
                 docCommentId: null,
                 findInGlobalSuppressions: false,
                 cancellationToken);

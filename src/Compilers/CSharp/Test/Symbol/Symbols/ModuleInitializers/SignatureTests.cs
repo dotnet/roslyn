@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
     public sealed class SignatureTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 
         [Fact]
         public void MustNotBeInstanceMethod()

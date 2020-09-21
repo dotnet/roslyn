@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
         protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression? GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
+        protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
             List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var propertyDeclaration = result.PropertyDeclaration;
             var variableDeclarator = result.VariableDeclarator;
-            var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
+            var fieldNode = GetFieldNode(result.FieldDeclaration, variableDeclarator);
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve
@@ -329,8 +329,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Place the appropriate marker on the field depending on the user option.
             var diagnostic1 = DiagnosticHelper.Create(
-                UnnecessaryWithSuggestionDescriptor,
-                nodeToFade.GetLocation(),
+                Descriptor,
+                fieldNode.GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: additionalLocations,
                 properties: null);

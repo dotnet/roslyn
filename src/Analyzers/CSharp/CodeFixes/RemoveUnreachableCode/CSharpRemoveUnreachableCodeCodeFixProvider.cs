@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -75,22 +76,36 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         {
             foreach (var diagnostic in diagnostics)
             {
-                var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.Single();
+                var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.First();
                 var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
 
-                editor.RemoveNode(firstUnreachableStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                RemoveStatement(editor, firstUnreachableStatement);
 
                 var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
                 foreach (var section in sections)
                 {
                     foreach (var statement in section)
                     {
-                        editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                        RemoveStatement(editor, statement);
                     }
                 }
             }
 
             return Task.CompletedTask;
+
+            // Local function
+            static void RemoveStatement(SyntaxEditor editor, SyntaxNode statement)
+            {
+                if (!statement.IsParentKind(SyntaxKind.Block)
+                    && !statement.IsParentKind(SyntaxKind.SwitchSection))
+                {
+                    editor.ReplaceNode(statement, SyntaxFactory.Block());
+                }
+                else
+                {
+                    editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                }
+            }
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

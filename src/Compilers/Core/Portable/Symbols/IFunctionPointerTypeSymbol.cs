@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    // https://github.com/dotnet/roslyn/issues/39865: Expose calling convention on either this or IMethodSymbol in general
     public interface IFunctionPointerTypeSymbol : ITypeSymbol
     {
         /// <summary>

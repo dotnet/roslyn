@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
@@ -21,15 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         // Expose localized strings for binding
         public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
         public string NewInterfaceName { get { return ServicesVSResources.New_interface_name_colon; } }
-        public string GeneratedName { get { return ServicesVSResources.Generated_name_colon; } }
-        public string SelectDestinationFile { get { return ServicesVSResources.Select_destination; } }
-        public string SelectCurrentFileAsDestination { get { return ServicesVSResources.Add_to_current_file; } }
-        public string SelectNewFileAsDestination { get { return ServicesVSResources.New_file_name_colon; } }
         public string SelectPublicMembersToFormInterface { get { return ServicesVSResources.Select_public_members_to_form_interface; } }
         public string SelectAll { get { return ServicesVSResources.Select_All; } }
         public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public NewTypeDestinationSelection DestinationControl { get; }
 
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)
@@ -38,16 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             _viewModel = viewModel;
             SetCommandBindings();
 
+            DestinationControl = new NewTypeDestinationSelection(_viewModel.DestinationViewModel);
+            Loaded += ExtractInterfaceDialog_Loaded;
+
             InitializeComponent();
             DataContext = viewModel;
-
-            Loaded += ExtractInterfaceDialog_Loaded;
         }
 
         private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            interfaceNameTextBox.Focus();
-            interfaceNameTextBox.SelectAll();
+            DestinationControl.Focus();
         }
 
         private void SetCommandBindings()
@@ -83,14 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         private void Deselect_All_Click(object sender, RoutedEventArgs e)
             => _viewModel.DeselectAll();
-
-        private void SelectAllInTextBox(object sender, RoutedEventArgs e)
-        {
-            if (e.OriginalSource is TextBox textbox && Mouse.LeftButton == MouseButtonState.Released)
-            {
-                textbox.SelectAll();
-            }
-        }
 
         private void OnListViewPreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -138,11 +128,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             public Button DeselectAllButton => _dialog.DeselectAllButton;
 
-            public RadioButton DestinationCurrentFileSelectionRadioButton => _dialog.DestinationCurrentFileSelectionRadioButton;
+            public RadioButton DestinationCurrentFileSelectionRadioButton => _dialog.DestinationControl.DestinationCurrentFileSelectionRadioButton;
 
-            public RadioButton DestinationNewFileSelectionRadioButton => _dialog.DestinationNewFileSelectionRadioButton;
+            public RadioButton DestinationNewFileSelectionRadioButton => _dialog.DestinationControl.DestinationNewFileSelectionRadioButton;
 
-            public TextBox FileNameTextBox => _dialog.fileNameTextBox;
+            public TextBox FileNameTextBox => _dialog.DestinationControl.fileNameTextBox;
 
             public ListView Members => _dialog.Members;
         }

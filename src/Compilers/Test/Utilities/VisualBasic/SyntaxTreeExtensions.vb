@@ -72,7 +72,7 @@ Public Module SyntaxTreeExtensions
     Private Class VisualBasicSyntaxPrinter
         Inherits VisualBasicSyntaxWalker
 
-        Dim builder As PooledStringBuilder
+        ReadOnly Dim builder As PooledStringBuilder
         Dim indent As Integer = 0
 
         Sub New()

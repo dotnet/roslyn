@@ -5349,6 +5349,444 @@ class C
 ");
         }
 
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M("""", 0)); // 0
+        Console.Write(M("""", 1)); // 1
+        Console.Write(M("""", 2)); // 2
+        Console.Write(M("""", 3)); // 3
+        Console.Write(M(""a"", 2)); // 2
+        Console.Write(M(""a"", 10)); // 3
+    }
+
+    static int M(string x, int y)
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => 0,
+            ("""", 1) => 1,
+            (_, 2) => 2,
+            _ => 3
+        };
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "012323", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", @"{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brfalse.s  IL_0026
+  IL_0012:  ldarg.1
+  IL_0013:  switch    (
+        IL_002c,
+        IL_0030,
+        IL_0034)
+  IL_0024:  br.s       IL_0038
+  IL_0026:  ldarg.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_0034
+  IL_002a:  br.s       IL_0038
+  IL_002c:  ldc.i4.0
+  IL_002d:  stloc.0
+  IL_002e:  br.s       IL_003c
+  IL_0030:  ldc.i4.1
+  IL_0031:  stloc.0
+  IL_0032:  br.s       IL_003c
+  IL_0034:  ldc.i4.2
+  IL_0035:  stloc.0
+  IL_0036:  br.s       IL_003c
+  IL_0038:  ldc.i4.3
+  IL_0039:  stloc.0
+  IL_003a:  br.s       IL_003c
+  IL_003c:  ldc.i4.1
+  IL_003d:  brtrue.s   IL_0040
+  IL_003f:  nop
+  IL_0040:  ldloc.0
+  IL_0041:  stloc.1
+  IL_0042:  br.s       IL_0044
+  IL_0044:  ldloc.1
+  IL_0045:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M0("""", 0)); // 0
+        Console.Write(M0("""", 1)); // 1
+        Console.Write(M0("""", 2)); // 2
+        Console.Write(M0("""", 3)); // 3
+        Console.Write(M0(""a"", 2)); // 2
+        Console.Write(M0(""a"", 10)); // 3
+    }
+
+    static int M0(string x, int y)
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => M1(0),
+            ("""", 1) => M1(1),
+            (_, 2) => M1(2),
+            _ => M1(3)
+        };
+    }
+
+    static int M1(int z)
+    {
+        Console.Write(' ');
+        return z;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: " 0 1 2 3 2 3", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M0", @"{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brfalse.s  IL_0026
+  IL_0012:  ldarg.1
+  IL_0013:  switch    (
+        IL_002c,
+        IL_0035,
+        IL_003e)
+  IL_0024:  br.s       IL_0047
+  IL_0026:  ldarg.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_003e
+  IL_002a:  br.s       IL_0047
+  IL_002c:  ldc.i4.0
+  IL_002d:  call       ""int Program.M1(int)""
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0050
+  IL_0035:  ldc.i4.1
+  IL_0036:  call       ""int Program.M1(int)""
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0050
+  IL_003e:  ldc.i4.2
+  IL_003f:  call       ""int Program.M1(int)""
+  IL_0044:  stloc.0
+  IL_0045:  br.s       IL_0050
+  IL_0047:  ldc.i4.3
+  IL_0048:  call       ""int Program.M1(int)""
+  IL_004d:  stloc.0
+  IL_004e:  br.s       IL_0050
+  IL_0050:  ldc.i4.1
+  IL_0051:  brtrue.s   IL_0054
+  IL_0053:  nop
+  IL_0054:  ldloc.0
+  IL_0055:  stloc.1
+  IL_0056:  br.s       IL_0058
+  IL_0058:  ldloc.1
+  IL_0059:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_03()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M("""", 0)); // 0
+        Console.Write(M("""", 1)); // 1
+        Console.Write(M("""", 2)); // 2
+        Console.Write(M("""", 3)); // 3
+        Console.Write(M("""", 4)); // 4
+        Console.Write(M("""", 5)); // 5
+        Console.Write(M(""a"", 2)); // 2
+        Console.Write(M(""a"", 3)); // 3
+        Console.Write(M(""a"", 4)); // 4
+        Console.Write(M(""a"", 10)); // 5
+    }
+
+    static int M(string x, int y)
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => 0,
+            ("""", 1) => 1,
+            (_, 2) => 2,
+            (_, 3) => 3,
+            (_, 4) => 4,
+            _ => 5
+        };
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0123452345", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", @"{
+  // Code size       98 (0x62)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brfalse.s  IL_002e
+  IL_0012:  ldarg.1
+  IL_0013:  switch    (
+        IL_0040,
+        IL_0044,
+        IL_0048,
+        IL_004c,
+        IL_0050)
+  IL_002c:  br.s       IL_0054
+  IL_002e:  ldarg.1
+  IL_002f:  ldc.i4.2
+  IL_0030:  beq.s      IL_0048
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldarg.1
+  IL_0035:  ldc.i4.3
+  IL_0036:  beq.s      IL_004c
+  IL_0038:  br.s       IL_003a
+  IL_003a:  ldarg.1
+  IL_003b:  ldc.i4.4
+  IL_003c:  beq.s      IL_0050
+  IL_003e:  br.s       IL_0054
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.0
+  IL_0042:  br.s       IL_0058
+  IL_0044:  ldc.i4.1
+  IL_0045:  stloc.0
+  IL_0046:  br.s       IL_0058
+  IL_0048:  ldc.i4.2
+  IL_0049:  stloc.0
+  IL_004a:  br.s       IL_0058
+  IL_004c:  ldc.i4.3
+  IL_004d:  stloc.0
+  IL_004e:  br.s       IL_0058
+  IL_0050:  ldc.i4.4
+  IL_0051:  stloc.0
+  IL_0052:  br.s       IL_0058
+  IL_0054:  ldc.i4.5
+  IL_0055:  stloc.0
+  IL_0056:  br.s       IL_0058
+  IL_0058:  ldc.i4.1
+  IL_0059:  brtrue.s   IL_005c
+  IL_005b:  nop
+  IL_005c:  ldloc.0
+  IL_005d:  stloc.1
+  IL_005e:  br.s       IL_0060
+  IL_0060:  ldloc.1
+  IL_0061:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_04()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M(""a"", ""x"")); // 0
+        Console.Write(M(""a"", ""y"")); // 1
+        Console.Write(M(""a"", ""z"")); // 2
+        Console.Write(M(""a"", ""w"")); // 3
+        Console.Write(M(""b"", ""z"")); // 2
+        Console.Write(M(""c"", ""z"")); // 3
+        Console.Write(M(""c"", ""w"")); // 3
+    }
+
+    static int M(string x, string y)
+    {
+        return (x, y) switch
+        {
+            (""a"", ""x"") => 0,
+            (""a"", ""y"") => 1,
+            (""a"" or ""b"", ""z"") => 2,
+            _ => 3
+        };
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0123233", options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", @"{
+  // Code size      115 (0x73)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      ""a""
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldarg.0
+  IL_0013:  ldstr      ""b""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  brtrue.s   IL_004a
+  IL_001f:  br.s       IL_0065
+  IL_0021:  ldarg.1
+  IL_0022:  ldstr      ""z""
+  IL_0027:  call       ""bool string.op_Equality(string, string)""
+  IL_002c:  brtrue.s   IL_0061
+  IL_002e:  ldarg.1
+  IL_002f:  ldstr      ""x""
+  IL_0034:  call       ""bool string.op_Equality(string, string)""
+  IL_0039:  brtrue.s   IL_0059
+  IL_003b:  ldarg.1
+  IL_003c:  ldstr      ""y""
+  IL_0041:  call       ""bool string.op_Equality(string, string)""
+  IL_0046:  brtrue.s   IL_005d
+  IL_0048:  br.s       IL_0065
+  IL_004a:  ldarg.1
+  IL_004b:  ldstr      ""z""
+  IL_0050:  call       ""bool string.op_Equality(string, string)""
+  IL_0055:  brtrue.s   IL_0061
+  IL_0057:  br.s       IL_0065
+  IL_0059:  ldc.i4.0
+  IL_005a:  stloc.0
+  IL_005b:  br.s       IL_0069
+  IL_005d:  ldc.i4.1
+  IL_005e:  stloc.0
+  IL_005f:  br.s       IL_0069
+  IL_0061:  ldc.i4.2
+  IL_0062:  stloc.0
+  IL_0063:  br.s       IL_0069
+  IL_0065:  ldc.i4.3
+  IL_0066:  stloc.0
+  IL_0067:  br.s       IL_0069
+  IL_0069:  ldc.i4.1
+  IL_006a:  brtrue.s   IL_006d
+  IL_006c:  nop
+  IL_006d:  ldloc.0
+  IL_006e:  stloc.1
+  IL_006f:  br.s       IL_0071
+  IL_0071:  ldloc.1
+  IL_0072:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_05()
+        {
+            var source = @"
+using System;
+
+public enum EnumA { A, B, C }
+
+public enum EnumB { X, Y, Z }
+
+public class Class1
+{
+    public string Repro(EnumA a, EnumB b)
+        => (a, b) switch
+        {
+            (EnumA.A, EnumB.X) => ""AX"",
+            (_, EnumB.Y) => ""_Y"",
+            (EnumA.B, EnumB.X) => ""BZ"",
+            (_, EnumB.Z) => ""_Z"",
+            (_, _) => throw new ArgumentException()
+        };
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Class1.Repro", @"{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  brtrue.s   IL_0004
+  IL_0003:  nop
+  IL_0004:  ldarg.1
+  IL_0005:  brtrue.s   IL_001b
+  IL_0007:  ldarg.2
+  IL_0008:  switch    (
+        IL_002e,
+        IL_0036,
+        IL_0046)
+  IL_0019:  br.s       IL_004e
+  IL_001b:  ldarg.2
+  IL_001c:  ldc.i4.1
+  IL_001d:  beq.s      IL_0036
+  IL_001f:  ldarg.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  bne.un.s   IL_0028
+  IL_0023:  ldarg.2
+  IL_0024:  brfalse.s  IL_003e
+  IL_0026:  br.s       IL_0028
+  IL_0028:  ldarg.2
+  IL_0029:  ldc.i4.2
+  IL_002a:  beq.s      IL_0046
+  IL_002c:  br.s       IL_004e
+  IL_002e:  ldstr      ""AX""
+  IL_0033:  stloc.0
+  IL_0034:  br.s       IL_0054
+  IL_0036:  ldstr      ""_Y""
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0054
+  IL_003e:  ldstr      ""BZ""
+  IL_0043:  stloc.0
+  IL_0044:  br.s       IL_0054
+  IL_0046:  ldstr      ""_Z""
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  newobj     ""System.ArgumentException..ctor()""
+  IL_0053:  throw
+  IL_0054:  ldc.i4.1
+  IL_0055:  brtrue.s   IL_0058
+  IL_0057:  nop
+  IL_0058:  ldloc.0
+  IL_0059:  ret
+}");
+        }
+
         #endregion Pattern Combinators
     }
 }

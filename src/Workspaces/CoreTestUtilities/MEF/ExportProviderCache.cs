@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
 
         private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty.AddAssemblies(MefHostServices.DefaultAssemblies);
-        internal static readonly TestComposition RemoteHostExportProviderComposition = TestComposition.Empty.AddAssemblies(RoslynServices.RemoteHostAssemblies);
 
         private static bool _enabled;
 
@@ -51,16 +50,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public static IExportProviderFactory GetOrCreateExportProviderFactory(IEnumerable<Assembly> assemblies)
         {
-            if (assemblies is ImmutableArray<Assembly> assembliesArray)
+            if (assemblies is ImmutableArray<Assembly> assembliesArray &&
+                assembliesArray == MefHostServices.DefaultAssemblies)
             {
-                if (assembliesArray == MefHostServices.DefaultAssemblies)
-                {
-                    return s_defaultHostExportProviderComposition.ExportProviderFactory;
-                }
-                else if (assembliesArray == RoslynServices.RemoteHostAssemblies)
-                {
-                    return RemoteHostExportProviderComposition.ExportProviderFactory;
-                }
+                return s_defaultHostExportProviderComposition.ExportProviderFactory;
             }
 
             return CreateExportProviderFactory(CreateAssemblyCatalog(assemblies), isRemoteHostComposition: false);

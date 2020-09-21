@@ -4,57 +4,45 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.VisualBasic.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification
 {
-    [ExportLanguageServiceFactory(typeof(IClassificationService), StringConstants.CSharpLspLanguageName), Shared]
-    internal class CSharpLspClassificationServiceFactory : RoslynClassificationServiceFactory
+    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp, WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
+    internal class CSharpLspEditorClassificationFactory : RoslynSyntaxClassificationServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLspClassificationServiceFactory()
-        {
-        }
-
-        protected override string LiveShareContentType => StringConstants.CSharpLspLanguageName;
-    }
-
-    [ExportLanguageServiceFactory(typeof(IClassificationService), StringConstants.VBLspLanguageName), Shared]
-    internal class VBLspClassificationServiceFactory : RoslynClassificationServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VBLspClassificationServiceFactory()
-        {
-        }
-
-        protected override string LiveShareContentType => StringConstants.VBLspLanguageName;
-    }
-
-    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), StringConstants.CSharpLspLanguageName), Shared]
-    internal class CSharpLspEditorClassificationFactoryService : RoslynSyntaxClassificationServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLspEditorClassificationFactoryService(CSharpLspClientServiceFactory csharpLspClientServiceFactory,
+        public CSharpLspEditorClassificationFactory(CSharpLspClientServiceFactory csharpLspClientServiceFactory,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
             : base(csharpLspClientServiceFactory, classificationTypeMap, threadingContext)
         {
         }
+
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        protected override ISyntaxClassificationService GetOriginalSyntaxClassificationService(HostLanguageServices languageServices)
+            => new CSharpSyntaxClassificationService(languageServices);
     }
 
-    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), StringConstants.VBLspLanguageName), Shared]
-    internal class VBLspEditorClassificationFactoryService : RoslynSyntaxClassificationServiceFactory
+    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.VisualBasic, WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
+    internal class VBLspEditorClassificationServiceFactory : RoslynSyntaxClassificationServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VBLspEditorClassificationFactoryService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory,
+        public VBLspEditorClassificationServiceFactory(VisualBasicLspClientServiceFactory vbLspClientServiceFactory,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
             : base(vbLspClientServiceFactory, classificationTypeMap, threadingContext)
         {
         }
+
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        protected override ISyntaxClassificationService GetOriginalSyntaxClassificationService(HostLanguageServices languageServices)
+            => new VisualBasicSyntaxClassificationService(languageServices);
     }
 }

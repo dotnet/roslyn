@@ -108,7 +108,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,26): error CS1004: Duplicate 'async' modifier
                 //         Action v = async async delegate() { };
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(8, 26),
@@ -208,10 +208,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (8,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20));
         }
 
         [Fact]
@@ -306,10 +306,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (8,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
                 // (8,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Action v = static async delegate() { };
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(8, 33));
@@ -407,10 +407,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (8,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
                 // (8,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Action v = static async delegate() { };
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(8, 33));
@@ -508,13 +508,13 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (8,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static static delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 20),
-                // (8,27): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
+                // (8,27): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static static delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 27),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 27),
                 // (8,27): error CS1004: Duplicate 'static' modifier
                 //         Action v = static static delegate() { };
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(8, 27));
@@ -622,7 +622,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify();
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -763,7 +763,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = async async => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 46));
@@ -872,10 +872,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (8,28): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (8,28): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, int> v = static async => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 28));
         }
 
         [Fact]
@@ -883,13 +883,13 @@ public class C
         {
             var test = @"M1(static x => x);";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,4): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,4): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // M1(static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 4)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 4)
                 );
             verify();
 
@@ -936,13 +936,13 @@ public class C
         {
             var test = @"M1(ref static x => x);";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,8): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,8): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // M1(ref static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 8)
                 );
             verify();
 
@@ -990,13 +990,13 @@ public class C
         {
             var test = @"M1(param: static x => x);";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,11): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,11): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // M1(param: static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 11)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 11)
                 );
             verify();
 
@@ -1051,13 +1051,13 @@ public class C
         {
             var test = @"M1(static delegate(int x) { });";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,4): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // M1(static x => x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 4)
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,4): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // M1(static delegate(int x) { });
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 4)
                 );
             verify();
 
@@ -1114,13 +1114,13 @@ public class C
         {
             var test = @"_ = new int[static x => x];";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = new int[static x => x];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13)
                 );
             verify();
 
@@ -1173,11 +1173,11 @@ public class C
 
         [Theory]
         [CombinatorialData]
-        public void StaticLambdaRankSpecifier_Incomplete_01(bool preview)
+        public void StaticLambdaRankSpecifier_Incomplete_01(bool useCsharp9)
         {
             var test = @"_ = new int[static];";
 
-            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+            UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // _ = new int[static];
                 Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 13)
@@ -1220,11 +1220,11 @@ public class C
 
         [Theory]
         [CombinatorialData]
-        public void StaticLambdaRankSpecifier_Incomplete_02(bool preview)
+        public void StaticLambdaRankSpecifier_Incomplete_02(bool useCsharp9)
         {
             var test = @"_ = new int[static x];";
 
-            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+            UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // _ = new int[static x];
                 Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 13));
@@ -1269,16 +1269,16 @@ public class C
         {
             var test = @"_ = new int[static x =>];";
 
-            UsingStatement(test, options: TestOptions.RegularPreview,
+            UsingStatement(test,
                 // (1,24): error CS1525: Invalid expression term ']'
                 // _ = new int[static x =>];
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 24));
             verify();
 
-            UsingStatement(test,
-                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = new int[static x =>];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13),
                 // (1,24): error CS1525: Invalid expression term ']'
                 // _ = new int[static x =>];
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 24)
@@ -1337,16 +1337,16 @@ public class C
         {
             var test = @"_ = new int[static delegate];";
 
-            UsingStatement(test, options: TestOptions.RegularPreview,
+            UsingStatement(test,
                 // (1,28): error CS1514: { expected
                 // _ = new int[static delegate];
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 28));
             verify();
 
-            UsingStatement(test,
-                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = new int[static delegate];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13),
                 // (1,28): error CS1514: { expected
                 // _ = new int[static delegate];
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 28)
@@ -1399,11 +1399,11 @@ public class C
 
         [Theory]
         [CombinatorialData]
-        public void StaticLambdaArrayInitializer_Incomplete_01(bool preview)
+        public void StaticLambdaArrayInitializer_Incomplete_01(bool useCsharp9)
         {
             var test = @"_ = new Action[] { static }";
 
-            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+            UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // _ = new Action[] { static }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 20),
@@ -1454,11 +1454,11 @@ public class C
 
         [Theory]
         [CombinatorialData]
-        public void StaticLambdaArrayInitializer_Incomplete_02(bool preview)
+        public void StaticLambdaArrayInitializer_Incomplete_02(bool useCsharp9)
         {
             var test = @"_ = new Action[] { static x }";
 
-            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+            UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // _ = new Action[] { static x }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 20),
@@ -1516,7 +1516,7 @@ public class C
         {
             var test = @"_ = new Action[] { static x => }";
 
-            UsingStatement(test, options: TestOptions.RegularPreview,
+            UsingStatement(test,
                 // (1,32): error CS1525: Invalid expression term '}'
                 // _ = new Action[] { static x => }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 32),
@@ -1526,10 +1526,10 @@ public class C
                 );
             verify();
 
-            UsingStatement(test,
-                // (1,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = new Action[] { static x => }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 20),
                 // (1,32): error CS1525: Invalid expression term '}'
                 // _ = new Action[] { static x => }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 32),
@@ -1600,7 +1600,7 @@ public class C
         {
             var test = @"_ = new Action[] { static delegate }";
 
-            UsingStatement(test, options: TestOptions.RegularPreview,
+            UsingStatement(test,
                 // (1,36): error CS1514: { expected
                 // _ = new Action[] { static delegate }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 36),
@@ -1610,10 +1610,10 @@ public class C
                 );
             verify();
 
-            UsingStatement(test,
-                // (1,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = new Action[] { static delegate }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 20),
                 // (1,36): error CS1514: { expected
                 // _ = new Action[] { static delegate }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 36),
@@ -1681,13 +1681,13 @@ public class C
         {
             var test = @"_ = new int[static delegate(int x) { }];";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,13): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = new int[static delegate(int x) { }];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 13)
                 );
             verify();
 
@@ -1753,7 +1753,7 @@ public class C
         {
             var test = @"delegate*<void> ptr = &() => { };";
 
-            UsingStatement(test, options: TestOptions.RegularPreview,
+            UsingStatement(test,
                 // (1,25): error CS1525: Invalid expression term ')'
                 // delegate*<void> ptr = &() => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 25),
@@ -1763,10 +1763,10 @@ public class C
                 );
             verify();
 
-            UsingStatement(test,
-                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void> ptr = &() => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1),
                 // (1,25): error CS1525: Invalid expression term ')'
                 // delegate*<void> ptr = &() => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 25),
@@ -1785,16 +1785,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -1829,7 +1831,7 @@ public class C
         {
             var test = @"delegate*<void> ptr = &static () => { };";
 
-            UsingStatement(test, options: TestOptions.RegularPreview,
+            UsingStatement(test,
                 // (1,1): error CS1073: Unexpected token ')'
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void> ptr = &static (").WithArguments(")").WithLocation(1, 1),
@@ -1845,13 +1847,13 @@ public class C
                 );
             verify();
 
-            UsingStatement(test,
+            UsingStatement(test, options: TestOptions.Regular8,
                 // (1,1): error CS1073: Unexpected token ')'
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void> ptr = &static (").WithArguments(")").WithLocation(1, 1),
-                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1),
                 // (1,24): error CS1525: Invalid expression term 'static'
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
@@ -1874,16 +1876,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -1913,13 +1917,13 @@ public class C
         {
             var test = @"delegate*<void> ptr = &delegate() { };";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void> ptr = &delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1));
             verify();
 
             void verify()
@@ -1932,16 +1936,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -1981,13 +1987,13 @@ public class C
         {
             var test = @"delegate*<void> ptr = &delegate() { };";
 
-            UsingStatement(test, options: TestOptions.RegularPreview);
+            UsingStatement(test);
             verify();
 
-            UsingStatement(test,
-                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void> ptr = &delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1)
                 );
             verify();
 
@@ -2001,16 +2007,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -2351,10 +2359,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,34): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = static async async => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34),
                 // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = static async async => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
@@ -2499,10 +2507,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static async => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = async static async => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
@@ -2648,10 +2656,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static async async => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,47): error CS1004: Duplicate 'async' modifier
                 //         Func<int, Task<int>> v = async static async async => async;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
@@ -2767,7 +2775,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify();
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -2913,7 +2921,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,48): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = async (async) => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 48));
@@ -3027,10 +3035,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (8,28): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (8,28): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, int> v = static (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 28));
         }
 
         [Fact]
@@ -3177,10 +3185,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,34): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = static async (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34),
                 // (9,55): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = static async (async) => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 55));
@@ -3330,10 +3338,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,55): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = async static (async) => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 55));
@@ -3484,10 +3492,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static async (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,47): error CS1004: Duplicate 'async' modifier
                 //         Func<int, Task<int>> v = async static async (async) => async;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
@@ -3612,7 +3620,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify();
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -3767,7 +3775,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (10,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<Task<int>> v = async () => a;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 38));
@@ -3890,10 +3898,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (9,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (9,23): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int> v = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 23));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 23));
         }
 
         [Fact]
@@ -4049,10 +4057,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (10,29): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (10,29): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = static async () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 29),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 29),
                 // (10,45): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<Task<int>> v = static async () => a;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 45));
@@ -4211,10 +4219,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (10,35): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (10,35): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = async static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 35),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35),
                 // (10,45): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<Task<int>> v = async static () => a;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 45));
@@ -4374,10 +4382,10 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
-                // (10,35): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+                // (10,35): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = async static async () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 35),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35),
                 // (10,42): error CS1004: Duplicate 'async' modifier
                 //         Func<Task<int>> v = async static async () => a;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(10, 42),

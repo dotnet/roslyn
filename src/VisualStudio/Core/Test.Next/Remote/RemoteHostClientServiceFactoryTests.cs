@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
@@ -24,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
-            typeof(InProcRemoteHostClientProvider.Factory));
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
         private static AdhocWorkspace CreateWorkspace()
             => new AdhocWorkspace(s_composition.GetHostServices());
@@ -75,15 +73,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogAndProgressService();
+            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            await connection.RunRemoteAsync(
-                nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
-                solution: null,
-                new object[] { "emptySource", Path.GetTempPath() },
-                CancellationToken.None);
+            using var connection = await client.CreateConnectionAsync<IRemoteSymbolSearchUpdateService>(callbackTarget: mock, CancellationToken.None);
+            Assert.True(await connection.TryInvokeAsync(
+                (service, cancellationToken) => service.UpdateContinuouslyAsync("emptySource", Path.GetTempPath(), cancellationToken),
+                CancellationToken.None));
         }
 
         [Fact]
@@ -91,12 +87,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false).ConfigureAwait(false);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
             var serviceName = new RemoteServiceName("Test");
 
             // register local service
             TestService testService = null;
-            client.RegisterService(serviceName, (s, p) =>
+            client.RegisterService(serviceName, (s, p, o) =>
             {
                 testService = new TestService(s, p);
                 return testService;
@@ -151,15 +148,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             }
         }
 
-        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
+        private class MockLogService : ISymbolSearchLogService
         {
-            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
-            public Task LogInfoAsync(string text) => Task.CompletedTask;
-
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
+            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => default;
+            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken) => default;
         }
     }
 }

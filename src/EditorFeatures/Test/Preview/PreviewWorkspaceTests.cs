@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(args.Diagnostics.Length > 0);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46463")]
+        [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);

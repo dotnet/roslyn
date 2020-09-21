@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "SourceReferenceResolver",
                 "SpecificDiagnosticOptions",
                 "StrongNameProvider",
+                "SyntaxTreeOptionsProvider",
                 "ReportSuppressedDiagnostics",
                 "WarningLevel",
                 "XmlReferenceResolver");

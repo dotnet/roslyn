@@ -41,6 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             }
         }
 
+        bool IAssemblyResolver.IsGacAssembly(IAssemblyReference reference)
+        {
+            // This method is not called by the decompiler
+            throw new NotSupportedException();
+        }
+
         public PEFile Resolve(IAssemblyReference name)
         {
             Log("------------------");
