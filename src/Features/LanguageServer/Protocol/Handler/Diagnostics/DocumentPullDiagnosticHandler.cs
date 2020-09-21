@@ -101,38 +101,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Being asked about this document for the first time.  Or being asked again and we have different diagnostics.
 
-            var diagnosticKeys = _diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken).ToImmutableArray();
-
-            using var _ = ArrayBuilder<LspDiagnostic>.GetInstance(out var result);
-
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var key in diagnosticKeys)
-            {
-                var id = key.Id;
-                var documentId = key.DocumentId;
+            using var _ = ArrayBuilder<LspDiagnostic>.GetInstance(out var result);
+            foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
+                result.Add(Convert(text, diagnostic));
 
-                // ignore diagnostics unrelated to an actual document.
-                if (documentId == null)
-                    continue;
-
-                var diagnostics = _diagnosticService.GetDiagnostics(key.Workspace, key.ProjectId, key.DocumentId, key.Id, includeSuppressedDiagnostics: false, cancellationToken);
-                if (diagnostics == null)
-                    continue;
-
-                foreach (var diagnostic in diagnostics)
-                    result.Add(Convert(text, diagnostic));
-            }
-
-            string resultId;
             lock (_gate)
             {
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
                 // the same diagnostic set in the future.
-                resultId = _nextResultId++.ToString();
+                var resultId = _nextResultId++.ToString();
                 _documentIdToLastResultId[(workspace, document.Id)] = resultId;
+                return new[] { new DiagnosticReport { ResultId = resultId, Diagnostics = result.ToArray() } };
             }
-
-            return new[] { new DiagnosticReport { ResultId = resultId, Diagnostics = result.ToArray() } };
         }
 
         private static LspDiagnostic Convert(SourceText text, DiagnosticData diagnosticData)
