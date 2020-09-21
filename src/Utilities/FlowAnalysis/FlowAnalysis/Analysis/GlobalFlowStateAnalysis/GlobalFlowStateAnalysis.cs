@@ -102,7 +102,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         }
 
         protected override GlobalFlowStateAnalysisResult ToResult(GlobalFlowStateAnalysisContext analysisContext, GlobalFlowStateAnalysisResult dataFlowAnalysisResult)
-            => dataFlowAnalysisResult;
+        {
+            // Update the operation state map with global values map
+            // These are the values that analyzers care about.
+            var operationVisitor = (GlobalFlowStateDataFlowOperationVisitor)OperationVisitor;
+            return dataFlowAnalysisResult.With(operationVisitor.GetGlobalValuesMap());
+        }
 
         protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData data)
             => new GlobalFlowStateBlockAnalysisResult(basicBlock, data);
