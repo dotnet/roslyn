@@ -43,10 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         // Identifier can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
         // Sorting is done via StringComparer.OrdinalIgnoreCase which compares the utf-16 bytes after converting to uppercase
-        // utf-16 \ufffd is the largest possible value for utf-16 and is also greater than surrogate pairs.´, if byte comparison is used
-        // The "biggest" possible characters are \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\uD884\uDF4A" and
+        // utf-16 \ufffd is the largest possible value for utf-16 and is also greater than surrogate pairs, if byte comparison is used.
+        // The "biggest" possible characters are \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\ud884\udf4a" and
         // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
-
         private const string SortingPrefix = "\uFFFD";
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
