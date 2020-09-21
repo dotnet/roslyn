@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the argument is typed and there exists an overload with 0 parameter as a viable match.
                 // In one of these cases, get the method group info, which is what signature help already does.
                 if (info.Symbol == null ||
-                    info.Symbol is IMethodSymbol method && method.Parameters.Length == 0)
+                    argumentOpt == null && info.Symbol is IMethodSymbol method && method.Parameters.Length == 0)
                 {
                     var memberGroupMethods =
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
