@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -26,26 +27,32 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public static explicit operator SolutionKey(Solution solution)
-            => new SolutionKey(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
+            => new(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
 
         public SerializableSolutionKey Dehydrate()
-        {
-            return new SerializableSolutionKey
-            {
-                Id = Id,
-                FilePath = FilePath,
-                IsPrimaryBranch = IsPrimaryBranch,
-            };
-        }
+            => new(Id, FilePath, IsPrimaryBranch);
     }
 
-    internal class SerializableSolutionKey
+    [DataContract]
+    internal readonly struct SerializableSolutionKey
     {
-        public SolutionId Id;
-        public string FilePath;
-        public bool IsPrimaryBranch;
+        [DataMember(Order = 0)]
+        public readonly SolutionId Id;
+
+        [DataMember(Order = 1)]
+        public readonly string FilePath;
+
+        [DataMember(Order = 2)]
+        public readonly bool IsPrimaryBranch;
+
+        public SerializableSolutionKey(SolutionId id, string filePath, bool isPrimaryBranch)
+        {
+            Id = id;
+            FilePath = filePath;
+            IsPrimaryBranch = isPrimaryBranch;
+        }
 
         public SolutionKey Rehydrate()
-            => new SolutionKey(Id, FilePath, IsPrimaryBranch);
+            => new(Id, FilePath, IsPrimaryBranch);
     }
 }
