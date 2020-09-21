@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Extensions
     internal interface IErrorReportingService : IWorkspaceService
     {
         /// <summary>
+        /// Name of the host to be used in error messages (e.g. "Visual Studio").
+        /// </summary>
+        string HostDisplayName { get; }
+
+        /// <summary>
         /// Show error info in an active view.
         ///
         /// Different host can have different definition on what active view means.
@@ -31,7 +36,12 @@ namespace Microsoft.CodeAnalysis.Extensions
         /// <summary>
         /// Shows info-bar reporting ServiceHub process crash.
         /// "Unfortunately a process used by Visual Studio has encountered an unrecoverable error".
+        /// 
+        /// Obsolete - will remove once we remove JsonRpcConnection.
+        /// https://github.com/dotnet/roslyn/issues/45859
         /// </summary>
         void ShowRemoteHostCrashedErrorInfo(Exception? exception);
+
+        void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception);
     }
 }

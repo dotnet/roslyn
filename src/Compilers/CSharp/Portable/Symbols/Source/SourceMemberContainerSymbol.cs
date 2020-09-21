@@ -3507,7 +3507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                             // Ignore the record copy constructor
-                            if (!(method is SynthesizedRecordCopyCtor))
+                            if (!IsRecord || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method))
                             {
                                 hasInstanceConstructor = true;
                                 hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
