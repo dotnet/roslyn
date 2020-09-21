@@ -2978,7 +2978,7 @@ public class C
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) => 1,
             _ => -1,
         };
-        Console.WriteLine($"{x1} {x2} {x3} {x4}");
+        Console.WriteLine($""{x1} {x2} {x3} {x4}"");
     }
 }
 ";
