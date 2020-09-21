@@ -1552,20 +1552,20 @@ option2 = value2", "/.globalconfig2"));
             configs.Add(Parse(@"is_global = true
 option1 = value1
 
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 
-[c:/path/to/file2.cs]
+[/path/to/file2.cs]
 option1 = value1
 ", "/.globalconfig1"));
 
             configs.Add(Parse(@"is_global = true
 option2 = value2
 
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option2 = value2
 
-[c:/path/to/file3.cs]
+[/path/to/file3.cs]
 option1 = value1",
 "/.globalconfig2"));
 
@@ -1581,16 +1581,16 @@ option1 = value1",
             var file2Section = globalConfig.NamedSections[1];
             var file3Section = globalConfig.NamedSections[2];
 
-            Assert.Equal(@"c:/path/to/file1.cs", file1Section.Name);
+            Assert.Equal(@"/path/to/file1.cs", file1Section.Name);
             Assert.Equal(2, file1Section.Properties.Count);
             Assert.Equal("value1", file1Section.Properties["option1"]);
             Assert.Equal("value2", file1Section.Properties["option2"]);
 
-            Assert.Equal(@"c:/path/to/file2.cs", file2Section.Name);
+            Assert.Equal(@"/path/to/file2.cs", file2Section.Name);
             Assert.Equal(1, file2Section.Properties.Count);
             Assert.Equal("value1", file2Section.Properties["option1"]);
 
-            Assert.Equal(@"c:/path/to/file3.cs", file3Section.Name);
+            Assert.Equal(@"/path/to/file3.cs", file3Section.Name);
             Assert.Equal(1, file3Section.Properties.Count);
             Assert.Equal("value1", file3Section.Properties["option1"]);
             configs.Free();
@@ -1618,19 +1618,19 @@ option1 = value2", "/.globalconfig2"));
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 ", "/.globalconfig1"));
 
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value2",
 "/.globalconfig2"));
 
             var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
 
             diagnostics.Verify(
-                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
                 );
         }
 
@@ -1653,12 +1653,12 @@ option1 = value2", "/.globalconfig2"));
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 ", "/.globalconfig1"));
 
             configs.Add(Parse(@"
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value2",
 "/.globalconfig2"));
 
@@ -1675,14 +1675,13 @@ option1 = value1
 ", "/.globalconfig1"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/file1.cs", "/path/to/file1.cs", "c:/path/to/file1.cs", "/file1.vb" },
+                 new[] { "/file1.cs", "/path/to/file1.cs", "/file1.vb" },
                  configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
               new[]
               {
-                    new[] { ("option1", "value1") },
                     new[] { ("option1", "value1") },
                     new[] { ("option1", "value1") },
                     new[] { ("option1", "value1") }
@@ -1695,7 +1694,7 @@ option1 = value1
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 
 [*.cs]
@@ -1704,12 +1703,12 @@ option2 = value2
 [.*/path/*.cs]
 option3 = value3
 
-[c:/.*/*.cs]
+[/.*/*.cs]
 option4 = value4
 ", "/.globalconfig1"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/file1.cs", "/path/to/file1.cs", "c:/path/to/file1.cs", "/file1.vb" },
+                 new[] { "/file1.cs", "/path/to/file2.cs", "/path/to/file1.cs", "/file1.vb" },
                  configs);
             configs.Free();
 
@@ -1789,12 +1788,12 @@ option2 = config3
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 ", "/.globalconfig1"));
 
             configs.Add(Parse(@"is_global = true
-[c:/pAth/To/fiLe1.cs]
+[/pAth/To/fiLe1.cs]
 option1 = value2",
 "/.globalconfig2"));
 
@@ -1810,18 +1809,18 @@ option1 = value2",
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 ", "/.globalconfig1"));
 
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 opTioN1 = value2",
 "/.globalconfig2"));
 
             var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
             diagnostics.Verify(
-                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
                 );
             configs.Free();
         }
@@ -1850,16 +1849,16 @@ opTioN1 = value2",
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
-[c:/path/to/file1.cs]
+[/path/to/file1.cs]
 option1 = value1
 
-[c:\path\to\file2.cs]
+[\path\to\file2.cs]
 option1 = value1
 
 ", "/.globalconfig1"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "c:/path/to/file1.cs", "c:/path/to/file2.cs" },
+                 new[] { "/path/to/file1.cs", "/path/to/file2.cs" },
                  configs);
             configs.Free();
 
@@ -1900,12 +1899,12 @@ dotnet_diagnostic.cs001.severity = error
             configs.Add(Parse(@"
 is_global = true
 
-[c:/path/to/file.cs]
+[/path/to/file.cs]
 dotnet_diagnostic.cs000.severity = error
 ", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "c:/path/to/file.cs" },
+                new[] { "/test.cs", "/path/to/file.cs" },
                 configs);
             configs.Free();
 
@@ -1924,12 +1923,12 @@ dotnet_diagnostic.cs000.severity = error
 is_global = true
 dotnet_diagnostic.cs000.severity = foo
 
-[c:/path/to/file.cs]
+[/path/to/file.cs]
 dotnet_diagnostic.cs001.severity = bar
 ", "/.editorconfig"));
 
             var set = AnalyzerConfigSet.Create(configs);
-            var options = new[] { "/test.cs", "c:/path/to/file.cs" }.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
+            var options = new[] { "/test.cs", "/path/to/file.cs" }.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
             configs.Free();
 
             set.GlobalConfigOptions.Diagnostics.Verify(
@@ -1949,12 +1948,12 @@ dotnet_diagnostic.cs001.severity = bar
 is_global = true
 dotnet_diagnostic.cs000.severity = none
 
-[c:/path/to/file.cs]
+[/path/to/file.cs]
 dotnet_diagnostic.cs000.severity = error
 ", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "c:/path/to/file.cs" },
+                new[] { "/path/to/file.cs" },
                 configs);
             configs.Free();
 
@@ -2101,6 +2100,78 @@ option2 = config3
             Assert.Empty(globalOptions.TreeOptions);
         }
 
+        [Theory]
+        [InlineData("/path/to/file.cs", true)]
+        [InlineData("file.cs", false)]
+        [InlineData("../file.cs", false)]
+        [InlineData("**", false)]
+        [InlineData("*.cs", false)]
+        [InlineData("?abc.cs", false)]
+        [InlineData("/path/to/**", false)]
+        [InlineData("/path/[a]/to/*.cs", false)]
+        [InlineData("/path{", false)]
+        [InlineData("/path}", false)]
+        [InlineData("/path?", false)]
+        [InlineData("/path,", false)]
+        [InlineData("/path\"", true)]
+        [InlineData(@"/path\", false)] //editorconfig sees a single escape character (special)
+        [InlineData(@"/path\\", true)] //editorconfig sees an escaped backslash
+        [InlineData("//path", true)]
+        [InlineData("//", true)]
+        [InlineData(@"\", false)] //invalid: editorconfig sees a single escape character
+        [InlineData(@"\\", false)] //invalid: editorconfig sees an escaped, literal backslash
+        [InlineData(@"/\{\}\,\[\]\*", true)]
+        [InlineData(@"c:\my\file.cs", false)] // invalid: editorconfig sees a single file called 'c:(\m)y(\f)ile.cs' (i.e. \m and \f are escape chars)
+        [InlineData(@"\my\file.cs", false)] // invalid: editorconfig sees a single file called '(\m)y(\f)ile.cs' 
+        [InlineData(@"\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\my\file.cs' with literal backslashes
+        [InlineData(@"\\\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\\my\file.cs' not a UNC path
+        [InlineData("//server/file.cs", true)]
+        [InlineData(@"//server\file.cs", true)]
+        [InlineData(@"\/file.cs", true)] // allow escaped chars
+        [InlineData("<>a??/b.cs", false)]
+        [InlineData(".", false)]
+        [InlineData("/", true)]
+        [InlineData("", true)] // only true because [] isn't a valid editorconfig section name either and thus never gets parsed
+        public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+[{sectionName}]
+", "/.editorconfig"));
+
+            _ = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            if (isValid)
+            {
+                diagnostics.Verify();
+            }
+            else
+            {
+                diagnostics.Verify(
+                    Diagnostic("InvalidGlobalSectionName", isSuppressed: false).WithArguments(sectionName, "/.editorconfig").WithLocation(1, 1)
+                    );
+            }
+        }
+
+        [Theory]
+        [InlineData("c:/myfile.cs", true, false)]
+        [InlineData("cd:/myfile.cs", false, false)] // windows only allows a single character as a drive specifier
+        [InlineData(@"\c\:\/myfile.cs", true, false)] // allow escaped characters
+        [InlineData("/myfile.cs", true, true)] //absolute, with a relative drive root
+        [InlineData("c:myfile.cs", false, false)] //relative, wit2h an absolute drive root
+        [InlineData(@"c:\myfile.cs", false, false)] //not a valid editorconfig path
+        [InlineData("//?/C:/Test/Foo.txt", false, false)] // ? is a special char in editorconfig
+        [InlineData(@"//\?/C:/Test/Foo.txt", true, true)]
+        [InlineData(@"\\?\C:\Test\Foo.txt", false, false)]
+        [InlineData(@"c:", false, false)]
+        [InlineData(@"c\", false, false)]
+        [InlineData(@"\c\:", false, false)]
+        [InlineData("c:/", true, false)]
+        [InlineData("c:/*.cs", false, false)]
+        public void GlobalConfigIssuesWarningWithInvalidSectionNames_PlatformSpecific(string sectionName, bool isValidWindows, bool isValidOther)
+            => GlobalConfigIssuesWarningWithInvalidSectionNames(sectionName, ExecutionConditionUtil.IsWindows ? isValidWindows : isValidOther);
 
         #endregion
     }

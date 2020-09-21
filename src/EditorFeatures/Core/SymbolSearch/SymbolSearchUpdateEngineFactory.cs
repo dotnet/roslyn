@@ -4,13 +4,11 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -32,9 +30,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callbackObject = new CallbackObject(logService);
-                var session = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
-                return new RemoteUpdateEngine(workspace, session);
+                var connection = await client.CreateConnectionAsync<IRemoteSymbolSearchUpdateService>(logService, cancellationToken).ConfigureAwait(false);
+                return new RemoteUpdateEngine(connection);
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
@@ -53,97 +50,64 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private sealed class NoOpUpdateEngine : ISymbolSearchUpdateEngine
         {
-            public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-                => SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+            public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+                => new(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-            public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-                => SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+            public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+                => new(ImmutableArray<PackageWithTypeResult>.Empty);
 
-            public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-                => SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+            public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+                => new(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
 
-            public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
-                => Task.CompletedTask;
+            public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
+                => default;
         }
 
         private sealed class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
-            private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+            private readonly RemoteServiceConnection<IRemoteSymbolSearchUpdateService> _connection;
 
-            private readonly Workspace _workspace;
-            private readonly RemoteServiceConnection _session;
-
-            public RemoteUpdateEngine(
-                Workspace workspace,
-                RemoteServiceConnection session)
-            {
-                _workspace = workspace;
-                _session = session;
-            }
+            public RemoteUpdateEngine(RemoteServiceConnection<IRemoteSymbolSearchUpdateService> connection)
+                => _connection = connection;
 
             public void Dispose()
-            {
-                _session.Dispose();
-            }
+                => _connection.Dispose();
 
-            public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-                string source, string name, int arity, CancellationToken cancellationToken)
+            public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.RunRemoteAsync<IList<PackageWithTypeResult>>(
-                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
-                    solution: null,
-                    new object[] { source, name, arity },
+                var result = await _connection.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
+                    (service, cancellationToken) => service.FindPackagesWithTypeAsync(source, name, arity, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArray();
+                return result.HasValue ? result.Value : ImmutableArray<PackageWithTypeResult>.Empty;
             }
 
-            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var results = await _session.RunRemoteAsync<IList<PackageWithAssemblyResult>>(
-                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
-                    solution: null,
-                    new object[] { source, assemblyName },
+                var result = await _connection.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+                    (service, cancellationToken) => service.FindPackagesWithAssemblyAsync(source, assemblyName, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArray();
+                return result.HasValue ? result.Value : ImmutableArray<PackageWithAssemblyResult>.Empty;
             }
 
-            public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.RunRemoteAsync<IList<ReferenceAssemblyWithTypeResult>>(
-                    nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
-                    solution: null,
-                    new object[] { name, arity },
+                var result = await _connection.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
+                    (service, cancellationToken) => service.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArray();
+                return result.HasValue ? result.Value : ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
             }
 
-            public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
-                => _session.RunRemoteAsync(
-                    nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
-                    solution: null,
-                    new object[] { sourceName, localSettingsDirectory },
-                    CancellationToken.None);
-        }
-
-        private class CallbackObject : ISymbolSearchLogService
-        {
-            private readonly ISymbolSearchLogService _logService;
-
-            public CallbackObject(ISymbolSearchLogService logService)
+            public async ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
             {
-                _logService = logService;
+                _ = await _connection.TryInvokeAsync(
+                    (service, cancellationToken) => service.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
             }
-
-            public Task LogExceptionAsync(string exception, string text)
-                => _logService.LogExceptionAsync(exception, text);
-
-            public Task LogInfoAsync(string text)
-                => _logService.LogInfoAsync(text);
         }
     }
 }

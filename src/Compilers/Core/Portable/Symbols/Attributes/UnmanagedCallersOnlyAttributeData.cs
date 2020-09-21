@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         {
             return key == "CallConvs"
                    && value.Kind == TypedConstantKind.Array
-                   && value.Values.All(v => v.Kind == TypedConstantKind.Type);
+                   && (value.Values.IsDefaultOrEmpty || value.Values.All(v => v.Kind == TypedConstantKind.Type));
         }
     }
 }

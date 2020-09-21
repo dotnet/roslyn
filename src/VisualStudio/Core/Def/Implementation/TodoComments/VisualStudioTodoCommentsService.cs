@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// Remote service connection. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection<IRemoteTodoCommentsService>? _lazyConnection;
+        private RemoteServiceConnection<IRemoteTodoCommentsDiscoveryService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _lazyConnection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
