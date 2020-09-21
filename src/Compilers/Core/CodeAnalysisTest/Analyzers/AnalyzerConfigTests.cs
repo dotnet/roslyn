@@ -2168,6 +2168,8 @@ is_global = true
         [InlineData(@"c:", false, false)]
         [InlineData(@"c\", false, false)]
         [InlineData(@"\c\:", false, false)]
+        [InlineData("c:/", true, false)]
+        [InlineData("c:/*.cs", false, false)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames_PlatformSpecific(string sectionName, bool isValidWindows, bool isValidOther)
             => GlobalConfigIssuesWarningWithInvalidSectionNames(sectionName, ExecutionConditionUtil.IsWindows ? isValidWindows : isValidOther);
 
