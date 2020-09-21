@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis
             _services = host.CreateWorkspaceServices(this);
 
             _optionService = _services.GetRequiredService<IOptionService>();
-            _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
@@ -372,9 +371,6 @@ namespace Microsoft.CodeAnalysis
 
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
-
-            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
-            _optionService.UnregisterWorkspace(this);
 
             // Dispose per-instance services created for this workspace (direct MEF exports, including factories, will
             // be disposed when the MEF catalog is disposed).
