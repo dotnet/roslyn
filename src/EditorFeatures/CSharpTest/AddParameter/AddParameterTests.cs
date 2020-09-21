@@ -1644,6 +1644,68 @@ namespace N1
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_ExtendedPartialMethods()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM();
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix0 =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v);
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v) { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocation_Cascading_PartialMethodsInSameDocument()
@@ -2589,6 +2651,92 @@ class MyClass : BaseClass
 
     void MyFunc(BaseClass param1, int newparam) { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().[|GetEnumerator|](1);
+        foreach (var a in new object());
+    }
+}}";
+            var fix =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().GetEnumerator(1);
+        foreach (var a in new object());
+    }
+}}";
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetAsyncEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().[|GetAsyncEnumerator|](1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            var fix =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().GetAsyncEnumerator(1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(code, fix);
         }
 
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]

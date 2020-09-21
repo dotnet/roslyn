@@ -419,6 +419,10 @@ namespace My
                 return;
             yield return this.items[3];
             yield break;
+            delegate*&lt;int, string, void&gt; fp1 = null;
+            delegate* managed&lt;int, string, void&gt; fp2 = null;
+            delegate* unmanaged&lt;int, string, void&gt; fp3 = null;
+            delegate* unmanaged[Cdecl]&lt;int, string, void&gt; fp4 = null;
             fixed (int* p = stackalloc int[100], q = &amp;y)
             {
                 *intref = 1;

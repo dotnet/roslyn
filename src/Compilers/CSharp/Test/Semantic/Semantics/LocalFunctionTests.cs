@@ -337,7 +337,7 @@ class C
         void local<[X]T>() {}
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularPreview);
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
@@ -434,12 +434,12 @@ class C
         {statement}
     }}
 }}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularPreview);
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
             validate(model, tree);
 
-            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ", options: TestOptions.RegularPreview);
+            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ", options: TestOptions.Regular9);
             var mMethod = (MethodDeclarationSyntax)newTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration, occurrence: 1).AsNode();
 
             Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(mMethod.Body.SpanStart, mMethod, out var newModel));
@@ -480,7 +480,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local() { }
@@ -528,7 +528,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (13,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local() { }
@@ -599,7 +599,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (17,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //         [A(s1)] // 1
@@ -652,7 +652,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (13,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //         [A(42 is int i)] // 1
@@ -706,7 +706,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (13,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //         [A(M2(out var i))] // 1
@@ -754,7 +754,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (15,12): error CS1041: Identifier expected; 'out' is a keyword
                 //         [A(out s)]
@@ -792,7 +792,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8321: The local function 'local' is declared but never used
                 //         int local() => 42;
@@ -839,7 +839,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                     // (9,13): warning CS8321: The local function 'local' is declared but never used
                     //         int local([A] int i) => i;
@@ -884,20 +884,20 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,9): error CS8400: Feature 'local function attributes' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         [A]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(10, 9),
-                // (13,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "[A]").WithArguments("local function attributes", "9.0").WithLocation(10, 9),
+                // (13,9): error CS8400: Feature 'local function attributes' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         [return: A]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[return: A]").WithArguments("local function attributes").WithLocation(13, 9),
-                // (16,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "[return: A]").WithArguments("local function attributes", "9.0").WithLocation(13, 9),
+                // (16,21): error CS8400: Feature 'local function attributes' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         void local3([A] int i) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(16, 21),
-                // (18,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "[A]").WithArguments("local function attributes", "9.0").WithLocation(16, 21),
+                // (18,21): error CS8400: Feature 'local function attributes' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         void local4<[A] T>() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(18, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "[A]").WithArguments("local function attributes", "9.0").WithLocation(18, 21));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -942,7 +942,7 @@ public class C {
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (22,10): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
                 //         [Prop] // 1
@@ -1012,7 +1012,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1077,7 +1077,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,14): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
                 //         void local1();
@@ -1114,7 +1114,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //         [DllImport("a")] extern void local1(); // 1, 2
@@ -1198,7 +1198,7 @@ class C
         };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (12,10): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //         [DllImport("a")] extern static void local2<T>(); // 1
@@ -1279,7 +1279,7 @@ class C{classTypeParams}
         }}
     }}
 }}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (13,14): error CS7042: The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.
                 //             [DllImport("a")] extern static void local1(); // 1
@@ -1344,7 +1344,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (12,28): warning CS0626: Method, operator, or accessor 'local1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //         static extern void local1(); // 1
@@ -1375,7 +1375,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,14): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
                 //         void local1(); // 1
@@ -1746,7 +1746,7 @@ class C
     {
         void Local<[A]T, [CLSCompliant]U>() { }
     }
-}", parseOptions: TestOptions.RegularPreview);
+}", parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A]T, [CLSCompliant]U>() { }
@@ -1821,7 +1821,7 @@ class C
     {
         void Local([A]int x, [CLSCompliant]int y) { }
     }
-}", parseOptions: TestOptions.RegularPreview);
+}", parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A]int x, [CLSCompliant]int y) { }
@@ -1897,7 +1897,7 @@ class C
         void Local<[A, B, CLSCompliant, D]T>() { }
         Local<int>();
     }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
@@ -1954,7 +1954,7 @@ class C
         void Local([A, B]int x, [CLSCompliant]string s = """") { }
         Local(0);
     }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
@@ -2023,7 +2023,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (18,10): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //         [IsReadOnly] // 1
@@ -2063,7 +2063,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,10): error CS4030: Security attribute 'SecurityCritical' cannot be applied to an Async method.
                 //         [SecurityCritical] // 1
@@ -2617,7 +2617,7 @@ class C
         Console.Write(' ');
         CallerMemberName();
     }
-}", parseOptions: TestOptions.RegularPreview);
+}", parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -2640,7 +2640,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //         void CallerMemberName([CallerMemberName] int s = 2)
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32));
@@ -3577,7 +3577,7 @@ class Program
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(baseExpected);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(baseExpected);
         }
 
@@ -4733,7 +4733,7 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
@@ -5723,7 +5723,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,10): error CS0578: The Conditional attribute is not valid on 'local1()' because its return type is not void
                 //         [Conditional("DEBUG")] // 1
@@ -5763,7 +5763,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS0612: 'local1()' is obsolete
                 //         local1(); // 1
@@ -5794,7 +5794,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (12,10): warning CS0612: 'Attr' is obsolete
                 //         [Attr] void local1() { } // 1
@@ -5830,7 +5830,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { NotNullIfNotNullAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { NotNullIfNotNullAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = local1(null).ToString(); // 1
@@ -5861,7 +5861,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (12,15): warning CS8602: Dereference of a possibly null reference.
                 //             : s.ToString(); // 1
@@ -5899,7 +5899,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (18,17): warning CS8602: Dereference of a possibly null reference.
                 //             _ = s.ToString(); // 1
@@ -5929,7 +5929,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { AllowNullAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { AllowNullAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (13,16): warning CS8604: Possible null reference argument for parameter 't' in 'void local2(T t)'.
                 //         local2(t1); // 1
@@ -5958,7 +5958,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         getDefault<string>().ToString(); // 1
@@ -5999,7 +5999,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -6026,7 +6026,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { DoesNotReturnAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { DoesNotReturnAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -6055,7 +6055,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { DoesNotReturnIfAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { DoesNotReturnIfAttributeDefinition, source }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 

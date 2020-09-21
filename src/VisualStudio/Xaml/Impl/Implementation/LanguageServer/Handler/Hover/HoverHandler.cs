@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -33,10 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return null;

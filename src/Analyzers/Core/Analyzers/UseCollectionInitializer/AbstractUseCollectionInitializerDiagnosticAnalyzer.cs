@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -145,20 +144,20 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (syntaxFacts.IsInvocationExpression(expression))
                 {
                     var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
-                    var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
-                        match.SpanStart, arguments[0].SpanStart));
+                    var additionalUnnecessaryLocations = ImmutableArray.Create(
+                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
+                        syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
 
-                    RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
+                    // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                    // will be offered.
+                    var location1 = additionalUnnecessaryLocations[0];
 
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            arguments.Last().FullSpan.End,
-                            match.Span.End)),
-                        additionalLocations: locations));
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        Descriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations,
+                        additionalUnnecessaryLocations: additionalUnnecessaryLocations));
                 }
             }
         }

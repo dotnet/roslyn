@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
@@ -16,15 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
 
         Private Shared ReadOnly s_options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
-            GetType(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService))
-
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicNamingStyleDiagnosticAnalyzer(), New NamingStyleCodeFixProvider())
         End Function
 
         Protected Overrides Function GetComposition() As TestComposition
-            Return s_composition
+            Return MyBase.GetComposition().AddParts(GetType(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService))
         End Function
 
         ' TODO: everything else apart from locals

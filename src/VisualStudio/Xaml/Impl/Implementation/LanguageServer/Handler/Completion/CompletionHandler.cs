@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 
@@ -31,32 +34,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
+        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return CreateErrorItem($"Cannot find document in solution!", request.TextDocument.Uri.ToString());
             }
 
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
-            var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var completions = await completionService.GetCompletionsAsync(document, offset, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (completions == null)
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
+            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (completionResult?.Completions == null)
             {
                 return Array.Empty<CompletionItem>();
             }
 
-            return completions.Select(c => CreateCompletionItem(c, document.Id, request.Position)).ToArray();
+            return completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray();
         }
 
-        private static CompletionItem CreateCompletionItem(IXamlCompletionItem xamlCompletion, DocumentId documentId, Position position)
-            => new VSCompletionItem
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
+        {
+            TextEdit? textEdit = null;
+
+            if (xamlCompletion.Span.HasValue)
+            {
+                textEdit = new TextEdit
+                {
+                    NewText = xamlCompletion.InsertText,
+                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
+                };
+            }
+
+            return new VSCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
                 CommitCharacters = xamlCompletion.CommitCharacters,
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
+                TextEdit = textEdit,
                 Preselect = xamlCompletion.Preselect,
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
@@ -65,8 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Icon = xamlCompletion.Icon,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
+        }
 
-        private static CompletionItem[] CreateErrorItem(string message, string details = null)
+        private static CompletionItem[] CreateErrorItem(string message, string? details = null)
         {
             var item = new CompletionItem
             {

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("dynamic")));
             }
 
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return SpecializedTasks.Null<IEnumerable<RecommendedKeyword>>();
         }
 
         protected static bool IsDynamicTypeContext(

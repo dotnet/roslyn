@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -583,8 +582,6 @@ class Program
             }.RunAsync();
         }
 
-#if !CODE_STYLE
-
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestOnMultiCaseSection_CSharp9()
@@ -623,8 +620,6 @@ class Program
                 LanguageVersion = CSharp9,
             }.RunAsync();
         }
-
-#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiCompoundAssignment()
@@ -1917,7 +1912,7 @@ return i switch
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             test.ExpectedDiagnostics.Add(
@@ -1962,7 +1957,7 @@ j = i switch
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             test.ExpectedDiagnostics.Add(

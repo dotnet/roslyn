@@ -8074,7 +8074,7 @@ class A
 
         [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task WithinChainOfConditionalAccesses()
+        public async Task WithinChainOfConditionalAccesses1()
         {
             var markup = @"
 class Program
@@ -8091,6 +8091,48 @@ class B { public C c; }
 class C { public D d; }
 class D { public int e; }";
             await VerifyItemExistsAsync(markup, "b");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.$$c?.d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "c");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses3()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.c?.$$d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "d");
         }
 
         [WorkItem(843466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
@@ -10690,6 +10732,24 @@ class C
         $$
     }
 }", "Local");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1152109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1152109")]
+        public async Task NoItemWithEmptyDisplayName()
+        {
+            var markup = @"
+class C
+{
+    static void M()
+    {
+        int$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(
+                markup, "",
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
     }
 }

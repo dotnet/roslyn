@@ -403,6 +403,8 @@ class C
             using var session = CreateSession(code);
             Assert.NotNull(session);
             CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
         }
 
         internal static Holder CreateSession(string code)

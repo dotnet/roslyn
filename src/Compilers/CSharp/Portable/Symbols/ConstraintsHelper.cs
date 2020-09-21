@@ -991,7 +991,7 @@ hasRelatedInterfaces:
                 }
                 if (type.IsValueType)
                 {
-                    return type.IsNullableType() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                    return type.IsNullableTypeOrTypeParameter() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
                 }
                 switch (typeWithAnnotations.NullableAnnotation)
                 {
@@ -1015,7 +1015,7 @@ hasRelatedInterfaces:
                     }
                     else
                     {
-                        result = (NullableFlowState)Math.Min((int)result.Value, (int)constraintState);
+                        result = result.Value.Meet(constraintState);
                     }
                 }
                 return result ?? NullableFlowState.MaybeNull;

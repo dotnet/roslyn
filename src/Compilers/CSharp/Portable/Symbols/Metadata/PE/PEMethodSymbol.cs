@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |  r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -66,7 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // p = DoesNotReturn. 1 bit.
             // q = DoesNotReturnPopulated. 1 bit.
             // r = MemberNotNullPopulated. 1 bit.
-            // 9 bits remain for future purposes.
+            // s = IsInitOnlyBit. 1 bit.
+            // t = IsInitOnlyPopulatedBit. 1 bit.
+            // u = IsUnmanagedCallersOnlyAttributePopulated. 1 bit.
+            // 6 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -91,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
             private const int IsInitOnlyBit = 0x1 << 24;
             private const int IsInitOnlyPopulatedBit = 0x1 << 25;
+            private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
 
             private int _bits;
 
@@ -126,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
             public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
             public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
+            public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -227,6 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
+
+            public void SetIsUnmanagedCallersOnlyAttributePopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsUnmanagedCallersOnlyAttributePopulatedBit);
+            }
         }
 
         /// <summary>
@@ -240,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
             public ImmutableArray<string> _lazyConditionalAttributeSymbols;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
+            public UnmanagedCallersOnlyAttributeData _lazyUnmanagedCallersOnlyAttributeData;
             public DiagnosticInfo _lazyUseSiteDiagnostic;
             public ImmutableArray<string> _lazyNotNullMembers;
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
@@ -253,6 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!_packedFlags.IsObsoleteAttributePopulated)
             {
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+            }
+
+            if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
+            {
+                retVal._lazyUnmanagedCallersOnlyAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
             }
 
             //
@@ -1175,6 +1192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
+            // Disabling optimization to work around a JIT bug in .NET 5.
+            // See https://github.com/dotnet/roslyn/issues/46575
+            [MethodImpl(MethodImplOptions.NoOptimization)]
             get
             {
                 var explicitInterfaceImplementations = _lazyExplicitMethodImplementations;
@@ -1314,6 +1334,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 EnsureTypeParametersAreLoaded(ref result);
+                if (result == null && UnmanagedCallersOnlyAttributeData is UnmanagedCallersOnlyAttributeData data)
+                {
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+                    if (MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction)
+                        || !IsStatic
+                        || !data.IsValid)
+                    {
+                        result = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                    }
+                }
+
                 return InitializeUseSiteDiagnostic(result);
             }
 
@@ -1401,6 +1433,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
         }
+
+#nullable enable
+        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        {
+            get
+            {
+                if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
+                {
+                    var allAttributes = GetAttributes();
+
+                    CSharpAttributeData? unmanagedAttribute = null;
+                    foreach (var attribute in allAttributes)
+                    {
+                        if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
+                        {
+                            unmanagedAttribute = attribute;
+                            break;
+                        }
+                    }
+
+                    UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
+                        ? null
+                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
+
+                    var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
+                                                                  data,
+                                                                  UnmanagedCallersOnlyAttributeData.Uninitialized);
+
+                    _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
+                    return result;
+                }
+
+                return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
+            }
+        }
+#nullable restore
 
         internal override bool GenerateDebugInfo => false;
 

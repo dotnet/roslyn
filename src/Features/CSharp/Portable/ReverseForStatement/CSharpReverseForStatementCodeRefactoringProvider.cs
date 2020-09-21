@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             };
         }
 
-        private static bool IsUnsignedBoundary(Optional<object> startValue, Optional<object> endValue, ulong maxValue)
+        private static bool IsUnsignedBoundary(Optional<object?> startValue, Optional<object?> endValue, ulong maxValue)
             => ValueEquals(startValue, 0) || ValueEquals(endValue, maxValue);
 
-        private static bool ValueEquals(Optional<object> valueOpt, ulong value)
+        private static bool ValueEquals(Optional<object?> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
         private static bool MatchesIncrementPattern(
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             var condition = (BinaryExpressionSyntax)forStatement.Condition!;
             var after = forStatement.Incrementors[0];
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;

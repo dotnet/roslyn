@@ -131,7 +131,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     // attribute types that don't have "Attribute" suffix would be filtered out when in attribute context.
                     var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
-                    var item = ImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
+                    var item = ImportCompletionItem.Create(
+                        symbol.Name,
+                        symbol.Arity,
+                        containingNamespace,
+                        symbol.GetGlyph(),
+                        _genericTypeSuffix,
+                        CompletionItemFlags.CachedAndExpanded,
+                        extensionMethodData: null);
+
                     _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
                 }
 

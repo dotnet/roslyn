@@ -636,7 +636,7 @@ partial delegate E { }
 ";
 
             // Extra errors
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
@@ -2439,7 +2439,7 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         {
             var test = @" > Roslyn.Utilities.dll!  Basic";
 
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (1,2): error CS1525: Invalid expression term '>'
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 2),
@@ -2726,10 +2726,10 @@ namespace x
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (7,21): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2778,9 +2778,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS8059: Feature 'target-typed object creation' is not available in C# 6. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2798,9 +2798,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS8107: Feature 'target-typed object creation' is not available in C# 7.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]

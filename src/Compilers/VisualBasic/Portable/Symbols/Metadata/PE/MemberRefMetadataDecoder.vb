@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
                 If field IsNot Nothing AndAlso
-                   TypeSymbol.Equals(field.Type, type, TypeCompareKind.ConsiderEverything) AndAlso
+                   TypeSymbol.Equals(field.Type, type, TypeCompareKind.AllIgnoreOptionsForVB) AndAlso
                    CustomModifiersMatch(field.CustomModifiers, customModifiers) Then
 
                     ' Behavior in the face of multiple matching signatures is
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             'CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            If Not TypeSymbol.Equals(candidateParam.Type, targetParam.Type, TypeCompareKind.ConsiderEverything) Then
+            If Not TypeSymbol.Equals(candidateParam.Type, targetParam.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
                 Return False
             End If
 
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim targetReturnType As TypeSymbol = targetReturnParam.Type
 
             ' No special handling for error types.  Right now, we expect they'll just fail to match.
-            If Not TypeSymbol.Equals(candidateReturnType, targetReturnType, TypeCompareKind.ConsiderEverything) OrElse candidateMethod.ReturnsByRef <> targetReturnParam.IsByRef Then
+            If Not TypeSymbol.Equals(candidateReturnType, targetReturnType, TypeCompareKind.AllIgnoreOptionsForVB) OrElse candidateMethod.ReturnsByRef <> targetReturnParam.IsByRef Then
                 Return False
             End If
 

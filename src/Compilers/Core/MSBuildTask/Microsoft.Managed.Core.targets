@@ -50,6 +50,28 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
+    <!-- First, force clear non-user facing property '_SkipAnalyzers'. -->
+    <PropertyGroup>
+      <_SkipAnalyzers></_SkipAnalyzers>
+    </PropertyGroup>
+
+    <!--
+        Then, determine if '_SkipAnalyzers' needs to be 'true' based on user facing property 'RunAnalyzers'.
+        If 'RunAnalyzers' is not set, then fallback to user facing property 'RunAnalyzersDuringBuild'.
+        Latter property allows users to disable analyzers only for non-design time builds.
+        Design time builds are background builds inside Visual Studio,
+        see details here: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md.
+        Setting 'RunAnalyzersDuringBuild' to false, without setting 'RunAnalyzers', allows users to
+        continue running analyzers in the background in Visual Studio while typing (i.e. intellisense),
+        while disabling analyzer execution on explicitly invoked non-design time builds.
+      -->
+    <PropertyGroup Condition="'$(RunAnalyzers)' == 'false' or
+                              ('$(RunAnalyzers)' == '' and '$(RunAnalyzersDuringBuild)' == 'false')">
+      <_SkipAnalyzers>true</_SkipAnalyzers>
+    </PropertyGroup>
+  </Target>
+
   <!--
     ========================
     .editorconfig Support

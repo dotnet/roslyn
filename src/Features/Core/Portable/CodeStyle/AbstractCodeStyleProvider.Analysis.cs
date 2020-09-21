@@ -19,17 +19,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             public readonly TCodeStyleProvider _codeStyleProvider;
 
-            protected DiagnosticAnalyzer(bool configurable = true)
-                : this(new TCodeStyleProvider(), configurable)
+            protected DiagnosticAnalyzer(bool isUnnecessary = true, bool configurable = true)
+                : this(new TCodeStyleProvider(), isUnnecessary, configurable)
             {
             }
 
-            private DiagnosticAnalyzer(TCodeStyleProvider codeStyleProvider, bool configurable)
+            private DiagnosticAnalyzer(TCodeStyleProvider codeStyleProvider, bool isUnnecessary, bool configurable)
                 : base(codeStyleProvider._descriptorId,
                        codeStyleProvider._option,
                        codeStyleProvider._language,
                        codeStyleProvider._title,
                        codeStyleProvider._message,
+                       isUnnecessary,
                        configurable)
             {
                 _codeStyleProvider = codeStyleProvider;

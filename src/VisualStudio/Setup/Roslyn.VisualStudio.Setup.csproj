@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
@@ -134,7 +135,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\VisualStudio\LiveShare\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj">
       <Name>LiveShareLanguageServices</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
@@ -268,7 +269,7 @@
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
       <Name>InteractiveHost.Core64</Name>
 
-      <SetTargetFramework>TargetFramework=netcoreapp3.1</SetTargetFramework>
+      <SetTargetFramework>TargetFramework=net5.0</SetTargetFramework>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 

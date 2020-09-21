@@ -4,8 +4,6 @@
 
 #nullable enable
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -18,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </typeparam>
     public abstract partial class CSharpSyntaxVisitor<TResult>
     {
-        [return: MaybeNull]
-        public virtual TResult Visit(SyntaxNode? node)
+        public virtual TResult? Visit(SyntaxNode? node)
         {
             if (node != null)
             {
@@ -30,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return default;
         }
 
-        [return: MaybeNull]
-        public virtual TResult DefaultVisit(SyntaxNode node)
+        public virtual TResult? DefaultVisit(SyntaxNode node)
         {
             return default;
         }

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             try
             {
-                worker.WaitUntilCompletion_ForTestingPurposesOnly();
+                worker.GetTestAccessor().WaitUntilCompletion();
                 Assert.True(false);
             }
             catch (AggregateException ae)

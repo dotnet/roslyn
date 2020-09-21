@@ -2420,7 +2420,37 @@ $@"class C
                 break;
         };
     }
-}", options: PreferDiscard);
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case int [|x|]:
+                x = 1;
+                break;
+        };
+    }
+}",
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case int:
+                int x = 1;
+                break;
+        };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -4918,7 +4948,7 @@ $@"class C
                 break;
         }}
     }}
-}}", optionName);
+}}", optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -7684,7 +7714,7 @@ class C
                 break;
         };
     }
-}", options: PreferDiscard);
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
@@ -8131,7 +8161,7 @@ class C : IDisposable
         using var [|x|] = new C();
     }
 }", options: PreferDiscard,
-    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -8153,7 +8183,7 @@ class C : IDisposable
         using var [|x|] = new C() { P = 1 };
     }
 }", options: PreferDiscard,
-    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]

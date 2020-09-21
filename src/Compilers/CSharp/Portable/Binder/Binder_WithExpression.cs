@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
-                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType, ref useSiteDiagnostics);
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType is TypeParameterSymbol typeParameter ? typeParameter.EffectiveBaseClass(ref useSiteDiagnostics) : receiverType, ref useSiteDiagnostics);
                 if (cloneMethod is null)
                 {
                     hasErrors = true;

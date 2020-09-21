@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -60,10 +62,9 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutable();
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var name = reader.ReadString();
-
+                var name = reader.ReadString()!;
                 var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isConstructed = reader.ReadBoolean();
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var container in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
                 {
                     var originalType = reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
-                    var errorType = isConstructed ? originalType.Construct(typeArgumentsArray) : originalType;
+                    var errorType = typeArgumentsArray != null ? originalType.Construct(typeArgumentsArray) : originalType;
                     result.AddIfNotNull(errorType);
                 }
 
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                 return CreateResolution(result, $"({nameof(ErrorTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader, out string failureReason)
+            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader, out string? failureReason)
             {
                 var type = reader.ReadInteger();
 
@@ -114,7 +115,9 @@ namespace Microsoft.CodeAnalysis
 
                 if (type == 1)
                 {
-                    using var namespaceNames = reader.ReadStringArray();
+#pragma warning disable IDE0007 // Use implicit type
+                    using PooledArrayBuilder<string> namespaceNames = reader.ReadStringArray()!;
+#pragma warning restore IDE0007 // Use implicit type
                     var currentNamespace = reader.Compilation.GlobalNamespace;
 
                     // have to walk the namespaces in reverse because that's how we encoded them.

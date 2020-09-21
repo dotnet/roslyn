@@ -34,7 +34,7 @@ namespace ObjectFormatterFixtures
 
     internal class MockTaskProxy
     {
-        private MockDesktopTask m_task;
+        private readonly MockDesktopTask m_task;
         public object AsyncState => m_task.AsyncState;
         public TaskCreationOptions CreationOptions => m_task.CreationOptions;
         public Exception Exception => m_task.Exception;

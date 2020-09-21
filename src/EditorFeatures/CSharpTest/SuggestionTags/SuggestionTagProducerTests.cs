@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
     [UseExportProvider]
     public class SuggestionTagProducerTests
     {
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46463"), Trait(Traits.Feature, Traits.Features.SuggestionTags)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
         public async Task SuggestionTagTest1()
         {
             var (spans, selection) = await GetTagSpansAndSelectionAsync(

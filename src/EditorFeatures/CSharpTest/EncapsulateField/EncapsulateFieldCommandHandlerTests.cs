@@ -5,14 +5,11 @@
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -203,10 +200,7 @@ class Program
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new EncapsulateFieldCommandHandler(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ITextBufferUndoManagerProvider>(),
-                workspace.GetService<IAsynchronousOperationListenerProvider>());
+            var handler = workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

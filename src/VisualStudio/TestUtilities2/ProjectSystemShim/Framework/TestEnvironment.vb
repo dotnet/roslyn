@@ -51,21 +51,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         '        GetType(MockDiagnosticUpdateSourceRegistrationService),
         '        GetType(MockWorkspaceEventListenerProvider))
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
-            GetType(FileChangeWatcherProvider),
-            GetType(MockVisualStudioWorkspace),
-            GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
-            GetType(VisualStudioProjectFactory),
-            GetType(MockServiceProvider),
-            GetType(SolutionEventsBatchScopeCreator),
-            GetType(ProjectCodeModelFactory),
-            GetType(CPSProjectFactory),
-            GetType(VisualStudioRuleSetManagerFactory),
-            GetType(VsMetadataServiceFactory),
-            GetType(VisualStudioMetadataReferenceManagerFactory),
-            GetType(MockWorkspaceEventListenerProvider),
-            GetType(MockDiagnosticUpdateSourceRegistrationService),
-            GetType(HostDiagnosticUpdateSource))
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(
+                GetType(FileChangeWatcherProvider),
+                GetType(MockVisualStudioWorkspace),
+                GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
+                GetType(VisualStudioProjectFactory),
+                GetType(MockServiceProvider),
+                GetType(SolutionEventsBatchScopeCreator),
+                GetType(ProjectCodeModelFactory),
+                GetType(CPSProjectFactory),
+                GetType(VisualStudioRuleSetManagerFactory),
+                GetType(VsMetadataServiceFactory),
+                GetType(VisualStudioMetadataReferenceManagerFactory),
+                GetType(MockWorkspaceEventListenerProvider),
+                GetType(MockDiagnosticUpdateSourceRegistrationService),
+                GetType(HostDiagnosticUpdateSource))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)

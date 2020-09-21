@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var metadataName = reader.ReadString();
                 var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataNameOpt: null);
+                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataName: null);
                 using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
                 foreach (var property in properties)
                 {

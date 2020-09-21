@@ -447,6 +447,24 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferIsNotExpression As String = $"
+Imports System
+
+Class Customer
+    Sub M1(value as object)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim isSomething = value IsNot Nothing
+//]
+    End Sub
+    Sub M2(value as object)
+//[
+        ' {ServicesVSResources.Over_colon}
+        Dim isSomething = Not value Is Nothing
+//]
+    End Sub
+End Class"
+
 #Region "arithmetic binary parentheses"
 
         Private Shared ReadOnly s_arithmeticBinaryAlwaysForClarity As String = $"
@@ -725,6 +743,7 @@ End Class
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, Me, optionStore, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferIsNotExpression, BasicVSResources.Prefer_IsNot_expression, s_preferIsNotExpression, s_preferIsNotExpression, Me, optionStore, expressionPreferencesGroupTitle))
 
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle)
 

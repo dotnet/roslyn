@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
@@ -57,16 +58,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
-        private readonly Lazy<MefHostServices> _remoteHostServices = new Lazy<MefHostServices>(
-            CreateRemoteHostServices,
-            LazyThreadSafetyMode.ExecutionAndPublication);
-
         private MefHostServices? _hostServices;
+
+        static UseExportProviderAttribute()
+        {
+            // Make sure we run the module initializer for Roslyn.Test.Utilities. C# projects do this via a
+            // build-injected module initializer, but VB projects can ensure initialization occurs by applying the
+            // UseExportProviderAttribute to test classes that rely on it.
+            RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
+        }
 
         public override void Before(MethodInfo methodUnderTest)
         {
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
-            RoslynServices.TestAccessor.HookHostServices(() => _remoteHostServices.Value);
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
@@ -97,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
                 // after the end of a test attempts to create an ExportProvider.
                 MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
-                RoslynServices.TestAccessor.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
 
                 // Reset static state variables.
                 _hostServices = null;
@@ -215,9 +218,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             //    of a field in the test class.
             throw new InvalidOperationException("Cannot create host services after test tear down.");
         }
-
-        private static MefHostServices CreateRemoteHostServices()
-            => new ExportProviderMefHostServices(ExportProviderCache.RemoteHostExportProviderComposition.ExportProviderFactory.CreateExportProvider());
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
         {

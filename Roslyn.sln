@@ -335,6 +335,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.Wpf", "src\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj", "{FFB00FB5-8C8C-4A02-B67D-262B9D28E8B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalyzerRunner", "src\Tools\AnalyzerRunner\AnalyzerRunner.csproj", "{60166C60-813C-46C4-911D-2411B4ABBC0F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2} = {B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}
+		{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD} = {49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}
+		{3CDEEAB7-2256-418A-BEB2-620B5CB16302} = {3CDEEAB7-2256-418A-BEB2-620B5CB16302}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debugging.Package", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.Package.csproj", "{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89}"
 EndProject

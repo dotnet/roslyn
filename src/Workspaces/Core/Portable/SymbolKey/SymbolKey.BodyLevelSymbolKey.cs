@@ -18,16 +18,6 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
-            public static bool IsBodyLevelSymbol(ISymbol symbol)
-                => symbol switch
-                {
-                    ILabelSymbol _ => true,
-                    IRangeVariableSymbol _ => true,
-                    ILocalSymbol _ => true,
-                    IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
-                    _ => false,
-                };
-
             public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
@@ -120,9 +110,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var name = reader.ReadString();
+                var name = reader.ReadString()!;
                 var kind = (SymbolKind)reader.ReadInteger();
-                var locations = reader.ReadLocationArray(out var locationsFailureReason);
+#pragma warning disable IDE0007 // Use implicit type
+                PooledArrayBuilder<Location> locations = reader.ReadLocationArray(out var locationsFailureReason)!;
+#pragma warning restore IDE0007 // Use implicit type
                 var ordinal = reader.ReadInteger();
 
                 if (locationsFailureReason != null)

@@ -578,12 +578,16 @@ Public MustInherit Class WriteUtils
     End Function
 
     ' Create a description XML comment with the given tag, indented the given number of characters
-    Private Sub GenerateXmlCommentPart(writer As TextWriter, text As String, xmlTag As String, indent As Integer)
+    Private Sub GenerateXmlCommentPart(writer As TextWriter, text As String, xmlTag As String, indent As Integer, Optional escape As Boolean = True)
         If String.IsNullOrWhiteSpace(text) Then Return
 
-        text = XmlEscape(text)
-
-        Dim lines = WordWrap(text)
+        Dim lines As List(Of String)
+        If escape Then
+            text = XmlEscape(text)
+            lines = WordWrap(text)
+        Else
+            lines = text.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf).Split(vbLf).ToList()
+        End If
 
         lines.Insert(0, "<" & xmlTag & ">")
         lines.Add("</" & xmlTag & ">")
@@ -647,13 +651,25 @@ Public MustInherit Class WriteUtils
     ' Generate and XML comment with the given description and remarks sections. If empty, the sections are omitted.
     Protected Sub GenerateXmlComment(writer As TextWriter, descriptionText As String, remarksText As String, indent As Integer)
         GenerateXmlCommentPart(writer, descriptionText, "summary", indent)
-        GenerateXmlCommentPart(writer, remarksText, "remarks", indent)
+        GenerateXmlCommentPart(writer, remarksText, "remarks", indent, escape:=False)
     End Sub
 
     ' Generate XML comment for a structure
-    Protected Sub GenerateXmlComment(writer As TextWriter, struct As ParseNodeStructure, indent As Integer)
+    Protected Sub GenerateXmlComment(writer As TextWriter, struct As ParseNodeStructure, indent As Integer, includeRemarks As Boolean)
         Dim descriptionText As String = struct.Description
+
         Dim remarksText As String = Nothing
+        If includeRemarks AndAlso struct.NodeKinds.Any() Then
+            remarksText += "<para>This node is associated with the following syntax kinds:</para>" & vbCrLf &
+                "<list type=""bullet"">" & vbCrLf
+
+            For Each kind In struct.NodeKinds
+                remarksText += $"<item><description><see cref=""SyntaxKind.{kind.Name}""/></description></item>" & vbCrLf
+            Next
+
+            remarksText += "</list>"
+        End If
+
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 

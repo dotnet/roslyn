@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         private readonly IUnitTestingIncrementalAnalyzerProviderImplementation _incrementalAnalyzerProvider;
         private readonly Workspace _workspace;
 
-        private IIncrementalAnalyzer _lazyAnalyzer;
+        private IIncrementalAnalyzer? _lazyAnalyzer;
 
         internal UnitTestingIncrementalAnalyzerProvider(Workspace workspace, IUnitTestingIncrementalAnalyzerProviderImplementation incrementalAnalyzerProvider)
         {
@@ -34,6 +36,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 var analyzer = ((IIncrementalAnalyzerProvider)this).CreateIncrementalAnalyzer(_workspace);
                 solutionCrawlerService.Reanalyze(_workspace, analyzer, projectIds: null, documentIds: null, highPriority: false);
             }
+        }
+
+        public static UnitTestingIncrementalAnalyzerProvider? TryRegister(Workspace workspace, string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
+        {
+            var solutionCrawlerRegistrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            if (solutionCrawlerRegistrationService == null)
+            {
+                return null;
+            }
+
+            var analyzerProvider = new UnitTestingIncrementalAnalyzerProvider(workspace, provider);
+
+            var metadata = new IncrementalAnalyzerProviderMetadata(
+                analyzerName,
+                highPriorityForActiveFile: false,
+                new[] { workspace.Kind });
+
+            solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
+            return analyzerProvider;
         }
     }
 }

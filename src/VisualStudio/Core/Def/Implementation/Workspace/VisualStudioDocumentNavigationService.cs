@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -19,7 +21,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -32,12 +33,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
+    [ExportWorkspaceService(typeof(IDocumentNavigationService), ServiceLayer.Host), Shared]
+    [Export(typeof(VisualStudioDocumentNavigationService))]
     internal sealed class VisualStudioDocumentNavigationService : ForegroundThreadAffinitizedObject, IDocumentNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDocumentNavigationService(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
@@ -235,28 +240,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document));
                     if (mappedSpan.HasValue)
                     {
+                        // Check if the mapped file matches one already in the workspace.
+                        // If so use the workspace APIs to navigate to it.  Otherwise use VS APIs to navigate to the file path.
+                        var documentIdsForFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(mappedSpan.Value.FilePath);
+                        if (!documentIdsForFilePath.IsEmpty)
+                        {
+                            // If the mapped file maps to the same document that was passed in, then re-use the documentId to preserve context.
+                            // Otherwise, just pick one of the ids to use for navigation.
+                            var documentIdToNavigate = documentIdsForFilePath.Contains(documentId) ? documentId : documentIdsForFilePath.First();
+                            return NavigateToFileInWorkspace(documentIdToNavigate, workspace, getVsTextSpan);
+                        }
+
                         return TryNavigateToMappedFile(workspace, document, mappedSpan.Value);
                     }
                 }
 
-                document = OpenDocument(workspace, documentId);
-                if (document == null)
-                {
-                    return false;
-                }
-
-                var text = document.GetTextSynchronously(CancellationToken.None);
-                var textBuffer = text.Container.GetTextBuffer();
-
-                var vsTextSpan = getVsTextSpan(text);
-                if (IsSecondaryBuffer(workspace, documentId) &&
-                    !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
-                {
-                    return false;
-                }
-
-                return NavigateTo(textBuffer, vsTextSpan);
+                return NavigateToFileInWorkspace(documentId, workspace, getVsTextSpan);
             }
+        }
+
+        private bool NavigateToFileInWorkspace(DocumentId documentId, Workspace workspace, Func<SourceText, VsTextSpan> getVsTextSpan)
+        {
+            var document = OpenDocument(workspace, documentId);
+            if (document == null)
+            {
+                return false;
+            }
+
+            var text = document.GetTextSynchronously(CancellationToken.None);
+            var textBuffer = text.Container.GetTextBuffer();
+
+            var vsTextSpan = getVsTextSpan(text);
+            if (IsSecondaryBuffer(workspace, documentId) &&
+                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
+            {
+                return false;
+            }
+
+            return NavigateTo(textBuffer, vsTextSpan);
         }
 
         private bool TryNavigateToMappedFile(Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult)
@@ -341,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return workspace.CurrentSolution.GetDocument(documentId);
         }
 
-        private bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
+        public bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
         {
             using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, CancellationToken.None))
             {

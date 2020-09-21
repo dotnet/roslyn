@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+            return SpecializedTasks.EmptyImmutableArray<CodeAction>();
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, workspace);
             var generator = editor.Generator;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

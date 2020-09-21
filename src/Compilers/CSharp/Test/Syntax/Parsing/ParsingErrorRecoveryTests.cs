@@ -6518,7 +6518,7 @@ public class Test
     };
 }";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Regular9);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics

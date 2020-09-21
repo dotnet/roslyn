@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
             else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKindEx.RecordDeclaration, out typeDeclaration))
+                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration))
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             => setAccessor?.ExpressionBody?.Expression ??
                GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
-        protected override SyntaxNode GetNodeToFade(
+        protected override SyntaxNode GetFieldNode(
             FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
         {
             return fieldDeclaration.Declaration.Variables.Count == 1

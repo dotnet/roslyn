@@ -26,10 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<DocumentHighlight[]> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<DocumentHighlight[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return Array.Empty<DocumentHighlight>();

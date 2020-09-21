@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private readonly ArrayBuilder<char[]> _chunks;
 
-        private int _bufferSize;
+        private readonly int _bufferSize;
         private char[]? _buffer;
         private int _currentUsed;
 

@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<SymbolInformation[]> HandleRequestAsync(WorkspaceSymbolParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<SymbolInformation[]> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var solution = SolutionProvider.GetCurrentSolutionForMainWorkspace();
             var searchTasks = Task.WhenAll(solution.Projects.Select(project => SearchProjectAsync(project, request, cancellationToken)));

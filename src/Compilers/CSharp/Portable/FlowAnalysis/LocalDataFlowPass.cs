@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int maxSlotDepth = 0)
             : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
+            Debug.Assert(emptyStructs != null);
             _maxSlotDepth = maxSlotDepth;
             _emptyStructTypeCache = emptyStructs;
         }
@@ -321,5 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        protected static bool HasInitializer(Symbol field) => field switch
+        {
+            SourceMemberFieldSymbol f => f.HasInitializer,
+            SynthesizedBackingFieldSymbol f => f.HasInitializer,
+            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
+            _ => false
+        };
     }
 }

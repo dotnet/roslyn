@@ -43,6 +43,7 @@ param (
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
+  [switch]$oop64bit = $true,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -229,11 +230,6 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
-  # If we are using msbuild.exe restore using static graph
-  # This check can be removed and turned on for all builds once roslyn depends on a .NET Core SDK
-  # that has a new enough msbuild for the -graph switch to be present
-  $restoreUseStaticGraphEvaluation = if ($msbuildEngine -ne 'dotnet') { "/p:RestoreUseStaticGraphEvaluation=true" } else { "" }
-  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -255,7 +251,7 @@ function BuildSolution() {
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      $restoreUseStaticGraphEvaluation `
+      /p:RestoreUseStaticGraphEvaluation=true `
       /p:VisualStudioIbcDrop=$ibcDropName `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
@@ -276,11 +272,11 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "master"
+    $fallback = "main"
 
     $branchData = GetBranchPublishData $officialSourceBranchName
     if ($branchData -eq $null) {
-      Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
       Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
       return $fallback
     }
@@ -322,7 +318,7 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $branchData = GetBranchPublishData $branchName
 
   if ($branchData -eq $null) {
-    Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+    Write-LogIssue -Type warning -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. "
     $branchData = GetBranchPublishData $fallbackBranch
   }
 
@@ -331,12 +327,14 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $vsMajorVersion = $branchData.vsMajorVersion
   $vsChannel = "int.$vsBranchSimpleName"
 
-  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
+  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"
   Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
 
   $insertionDir = Join-Path $VSSetupDir "Insertion"
-  $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-  Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  if (Test-Path $insertionDir) {
+    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  }
 }
 
 # Core function for running our unit / integration tests tests
@@ -381,7 +379,6 @@ function TestUsingOptimizedRunner() {
   $args += " `"-out:$testResultsDir`""
   $args += " `"-logs:$LogDir`""
   $args += " `"-secondaryLogs:$secondaryLogDir`""
-  $args += " -nocache"
   $args += " -tfm:net472"
 
   if ($testDesktop -or $testIOperation) {
@@ -594,6 +591,8 @@ function Setup-IntegrationTestRun() {
     # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
     Capture-Screenshot $screenshotPath
   }
+
+  $env:ROSLYN_OOP64BIT = "$oop64bit"
 }
 
 function Prepare-TempDir() {

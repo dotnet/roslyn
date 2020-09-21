@@ -160,7 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(AreNullableAnnotationsEnabled(questionToken), questionToken.GetLocation(), diagnostics);
+                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
+                                    AreNullableAnnotationsEnabled(questionToken),
+                                    IsGeneratedCode(questionToken),
+                                    questionToken.GetLocation(),
+                                    diagnostics);
                             }
                         }
                         else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))

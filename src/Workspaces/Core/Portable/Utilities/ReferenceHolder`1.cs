@@ -5,15 +5,13 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal readonly struct ReferenceHolder<T> : IEquatable<ReferenceHolder<T>>
         where T : class?
     {
-        [AllowNull, MaybeNull]
-        private readonly T _strongReference;
+        private readonly T? _strongReference;
         private readonly WeakReference<T>? _weakReference;
         private readonly int _hashCode;
 
@@ -45,8 +43,7 @@ namespace Roslyn.Utilities
             return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.GetHashCode(value));
         }
 
-        [return: MaybeNull]
-        public T TryGetTarget()
+        public T? TryGetTarget()
         {
             if (_weakReference is object)
                 return _weakReference.GetTarget();

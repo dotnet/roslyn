@@ -85,8 +85,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static readonly TestComposition LanguageServerProtocolWpf = EditorFeaturesWpf
             .AddAssemblies(LanguageServerProtocol.Assemblies);
-
-        public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)
-            => (host == TestHost.InProcess) ? composition : composition.AddParts(typeof(InProcRemoteHostClientProvider.Factory));
     }
 }

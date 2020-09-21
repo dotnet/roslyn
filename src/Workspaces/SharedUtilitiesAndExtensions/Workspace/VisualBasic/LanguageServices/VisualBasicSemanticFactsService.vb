@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicSemanticFactsService
+    Partial Friend NotInheritable Class VisualBasicSemanticFactsService
         Inherits AbstractSemanticFactsService
         Implements ISemanticFactsService
 
@@ -116,6 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISemanticFactsService_GenerateUniqueLocalName(
             semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
             Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, cancellationToken)
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueLocalName(
+            semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, usedName As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
+            Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, usedName, cancellationToken)
         End Function
 
         Private Function ISemanticFactsService_GenerateUniqueName(semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, filter As Func(Of ISymbol, Boolean), usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName

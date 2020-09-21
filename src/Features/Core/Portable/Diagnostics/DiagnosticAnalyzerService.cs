@@ -44,19 +44,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : this(registrationService,
-                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
-        {
-        }
-
-        // protected for testing purposes.
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        protected DiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
-            Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+            Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
@@ -181,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
             {
-                return analyzer.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation);
+                return await analyzer.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false);
             }
 
             return false;

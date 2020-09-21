@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -35,6 +36,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
     Public Class DocumentService_IntegrationTests
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
             Dim input =
@@ -138,6 +143,7 @@ class {|Definition:C1|}
                 Dim root = Await startDocument.GetSyntaxRootAsync()
                 Dim node = root.FindNode(originalDocument.AnnotatedSpans("Original").First()).AncestorsAndSelf().OfType(Of ClassDeclarationSyntax).First()
                 Dim results = Await codelensService.FindReferenceLocationsAsync(workspace.CurrentSolution, startDocument.Id, node, CancellationToken.None)
+                Assert.True(results.HasValue)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -147,7 +153,7 @@ class {|Definition:C1|}
 
                 Dim actual = New List(Of (String, LinePosition, String))
 
-                For Each result In results
+                For Each result In results.Value
                     actual.Add((result.FilePath, New LinePosition(result.LineNumber, result.ColumnNumber), result.ReferenceLineText))
                 Next
 
@@ -209,7 +215,7 @@ class { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -220,7 +226,8 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())
@@ -394,15 +401,13 @@ class { }
             Public Sub AddCommandTarget(target As IOleCommandTarget, ByRef [next] As IOleCommandTarget) Implements IFindAllReferencesWindow.AddCommandTarget
                 Throw New NotImplementedException()
             End Sub
+#End Region
 
             Public Sub SetProgress(progress As Double) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
 
             Public Sub SetProgress(completed As Integer, maximum As Integer) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
-#End Region
         End Class
 
         Private Class TableDataSink

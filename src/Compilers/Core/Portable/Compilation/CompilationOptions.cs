@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         public ReportDiagnostic GeneralDiagnosticOption { get; protected set; }
 
         /// <summary>
-        /// Global warning level (from 0 to 4).
+        /// Global warning level (a non-negative integer).
         /// </summary>
         public int WarningLevel { get; protected set; }
 
@@ -196,12 +197,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="diagnostic"></param>
         /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic? FilterDiagnostic(Diagnostic diagnostic);
+        internal abstract Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         /// <summary>
         /// Warning report option for each warning.
         /// </summary>
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
+
+        /// <summary>
+        /// Provider to retrieve options for particular syntax trees.
+        /// </summary>
+        public SyntaxTreeOptionsProvider? SyntaxTreeOptionsProvider { get; protected set; }
 
         /// <summary>
         /// Whether diagnostics suppressed in source, i.e. <see cref="Diagnostic.IsSuppressed"/> is true, should be reported.
@@ -289,6 +295,7 @@ namespace Microsoft.CodeAnalysis
             bool debugPlusMode,
             XmlReferenceResolver? xmlReferenceResolver,
             SourceReferenceResolver? sourceReferenceResolver,
+            SyntaxTreeOptionsProvider? syntaxTreeOptionsProvider,
             MetadataReferenceResolver? metadataReferenceResolver,
             AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
@@ -316,6 +323,7 @@ namespace Microsoft.CodeAnalysis
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
+            this.SyntaxTreeOptionsProvider = syntaxTreeOptionsProvider;
             this.MetadataReferenceResolver = metadataReferenceResolver;
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
@@ -463,6 +471,11 @@ namespace Microsoft.CodeAnalysis
             return CommonWithSourceReferenceResolver(resolver);
         }
 
+        public CompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? provider)
+        {
+            return CommonWithSyntaxTreeOptionsProvider(provider);
+        }
+
         public CompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver? resolver)
         {
             return CommonWithMetadataReferenceResolver(resolver);
@@ -528,6 +541,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
         protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver);
+        protected abstract CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? resolver);
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer? comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider? provider);
@@ -636,6 +650,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver) &&
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
+                   object.Equals(this.SyntaxTreeOptionsProvider, other.SyntaxTreeOptionsProvider) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
                    this.PublicSign == other.PublicSign &&
@@ -671,10 +686,11 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.MetadataReferenceResolver,
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
+                   Hash.Combine(this.SyntaxTreeOptionsProvider,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
                    Hash.Combine(this.PublicSign,
-                   Hash.Combine((int)this.NullableContextOptions, 0)))))))))))))))))))))))))));
+                   Hash.Combine((int)this.NullableContextOptions, 0))))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions? left, CompilationOptions? right)

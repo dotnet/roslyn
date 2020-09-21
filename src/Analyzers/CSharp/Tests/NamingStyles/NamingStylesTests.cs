@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly NamingStylesTestOptionSets s_options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
 
-        protected override TestComposition GetComposition() => s_composition;
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()
@@ -1292,6 +1292,39 @@ namespace Microsoft.CodeAnalysis.Host
             var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
             Assert.Equal("arg", symbolRenamedOperation._symbol.Name);
             Assert.Equal("TArg", symbolRenamedOperation._newName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"record Foo(int [|MyInt|]);",
+                new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"record Foo(int MyInt)
+{
+    public Foo(string [|p_myString|]) : this(1)
+    {
+    }
+}",
+                new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordParameter_ParameterFormattedAsProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"public record Foo(int [|myInt|]);",
+@"public record Foo(int [|MyInt|]);",
+                options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
     }
 }

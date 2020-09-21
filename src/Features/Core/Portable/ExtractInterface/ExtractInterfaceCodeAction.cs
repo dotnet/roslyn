@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 ? string.Empty
                 : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
+            return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
                 _typeAnalysisResult.DocumentToExtractFrom,
                 _typeAnalysisResult.TypeToExtractFrom,
                 _typeAnalysisResult.ExtractableMembers,

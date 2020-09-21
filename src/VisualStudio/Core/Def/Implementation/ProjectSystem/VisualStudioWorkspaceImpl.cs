@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -92,6 +93,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private ImmutableHashSet<DocumentId> _documentsNotFromFiles = ImmutableHashSet<DocumentId>.Empty;
 
+        /// <summary>
+        /// Indicates whether the current solution is closing.
+        /// </summary>
+        private bool _solutionClosing;
+
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker? _projectTracker;
 
@@ -126,7 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
-            exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
 
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
@@ -140,7 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()), isThreadSafe: true);
+                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                    _threadingContext), isThreadSafe: true);
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -185,7 +191,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
         {
             // Create services that are bound to the UI thread
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
+            var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
+            solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
 
@@ -1351,9 +1360,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureEditableDocuments(params DocumentId[] documents)
             => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
 
-        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+        internal override async Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
         {
-            _foregroundObject.AssertIsForeground();
+            await _foregroundObject.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {
@@ -1814,20 +1824,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectReferenceInformation.OutputPaths.Remove(outputPath);
                 _projectsByOutputPath.MultiRemove(outputPath, projectId);
 
-                if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
+                // When a project is closed, we may need to convert project references to metadata references (or vice
+                // versa). Failure to convert the references could leave a project in the workspace with a project
+                // reference to a project which is not open.
+                //
+                // For the specific case where the entire solution is closing, we do not need to update the state for
+                // remaining projects as each project closes, because we know those projects will be closed without
+                // further use. Avoiding reference conversion when the solution is closing improves performance for both
+                // IDE close scenarios and solution reload scenarios that occur after complex branch switches.
+                if (!_solutionClosing)
                 {
-                    var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
-                    if (distinctRemainingProjects.Count() == 1)
+                    if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
                     {
-                        // We had more than one project outputting to the same path. Now we're back down to one
-                        // so we can reference that one again
-                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
+                        var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
+                        if (distinctRemainingProjects.Count() == 1)
+                        {
+                            // We had more than one project outputting to the same path. Now we're back down to one
+                            // so we can reference that one again
+                            ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
+                        }
                     }
-                }
-                else
-                {
-                    // No projects left, we need to convert back to metadata references
-                    ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    else
+                    {
+                        // No projects left, we need to convert back to metadata references
+                        ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    }
                 }
             }
         }

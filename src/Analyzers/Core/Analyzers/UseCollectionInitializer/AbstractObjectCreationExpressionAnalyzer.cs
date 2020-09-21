@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
             foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
             {
-                if (!_syntaxFacts.IsNameOfMemberAccessExpression(subExpression))
+                if (!_syntaxFacts.IsNameOfSimpleMemberAccessExpression(subExpression) &&
+                    !_syntaxFacts.IsNameOfMemberBindingExpression(subExpression))
                 {
                     if (ValuePatternMatches(subExpression))
                     {

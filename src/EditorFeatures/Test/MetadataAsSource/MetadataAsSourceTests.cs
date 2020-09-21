@@ -1908,7 +1908,7 @@ public struct S
 ";
             var symbolName = "S.P";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "CSharp7_3",
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "7.3",
                 expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion

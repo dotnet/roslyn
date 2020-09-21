@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class EndToEndDeterminismTest : TestBase
     {
-        private string _flags = "/deterministic+ /nologo /t:library /pdb:none";
+        private readonly string _flags = "/deterministic+ /nologo /t:library /pdb:none";
 
         /// <summary>
         /// Compiles some source code and returns the bytes that were contained in the compiled DLL file.
