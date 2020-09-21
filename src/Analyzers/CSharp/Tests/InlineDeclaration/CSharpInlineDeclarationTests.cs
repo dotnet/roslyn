@@ -2292,5 +2292,25 @@ if (int.TryParse(v, out i))
 {
 }", new TestParameters(TestOptions.Regular));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task CollectionInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    private List<Func<string, bool>> _funcs2 = new List<Func<string, bool>>()
+    {
+        s => { int [|i|] = 0; return int.TryParse(s, out i); }
+    };
+}",
+@"class C
+{
+    private List<Func<string, bool>> _funcs2 = new List<Func<string, bool>>()
+    {
+        s => { return int.TryParse(s, out int i); }
+    };
+}");
+        }
     }
 }
