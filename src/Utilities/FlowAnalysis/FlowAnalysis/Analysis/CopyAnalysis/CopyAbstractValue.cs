@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
-using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
