@@ -9196,7 +9196,15 @@ namespace System.Runtime.InteropServices
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // TODO when CI fails
+                // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(8, 35),
+                // (9,28): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(9, 28),
+                // (9,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(9, 28)
             );
         }
         #endregion
