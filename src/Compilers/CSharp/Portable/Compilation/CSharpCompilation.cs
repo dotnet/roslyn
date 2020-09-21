@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var viableEntryPoint in viableEntryPoints)
                     {
-                        if (viableEntryPoint.UnmanagedCallersOnlyAttributeData is { } data)
+                        if (viableEntryPoint.GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is { } data)
                         {
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
