@@ -1576,7 +1576,7 @@ namespace CSharpSyntaxGenerator
             // annotate parameters with original locations
             foreach (var field in nodeFields)
             {
-                if (field.Type == "SyntaxToken" || field.Type == "SyntaxList<SyntaxToken>" || field.Type == "SyntaxNodeOrTokenList"
+                if (field.Type == "SyntaxList<SyntaxToken>" || field.Type == "SyntaxNodeOrTokenList"
                     || IsNodeList(field.Type) || IsSeparatedNodeList(field.Type))
                 {
                     // do nothing

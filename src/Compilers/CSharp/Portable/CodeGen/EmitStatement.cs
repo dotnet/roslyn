@@ -935,7 +935,7 @@ oneMoreTime:
                 // the exception variable is not visible. 
                 if (_emitPdbSequencePoints)
                 {
-                    var syntax = TreeTracker.GetPreTransformationNode(catchBlock.Syntax as CatchClauseSyntax);
+                    var syntax = TreeTracker.GetPreTransformationSyntax(catchBlock.Syntax as CatchClauseSyntax);
                     if (syntax != null)
                     {
                         TextSpan spSpan;

@@ -1,147 +1,147 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace RoslynEx.UnitTests
 {
     public class RoslynExCheckSumTest : CheckSumTest
     {
-        public RoslynExCheckSumTest() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExCheckSumTest() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbConstantTests : PDBConstantTests
     {
-        public RoslynExPdbConstantTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbConstantTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbPdbDynamicLocalsTests : PDBDynamicLocalsTests
     {
-        public RoslynExPdbPdbDynamicLocalsTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbPdbDynamicLocalsTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbEmbeddedSourceTests : PDBEmbeddedSourceTests
     {
-        public RoslynExPdbEmbeddedSourceTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbEmbeddedSourceTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbIteratorTests : PDBIteratorTests
     {
-        public RoslynExPdbIteratorTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbIteratorTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbLambdaTests : PDBLambdaTests
     {
-        public RoslynExPdbLambdaTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbLambdaTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbLocalFunctionTests : PDBLocalFunctionTests
     {
-        public RoslynExPdbLocalFunctionTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbLocalFunctionTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbSourceLinkTests : PDBSourceLinkTests
     {
-        public RoslynExPdbSourceLinkTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbSourceLinkTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbTests : PDBTests
     {
-        public RoslynExPdbTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbTupleTests : PDBTupleTests
     {
-        public RoslynExPdbTupleTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbTupleTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbUsingTests : PDBUsingTests
     {
-        public RoslynExPdbUsingTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbUsingTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPdbWinMdExpTests : PDBWinMdExpTests
     {
-        public RoslynExPdbWinMdExpTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPdbWinMdExpTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     public class RoslynExPortablePdbTests : PortablePdbTests
     {
-        public RoslynExPortablePdbTests() => PdbValidation.ShouldExecuteTransformer = true;
+        public RoslynExPortablePdbTests() => RoslynExTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            PdbValidation.ShouldExecuteTransformer = false;
+            RoslynExTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }

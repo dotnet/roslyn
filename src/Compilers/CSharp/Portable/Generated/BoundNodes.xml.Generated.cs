@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -5212,10 +5211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundSequencePointExpression(SyntaxNode syntax, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.SequencePointExpression, syntax, type, hasErrors || expression.HasErrors())
         {
-            // note: this will vanish if the code is regenerated
-#if DEBUG
-            Debug.Assert(!TreeTracker.IsUndebuggable(syntax?.SyntaxTree));
-#endif
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 

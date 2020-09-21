@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (produceDetailedSequencePoints)
                 {
-                    nodeSyntax = (SwitchExpressionSyntax?)TreeTracker.GetPreTransformationNode(node.Syntax);
+                    nodeSyntax = (SwitchExpressionSyntax?)TreeTracker.GetPreTransformationSyntax(node.Syntax);
                     if (nodeSyntax == null)
                     {
                         produceDetailedSequencePoints = false;

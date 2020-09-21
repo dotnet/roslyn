@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis
                     var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
                     {
-                        var actualTree = TreeTracker.GetPreTransformationNode(tree.GetRoot())?.SyntaxTree ?? tree;
+                        var actualTree = TreeTracker.GetPreTransformationSyntax(tree.GetRoot())?.SyntaxTree ?? tree;
 
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
                             normalizedPath,

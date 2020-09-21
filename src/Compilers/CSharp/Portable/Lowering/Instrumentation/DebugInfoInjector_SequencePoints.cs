@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static BoundStatement AddSequencePoint(BoundStatement node)
         {
-            var nodeSyntax = TreeTracker.GetPreTransformationNode(node.Syntax);
+            var nodeSyntax = TreeTracker.GetPreTransformationSyntax(node.Syntax);
 
             return BoundSequencePoint.Create(nodeSyntax, node);
         }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarationSyntax.Initializer != null);
 
-            declarationSyntax = TreeTracker.GetPreTransformationNode(declarationSyntax);
+            declarationSyntax = TreeTracker.GetPreTransformationSyntax(declarationSyntax);
 
             TextSpan? part;
             if (declarationSyntax == null)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundStatement AddSequencePoint(UsingStatementSyntax usingSyntax, BoundStatement rewrittenStatement)
         {
-            usingSyntax = TreeTracker.GetPreTransformationNode(usingSyntax);
+            usingSyntax = TreeTracker.GetPreTransformationSyntax(usingSyntax);
             if (usingSyntax == null)
             {
                 return BoundSequencePoint.CreateHidden(rewrittenStatement);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
-            declaratorSyntax = TreeTracker.GetPreTransformationNode(declaratorSyntax);
+            declaratorSyntax = TreeTracker.GetPreTransformationSyntax(declaratorSyntax);
             if (declaratorSyntax == null)
             {
                 node = null;

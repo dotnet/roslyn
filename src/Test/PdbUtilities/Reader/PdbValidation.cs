@@ -222,48 +222,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedIsXmlLiteral: true);
         }
 
-        public static bool ShouldExecuteTransformer = false;
-
-        public static Compilation ExecuteTransformer(Compilation compilation, ISourceTransformer transformer)
-        {
-            var transformers = ImmutableArray.Create<ISourceTransformer>(transformer);
-            var diagnostics = new DiagnosticBag();
-
-            var result = CSharpCompiler.RunTransformers(
-                compilation, transformers, CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null);
-
-            diagnostics.ToReadOnlyAndFree().Verify();
-
-            return result;
-        }
-
-        class TokenPerLineTransformer : ISourceTransformer
-        {
-            public Compilation Execute(TransformerContext context)
-            {
-                static SyntaxToken ChangeWhitespace(SyntaxToken token)
-                {
-                    token = token.ReplaceTrivia(
-                        token.GetAllTrivia().Where(
-                            t => t.IsKind(SyntaxKind.WhitespaceTrivia) || t.IsKind(SyntaxKind.EndOfLineTrivia)),
-                        (_, _) => default);
-                    token = token.WithTrailingTrivia(
-                        token.TrailingTrivia.Add(SyntaxFactory.CarriageReturnLineFeed));
-                    return token;
-                }
-
-                var compilation = context.Compilation;
-                foreach (var tree in compilation.SyntaxTrees)
-                {
-                    var newRoot = tree.GetRoot().ReplaceTokens(
-                        tree.GetRoot().DescendantTokens(), (_, token) => ChangeWhitespace(token));
-
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
-                }
-                return compilation;
-            }
-        }
-
         private static void VerifyPdbImpl(
             this Compilation compilation,
             IEnumerable<EmbeddedText> embeddedTexts,
@@ -276,8 +234,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
-            if (ShouldExecuteTransformer)
-                compilation = ExecuteTransformer(compilation, new TokenPerLineTransformer());
+            if (RoslynExTest.ShouldExecuteTransformer)
+                compilation = RoslynExTest.ExecuteTransformer(compilation, new RoslynExTest.TokenPerLineTransformer());
 
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
@@ -443,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptyMethods(expectedXml);
             RemoveFormatAttributes(expectedXml);
 
-            if (ShouldExecuteTransformer)
+            if (RoslynExTest.ShouldExecuteTransformer)
             {
                 RemoveEnc(actualXml);
                 RemoveEnc(expectedXml);

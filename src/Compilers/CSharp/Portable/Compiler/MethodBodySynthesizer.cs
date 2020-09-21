@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (syntax.Kind() == SyntaxKind.Block)
                 {
-                    var preTransformationSyntax = TreeTracker.GetPreTransformationNode(syntax);
+                    var preTransformationSyntax = TreeTracker.GetPreTransformationSyntax(syntax);
                     if (preTransformationSyntax != null)
                     {
                         //sequence point to mimic Dev10

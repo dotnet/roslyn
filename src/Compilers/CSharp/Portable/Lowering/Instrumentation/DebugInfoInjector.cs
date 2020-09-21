@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (original.IsConstructorInitializer())
             {
-                var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+                var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
                 if (originalSyntax == null)
                 {
                     return BoundSequencePoint.CreateHidden(rewritten);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewritten = base.InstrumentYieldBreakStatement(original, rewritten);
 
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             if (original.WasCompilerGenerated && originalSyntax?.Kind() == SyntaxKind.Block)
             {
                 // implicit yield break added by the compiler
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
         {
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
 
             var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (originalSyntax?.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var previous = base.CreateBlockEpilogue(original);
 
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             if (originalSyntax?.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
             {
                 // no need to mark "}" on the outermost block
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextSpan? span;
             DoStatementSyntax? doSyntax;
 
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             if (originalSyntax == null)
             {
                 doSyntax = null;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             WhileStatementSyntax? whileSyntax;
             TextSpan? conditionSequencePointSpan;
 
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             if (originalSyntax == null)
             {
                 whileSyntax = null;
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement? collectionVarDecl)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-            forEachSyntax = TreeTracker.GetPreTransformationNode(forEachSyntax);
+            forEachSyntax = TreeTracker.GetPreTransformationSyntax(forEachSyntax);
             return BoundSequencePoint.Create(forEachSyntax?.Expression,
                                           base.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl));
         }
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
             var forEachSyntax = (ForEachVariableStatementSyntax)original.Syntax;
-            forEachSyntax = TreeTracker.GetPreTransformationNode(forEachSyntax);
+            forEachSyntax = TreeTracker.GetPreTransformationSyntax(forEachSyntax);
             return BoundSequencePoint.Create(forEachSyntax, forEachSyntax?.Variable.Span, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl));
         }
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatement(BoundForEachStatement original, BoundStatement rewritten)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-            forEachSyntax = TreeTracker.GetPreTransformationNode(forEachSyntax);
+            forEachSyntax = TreeTracker.GetPreTransformationSyntax(forEachSyntax);
             TextSpan? span = forEachSyntax == null
                 ? null
                 : forEachSyntax.AwaitKeyword != default
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatementIterationVarDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
             TextSpan? iterationVarDeclSpan;
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             switch (originalSyntax?.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
-            var originalConditionSyntax = TreeTracker.GetPreTransformationNode(original.Condition?.Syntax);
+            var originalConditionSyntax = TreeTracker.GetPreTransformationSyntax(original.Condition?.Syntax);
 
             // hidden sequence point if there is no condition
             return BoundSequencePoint.Create(originalConditionSyntax,
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
-            var syntax = (CommonForEachStatementSyntax?)TreeTracker.GetPreTransformationNode(original.Syntax);
+            var syntax = (CommonForEachStatementSyntax?)TreeTracker.GetPreTransformationSyntax(original.Syntax);
             return BoundSequencePoint.Create(syntax, syntax?.InKeyword.Span,
                                                   base.InstrumentForEachStatementConditionalGotoStart(original, branchBack));
         }
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
         {
-            var syntax = (IfStatementSyntax?)TreeTracker.GetPreTransformationNode(original.Syntax);
+            var syntax = (IfStatementSyntax?)TreeTracker.GetPreTransformationSyntax(original.Syntax);
             TextSpan? span = syntax == null ? null : TextSpan.FromBounds(syntax.IfKeyword.SpanStart, syntax.CloseParenToken.Span.End);
             return BoundSequencePoint.Create(
                 syntax,
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentLabelStatement(BoundLabeledStatement original, BoundStatement rewritten)
         {
-            var labeledSyntax = (LabeledStatementSyntax?)TreeTracker.GetPreTransformationNode(original.Syntax);
+            var labeledSyntax = (LabeledStatementSyntax?)TreeTracker.GetPreTransformationSyntax(original.Syntax);
             TextSpan? span = labeledSyntax == null ? null : TextSpan.FromBounds(labeledSyntax.Identifier.SpanStart, labeledSyntax.ColonToken.Span.End);
             return BoundSequencePoint.Create(labeledSyntax,
                                                   span,
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
         {
-            var lockSyntax = (LockStatementSyntax?)TreeTracker.GetPreTransformationNode(original.Syntax);
+            var lockSyntax = (LockStatementSyntax?)TreeTracker.GetPreTransformationSyntax(original.Syntax);
             TextSpan? span = lockSyntax == null ? null : TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End);
             return BoundSequencePoint.Create(lockSyntax,
                                                   span,
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewritten = base.InstrumentReturnStatement(original, rewritten);
 
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             if (original.WasCompilerGenerated && original.ExpressionOpt == null && originalSyntax?.Kind() == SyntaxKind.Block)
             {
                 // implicit return added by the compiler
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
-            var switchSyntax = (SwitchStatementSyntax?)TreeTracker.GetPreTransformationNode(original.Syntax);
+            var switchSyntax = (SwitchStatementSyntax?)TreeTracker.GetPreTransformationSyntax(original.Syntax);
             TextSpan? switchSequencePointSpan = switchSyntax == null
                 ? null
                 : TextSpan.FromBounds(
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            WhenClauseSyntax? whenClause = TreeTracker.GetPreTransformationNode(original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>());
+            WhenClauseSyntax? whenClause = TreeTracker.GetPreTransformationSyntax(original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>());
 
             return BoundSequencePoint.Create(
                 syntax: whenClause,
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewrittenFilter = base.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
 
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
             if (originalSyntax == null)
             {
                 return new BoundSequencePointExpression(null!, rewrittenFilter, rewrittenFilter.Type);
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
-            var originalSyntax = TreeTracker.GetPreTransformationNode(original.Syntax);
+            var originalSyntax = TreeTracker.GetPreTransformationSyntax(original.Syntax);
 
             return new BoundSequencePointExpression(originalSyntax!, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
         }

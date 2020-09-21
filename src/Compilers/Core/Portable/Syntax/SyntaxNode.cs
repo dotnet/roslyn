@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -1216,12 +1217,12 @@ recurse:
 
         internal SyntaxNode WithAdditionalAnnotationsInternal(IEnumerable<SyntaxAnnotation> annotations)
         {
-            return this.Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
+            return TreeTracker.TrackIfNeeded(this).Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
         }
 
         internal SyntaxNode GetNodeWithoutAnnotations(IEnumerable<SyntaxAnnotation> annotations)
         {
-            return this.Green.WithoutAnnotationsGreen(annotations).CreateRed();
+            return TreeTracker.TrackIfNeeded(this).Green.WithoutAnnotationsGreen(annotations).CreateRed();
         }
 
         /// <summary>

@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // expect to hit it before exiting the method.
                 // We do it by rewriting all returns into a jump to an Exit label 
                 // and mark the Exit sequence with sequence point for the span of the last "}".
-                BlockSyntax blockSyntax = TreeTracker.GetPreTransformationNode(_methodBodySyntaxOpt as BlockSyntax);
+                BlockSyntax blockSyntax = TreeTracker.GetPreTransformationSyntax(_methodBodySyntaxOpt as BlockSyntax);
                 if (blockSyntax != null)
                 {
                     EmitSequencePoint(blockSyntax.SyntaxTree, blockSyntax.CloseBraceToken.Span);
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_emitPdbSequencePoints && _methodBodySyntaxOpt != null)
             {
                 // find the pre-transformation root that corresponds to the root node of the tree where the method is
-                var preTransformationRoot = TreeTracker.GetPreTransformationNode(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
+                var preTransformationRoot = TreeTracker.GetPreTransformationSyntax(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
                 if (preTransformationRoot == null)
                     return;
 
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePoint(SyntaxNode syntax)
         {
-            syntax = TreeTracker.GetPreTransformationNode(syntax);
+            syntax = TreeTracker.GetPreTransformationSyntax(syntax);
 
             if (syntax == null)
                 EmitHiddenSequencePoint();

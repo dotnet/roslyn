@@ -51,7 +51,7 @@ class Library
 
             Compilation comp = CSharpCompilation.Create("Compilation", new[] { programTree, libraryTree }, new[] { MscorlibRef }, options: TestOptions.DebugDll);
 
-            comp = PdbValidation.ExecuteTransformer(comp, new InterleaveStatementsTransformer());
+            comp = RoslynExTest.ExecuteTransformer(comp, new InterleaveStatementsTransformer());
 
             var result = comp.Emit(Stream.Null, pdbStream: Stream.Null);
             result.Diagnostics.Verify();

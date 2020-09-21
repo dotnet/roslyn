@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var preTransformationBlock = TreeTracker.GetPreTransformationNode(block);
+                var preTransformationBlock = TreeTracker.GetPreTransformationSyntax(block);
                 bodyBuilder.Add(F.SequencePointWithSpan(preTransformationBlock, preTransformationBlock?.CloseBraceToken.Span, stateDone));
                 bodyBuilder.Add(F.HiddenSequencePoint());
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
