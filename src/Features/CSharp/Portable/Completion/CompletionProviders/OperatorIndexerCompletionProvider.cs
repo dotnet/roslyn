@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder.Add(CompletionHandlerPropertyName, operation);
-            foreach (var (key, value) in otherKVPs)
+            foreach (var (key, value) in additionalProperties)
             {
                 builder.Add(key, value);
             }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var indexers = from p in allMembers.OfType<IPropertySymbol>()
                            where p.IsIndexer
                            select SymbolCompletionItem.CreateWithSymbolId(
-                               displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]", // The type to convert to
+                               displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]",
                                symbols: ImmutableList.Create(p),
                                rules: CompletionItemRules.Default,
                                contextPosition: position,
