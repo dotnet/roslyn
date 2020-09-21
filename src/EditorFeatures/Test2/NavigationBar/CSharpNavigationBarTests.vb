@@ -243,6 +243,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        Public Async Function TestPartialClassWithBothExtendedPartialMethodParts1() As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>partial class C { $$public partial void M(); }</Document>
+                        <Document>partial class C { public partial void M(){} }</Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M()", Glyph.MethodPublic),
+                    Item("M()", Glyph.MethodPublic, grayed:=True)}))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        Public Async Function TestPartialClassWithBothExtendedPartialMethodParts2() As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>partial class C { public partial void M(); }</Document>
+                        <Document>partial class C { $$public partial void M(){} }</Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M()", Glyph.MethodPublic),
+                    Item("M()", Glyph.MethodPublic, grayed:=True)}))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(37183, "https://github.com/dotnet/roslyn/issues/37183")>
         Public Async Function TestNullableReferenceTypesInParameters() As Task
             Await AssertItemsAreAsync(

@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     {
         private const string NugetOrgSource = "nuget.org";
 
-        private static readonly ValueTask<ImmutableArray<PackageSource>?> NugetPackageSources =
-            new ValueTask<ImmutableArray<PackageSource>?>(ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/")));
+        private static readonly ImmutableArray<PackageSource> NugetPackageSources =
+            ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
 
         protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                 .Returns(true);
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
@@ -87,13 +87,13 @@ class C
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                 .Returns(true);
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
@@ -116,13 +116,13 @@ class C
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage"))
                 .Returns(true);
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
@@ -140,15 +140,15 @@ class C
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
-            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "2.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(ImmutableArray<Project>.Empty);
+            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "2.0")).Returns(ImmutableArray<Project>.Empty);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                 .Returns(ImmutableArray.Create("1.0", "2.0"));
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
@@ -186,13 +186,13 @@ parameters: new TestParameters(index: 2, fixProviderData: data));
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                 .Returns(true);
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
@@ -217,8 +217,8 @@ class C
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
-            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(ImmutableArray<Project>.Empty);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                 .Returns(ImmutableArray.Create("1.0"));
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -226,7 +226,7 @@ class C
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
@@ -251,8 +251,8 @@ class C
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
-            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(ImmutableArray<Project>.Empty);
+            installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                 .Returns(ImmutableArray.Create("1.0"));
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -260,7 +260,7 @@ class C
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
+                .Returns(new ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>>(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
@@ -276,17 +276,18 @@ class C
             installerServiceMock.Verify();
         }
 
-        private static Task<IList<PackageWithTypeResult>> CreateSearchResult(
+        private static ValueTask<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
-                packageName: packageName, typeName: typeName, version: null,
-                rank: 0, containingNamespaceNames: containingNamespaceNames));
+                packageName: packageName, rank: 0, typeName: typeName,
+                version: null, containingNamespaceNames: containingNamespaceNames));
         }
 
-        private static Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
-            => Task.FromResult<IList<PackageWithTypeResult>>(ImmutableArray.Create(results));
+        private static ValueTask<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+            => new(ImmutableArray.Create(results));
 
-        private static ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
+        private static ImmutableArray<string> CreateNameParts(params string[] parts)
+            => parts.ToImmutableArray();
     }
 }

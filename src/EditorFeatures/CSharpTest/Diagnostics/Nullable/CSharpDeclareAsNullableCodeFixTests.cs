@@ -387,6 +387,22 @@ partial class Program
         }
 
         [Fact]
+        public async Task CannotFixParameterOfExtendedPartialMethod_FromAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+partial class Program
+{
+    public partial void M(out string x);
+
+    public partial void M(out string x)
+    {
+        x = [|null|];
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixLocalDeclaration_WithVar()
         {
             await TestMissingInRegularAndScriptAsync(

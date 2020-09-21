@@ -5559,6 +5559,10 @@ tryAgain:
                     // This is useful for parsing expressions in isolation
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
+                case SyntaxKind.EqualsGreaterThanToken:  // e.g. `e switch { A<B> => 1 }`
+                    // This token was added to 7.5.4.2 Grammar Ambiguities in C# 9.0
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
                 default:
                     return ScanTypeArgumentListKind.PossibleTypeArgumentList;
             }
@@ -10576,6 +10580,18 @@ tryAgain:
             while (true)
             {
                 tk = this.CurrentToken.Kind;
+                // Nullable suppression operators should only be consumed by a conditional access
+                // if there are further conditional operations performed after the suppression
+                if (isOptionalExclamationsFollowedByConditionalOperation())
+                {
+                    while (tk == SyntaxKind.ExclamationToken)
+                    {
+                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
+                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullableReferenceTypes);
+                        tk = this.CurrentToken.Kind;
+                    }
+                }
+
                 switch (tk)
                 {
                     case SyntaxKind.OpenParenToken:
@@ -10602,6 +10618,20 @@ tryAgain:
                     default:
                         return expr;
                 }
+            }
+
+            bool isOptionalExclamationsFollowedByConditionalOperation()
+            {
+                var tk = this.CurrentToken.Kind;
+                for (int i = 1; tk == SyntaxKind.ExclamationToken; i++)
+                {
+                    tk = this.PeekToken(i).Kind;
+                }
+                return tk
+                    is SyntaxKind.OpenParenToken
+                    or SyntaxKind.OpenBracketToken
+                    or SyntaxKind.DotToken
+                    or SyntaxKind.QuestionToken;
             }
         }
 

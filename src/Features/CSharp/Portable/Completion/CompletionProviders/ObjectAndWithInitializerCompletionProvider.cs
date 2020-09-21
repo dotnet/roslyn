@@ -143,20 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static ITypeSymbol GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // new Goo { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
-            {
-                return semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
-            }
+            var parent = token.Parent.Parent;
 
-            // new() { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ImplicitObjectCreationExpression, out ImplicitObjectCreationExpressionSyntax implicitObjectCreation))
+            // new() { $$
+            // new Goo { $$
+            if (parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression))
             {
-                return semanticModel.GetTypeInfo(implicitObjectCreation, cancellationToken).ConvertedType;
+                return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
             }
 
             // Nested: new Goo { bar = { $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+            if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
@@ -165,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // expr with { $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
+            if (parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
             {
                 return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }
