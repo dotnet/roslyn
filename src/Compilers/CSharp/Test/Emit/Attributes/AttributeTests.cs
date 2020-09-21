@@ -9172,25 +9172,31 @@ class C
         public void UnmanagedAttributeWithUnsafeError()
         {
             string source = @"
-using System;
+using System.Runtime.InteropServices;
 unsafe delegate byte* D();
 class C
 {
-    [Obsolete(null, true)] unsafe static byte* F() => default;
+    [UnmanagedCallersOnly]
+    unsafe static byte* F() => default;
     unsafe static D M1() => new D(F);
     static D M2() => new D(F);
+}
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+        public Type[] CallConvs;
+        public string EntryPoint;
+    }
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (7,35): warning CS0612: 'C.F()' is obsolete
-                //     unsafe static D M1() => new D(F);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(7, 35),
-                // (8,28): warning CS0612: 'C.F()' is obsolete
-                //     static D M2() => new D(F);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(8, 28),
-                // (8,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //     static D M2() => new D(F);
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(8, 28)
+                // TODO when CI fails
             );
         }
         #endregion
