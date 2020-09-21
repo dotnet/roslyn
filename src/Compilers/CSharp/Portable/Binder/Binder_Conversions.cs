@@ -1094,14 +1094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol selectedMethod = conversion.Method;
 
             var location = syntax.Location;
-
-            if (!isAddressOf)
-            {
-                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
-            }
-
-            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
-
             if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
@@ -1122,6 +1114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, location, selectedMethod);
                 return true;
             }
+
+            if (!isAddressOf)
+            {
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
+            }
+
+            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
 
             if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe())
             {
