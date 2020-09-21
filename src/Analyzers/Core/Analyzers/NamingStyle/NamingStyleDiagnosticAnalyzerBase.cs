@@ -84,8 +84,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     return;
                 }
 
-                RoslynDebug.AssertNotNull(syntaxContext.Compilation);
-
                 var diagnostic = TryGetDiagnostic(
                     syntaxContext.Compilation,
                     symbol,
