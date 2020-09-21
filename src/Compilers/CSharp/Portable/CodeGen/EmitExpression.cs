@@ -866,32 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         internal static RefKind GetArgumentRefKind(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt, int i)
         {
-            RefKind argRefKind;
-            if (i < parameters.Length)
-            {
-                if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
-                {
-                    // if we have an explicit refKind for the given argument, use that
-                    argRefKind = argRefKindsOpt[i];
-
-                    Debug.Assert(argRefKind == parameters[i].RefKind ||
-                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
-                            "in Emit the argument RefKind must be compatible with the corresponding parameter");
-                }
-                else
-                {
-                    // otherwise fallback to the refKind of the parameter
-                    argRefKind = parameters[i].RefKind;
-                }
-            }
-            else
-            {
-                // vararg case
-                Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
-                argRefKind = RefKind.None;
-            }
-
-            return argRefKind;
+            return RefKind.None;
         }
 
         private void EmitArrayElementLoad(BoundArrayAccess arrayAccess, bool used)
