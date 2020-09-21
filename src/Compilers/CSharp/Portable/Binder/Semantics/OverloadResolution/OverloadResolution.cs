@@ -444,11 +444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes.IsEmpty || expectedConvention.CallKind == Cci.CallingConvention.Unmanaged);
 
             Debug.Assert(!_binder.IsEarlyAttributeBinder);
-            if (_binder.InAttributeArgument)
+            if (_binder.InAttributeArgument || (_binder.Flags & BinderFlags.InContextualAttributeBinder) != 0)
             {
                 // We're at a location where the unmanaged data might not yet been bound. This cannot be valid code
                 // anyway, as attribute arguments can't be method references, so we'll just assume that the conventions
-                // match, as there will be other errors that superscede these anyway
+                // match, as there will be other errors that supersede these anyway
                 return;
             }
 
@@ -465,12 +465,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized));
 
                     Cci.CallingConvention actualCallKind;
-                    ImmutableHashSet<INamedTypeSymbolInternal> actualUnmanagedCallingConvetionTypes;
+                    ImmutableHashSet<INamedTypeSymbolInternal> actualUnmanagedCallingConventionTypes;
 
                     if (unmanagedCallersOnlyData is null)
                     {
                         actualCallKind = member.CallingConvention;
-                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
                     }
                     else
                     {
@@ -490,26 +490,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case 0:
                                 actualCallKind = Cci.CallingConvention.Unmanaged;
-                                actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
                                 break;
                             case 1:
                                 switch (unmanagedCallingConventionTypes.Single().Name)
                                 {
                                     case "CallConvCdecl":
                                         actualCallKind = Cci.CallingConvention.CDecl;
-                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
                                         break;
                                     case "CallConvStdcall":
                                         actualCallKind = Cci.CallingConvention.Standard;
-                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
                                         break;
                                     case "CallConvThiscall":
                                         actualCallKind = Cci.CallingConvention.ThisCall;
-                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
                                         break;
                                     case "CallConvFastcall":
                                         actualCallKind = Cci.CallingConvention.FastCall;
-                                        actualUnmanagedCallingConvetionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
                                         break;
                                     default:
                                         goto outerDefault;
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default:
 outerDefault:
                                 actualCallKind = Cci.CallingConvention.Unmanaged;
-                                actualUnmanagedCallingConvetionTypes = unmanagedCallingConventionTypes;
+                                actualUnmanagedCallingConventionTypes = unmanagedCallingConventionTypes;
                                 break;
                         }
                     }
@@ -538,20 +538,15 @@ outerDefault:
 
                     if (expectedConvention.CallKind.IsCallingConvention(Cci.CallingConvention.Unmanaged))
                     {
-                        switch (expectedConvention.UnmanagedCallingConventionTypes, actualUnmanagedCallingConvetionTypes)
+                        if (expectedConvention.UnmanagedCallingConventionTypes.Count != actualUnmanagedCallingConventionTypes.Count)
                         {
-                            case ({ IsEmpty: true }, { IsEmpty: true }):
-                                continue;
-
-                            case ({ IsEmpty: true }, _) or (_, { IsEmpty: true }):
-                            case ({ Count: var expectedCount }, { Count: var actualCount }) when expectedCount != actualCount:
-                                results[i] = makeWrongCallingConvention(result);
-                                continue;
+                            results[i] = makeWrongCallingConvention(result);
+                            continue;
                         }
 
                         foreach (var expectedModifier in expectedConvention.UnmanagedCallingConventionTypes)
                         {
-                            if (!actualUnmanagedCallingConvetionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
+                            if (!actualUnmanagedCallingConventionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
                             {
                                 results[i] = makeWrongCallingConvention(result);
                                 break;

@@ -9839,6 +9839,155 @@ class C
         }
 
         [Fact]
+        public void UnmanagedCallersOnlyWithLoopInUsage_4()
+        {
+            var comp = CreateCompilationWithFunctionPointers(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+unsafe class Attr : Attribute
+{
+    public Attr(delegate*<void> d) {}
+}
+unsafe class C
+{
+    [UnmanagedCallersOnly]
+    [Attr(&M1)]
+    static void M1()
+    {
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (12,6): error CS0181: Attribute constructor parameter 'd' has type 'delegate*<void>', which is not a valid attribute parameter type
+                //     [Attr(&M1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Attr", isSuppressed: false).WithArguments("d", "delegate*<void>").WithLocation(12, 6)
+            );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        public void UnmanagedCallersOnlyWithLoopInUsage_5()
+        {
+            var comp = CreateCompilationWithFunctionPointers(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+unsafe class Attr : Attribute
+{
+    public Attr(int i) {}
+}
+unsafe class C
+{
+    [UnmanagedCallersOnly]
+    [Attr(F())]
+    static int F()
+    {
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (12,11): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     [Attr(F())]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
+                // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr(F())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11),
+                // (13,16): error CS0161: 'C.F()': not all code paths return a value
+                //     static int F()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F", isSuppressed: false).WithArguments("C.F()").WithLocation(13, 16)
+            );
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
+        public void UnmanagedCallersOnlyWithLoopInUsage_5_Release()
+        {
+            // The bug in UnmanagedCallersOnlyWithLoopInUsage_5 is only
+            // triggered by the nullablewalker, which is unconditionally
+            // run in debug mode. We also want to verify the use-site
+            // diagnostic for unmanagedcallersonly does not cause a loop,
+            // so we have a separate version that does not have nullable
+            // enabled and only runs in release to verify. When
+            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
+            // test can be removed
+
+            var comp = CreateCompilationWithFunctionPointers(new[] { @"
+using System;
+using System.Runtime.InteropServices;
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+unsafe class Attr : Attribute
+{
+    public Attr(int i) {}
+}
+unsafe class C
+{
+    [UnmanagedCallersOnly]
+    [Attr(F())]
+    static int F()
+    {
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (12,11): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     [Attr(F())]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
+                // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr(F())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11),
+                // (13,16): error CS0161: 'C.F()': not all code paths return a value
+                //     static int F()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F", isSuppressed: false).WithArguments("C.F()").WithLocation(13, 16)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInUsage_6()
+        {
+            var comp = CreateCompilationWithFunctionPointers(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+public unsafe class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvFastcall) })]
+    static void F(int i = G(&F)) { }
+    static int G(delegate*unmanaged[Fastcall]<int, void> d) => 0;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (7,27): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //     static void F(int i = G(&F)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "G(&F)", isSuppressed: false).WithArguments("i").WithLocation(7, 27)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInUsage_7()
+        {
+            var comp = CreateCompilationWithFunctionPointers(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+public unsafe class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvFastcall) })]
+    static int F(int i = F()) => 0;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (7,26): error CS8901: 'C.F(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     static int F(int i = F()) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F(int)").WithLocation(7, 26),
+                // (7,26): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //     static int F(int i = F()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()", isSuppressed: false).WithArguments("i").WithLocation(7, 26)
+            );
+        }
+
+        [Fact]
         public void UnmanagedCallersOnlyUnrecognizedConstructor()
         {
             var comp = CreateCompilation(@"
