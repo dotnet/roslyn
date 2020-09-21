@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         static ServiceBase()
         {
-            // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
-            WatsonTraceListener.Install();
+            WatsonReporter.InitializeFatalErrorHandlers();
         }
 
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)

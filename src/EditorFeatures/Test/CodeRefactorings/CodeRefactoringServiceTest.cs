@@ -50,7 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
         private static async Task VerifyRefactoringDisabledAsync<T>()
             where T : CodeRefactoringProvider
         {
-            using var workspace = TestWorkspace.CreateCSharp(@"class Program {}", composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(T)));
+            using var workspace = TestWorkspace.CreateCSharp(@"class Program {}",
+                composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(T)));
+
+            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+
+            var errorReported = false;
+            errorReportingService.OnError = message => errorReported = true;
+
             var refactoringService = workspace.GetService<ICodeRefactoringService>();
             var codeRefactoring = workspace.ExportProvider.GetExportedValues<CodeRefactoringProvider>().OfType<T>().Single();
 
@@ -60,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(codeRefactoring));
             Assert.False(extensionManager.IsIgnored(codeRefactoring));
+
+            Assert.True(errorReported);
         }
 
         internal class StubRefactoring : CodeRefactoringProvider
