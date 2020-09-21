@@ -375,6 +375,10 @@ namespace Microsoft.CodeAnalysis
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
             _optionService.UnregisterWorkspace(this);
+
+            // Dispose per-instance services created for this workspace (direct MEF exports, including factories, will
+            // be disposed when the MEF catalog is disposed).
+            Services.Dispose();
         }
 
         #region Host API

@@ -8,8 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 [assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
 
@@ -20,11 +22,14 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private readonly IMefHostExportProvider _exportProvider;
         private readonly Workspace _workspace;
 
-        private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
+        private readonly ImmutableArray<(Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> _services;
 
         // map of type name to workspace service
-        private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>>.Empty;
+        private ImmutableDictionary<Type, (Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> _serviceMap
+            = ImmutableDictionary<Type, (Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)>.Empty;
+
+        private readonly object _gate = new();
+        private readonly HashSet<IDisposable> _ownedDisposableServices = new(ReferenceEqualityComparer.Instance);
 
         // accumulated cache for language services
         private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
@@ -35,9 +40,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             _exportProvider = host;
             _workspace = workspace;
 
-            var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>();
+            var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
+                .Select(lz => (lz, usesFactory: false));
             var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata));
+                .Select(lz => (new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata), usesFactory: true));
 
             _services = services.Concat(factories).ToImmutableArray();
         }
@@ -51,11 +57,68 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override Workspace Workspace => _workspace;
 
+        public override void Dispose()
+        {
+            ImmutableArray<IDisposable> disposableServices;
+            lock (_gate)
+            {
+                disposableServices = _ownedDisposableServices.ToImmutableArray();
+                _ownedDisposableServices.Clear();
+            }
+
+            // Take care to give all disposal parts a chance to dispose even if some parts throw exceptions.
+            List<Exception> exceptions = null;
+            foreach (var service in disposableServices)
+            {
+                try
+                {
+                    service.Dispose();
+                }
+                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (exceptions is not null)
+            {
+                throw new AggregateException(CompilerExtensionsResources.Instantiated_parts_threw_exceptions_from_IDisposable_Dispose, exceptions);
+            }
+
+            base.Dispose();
+        }
+
         public override TWorkspaceService GetService<TWorkspaceService>()
         {
             if (TryGetService(typeof(TWorkspaceService), out var service))
             {
-                return (TWorkspaceService)service.Value;
+                // MEF workspace service instances created by a factory are not owned by the MEF catalog or disposed
+                // when the MEF catalog is disposed. Whenever we are potentially going to create an instance of a
+                // service provided by a factory, we need to check if the resulting service implements IDisposable. The
+                // specific conditions here are:
+                //
+                // * usesFactory: This is true when the workspace service is provided by a factory. Services provided
+                //   directly are owned by the MEF catalog so they do not need to be tracked by the workspace.
+                // * IsValueCreated: This will be false at least once prior to accessing the lazy value. Once the value
+                //   is known to be created, we no longer need to try adding it to _ownedDisposableServices, so we use a
+                //   lock-free fast path.
+                var checkAddDisposable = service.usesFactory && !service.lazyService.IsValueCreated;
+
+                var serviceInstance = (TWorkspaceService)service.lazyService.Value;
+                if (checkAddDisposable && serviceInstance is IDisposable disposable)
+                {
+                    lock (_gate)
+                    {
+                        _ownedDisposableServices.Add(disposable);
+                    }
+                }
+
+                return serviceInstance;
             }
             else
             {
@@ -63,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        private bool TryGetService(Type serviceType, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
+        private bool TryGetService(Type serviceType, out (Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory) service)
         {
             if (!_serviceMap.TryGetValue(serviceType, out service))
             {
@@ -72,16 +135,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     // Pick from list of exported factories and instances
                     // PERF: Hoist AssemblyQualifiedName out of inner lambda to avoid repeated string allocations.
                     var assemblyQualifiedName = svctype.AssemblyQualifiedName;
-                    return PickWorkspaceService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
+                    return PickWorkspaceService(_services.Where(lz => lz.lazyService.Metadata.ServiceType == assemblyQualifiedName));
                 });
             }
 
-            return service != null;
+            return service.lazyService != null;
         }
 
-        private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
+        private (Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory) PickWorkspaceService(IEnumerable<(Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> services)
         {
-            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+            (Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory) service;
 #if !CODE_STYLE
             // test layer overrides all other layers and workspace kind:
             if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
@@ -120,13 +183,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service.
-            return null;
+            return default;
         }
 
-        private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
+        private static bool TryGetServiceByLayer(string layer, IEnumerable<(Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> services, out (Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory) service)
         {
-            service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
-            return service != null;
+            service = services.SingleOrDefault(lz => lz.lazyService.Metadata.Layer == layer);
+            return service.lazyService != null;
         }
 
         private IEnumerable<string> _languages;

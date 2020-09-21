@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Per workspace services provided by the host environment.
     /// </summary>
-    public abstract class HostWorkspaceServices
+    public abstract class HostWorkspaceServices : IDisposable
     {
         /// <summary>
         /// The host services this workspace services originated from.
@@ -32,6 +33,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// If the host does not provide the service, this method returns null.
         /// </summary>
         public abstract TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
+
+        [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Derived types are not allowed to include a finalizer for this pattern.")]
+        public virtual void Dispose()
+        {
+        }
 
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 
