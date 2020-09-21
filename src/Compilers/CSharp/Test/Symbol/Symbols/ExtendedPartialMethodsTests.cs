@@ -2653,12 +2653,6 @@ partial class C
                 // (5,25): error CS8817: Both partial method declarations must have the same return type.
                 //     public partial long M() => 42; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 25));
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (5,25): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial long M() => 42; // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 25));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2694,15 +2688,6 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (8,27): warning CS8825: Partial method declarations 'string? C.M1()' and 'string C.M1()' must have identical nullability for parameter types and return types.
-                //     public partial string M1() => "hello";
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(8, 27),
-                // (11,40): warning CS8825: Partial method declarations 'IEnumerable<string?> C.M2()' and 'IEnumerable<string> C.M2()' must have identical nullability for parameter types and return types.
-                //     public partial IEnumerable<string> M2() => null!;
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("IEnumerable<string?> C.M2()", "IEnumerable<string> C.M2()").WithLocation(11, 40));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2721,15 +2706,6 @@ partial class C
     public partial IEnumerable<string?> M2() => null!; // 2
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
-                //     public partial string? M1() => null; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(8, 28),
-                // (11,41): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
-                //     public partial IEnumerable<string?> M2() => null!; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(11, 41));
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
@@ -2854,39 +2830,21 @@ partial class C
                 // (7,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(7, 20),
-                // (7,26): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial ERROR M1() => throw null!; // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(7, 26),
                 // (10,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(10, 32),
-                // (10,39): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(10, 39),
                 // (13,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(13, 32),
-                // (13,39): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M3").WithLocation(13, 39),
                 // (15,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M4(); // 4
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(15, 20),
-                // (16,24): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial int M4() => throw null!;
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M4").WithLocation(16, 24),
                 // (18,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M5(); // 5
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(18, 32),
-                // (19,37): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial IEnumerable<int> M5() => throw null!;
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M5").WithLocation(19, 37),
                 // (21,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M6(); // 6
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(21, 32),
-                // (22,24): error CS8817: Both partial method declarations must have the same return type.
-                //     public partial int M6() => throw null!;
-                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M6").WithLocation(22, 24),
                 // (24,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M7(); // 7
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(24, 20),
@@ -2975,9 +2933,9 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,37): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
-                //     public partial (int x1, int y1) M1() => default; // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(5, 37));
+                // (4,35): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
+                //     public partial (int x, int y) M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(4, 35));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3010,15 +2968,6 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (5,28): warning CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' have differences in parameter or return types.
-                //     public partial dynamic M1() => null;
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
-                // (8,27): warning CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' have differences in parameter or return types.
-                //     public partial object M2() => null;
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3037,15 +2986,6 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (7,25): warning CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' have differences in parameter or return types.
-                //     public partial nint M1() => 0;
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
-                // (10,27): warning CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' have differences in parameter or return types.
-                //     public partial IntPtr M2() => default;
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3081,20 +3021,20 @@ partial class C
     public partial string? M1() => null; // 1
     
     public partial string? M2();
-    public partial string M2() => ""hello""; // 2
+    public partial string M2() => ""hello"";
     
 #nullable disable
     public partial string M3();
-    public partial string? M3() => null; // 3
+    public partial string? M3() => null; // 2
     
-    public partial string? M4(); // 4
+    public partial string? M4(); // 3
     public partial string M4() => ""hello"";
 
 #nullable enable
     public partial string M5();
     public partial string M6() => null!;
     public partial string M7();
-    public partial string M8() => null!; // 5
+    public partial string M8() => null!;
     public partial string? M9();
     public partial string? M10() => null;
     public partial string? M11();
@@ -3103,12 +3043,12 @@ partial class C
 #nullable disable
     public partial string M5() => null;
     public partial string M6();
-    public partial string? M7() => null; // 6
-    public partial string? M8(); // 7
+    public partial string? M7() => null; // 4
+    public partial string? M8(); // 5
     public partial string M9() => null;
     public partial string M10();
-    public partial string? M11() => null; // 8
-    public partial string? M12(); // 9
+    public partial string? M11() => null; // 6
+    public partial string? M12(); // 7
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
@@ -3116,52 +3056,22 @@ partial class C
                 //     public partial string? M1() => null; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(6, 28),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M3() => null; // 3
+                //     public partial string? M3() => null; // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
                 // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M4(); // 4
+                //     public partial string? M4(); // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
                 // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M7() => null; // 6
+                //     public partial string? M7() => null; // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
                 // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M8(); // 7
+                //     public partial string? M8(); // 5
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
                 // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M11() => null; // 8
+                //     public partial string? M11() => null; // 6
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
                 // (36,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M12(); // 9
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
-                // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
-                //     public partial string? M1() => null; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(6, 28),
-                // (9,27): warning CS8824: Partial method declarations 'string? C.M2()' and 'string C.M2()' have differences in parameter or return types.
-                //     public partial string M2() => "hello"; // 2
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("string? C.M2()", "string C.M2()").WithLocation(9, 27),
-                // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M3() => null; // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
-                // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M4(); // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
-                // (22,27): warning CS8824: Partial method declarations 'string? C.M8()' and 'string C.M8()' have differences in parameter or return types.
-                //     public partial string M8() => null!; // 5
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M8").WithArguments("string? C.M8()", "string C.M8()").WithLocation(22, 27),
-                // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M7() => null; // 6
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
-                // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M8(); // 7
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
-                // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M11() => null; // 8
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
-                // (36,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M12(); // 9
+                //     public partial string? M12(); // 7
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
         }
 
@@ -3198,179 +3108,6 @@ partial class C
                 // (4,31): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial (int, int) F1() => default;
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31));
-        }
-
-        [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
-        public void DifferentSignatures_Dynamic()
-        {
-            var source =
-@"partial class C
-{
-    partial void F1(object o);
-    partial void F1(dynamic o) { } // 1
-    internal partial void F2(object o);
-    internal partial void F2(dynamic o) { } // 2
-    internal partial dynamic F3();
-    internal partial object F3() => null; // 3
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
-            comp.VerifyDiagnostics(
-                // (4,18): warning CS8824: Partial method declarations 'void C.F1(object o)' and 'void C.F1(dynamic o)' have differences in parameter or return types.
-                //     partial void F1(dynamic o) { } // 1
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1", isSuppressed: false).WithArguments("void C.F1(object o)", "void C.F1(dynamic o)").WithLocation(4, 18),
-                // (6,27): warning CS8824: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' have differences in parameter or return types.
-                //     internal partial void F2(dynamic o) { } // 2
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2", isSuppressed: false).WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
-                // (8,29): warning CS8824: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' have differences in parameter or return types.
-                //     internal partial object F3() => null; // 3
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3", isSuppressed: false).WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
-        }
-
-        [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
-        public void DifferentSignatures_Nullable()
-        {
-            var source =
-@"using System.Collections.Generic;
-#nullable enable
-partial class C
-{
-    partial void F1(string? s);
-    partial void F1(string s) { } // 1
-    partial void F2(IEnumerable<string?> s);
-    partial void F2(IEnumerable<string> s) { } // 2
-    internal partial void F3(string? s);
-    internal partial void F3(string s) { } // 3
-    internal partial void F4(IEnumerable<string?> s);
-    internal partial void F4(IEnumerable<string> s) { } // 4
-    internal partial string? F5();
-    internal partial string F5() => null!; // 5
-    internal partial IEnumerable<string> F6();
-    internal partial IEnumerable<string?> F6() => null!; // 6
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     partial void F1(string s) { } // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F1").WithArguments("s").WithLocation(6, 18),
-                // (8,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     partial void F2(IEnumerable<string> s) { } // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F2").WithArguments("s").WithLocation(8, 18),
-                // (10,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     internal partial void F3(string s) { } // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F3").WithArguments("s").WithLocation(10, 27),
-                // (12,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     internal partial void F4(IEnumerable<string> s) { } // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F4").WithArguments("s").WithLocation(12, 27),
-                // (16,43): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
-                //     internal partial IEnumerable<string?> F6() => null!; // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "F6").WithLocation(16, 43));
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
-            comp.VerifyDiagnostics(
-                // (6,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     partial void F1(string s) { } // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F1").WithArguments("s").WithLocation(6, 18),
-                // (8,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     partial void F2(IEnumerable<string> s) { } // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F2").WithArguments("s").WithLocation(8, 18),
-                // (10,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     internal partial void F3(string s) { } // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F3").WithArguments("s").WithLocation(10, 27),
-                // (12,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
-                //     internal partial void F4(IEnumerable<string> s) { } // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F4").WithArguments("s").WithLocation(12, 27),
-                // (14,29): warning CS8824: Partial method declarations 'string? C.F5()' and 'string C.F5()' have differences in parameter or return types.
-                //     internal partial string F5() => null!; // 5
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F5").WithArguments("string? C.F5()", "string C.F5()").WithLocation(14, 29),
-                // (16,43): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
-                //     internal partial IEnumerable<string?> F6() => null!; // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "F6").WithLocation(16, 43));
-        }
-
-        // Errors reported for all differences.
-        [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
-        public void DifferentSignatures_Tuples()
-        {
-            var source =
-@"partial class C
-{
-    partial void F1<T, U>((T x, U y) t) { }
-    partial void F1<T, U>((T x, U y) t);
-    partial void F2<T, U>((T x, U y) t) { } // 1
-    partial void F2<T, U>((T, U) t);
-    partial void F3((dynamic, object) t);
-    partial void F3((object x, dynamic y) t) { } // 2
-    internal partial void F4<T, U>((T x, U y) t);
-    internal partial void F4<T, U>((T, U) t) { } // 3
-    internal partial (T, U) F5<T, U>() => default;
-    internal partial (T, U) F5<T, U>();
-    internal partial (T, U) F6<T, U>() => default; // 4
-    internal partial (T x, U y) F6<T, U>();
-}";
-            var comp = CreateCompilation(source);
-            verifyDiagnostics(comp);
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
-            verifyDiagnostics(comp);
-
-            static void verifyDiagnostics(CSharpCompilation comp)
-            {
-                comp.VerifyDiagnostics(
-                    // (5,18): error CS8142: Both partial method declarations, 'C.F2<T, U>((T, U))' and 'C.F2<T, U>((T x, U y))', must use the same tuple element names.
-                    //     partial void F2<T, U>((T x, U y) t) { } // 1
-                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F2").WithArguments("C.F2<T, U>((T, U))", "C.F2<T, U>((T x, U y))").WithLocation(5, 18),
-                    // (8,18): error CS8142: Both partial method declarations, 'C.F3((dynamic, object))' and 'C.F3((object x, dynamic y))', must use the same tuple element names.
-                    //     partial void F3((object x, dynamic y) t) { } // 2
-                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F3").WithArguments("C.F3((dynamic, object))", "C.F3((object x, dynamic y))").WithLocation(8, 18),
-                    // (10,27): error CS8142: Both partial method declarations, 'C.F4<T, U>((T x, U y))' and 'C.F4<T, U>((T, U))', must use the same tuple element names.
-                    //     internal partial void F4<T, U>((T, U) t) { } // 3
-                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F4").WithArguments("C.F4<T, U>((T x, U y))", "C.F4<T, U>((T, U))").WithLocation(10, 27),
-                    // (13,29): error CS8142: Both partial method declarations, 'C.F6<T, U>()' and 'C.F6<T, U>()', must use the same tuple element names.
-                    //     internal partial (T, U) F6<T, U>() => default; // 4
-                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F6").WithArguments("C.F6<T, U>()", "C.F6<T, U>()").WithLocation(13, 29));
-            }
-        }
-
-        [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
-        public void DifferentSignatures_NativeIntegers()
-        {
-            var source =
-@"using System.Collections.Generic;
-partial class C
-{
-    partial void F1(nint i);
-    partial void F1(System.IntPtr i) { } // 1
-    partial void F2(dynamic x, nint y);
-    partial void F2(object x, System.IntPtr y) { } // 2
-    internal partial void F3(nint i);
-    internal partial void F3(System.IntPtr i) { } // 3
-    internal partial IEnumerable<System.IntPtr> F4();
-    internal partial IEnumerable<nint> F4() => null; // 4
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
-            comp.VerifyDiagnostics(
-                // (5,18): warning CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' have differences in parameter or return types.
-                //     partial void F1(System.IntPtr i) { } // 1
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void C.F1(nint i)", "void C.F1(IntPtr i)").WithLocation(5, 18),
-                // (7,18): warning CS8824: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' have differences in parameter or return types.
-                //     partial void F2(object x, System.IntPtr y) { } // 2
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(dynamic x, nint y)", "void C.F2(object x, IntPtr y)").WithLocation(7, 18),
-                // (9,27): warning CS8824: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' have differences in parameter or return types.
-                //     internal partial void F3(System.IntPtr i) { } // 3
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3").WithArguments("void C.F3(nint i)", "void C.F3(IntPtr i)").WithLocation(9, 27),
-                // (11,40): warning CS8824: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' have differences in parameter or return types.
-                //     internal partial IEnumerable<nint> F4() => null; // 4
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
         }
 
         [Fact]
