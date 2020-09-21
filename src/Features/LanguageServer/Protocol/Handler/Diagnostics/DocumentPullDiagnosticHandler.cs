@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (updateArgs.DocumentId == null)
                 return;
 
+            // Whenever we hear about changes to a document, drop the data we've stored for it.  We'll recompute it as
+            // necessary on the next request.
             _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
         }
 
@@ -135,8 +137,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private static LspDiagnostic? Convert(SourceText text, DiagnosticData diagnosticData)
         {
-            Contract.ThrowIfNull(diagnosticData.Message, $"Got a dicument diagnostic that did not haev a {nameof(diagnosticData.Message)}");
-            Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a dicument diagnostic that did not haev a {nameof(diagnosticData.DataLocation)}");
+            Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
+            Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
 
             return new LspDiagnostic
             {
