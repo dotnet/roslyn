@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IsDynamicIsConfusing:
                 case ErrorCode.WRN_DebugFullNameTooLong:
                 case ErrorCode.WRN_PdbLocalNameTooLong:
+                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                     return 3;
                 case ErrorCode.WRN_NewRequired:
                 case ErrorCode.WRN_NewOrOverrideExpected:
@@ -480,7 +481,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_RecordNamedDisallowed:
-                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                     return 1;
                 default:
                     return 0;
