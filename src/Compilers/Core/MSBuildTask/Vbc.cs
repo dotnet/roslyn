@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         /// <param name="singleLine">The line to parse</param>
         /// <param name="messageImportance">The MessageImportance to use when reporting the error.</param>
-        internal void ParseVBErrorOrWarning(string singleLine, MessageImportance messageImportance)
+        private void ParseVBErrorOrWarning(string singleLine, MessageImportance messageImportance)
         {
             // if this string is empty then we haven't seen the first line of an error yet
             if (_vbErrorLines.Count > 0)
