@@ -2958,16 +2958,31 @@ public class C
 {   
     public static void Main()
     {
-        int x = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1) switch
+        int x1 = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1) switch
         {
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1) => 1,
             _ => -1,
         };
-        Console.WriteLine(x);
+        int x2 = (1, 1, 1, 1, 1, 1, 1, 1) switch
+        {
+            (1, 1, 1, 1, 1, 1, 1, 1) => 1,
+            _ => -1,
+        };
+        int x3 = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) switch
+        {
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) => 1,
+            _ => -1,
+        };
+        int x4 = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) switch
+        {
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) => 1,
+            _ => -1,
+        };
+        Console.WriteLine($"{x1} {x2} {x3} {x4}");
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: "1");
+            var comp = CompileAndVerify(text, expectedOutput: "1 1 1 1");
             comp.VerifyDiagnostics();
         }
         #endregion
