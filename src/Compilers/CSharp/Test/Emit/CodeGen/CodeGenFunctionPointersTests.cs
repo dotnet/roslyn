@@ -9873,7 +9873,7 @@ unsafe class C
 using System;
 using System.Runtime.InteropServices;
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-unsafe class Attr : Attribute
+class Attr : Attribute
 {
     public Attr(int i) {}
 }
@@ -9883,6 +9883,7 @@ unsafe class C
     [Attr(F())]
     static int F()
     {
+        return 0;
     }
 }
 ", UnmanagedCallersOnlyAttribute });
@@ -9893,10 +9894,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
                 // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11),
-                // (13,16): error CS0161: 'C.F()': not all code paths return a value
-                //     static int F()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F", isSuppressed: false).WithArguments("C.F()").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11)
             );
         }
 
@@ -9916,7 +9914,7 @@ unsafe class C
 using System;
 using System.Runtime.InteropServices;
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-unsafe class Attr : Attribute
+class Attr : Attribute
 {
     public Attr(int i) {}
 }
@@ -9926,6 +9924,7 @@ unsafe class C
     [Attr(F())]
     static int F()
     {
+        return 0;
     }
 }
 ", UnmanagedCallersOnlyAttribute });
@@ -9936,10 +9935,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
                 // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11),
-                // (13,16): error CS0161: 'C.F()': not all code paths return a value
-                //     static int F()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F", isSuppressed: false).WithArguments("C.F()").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11)
             );
         }
 
