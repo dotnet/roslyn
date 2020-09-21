@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
@@ -15,10 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         private const int ImplicitCacheTimeoutInMS = 10000;
 
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ProjectCacheHostServiceFactory()
+        public ProjectCacheHostServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _listenerProvider = listenerProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 return new ProjectCacheService(workspaceServices.Workspace);
             }
 
-            var service = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            var service = new ProjectCacheService(workspaceServices.Workspace, _listenerProvider, ImplicitCacheTimeoutInMS);
 
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>

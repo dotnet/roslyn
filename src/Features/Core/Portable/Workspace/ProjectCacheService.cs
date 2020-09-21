@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// cache is likely to outweigh the benefit (for example, in Misc File Workspace cases, we can end up holding
     /// onto a lot of memory even after a file is closed).  We can opt in other kinds of Workspaces as needed.
     /// </summary>
-    internal partial class ProjectCacheService : IProjectCacheHostService
+    internal partial class ProjectCacheService : IProjectCacheHostService, IDisposable
     {
         internal const int ImplicitCacheSize = 3;
 
@@ -30,18 +32,20 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Workspace _workspace;
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new Dictionary<ProjectId, Cache>();
 
+        private readonly CancellationTokenSource _shutdownNotificationSource = new();
+
         private readonly SimpleMRUCache? _implicitCache;
         private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
         public ProjectCacheService(Workspace workspace)
             => _workspace = workspace;
 
-        public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
+        public ProjectCacheService(Workspace workspace, IAsynchronousOperationListenerProvider listenerProvider, int implicitCacheTimeout)
         {
             _workspace = workspace;
 
             _implicitCache = new SimpleMRUCache();
-            _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
+            _implicitCacheMonitor = new ImplicitCacheMonitor(this, listenerProvider.GetListener(FeatureAttribute.ProjectCache), implicitCacheTimeout, _shutdownNotificationSource.Token);
         }
 
         public bool IsImplicitCacheEmpty
@@ -53,6 +57,12 @@ namespace Microsoft.CodeAnalysis.Host
                     return _implicitCache?.IsEmpty ?? false;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            // cancel any pending blocks
+            _shutdownNotificationSource.Cancel();
         }
 
         public void ClearImplicitCache()

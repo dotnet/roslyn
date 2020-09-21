@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
@@ -16,10 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         private const int ImplicitCacheTimeoutInMS = 10000;
 
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioProjectCacheHostServiceFactory()
+        public VisualStudioProjectCacheHostServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _listenerProvider = listenerProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -33,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             return GetMiscProjectCache(workspaceServices);
         }
 
-        private static IWorkspaceService GetMiscProjectCache(HostWorkspaceServices workspaceServices)
+        private IWorkspaceService GetMiscProjectCache(HostWorkspaceServices workspaceServices)
         {
             if (workspaceServices.Workspace.Kind != WorkspaceKind.Host)
             {
                 return new ProjectCacheService(workspaceServices.Workspace);
             }
 
-            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, _listenerProvider, ImplicitCacheTimeoutInMS);
 
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
@@ -54,10 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             return projectCacheService;
         }
 
-        private static IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices)
+        private IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices)
         {
             // We will finish setting this up in VisualStudioWorkspaceImpl.DeferredInitializationState
-            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            return new ProjectCacheService(workspaceServices.Workspace, _listenerProvider, ImplicitCacheTimeoutInMS);
         }
 
         internal static void ConnectProjectCacheServiceToDocumentTracking(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)

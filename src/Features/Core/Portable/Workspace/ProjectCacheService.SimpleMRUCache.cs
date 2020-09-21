@@ -91,10 +91,8 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ProjectCacheService _owner;
             private readonly SemaphoreSlim _gate;
 
-            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS)
-                : base(AsynchronousOperationListenerProvider.NullListener,
-                       backOffTimeSpanInMS,
-                       CancellationToken.None)
+            public ImplicitCacheMonitor(ProjectCacheService owner, IAsynchronousOperationListener listener, int backOffTimeSpanInMS, CancellationToken cancellationToken)
+                : base(listener, backOffTimeSpanInMS, cancellationToken)
             {
                 _owner = owner;
                 _gate = new SemaphoreSlim(0);
