@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation, params (string, string)[] otherKVPs)
+        private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation, params (string key, string value)[] additionalProperties)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder.Add(CompletionHandlerPropertyName, operation);
@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                rules: CompletionItemRules.Default,
                                contextPosition: position,
                                properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
-            context.AddItems(allExplicitConversions.Union(indexers));
+            context.AddItems(allExplicitConversions);
+            context.AddItems(indexers);
         }
 
         private static ExpressionSyntax? GetParentExpressionOfInvocation(SyntaxToken token)
