@@ -1334,11 +1334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 EnsureTypeParametersAreLoaded(ref result);
-                if (result == null && UnmanagedCallersOnlyAttributeData is UnmanagedCallersOnlyAttributeData data)
+                if (result == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                    if (MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction)
+                    if (MethodKind is not MethodKind.Ordinary
                         || !IsStatic
                         || !data.IsValid)
                     {
@@ -1435,38 +1435,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
         {
-            get
+            if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
             {
-                if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
+                var allAttributes = GetAttributes();
+
+                CSharpAttributeData? unmanagedAttribute = null;
+                foreach (var attribute in allAttributes)
                 {
-                    var allAttributes = GetAttributes();
-
-                    CSharpAttributeData? unmanagedAttribute = null;
-                    foreach (var attribute in allAttributes)
+                    if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
                     {
-                        if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
-                        {
-                            unmanagedAttribute = attribute;
-                            break;
-                        }
+                        unmanagedAttribute = attribute;
+                        break;
                     }
-
-                    UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
-                        ? null
-                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
-
-                    var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
-                                                                  data,
-                                                                  UnmanagedCallersOnlyAttributeData.Uninitialized);
-
-                    _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
-                    return result;
                 }
 
-                return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
+                UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
+                    ? null
+                    : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
+
+                var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
+                                                              data,
+                                                              UnmanagedCallersOnlyAttributeData.Uninitialized);
+
+                _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
+                return result;
             }
+
+            return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
         }
 #nullable restore
 

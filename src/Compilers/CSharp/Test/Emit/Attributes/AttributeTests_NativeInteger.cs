@@ -1249,7 +1249,6 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
         }
 
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void EmitAttribute_PartialMethods()
         {
             var source =
@@ -1261,21 +1260,13 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.In
     static partial void F2(nuint x);
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular9);
+            // Ideally should not emit any attributes. Compare with dynamic/object.
             var expected =
 @"Program
     void F2(System.UIntPtr x)
         [NativeInteger] System.UIntPtr x
 ";
             AssertNativeIntegerAttributes(comp, expected);
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics(
-                // (4,25): warning CS8824: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' have differences in parameter or return types.
-                //     static partial void F2(System.UIntPtr x) { }
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void Program.F2(nuint x)", "void Program.F2(UIntPtr x)").WithLocation(4, 25),
-                // (5,25): warning CS8824: Partial method declarations 'void Program.F1(IntPtr x)' and 'void Program.F1(nint x)' have differences in parameter or return types.
-                //     static partial void F1(nint x) { }
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void Program.F1(IntPtr x)", "void Program.F1(nint x)").WithLocation(5, 25));
         }
 
         // Shouldn't depend on [NullablePublicOnly].
