@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool canShareInputs,
                 out BoundExpression savedInputExpression)
             {
-                int count = loweredInput.Arguments.Length;
+                int count = loweredInput.Type.TupleElements.Length;
 
                 // first evaluate the inputs (in order) into temps
                 var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var field = loweredInput.Type.TupleElements[i].CorrespondingTupleField;
                     Debug.Assert(field != null);
-                    var expr = loweredInput.Arguments[i];
+                    var expr = getExpression(i, loweredInput);
                     var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
                     var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation);
                     storeToTemp(temp, expr);
@@ -511,6 +511,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredInput.InitializerExpressionOpt, loweredInput.BinderOpt, loweredInput.Type);
 
                 return rewrittenDag;
+
+                static BoundExpression getExpression(int index, BoundObjectCreationExpression expression)
+                {
+                    while (index >= NamedTypeSymbol.ValueTupleRestIndex)
+                    {
+                        if (expression.Arguments[NamedTypeSymbol.ValueTupleRestIndex] is BoundObjectCreationExpression restExpression)
+                        {
+                            expression = restExpression;
+                            index -= NamedTypeSymbol.ValueTupleRestIndex;
+                        }
+                        else
+                        {
+                            // ValueTupleRestIndex should always be another tuple. Hence, it should always have BoundObjectCreationExpression.
+                            Debug.Assert(false, "This should be unreachable.");
+                        }
+                    }
+
+                    return expression.Arguments[index];
+                }
 
                 void storeToTemp(BoundDagTemp temp, BoundExpression expr)
                 {

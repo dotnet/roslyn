@@ -2949,6 +2949,27 @@ public class TestClass
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17));
         }
 
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void Bug47878()
+        {
+            var text = @"
+using System;
+public class C
+{   
+    public static void Main()
+    {
+        int x = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1) switch
+        {
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1) => 1,
+            _ => -1,
+        };
+        Console.WriteLine(x);
+    }
+}
+";
+            var comp = CompileAndVerify(text, expectedOutput: "1");
+            comp.VerifyDiagnostics();
+        }
         #endregion
     }
 }
