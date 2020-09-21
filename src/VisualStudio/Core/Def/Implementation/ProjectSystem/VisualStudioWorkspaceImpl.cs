@@ -655,40 +655,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override void ApplyMappedFileChanges(SolutionChanges solutionChanges)
         {
-            // After normal project changes have been applied, we need to apply changes for
-            // generated razor documents that are mapped to a location in a file outside of our workspace.
-            // Since these generated documents have CanApplyChange() == false, they will not
-            // be applied when other project changes are applied.
-            var projectChanges = solutionChanges.GetProjectChanges();
-
-            var changedMappedDocuments = new Dictionary<ProjectChanges, ImmutableArray<DocumentId>>();
-            foreach (var projectChange in projectChanges)
-            {
-                var documents = projectChange.GetChangedDocuments().Where(ShouldApplyChangesToMappedDocuments);
-                if (documents.Any())
-                {
-                    changedMappedDocuments.Add(projectChange, documents.ToImmutableArray());
-                }
-            }
-
-            if (changedMappedDocuments.Any())
-            {
-                ApplyChangesForMappedDocuments(changedMappedDocuments);
-            }
-
-            return;
-
-            bool ShouldApplyChangesToMappedDocuments(DocumentId id)
-            {
-                var document = this.CurrentSolution.GetDocument(id);
-                // Only consider files that are mapped and that we are unable to apply changes to.
-                // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
-                return document?.Services?.GetService<ISpanMappingService>() != null && document?.CanApplyChange() == false;
-            }
-        }
-
-        private void ApplyChangesForMappedDocuments(Dictionary<ProjectChanges, ImmutableArray<DocumentId>> changedMappedDocuments)
-        {
             // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
             // Create mapped text changes using the mapped spans and original text changes' text.
 
@@ -698,7 +664,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
             // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(changedMappedDocuments));
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
@@ -713,17 +679,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return;
 
-            static async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(Dictionary<ProjectChanges, ImmutableArray<DocumentId>> changedMappedDocuments)
+            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
             {
                 var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
-                foreach (var projectChanges in changedMappedDocuments.Keys)
+                foreach (var projectChanges in solutionChanges.GetProjectChanges())
                 {
-                    foreach (var changedDocumentId in changedMappedDocuments[projectChanges])
+                    foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
                     {
                         var oldDocument = projectChanges.OldProject.GetRequiredDocument(changedDocumentId);
-                        var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
+                        if (!ShouldApplyChangesToMappedDocuments(oldDocument, out var mappingService))
+                        {
+                            continue;
+                        }
 
-                        var mappingService = newDocument.Services.GetService<ISpanMappingService>()!;
+                        var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
                         var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
                         var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
 
@@ -743,6 +712,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return filePathToMappedTextChanges;
+            }
+
+            bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
+            {
+                spanMappingService = document.Services.GetService<ISpanMappingService>();
+                // Only consider files that are mapped and that we are unable to apply changes to.
+                // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
+                return spanMappingService != null && document?.CanApplyChange() == false;
             }
         }
 
