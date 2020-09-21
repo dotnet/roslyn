@@ -1093,6 +1093,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol selectedMethod = conversion.Method;
 
             var location = syntax.Location;
+
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
+            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+
             if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
@@ -1119,8 +1123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportUnsafeIfNotAllowed(syntax, diagnostics);
             }
 
-            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
-            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
             // that chose selectedMethod.
