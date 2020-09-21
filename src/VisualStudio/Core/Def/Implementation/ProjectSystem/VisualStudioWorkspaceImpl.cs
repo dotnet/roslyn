@@ -33,7 +33,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Metad
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -41,8 +40,14 @@ using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+using KnownUIContexts = Microsoft.VisualStudio.Shell.KnownUIContexts;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using PackageUtilities = Microsoft.VisualStudio.Shell.PackageUtilities;
+using ServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
+using SharedProjectUtilities = Microsoft.VisualStudio.Shell.SharedProjectUtilities;
 using Task = System.Threading.Tasks.Task;
+using UIContext = Microsoft.VisualStudio.Shell.UIContext;
+using UIContextChangedEventArgs = Microsoft.VisualStudio.Shell.UIContextChangedEventArgs;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -395,7 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.TryGetHierarchy(projectId, out var hierarchy))
             {
-                return hierarchy.IsCapabilityMatch("CPS");
+                return PackageUtilities.IsCapabilityMatch(hierarchy, "CPS");
             }
 
             return false;
@@ -1360,9 +1365,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                            hierarchy != sharedHierarchy)
                     {
                         // Ensure the shared context is set correctly
-                        if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                        if (SharedProjectUtilities.GetActiveProjectContext(sharedHierarchy) != hierarchy)
                         {
-                            ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
+                            ErrorHandler.ThrowOnFailure(SharedProjectUtilities.SetActiveProjectContext(sharedHierarchy, hierarchy));
                         }
 
                         // We now need to ensure the outer project is also set up

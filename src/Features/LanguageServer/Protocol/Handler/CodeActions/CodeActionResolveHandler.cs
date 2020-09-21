@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(codeAction.Data);
+
             var document = context.Document;
             Contract.ThrowIfNull(document);
 

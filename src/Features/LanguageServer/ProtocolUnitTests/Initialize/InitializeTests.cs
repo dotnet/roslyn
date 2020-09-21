@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
 
         private static void AssertServerCapabilities(LSP.ServerCapabilities actual)
         {
-            Assert.True(actual.DefinitionProvider);
-            Assert.True(actual.ImplementationProvider);
-            Assert.True(actual.DocumentSymbolProvider);
-            Assert.True(actual.WorkspaceSymbolProvider);
-            Assert.True((bool)actual.DocumentFormattingProvider.Value);
-            Assert.True((bool)actual.DocumentRangeFormattingProvider.Value);
-            Assert.True(actual.DocumentHighlightProvider);
+            Assert.True((bool)actual.DefinitionProvider);
+            Assert.True((bool)actual.ImplementationProvider);
+            Assert.True((bool)actual.DocumentSymbolProvider);
+            Assert.True((bool)actual.WorkspaceSymbolProvider);
+            Assert.True((bool)actual.DocumentFormattingProvider);
+            Assert.True((bool)actual.DocumentRangeFormattingProvider);
+            Assert.True((bool)actual.DocumentHighlightProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);
             Assert.Equal(new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~", "=", "{", "/", "\\" }.OrderBy(string.Compare),
