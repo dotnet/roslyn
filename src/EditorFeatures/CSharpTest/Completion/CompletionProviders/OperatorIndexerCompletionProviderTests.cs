@@ -83,6 +83,7 @@ public class Program
         [InlineData("c?.$$", true)]
         [InlineData("((C)c).$$", true)]
         [InlineData("(true ? c : c).$$", true)]
+        [InlineData("c.$$ var x=0;", false)]
         public async Task ExplicitUserDefinedConversionDifferentInvocations(string invocation, bool shouldSuggestConversion)
         {
             Func<string, string, Task> verifyFunc = shouldSuggestConversion
