@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(OperatorIndexerCompletionProvider);
 
-        protected override string ItemPartiallyWritten(string expectedItemOrNull) => "";
+        protected override string? ItemPartiallyWritten(string? expectedItemOrNull) =>
+            expectedItemOrNull?.Length >= 2 && (expectedItemOrNull.StartsWith("(") || expectedItemOrNull.StartsWith("["))
+            ? expectedItemOrNull.Substring(1, 1)
+            : base.ItemPartiallyWritten(expectedItemOrNull);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
