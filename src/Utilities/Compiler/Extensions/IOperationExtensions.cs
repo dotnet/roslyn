@@ -57,22 +57,6 @@ namespace Analyzer.Utilities.Extensions
             return typeInfo.Type as INamedTypeSymbol;
         }
 
-        public static bool HasConstantValue(this IOperation operation, string comparand, StringComparison comparison)
-        {
-            var constantValue = operation.ConstantValue;
-            if (!constantValue.HasValue)
-            {
-                return false;
-            }
-
-            if (operation.Type == null || operation.Type.SpecialType != SpecialType.System_String)
-            {
-                return false;
-            }
-
-            return string.Equals((string)constantValue.Value, comparand, comparison);
-        }
-
         public static bool HasNullConstantValue(this IOperation operation)
         {
             return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
@@ -126,7 +110,7 @@ namespace Analyzer.Utilities.Extensions
 
         private static bool HasConstantValue(Optional<object> constantValue, ITypeSymbol constantValueType, ulong comparand)
         {
-            if (constantValueType.SpecialType == SpecialType.System_Double || constantValueType.SpecialType == SpecialType.System_Single)
+            if (constantValueType.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
             {
                 return (double)constantValue.Value == comparand;
             }
@@ -235,10 +219,10 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets the first ancestor of this operation with:
         ///  1. Specified OperationKind
-        ///  2. If <paramref name="predicateOpt"/> is non-null, it succeeds for the ancestor.
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
         /// Returns null if there is no such ancestor.
         /// </summary>
-        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicateOpt = null)
+        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
             where TOperation : class, IOperation
         {
             if (root == null)
@@ -254,11 +238,44 @@ namespace Analyzer.Utilities.Extensions
 
             if (ancestor != null)
             {
-                if (predicateOpt != null && !predicateOpt((TOperation)ancestor))
+                if (predicate != null && !predicate((TOperation)ancestor))
                 {
-                    return GetAncestor(ancestor, ancestorKind, predicateOpt);
+                    return GetAncestor(ancestor, ancestorKind, predicate);
                 }
                 return (TOperation)ancestor;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Gets the first ancestor of this operation with:
+        ///  1. Any OperationKind from the specified <paramref name="ancestorKinds"/>.
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
+        /// Returns null if there is no such ancestor.
+        /// </summary>
+        public static IOperation? GetAncestor(this IOperation root, ImmutableArray<OperationKind> ancestorKinds, Func<IOperation, bool>? predicate = null)
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            var ancestor = root;
+            do
+            {
+                ancestor = ancestor.Parent;
+            } while (ancestor != null && !ancestorKinds.Contains(ancestor.Kind));
+
+            if (ancestor != null)
+            {
+                if (predicate != null && !predicate(ancestor))
+                {
+                    return GetAncestor(ancestor, ancestorKinds, predicate);
+                }
+                return ancestor;
             }
             else
             {
@@ -393,12 +410,6 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
-            => operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate();
-
-        public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
-            => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
-
         public static IOperation GetRoot(this IOperation operation)
         {
             while (operation.Parent != null)
@@ -452,8 +463,9 @@ namespace Analyzer.Utilities.Extensions
                 case IPropertyInitializerOperation propertyInitializerOperation:
                     return ControlFlowGraph.Create(propertyInitializerOperation);
 
-                case IParameterInitializerOperation parameterInitializerOperation:
-                    return ControlFlowGraph.Create(parameterInitializerOperation);
+                case IParameterInitializerOperation:
+                    // We do not support flow analysis for parameter initializers
+                    return null;
 
                 default:
                     // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
@@ -519,14 +531,23 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
-            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
-               operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
+        private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
+            ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
+        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
+        {
+            containingLambdaOrLocalFunctionOperation = operation.GetAncestor(s_LambdaAndLocalFunctionKinds);
+            return containingLambdaOrLocalFunctionOperation != null;
+        }
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
         {
             return pattern switch
             {
+#if CODEANALYSIS_V3_OR_BETTER
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+                IDiscardPatternOperation discardPattern => discardPattern.InputType,
+#else
                 IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
                 {
                     ILocalSymbol local => local.Type,
@@ -535,7 +556,7 @@ namespace Analyzer.Utilities.Extensions
 
                     _ => null,
                 },
-
+#endif
                 IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
                 _ => null,
@@ -587,9 +608,24 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
         }
 
-        public static SyntaxNode GetInstance(this IInvocationOperation invocationOperation)
+        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
+            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
+
+        public static SyntaxNode? GetInstanceSyntax(this IInvocationOperation invocationOperation)
+            => invocationOperation.GetInstance()?.Syntax;
+
+        public static ITypeSymbol? GetInstanceType(this IOperation operation)
         {
-            return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
+            IOperation? instance = operation switch
+            {
+                IInvocationOperation invocation => invocation.GetInstance(),
+
+                IPropertyReferenceOperation propertyReference => propertyReference.Instance,
+
+                _ => throw new NotImplementedException()
+            };
+
+            return instance?.WalkDownConversion().Type;
         }
 
         public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation operation)
@@ -615,7 +651,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkDownParenthesis(this IOperation operation)
+        public static IOperation WalkDownParentheses(this IOperation operation)
         {
             while (operation is IParenthesizedOperation parenthesizedOperation)
             {
@@ -625,12 +661,7 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        /// <summary>
-        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
-        /// </summary>
-        /// <param name="operation">The starting operation.</param>
-        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkUpParenthesis(this IOperation operation)
+        public static IOperation WalkUpParentheses(this IOperation operation)
         {
             while (operation is IParenthesizedOperation parenthesizedOperation)
             {
@@ -655,11 +686,6 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        /// <summary>
-        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
-        /// </summary>
-        /// <param name="operation">The starting operation.</param>
-        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
         public static IOperation WalkUpConversion(this IOperation operation)
         {
             while (operation is IConversionOperation conversionOperation)
@@ -715,6 +741,362 @@ namespace Analyzer.Utilities.Extensions
 
             return firstFoundArgument != null;
         }
+
+        public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
+        {
+            using var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+            stack.Add(operation.Children.GetEnumerator());
+
+            while (stack.Any())
+            {
+                var enumerator = stack.Last();
+                stack.RemoveLast();
+                if (enumerator.MoveNext())
+                {
+                    var current = enumerator.Current;
+                    stack.Add(enumerator);
+
+                    if (current != null &&
+                        (descendIntoOperation == null || descendIntoOperation(current)))
+                    {
+                        if (!current.IsImplicit &&
+                            // This prevents non explicit operations like expression to be considered as ok
+                            (current.ConstantValue.HasValue || current.Type != null))
+                        {
+                            return true;
+                        }
+                        stack.Add(current.Children.GetEnumerator());
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsSetMethodInvocation(this IPropertyReferenceOperation operation)
+        {
+            if (operation.Property.SetMethod is null)
+            {
+                // This is either invalid code, or an assignment through a ref-returning getter
+                return false;
+            }
+
+            IOperation potentialLeftSide = operation;
+            while (potentialLeftSide.Parent is IParenthesizedOperation or ITupleOperation)
+            {
+                potentialLeftSide = potentialLeftSide.Parent;
+            }
+
+            return potentialLeftSide.Parent switch
+            {
+                IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
+                _ => false,
+            };
+        }
+
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            Debug.Assert(parameterIndex >= 0);
+            Debug.Assert(parameterIndex < arguments.Length);
+
+            foreach (var argument in arguments)
+            {
+                if (argument.Parameter.Ordinal == parameterIndex)
+                {
+                    return argument;
+                }
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Useful when named arguments used for a method call and you need them in the original parameter order.
+        /// </summary>
+        /// <param name="arguments">Arguments of the method</param>
+        /// <returns>Returns the arguments in parameter order</returns>
+        public static ImmutableArray<IArgumentOperation> GetArgumentsInParameterOrder(
+            this ImmutableArray<IArgumentOperation> arguments)
+        {
+            using var parameterOrderedArguments = ArrayBuilder<IArgumentOperation>.GetInstance(arguments.Length, null!);
+
+            foreach (var argument in arguments)
+            {
+                Debug.Assert(parameterOrderedArguments[argument.Parameter.Ordinal] == null);
+                parameterOrderedArguments[argument.Parameter.Ordinal] = argument;
+            }
+
+            return parameterOrderedArguments.ToImmutableArray();
+        }
+
+        // Copied from roslyn https://github.com/dotnet/roslyn/blob/master/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
+
+#if CODEANALYSIS_V3_OR_BETTER
+        /// <summary>
+        /// Returns the <see cref="ValueUsageInfo"/> for the given operation.
+        /// This extension can be removed once https://github.com/dotnet/roslyn/issues/25057 is implemented.
+        /// </summary>
+        public static ValueUsageInfo GetValueUsageInfo(this IOperation operation, ISymbol containingSymbol)
+        {
+            /*
+            |    code                  | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
+            | x.Prop = 1               |      |  ✔️   |             |             |                 |
+            | x.Prop += 1              |  ✔️  |  ✔️   |             |             |                 |
+            | x.Prop++                 |  ✔️  |  ✔️   |             |             |                 |
+            | Foo(x.Prop)              |  ✔️  |       |             |             |                 |
+            | Foo(x.Prop),             |      |       |     ✔️      |             |                 |
+               where void Foo(in T v)
+            | Foo(out x.Prop)          |      |       |             |     ✔️      |                 |
+            | Foo(ref x.Prop)          |      |       |     ✔️      |     ✔️      |                 |
+            | nameof(x)                |      |       |             |             |       ✔️        | ️
+            | sizeof(x)                |      |       |             |             |       ✔️        | ️
+            | typeof(x)                |      |       |             |             |       ✔️        | ️
+            | out var x                |      |  ✔️   |             |             |                 | ️
+            | case X x:                |      |  ✔️   |             |             |                 | ️
+            | obj is X x               |      |  ✔️   |             |             |                 |
+            | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
+            | ref readonly var x =     |      |       |     ✔️      |             |                 |
+ 
+            */
+            if (operation is ILocalReferenceOperation localReference &&
+                localReference.IsDeclaration &&
+                !localReference.IsImplicit) // Workaround for https://github.com/dotnet/roslyn/issues/30753
+            {
+                // Declaration expression is a definition (write) for the declared local.
+                return ValueUsageInfo.Write;
+            }
+            else if (operation is IDeclarationPatternOperation)
+            {
+                switch (operation.Parent)
+                {
+                    case IPatternCaseClauseOperation _:
+                        // A declaration pattern within a pattern case clause is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      switch (obj)
+                        //      {
+                        //          case X x:
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case IRecursivePatternOperation _:
+                        // A declaration pattern within a recursive pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      (obj) switch
+                        //      {
+                        //          (X x) => ...
+                        //      };
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case ISwitchExpressionArmOperation _:
+                        // A declaration pattern within a switch expression arm is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      obj switch
+                        //      {
+                        //          X x => ...
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case IIsPatternOperation _:
+                        // A declaration pattern within an is pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      if (obj is X x)
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case IPropertySubpatternOperation _:
+                        // A declaration pattern within a property sub-pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj.Property' below:
+                        //      if (obj is { Property : int x })
+                        //
+                        return ValueUsageInfo.Write;
+
+                    default:
+                        Debug.Fail("Unhandled declaration pattern context");
+
+                        // Conservatively assume read/write.
+                        return ValueUsageInfo.ReadWrite;
+                }
+            }
+
+            if (operation.Parent is IAssignmentOperation assignmentOperation &&
+                assignmentOperation.Target == operation)
+            {
+                return operation.Parent.IsAnyCompoundAssignment()
+                    ? ValueUsageInfo.ReadWrite
+                    : ValueUsageInfo.Write;
+            }
+            else if (operation.Parent is IIncrementOrDecrementOperation)
+            {
+                return ValueUsageInfo.ReadWrite;
+            }
+            else if (operation.Parent is IParenthesizedOperation parenthesizedOperation)
+            {
+                // Note: IParenthesizedOperation is specific to VB, where the parens cause a copy, so this cannot be classified as a write.
+                Debug.Assert(parenthesizedOperation.Language == LanguageNames.VisualBasic);
+
+                return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
+                    ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
+            }
+            else if (operation.Parent is INameOfOperation or
+                     ITypeOfOperation or
+                     ISizeOfOperation)
+            {
+                return ValueUsageInfo.Name;
+            }
+            else if (operation.Parent is IArgumentOperation argumentOperation)
+            {
+                switch (argumentOperation.Parameter.RefKind)
+                {
+                    case RefKind.RefReadOnly:
+                        return ValueUsageInfo.ReadableReference;
+
+                    case RefKind.Out:
+                        return ValueUsageInfo.WritableReference;
+
+                    case RefKind.Ref:
+                        return ValueUsageInfo.ReadableWritableReference;
+
+                    default:
+                        return ValueUsageInfo.Read;
+                }
+            }
+            else if (operation.Parent is IReturnOperation returnOperation)
+            {
+                return returnOperation.GetRefKind(containingSymbol) switch
+                {
+                    RefKind.RefReadOnly => ValueUsageInfo.ReadableReference,
+                    RefKind.Ref => ValueUsageInfo.ReadableWritableReference,
+                    _ => ValueUsageInfo.Read,
+                };
+            }
+            else if (operation.Parent is IConditionalOperation conditionalOperation)
+            {
+                if (operation == conditionalOperation.WhenTrue
+                    || operation == conditionalOperation.WhenFalse)
+                {
+                    return GetValueUsageInfo(conditionalOperation, containingSymbol);
+                }
+                else
+                {
+                    return ValueUsageInfo.Read;
+                }
+            }
+            else if (operation.Parent is IReDimClauseOperation reDimClauseOperation &&
+                reDimClauseOperation.Operand == operation)
+            {
+                return (reDimClauseOperation.Parent as IReDimOperation)?.Preserve == true
+                    ? ValueUsageInfo.ReadWrite
+                    : ValueUsageInfo.Write;
+            }
+            else if (operation.Parent is IDeclarationExpressionOperation declarationExpression)
+            {
+                return declarationExpression.GetValueUsageInfo(containingSymbol);
+            }
+            else if (operation.IsInLeftOfDeconstructionAssignment(out _))
+            {
+                return ValueUsageInfo.Write;
+            }
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            {
+                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                {
+                    switch (variableDeclaratorOperation.Symbol.RefKind)
+                    {
+                        case RefKind.Ref:
+                            return ValueUsageInfo.ReadableWritableReference;
+
+                        case RefKind.RefReadOnly:
+                            return ValueUsageInfo.ReadableReference;
+                    }
+                }
+            }
+
+            return ValueUsageInfo.Read;
+        }
+
+        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation? deconstructionAssignment)
+        {
+            deconstructionAssignment = null;
+
+            var previousOperation = operation;
+            operation = operation.Parent;
+
+            while (operation != null)
+            {
+                switch (operation.Kind)
+                {
+                    case OperationKind.DeconstructionAssignment:
+                        deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
+                        return deconstructionAssignment.Target == previousOperation;
+
+                    case OperationKind.Tuple:
+                    case OperationKind.Conversion:
+                    case OperationKind.Parenthesized:
+                        previousOperation = operation;
+                        operation = operation.Parent;
+                        continue;
+
+                    default:
+                        return false;
+                }
+            }
+
+            return false;
+        }
+
+        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
+        {
+            var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
+            return containingMethod?.RefKind ?? RefKind.None;
+        }
+
+        public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
+        {
+            operation = operation?.Parent;
+            while (operation != null)
+            {
+                switch (operation.Kind)
+                {
+                    case OperationKind.AnonymousFunction:
+                        return ((IAnonymousFunctionOperation)operation).Symbol;
+
+                    case OperationKind.LocalFunction:
+                        return ((ILocalFunctionOperation)operation).Symbol;
+                }
+
+                operation = operation.Parent;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Retursn true if the given operation is a regular compound assignment,
+        /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
+        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// such as <code>a ??= b</code>.
+        /// </summary>
+        public static bool IsAnyCompoundAssignment(this IOperation operation)
+        {
+            switch (operation)
+            {
+                case ICompoundAssignmentOperation _:
+                case ICoalesceAssignmentOperation _:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+#endif
     }
 }
 

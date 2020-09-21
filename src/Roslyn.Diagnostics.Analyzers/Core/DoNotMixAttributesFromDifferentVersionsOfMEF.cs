@@ -25,7 +25,7 @@ namespace Roslyn.Diagnostics.Analyzers
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessage,
-                                                                             DiagnosticCategory.RoslyDiagnosticsReliability,
+                                                                             DiagnosticCategory.RoslynDiagnosticsReliability,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: true,
                                                                              description: s_localizableDescription,
@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     // We don't need to check assemblies unless they're referencing both versions of MEF, so we're done
                     return;
-                };
+                }
 
                 var attributeUsageAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
 
@@ -117,7 +117,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static void ReportDiagnostic(SymbolAnalysisContext symbolContext, INamedTypeSymbol exportedType, AttributeData problematicAttribute)
         {
             // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
-            var diagnostic = Diagnostic.Create(Rule, problematicAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), problematicAttribute.AttributeClass.Name, exportedType.Name);
+            var diagnostic = Diagnostic.Create(Rule, problematicAttribute.ApplicationSyntaxReference.GetSyntax(symbolContext.CancellationToken).GetLocation(), problematicAttribute.AttributeClass.Name, exportedType.Name);
             symbolContext.ReportDiagnostic(diagnostic);
         }
     }

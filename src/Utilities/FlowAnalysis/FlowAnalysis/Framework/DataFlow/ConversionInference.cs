@@ -14,19 +14,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         public static ConversionInference Create(IConversionOperation operation)
             => Create(
-                targetTypeOpt: operation.Type,
-                sourceTypeOpt: operation.Operand.Type,
+                targetType: operation.Type,
+                sourceType: operation.Operand.Type,
                 isTryCast: operation.IsTryCast);
 
         public static ConversionInference Create(IIsPatternOperation operation)
             => Create(
-                targetTypeOpt: operation.Pattern.GetPatternType(),
-                sourceTypeOpt: operation.Value.Type,
+                targetType: operation.Pattern.GetPatternType(),
+                sourceType: operation.Value.Type,
                 isTryCast: true);
 
         public static ConversionInference Create(
-            ITypeSymbol? targetTypeOpt,
-            ITypeSymbol? sourceTypeOpt,
+            ITypeSymbol? targetType,
+            ITypeSymbol? sourceType,
             bool isTryCast)
         {
             return new ConversionInference
@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 IsTryCast = isTryCast,
                 AlwaysSucceed = !isTryCast, // For direct cast, we assume the cast will always succeed as the initial default value.
                 AlwaysFail = false,
-                IsBoxing = targetTypeOpt != null &&
-                       !targetTypeOpt.IsValueType &&
-                       sourceTypeOpt?.IsValueType == true,
-                IsUnboxing = targetTypeOpt != null &&
-                       targetTypeOpt.IsValueType &&
-                       sourceTypeOpt != null &&
-                       !sourceTypeOpt.IsValueType
+                IsBoxing = targetType != null &&
+                       !targetType.IsValueType &&
+                       sourceType?.IsValueType == true,
+                IsUnboxing = targetType != null &&
+                       targetType.IsValueType &&
+                       sourceType != null &&
+                       !sourceType.IsValueType
             };
         }
 

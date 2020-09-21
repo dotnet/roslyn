@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpUpgradeMSBuildWorkspaceAnalyzer : UpgradeMSBuildWorkspaceAnalyzer
     {
-        private CSharpUpgradeMSBuildWorkspaceAnalyzer(bool performAssemblyChecks)
+        private protected CSharpUpgradeMSBuildWorkspaceAnalyzer(bool performAssemblyChecks)
             : base(performAssemblyChecks)
         {
         }
@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             : this(performAssemblyChecks: true)
         {
         }
-
-        internal static CSharpUpgradeMSBuildWorkspaceAnalyzer CreateForTests()
-            => new CSharpUpgradeMSBuildWorkspaceAnalyzer(performAssemblyChecks: false);
 
         protected override void RegisterIdentifierAnalysis(CompilationStartAnalysisContext context)
         {
@@ -37,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             if (context.Node is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.ToString() == MSBuildWorkspace)
             {
-                var symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName);
+                var symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName, context.CancellationToken);
                 if (symbolInfo.Symbol == null)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(UpgradeMSBuildWorkspaceDiagnosticRule, identifierName.GetLocation()));

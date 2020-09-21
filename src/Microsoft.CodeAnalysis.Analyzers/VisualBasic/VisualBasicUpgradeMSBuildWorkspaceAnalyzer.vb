@@ -9,17 +9,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
     Public Class VisualBasicUpgradeMSBuildWorkspaceAnalyzer
         Inherits UpgradeMSBuildWorkspaceAnalyzer
 
-        Private Sub New(performAssemblyChecks As Boolean)
+        Private Protected Sub New(performAssemblyChecks As Boolean)
             MyBase.New(performAssemblyChecks)
         End Sub
 
         Public Sub New()
             Me.New(performAssemblyChecks:=True)
         End Sub
-
-        Friend Shared Function CreateForTests() As VisualBasicUpgradeMSBuildWorkspaceAnalyzer
-            Return New VisualBasicUpgradeMSBuildWorkspaceAnalyzer(performAssemblyChecks:=False)
-        End Function
 
         Protected Overrides Sub RegisterIdentifierAnalysis(context As CompilationStartAnalysisContext)
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeIdentifier, SyntaxKind.IdentifierName)
@@ -39,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
                 Return
             End If
 
-            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName)
+            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName, context.CancellationToken)
             If symbolInfo.Symbol Is Nothing Then
                 context.ReportDiagnostic(Diagnostic.Create(UpgradeMSBuildWorkspaceDiagnosticRule, identifierName.GetLocation()))
             End If

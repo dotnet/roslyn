@@ -7,6 +7,8 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 
+#pragma warning disable CA2002
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>

@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// We do not support the <see cref="SetAbstractValue(AnalysisEntity, CopyAbstractValue)"/> overload
         /// that updates copy value for each individual entity.
         /// </summary>
-        internal void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity? entityBeingAssignedOpt)
+        internal void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity? entityBeingAssigned)
         {
             foreach (var entity in copyValue.AnalysisEntities)
             {
                 // If we have any predicate data based on the previous value of this entity,
                 // and we are changing the copy value for an assigment (i.e. entity == entityBeingAssigned),
                 // we need to drop all the predicate data based on this entity.
-                if (entity == entityBeingAssignedOpt && HasPredicatedDataForEntity(entity))
+                if (entity == entityBeingAssigned && HasPredicatedDataForEntity(entity))
                 {
                     StopTrackingPredicatedData(entity);
                 }
@@ -185,16 +185,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         }
 
         [Conditional("DEBUG")]
-        internal void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue?>? tryGetDefaultCopyValueOpt = null, bool initializingParameters = false)
+        internal void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue?>? tryGetDefaultCopyValue = null, bool initializingParameters = false)
         {
-            AssertValidCopyAnalysisData(CoreAnalysisData, tryGetDefaultCopyValueOpt, initializingParameters);
-            AssertValidPredicatedAnalysisData(map => AssertValidCopyAnalysisData(map, tryGetDefaultCopyValueOpt, initializingParameters));
+            AssertValidCopyAnalysisData(CoreAnalysisData, tryGetDefaultCopyValue, initializingParameters);
+            AssertValidPredicatedAnalysisData(map => AssertValidCopyAnalysisData(map, tryGetDefaultCopyValue, initializingParameters));
         }
 
         [Conditional("DEBUG")]
         internal static void AssertValidCopyAnalysisData(
             IDictionary<AnalysisEntity, CopyAbstractValue> map,
-            Func<AnalysisEntity, CopyAbstractValue?>? tryGetDefaultCopyValueOpt = null,
+            Func<AnalysisEntity, CopyAbstractValue?>? tryGetDefaultCopyValue = null,
             bool initializingParameters = false)
         {
             if (map is CoreCopyAnalysisData coreCopyAnalysisData)
@@ -216,10 +216,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 // the middle of initializing parameter input values with address shared entities.
                 if (!initializingParameters)
                 {
-                    var defaultCopyValueOpt = tryGetDefaultCopyValueOpt?.Invoke(kvp.Key);
-                    if (defaultCopyValueOpt != null)
+                    var defaultCopyValue = tryGetDefaultCopyValue?.Invoke(kvp.Key);
+                    if (defaultCopyValue != null)
                     {
-                        foreach (var defaultCopyValyeEntity in defaultCopyValueOpt.AnalysisEntities)
+                        foreach (var defaultCopyValyeEntity in defaultCopyValue.AnalysisEntities)
                         {
                             Debug.Assert(kvp.Value.AnalysisEntities.Contains(defaultCopyValyeEntity));
                             Debug.Assert(map.ContainsKey(defaultCopyValyeEntity));

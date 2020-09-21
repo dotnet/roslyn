@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ConfigureGeneratedCodeAnalysisTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ConfigureGeneratedCodeAnalysisMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ConfigureGeneratedCodeAnalysisDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.ConfigureGeneratedCodeAnalysisRuleId,
@@ -24,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             var compilation = compilationContext.Compilation;
 
-            var analysisContext = compilation.GetOrCreateTypeByMetadataName(AnalysisContextFullName);
+            var analysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsAnalysisContext);
             if (analysisContext is null)
             {
                 return null;

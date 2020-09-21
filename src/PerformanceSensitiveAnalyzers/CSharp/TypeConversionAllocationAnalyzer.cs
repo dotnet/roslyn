@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ValueTypeToReferenceTypeConversionRuleId = "HAA0601";
         public const string DelegateOnStructInstanceRuleId = "HAA0602";
         public const string MethodGroupAllocationRuleId = "HAA0603";
-        public const string ReadonlyMethodGroupAllocationRuleId = "HeapAnalyzerReadonlyMethodGroupAllocationRule";
+        public const string ReadonlyMethodGroupAllocationRuleId = "HAA0604";
 
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeConversionRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeConversionRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeConversionRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeConversionRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             }
         }
 
-
         private static void ArrowExpressionCheck(ArrowExpressionClauseSyntax syntax, SemanticModel semanticModel, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(syntax.Expression, cancellationToken);
@@ -325,12 +324,22 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                     }
                 }
 
-                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-                if (symbolInfo?.ContainingType?.IsValueType == true && !insideObjectCreation)
+                if (IsStructInstanceMethod(node!, semanticModel, cancellationToken))
                 {
                     reportDiagnostic(Diagnostic.Create(DelegateOnStructInstanceRule, location, EmptyMessageArgs));
                 }
             }
+        }
+
+        private static bool IsStructInstanceMethod(SyntaxNode? node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (node.IsKind(SyntaxKind.AnonymousMethodExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.SimpleLambdaExpression))
+            {
+                return false;
+            }
+
+            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+            return symbolInfo?.Kind == SymbolKind.Method && !symbolInfo.IsStatic && symbolInfo.ContainingType?.IsValueType == true;
         }
     }
 }

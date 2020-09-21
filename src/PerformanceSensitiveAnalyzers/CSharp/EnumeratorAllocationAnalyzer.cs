@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                     {
                         foreach (var @interface in methodInfo.ReturnType.AllInterfaces)
                         {
-                            if (@interface.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T || @interface.SpecialType == SpecialType.System_Collections_IEnumerator)
+                            if (@interface.SpecialType is SpecialType.System_Collections_Generic_IEnumerator_T or SpecialType.System_Collections_IEnumerator)
                             {
                                 reportDiagnostic(Diagnostic.Create(ReferenceTypeEnumeratorRule, invocationExpression.GetLocation(), EmptyMessageArgs));
                             }
