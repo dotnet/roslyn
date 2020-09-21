@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         !_captureIdCopyValueMap.ContainsKey(flowCapture.Id) &&
                         analysisEntity.Type.IsValueType == capturedEntity.Type.IsValueType)
                     {
-                        var kind = analysisEntity.Type.IsValueType ? CopyAbstractValueKind.KnownValueCopy : CopyAbstractValueKind.KnownReferenceCopy;
+                        var kind = capturedEntity.Type.IsValueType ? CopyAbstractValueKind.KnownValueCopy : CopyAbstractValueKind.KnownReferenceCopy;
                         var copyValue = new CopyAbstractValue(ImmutableHashSet.Create(analysisEntity, capturedEntity), kind);
                         _captureIdCopyValueMap.Add(flowCapture.Id, copyValue);
                     }
