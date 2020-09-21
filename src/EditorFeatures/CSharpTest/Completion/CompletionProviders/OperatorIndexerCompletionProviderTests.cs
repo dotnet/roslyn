@@ -75,6 +75,8 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$", true)]
         [InlineData("c.fl$$", true)]
+        [InlineData("c.  $$", true)]
+        [InlineData("c.fl  $$", false)]
         [InlineData("c.($$", false)]
         [InlineData("c$$", false)]
         [InlineData(@"""c.$$", false)]
@@ -333,7 +335,6 @@ namespace N
         [InlineData("/* Leading */c.$$", "/* Leading */((float)c).$$")]
         [InlineData("/* Leading */c.fl$$", "/* Leading */((float)c).$$")]
         [InlineData("c.  $$", "((float)c).  $$")]
-        [InlineData("c.fl  $$", "((float)c).$$  ")]
         [InlineData("(true ? /* Inline */ c : c).$$", "((float)(true ? /* Inline */ c : c)).$$")]
         public async Task ExplicitUserDefinedConversionTriviaHandling(string invocation, string fixedCode)
         {

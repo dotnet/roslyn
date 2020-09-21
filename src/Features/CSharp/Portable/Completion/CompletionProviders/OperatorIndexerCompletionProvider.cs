@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (!(token.IsKind(SyntaxKind.DotToken) | token.IsKind(SyntaxKind.IdentifierToken)))
+            token = token.GetPreviousTokenIfTouchingWord(position);
+            if (!token.IsKind(SyntaxKind.DotToken))
             {
                 return;
             }
@@ -116,9 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static ExpressionSyntax? GetParentExpressionOfInvocation(SyntaxToken token)
         {
-            var syntaxNode = token.IsKind(SyntaxKind.IdentifierToken)
-                ? token.Parent?.Parent
-                : token.Parent;
+            var syntaxNode = token.Parent;
             return syntaxNode switch
             {
                 MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
@@ -129,9 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static ExpressionSyntax? GetRootExpressionOfInvocation(SyntaxToken token)
         {
-            var syntaxNode = token.IsKind(SyntaxKind.IdentifierToken)
-                ? token.Parent?.Parent
-                : token.Parent;
+            var syntaxNode = token.Parent;
             return syntaxNode switch
             {
                 MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression.GetRootConditionalAccessExpression() as ExpressionSyntax) ?? memberAccess,
@@ -168,20 +165,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(position);
+            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position);
+            var normalizedToken = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
             // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
             //                      ↓               | cursor position
+            //                   ↓                  | normalizedToken (dot)
             // white?.Black.White.Black?.White      | current user input
             // white?.Black.White.Black?.White      | rootExpression (text manipulation starts with this)
             //       .Black.White                   | parentExpression (needed to calculate the position to insert the closing brace)
             //                    Black             | identifier at cursor position (gets removed, because the user typed the name of a type)
             // |----------------------|             | part to replace (TextChange.Span), if identifier is not present: ends at rootExpression.End (after White.)
-            //                   ↑                  | insert closing brace after parentExpression.Span.End
+            //                   ↑                  | insert closing brace between White and dot (parentExpression.Span.End)
             // ((Black)white?.Black.White).?.White  | The result. Because we removed the identifier, the remainder after the identifier may be syntactically wrong 
             //                             ↑        | cursor after the manipulation is placed after the dot
-            var rootExpression = GetRootExpressionOfInvocation(token);
-            var parentExpression = GetParentExpressionOfInvocation(token);
-            var identifier = token.Parent as IdentifierNameSyntax;
+            var rootExpression = GetRootExpressionOfInvocation(normalizedToken);
+            var parentExpression = GetParentExpressionOfInvocation(normalizedToken);
+            var identifier = tokenAtPosition.Parent as IdentifierNameSyntax;
             if (rootExpression is null || parentExpression is null)
             {
                 return null;
