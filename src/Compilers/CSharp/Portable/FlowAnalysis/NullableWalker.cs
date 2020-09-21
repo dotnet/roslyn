@@ -2869,7 +2869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slot = GetOrCreatePlaceholderSlot(node);
                 if (slot > 0)
                 {
-                    var constructor = (node as BoundObjectCreationExpression)?.Constructor;
+                    var boundObjectCreationExpression = node as BoundObjectCreationExpression;
+                    var constructor = boundObjectCreationExpression?.Constructor;
                     bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
@@ -2878,7 +2879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (containingType?.IsTupleType == true && !isDefaultValueTypeConstructor)
                         {
                             // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
-                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, ((BoundObjectCreationExpression)node).ArgsToParamsOpt, useRestField: true);
+                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, boundObjectCreationExpression!.ArgsToParamsOpt, useRestField: true);
                         }
                         else
                         {
@@ -4576,40 +4577,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            Debug.Assert(compareExchangeInfo.Arguments.Length == 3);
+            if (compareExchangeInfo.Arguments.Length != 3)
+            {
+                // This can occur if CompareExchange has optional arguments.
+                // Since none of the main runtimes have optional arguments, 
+                // we bail to avoid an exception but don't bother actually calculating the FlowState.
+                return NullableFlowState.NotNull;
+            }
 
-            var comparand = compareExchangeInfo.Arguments[GetArgumentOrdinalFromParameterOrdinal(2, compareExchangeInfo.ArgsToParamsOpt)];
-            var valueFlowState = compareExchangeInfo.Results[GetArgumentOrdinalFromParameterOrdinal(1, compareExchangeInfo.ArgsToParamsOpt)].RValueType.State;
+            var argsToParamsOpt = compareExchangeInfo.ArgsToParamsOpt;
+            Debug.Assert(argsToParamsOpt is { IsDefault: true } or { Length: 3 });
+            var (comparandIndex, valueIndex, locationIndex) = argsToParamsOpt.IsDefault
+                ? (2, 1, 0)
+                : (argsToParamsOpt.IndexOf(2), argsToParamsOpt.IndexOf(1), argsToParamsOpt.IndexOf(0));
+
+            var comparand = compareExchangeInfo.Arguments[comparandIndex];
+            var valueFlowState = compareExchangeInfo.Results[valueIndex].RValueType.State;
             if (comparand.ConstantValue?.IsNull == true)
             {
                 // If location contained a null, then the write `location = value` definitely occurred
             }
             else
             {
-                var locationFlowState = compareExchangeInfo.Results[GetArgumentOrdinalFromParameterOrdinal(0, compareExchangeInfo.ArgsToParamsOpt)].RValueType.State;
+                var locationFlowState = compareExchangeInfo.Results[locationIndex].RValueType.State;
                 // A write may have occurred
                 valueFlowState = valueFlowState.Join(locationFlowState);
             }
 
             return valueFlowState;
-        }
-
-        static int GetArgumentOrdinalFromParameterOrdinal(int parameterOrdinal, ImmutableArray<int> argsToParamsOpt)
-        {
-            if (argsToParamsOpt.IsDefault)
-            {
-                return parameterOrdinal;
-            }
-
-            for (int i = 0; i < argsToParamsOpt.Length; i++)
-            {
-                if (argsToParamsOpt[i] == parameterOrdinal)
-                {
-                    return i;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -6206,14 +6201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 for (int i = 0; i < n; i++)
                 {
-                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(i, argsToParamsOpt);
+                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(i);
                     trackState(values[argOrdinal], tupleElements[i], types[argOrdinal]);
                 }
                 if (useRestField &&
                     values.Length == NamedTypeSymbol.ValueTupleRestPosition &&
                     tupleType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() is FieldSymbol restField)
                 {
-                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(NamedTypeSymbol.ValueTupleRestPosition - 1, argsToParamsOpt);
+                    var argOrdinal = GetArgumentOrdinalFromParameterOrdinal(NamedTypeSymbol.ValueTupleRestPosition - 1);
                     trackState(values[argOrdinal], restField, types[argOrdinal]);
                 }
             }
@@ -6222,6 +6217,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int targetSlot = GetOrCreateSlot(field, slot);
                 TrackNullableStateForAssignment(value, field.TypeWithAnnotations, targetSlot, valueType, MakeSlot(value));
+            }
+
+            int GetArgumentOrdinalFromParameterOrdinal(int parameterOrdinal)
+            {
+                var index = argsToParamsOpt.IsDefault ? parameterOrdinal : argsToParamsOpt.IndexOf(parameterOrdinal);
+                Debug.Assert(index != -1);
+                return index;
             }
         }
 
