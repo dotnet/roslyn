@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
                             .Distinct();
 
-                        if (definitionDocuments.Count() == 1)
+                        if (definitionDocuments.Count() == 1 && _replacementTextValid)
                         {
                             // At the moment, only single document renaming is allowed
                             conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());

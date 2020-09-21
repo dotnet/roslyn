@@ -112,6 +112,38 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(46208, "https://github.com/dotnet/roslyn/issues/46208")>
+        Public Async Function RenameWithInvalidIdentifier(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class [|Test1$$|]
+{
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim options = workspace.CurrentSolution.Options
+                workspace.TryApplyChanges(
+                    workspace.CurrentSolution.WithOptions(options.WithChangedOption(RenameOptions.RenameFile, True)))
+
+                Dim session = StartSession(workspace)
+
+                Dim selectedSpan = workspace.DocumentWithCursor.CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+                ' User could use copy & paste to enter invalid character
+                textBuffer.Insert(selectedSpan, "<>")
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace, "Test1<>")
+                VerifyFileName(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
         Public Async Function RenameDeconstructionForeachCollection(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
