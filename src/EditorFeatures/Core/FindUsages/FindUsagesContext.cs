@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
         protected FindUsagesContext()
             => this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
 
-        public virtual Task ReportMessageAsync(string message) => Task.CompletedTask;
+        public virtual ValueTask ReportMessageAsync(string message) => default;
 
-        public virtual Task SetSearchTitleAsync(string title) => Task.CompletedTask;
+        public virtual ValueTask SetSearchTitleAsync(string title) => default;
 
-        public virtual Task OnCompletedAsync() => Task.CompletedTask;
+        public virtual ValueTask OnCompletedAsync() => default;
 
-        public virtual Task OnDefinitionFoundAsync(DefinitionItem definition) => Task.CompletedTask;
+        public virtual ValueTask OnDefinitionFoundAsync(DefinitionItem definition) => default;
 
-        public virtual Task OnReferenceFoundAsync(SourceReferenceItem reference) => Task.CompletedTask;
+        public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference) => default;
 
-        protected virtual Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+        protected virtual ValueTask ReportProgressAsync(int current, int maximum) => default;
 
-        Task IFindUsagesContext.ReportProgressAsync(int current, int maximum)
+        ValueTask IFindUsagesContext.ReportProgressAsync(int current, int maximum)
             => ReportProgressAsync(current, maximum);
     }
 }

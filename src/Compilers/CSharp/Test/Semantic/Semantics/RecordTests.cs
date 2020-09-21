@@ -844,7 +844,6 @@ class Program
 ");
 
             var comp = (CSharpCompilation)verifier.Compilation;
-            comp.VerifyEmitDiagnostics();
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -25773,6 +25772,237 @@ public record X(int a)
                 .VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void DefaultCtor_01()
+        {
+            var src = @"
+record C
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        System.Console.WriteLine(x == y);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "True");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefaultCtor_02()
+        {
+            var src = @"
+record B(int x);
+
+record C : B
+{
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,8): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                // record C : B
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(4, 8)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_03()
+        {
+            var src = @"
+record C
+{
+    public C(C c){}
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        System.Console.WriteLine(x == y);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "True");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefaultCtor_04()
+        {
+            var src = @"
+record B(int x);
+
+record C : B
+{
+    public C(C c) : base(c) {}
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,8): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                // record C : B
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(4, 8)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_05()
+        {
+            var src = @"
+record C(int x);
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.C(int)'
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "C.C(int)").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_06()
+        {
+            var src = @"
+record C
+{
+    C(int x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "0").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_07()
+        {
+            var src = @"
+class C
+{
+    C(C x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "0").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        public void ToString_RecordWithStaticMembers()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record C1(int I1)
+{
+    public static int field1 = 44;
+    public const int field2 = 44;
+    public static int P1 { set { } }
+    public static int P2 { get { return 1; } set { } }
+    public static int P3 { get { return 1; } }
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        public void ToString_NestedRecord()
+        {
+            var src = @"
+var c1 = new Outer.C1(42);
+System.Console.Write(c1.ToString());
+
+public class Outer
+{
+    public record C1(int I1);
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
         }
     }
 }

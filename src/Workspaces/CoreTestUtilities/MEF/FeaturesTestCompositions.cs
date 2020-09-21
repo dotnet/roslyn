@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static readonly TestComposition Features = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies)
-            .AddParts(typeof(MockWorkspaceEventListenerProvider)); // by default, avoid running Solution Crawler and other services that start in workspace event listeners
+            .AddParts(
+                typeof(MockWorkspaceEventListenerProvider),  // by default, avoid running Solution Crawler and other services that start in workspace event listeners
+                typeof(TestErrorReportingService));          // mocks the info-bar error reporting
 
         public static readonly TestComposition RemoteHost = TestComposition.Empty
             .AddAssemblies(RemoteWorkspaceManager.RemoteHostAssemblies);
