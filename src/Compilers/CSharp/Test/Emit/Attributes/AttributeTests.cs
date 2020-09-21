@@ -9153,9 +9153,44 @@ class C
     unsafe static D M1() => new D(F);
     static D M2() => new D(F);
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // To be added when the test fails.
+                // (7,35): warning CS0612: 'C.F()' is obsolete
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(7, 35),
+                // (8,28): warning CS0612: 'C.F()' is obsolete
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(8, 28),
+                // (8,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(8, 28)
+            );
+        }
+
+        [Fact]
+        [WorkItem(47308, "https://github.com/dotnet/roslyn/issues/47308")]
+        public void UnmanagedAttributeWithUnsafeError()
+        {
+            string source = @"
+using System;
+unsafe delegate byte* D();
+class C
+{
+    [Obsolete(null, true)] unsafe static byte* F() => default;
+    unsafe static D M1() => new D(F);
+    static D M2() => new D(F);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,35): warning CS0612: 'C.F()' is obsolete
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(7, 35),
+                // (8,28): warning CS0612: 'C.F()' is obsolete
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(8, 28),
+                // (8,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(8, 28)
             );
         }
         #endregion
