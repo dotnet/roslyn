@@ -5,13 +5,12 @@
 #nullable enable
 
 using System;
-using System.Composition;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -38,20 +37,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
+    /// <para>
+    /// Exceptions in the handling of non-mutating requests are sent back to callers. Exceptions in the processing of
+    /// the queue will close the LSP connection so that the client can reconnect. Exceptions in the handling of mutating
+    /// requests will also close the LSP connection, as at that point the mutated solution is in an unknown state.
+    /// </para>
+    /// <para>
+    /// After shutdown is called, or an error causes the closing of the connection, the queue will not accept any
+    /// more messages, and a new queue will need to be created.
+    /// </para>
     /// </remarks>
-    internal partial class RequestExecutionQueue : IDisposable
+    internal partial class RequestExecutionQueue
     {
-        private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
         private readonly ILspSolutionProvider _solutionProvider;
+        private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
+
+        /// <summary>
+        /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
+        /// and so the only course of action is to shutdown the server so that the client re-connects and we can
+        /// start over again.
+        /// </summary>
+        /// <remarks>
+        /// Once this event has been fired all currently active and pending work items in the queue will be cancelled.
+        /// </remarks>
+        public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;
+            _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
 
             // Start the queue processing
             _ = ProcessQueueAsync();
+        }
+
+        /// <summary>
+        /// Shuts down the queue, stops accepting new messages, and cancels any in-progress or queued tasks. Calling
+        /// this multiple times won't cause any issues.
+        /// </summary>
+        public void Shutdown()
+        {
+            _cancelSource.Cancel();
+            DrainQueue();
         }
 
         /// <summary>
@@ -79,6 +108,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
+            // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
+
             var textDocument = handler.GetTextDocumentIdentifier(request);
             var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
                 callbackAsync: async (context, cancellationToken) =>
@@ -100,9 +131,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Tell the queue that this was successful so that mutations (if any) can be applied
                         return true;
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException ex)
                     {
-                        completion.SetCanceled();
+                        completion.TrySetCanceled(ex.CancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -114,7 +145,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Tell the queue to ignore any mutations from this request
                     return false;
                 }, requestCancellationToken);
-            _queue.Enqueue(item);
+
+            var didEnqueue = _queue.TryEnqueue(item);
+
+            // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
+            // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
+            if (!didEnqueue)
+            {
+                completion.SetException(new InvalidOperationException("Server was requested to shut down."));
+            }
 
             return completion.Task;
         }
@@ -123,40 +162,98 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             // Keep track of solution state modifications made by LSP requests
             Solution? lastMutatedSolution = null;
-            var queueToken = _cancelSource.Token;
 
-            while (!queueToken.IsCancellationRequested)
+            try
             {
-                var work = await _queue.DequeueAsync().ConfigureAwait(false);
-
-                // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(queueToken, work.CancellationToken).Token;
-
-                // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
-                // to merge in the changes from any mutations that have been applied to open documents
-                var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
-                solution = MergeChanges(solution, lastMutatedSolution);
-
-                Solution? mutatedSolution = null;
-                var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
-
-                if (work.MutatesSolutionState)
+                while (!_cancelSource.IsCancellationRequested)
                 {
-                    // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                    var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                    var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
-                    // If the handling of the request failed, the exception will bubble back up to the caller, but we
-                    // still need to react to it here by throwing away solution updates
-                    if (ranToCompletion)
+                    // Create a linked cancellation token to cancel any requests in progress when this shuts down
+                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
+
+                    // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
+                    // to merge in the changes from any mutations that have been applied to open documents
+                    var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
+                    solution = MergeChanges(solution, lastMutatedSolution);
+
+                    if (work.MutatesSolutionState)
                     {
-                        lastMutatedSolution = mutatedSolution ?? lastMutatedSolution;
+                        Solution? mutatedSolution = null;
+                        var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
+
+                        // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
+                        var ranToCompletion = false;
+                        try
+                        {
+                            ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Since the cancellationToken passed to the callback is a linked source it could be cancelled
+                            // without the queue token being cancelled, but ranToCompletion will be false so no need to
+                            // do anything special here.
+                            RoslynDebug.Assert(ranToCompletion == false);
+                        }
+
+                        // If the handling of the request failed, the exception will bubble back up to the caller, but we
+                        // still need to react to it here by throwing away solution updates
+                        if (ranToCompletion)
+                        {
+                            lastMutatedSolution = mutatedSolution ?? lastMutatedSolution;
+                        }
+                        else
+                        {
+                            OnRequestServerShutdown($"An error occured processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, null);
+
+                        // Non mutating are fire-and-forget because they are by definition readonly. Any errors
+                        // will be sent back to the client but we can still capture errors in queue processing
+                        // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
+                        _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
                     }
                 }
-                else
-                {
-                    // Non mutating request get given the current solution state, but are otherwise fire-and-forget
-                    _ = work.CallbackAsync(context, cancellationToken);
-                }
+            }
+            catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
+            {
+                // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
+                // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+                OnRequestServerShutdown($"Error occured processing queue: {e.Message}.");
+            }
+        }
+
+        private void OnRequestServerShutdown(string message)
+        {
+            RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
+
+            Shutdown();
+        }
+
+        /// <summary>
+        /// Cancels all requests in the queue and stops the queue from accepting any more requests. After this method
+        /// is called this queue is essentially useless.
+        /// </summary>
+        private void DrainQueue()
+        {
+            // Tell the queue not to accept any more items
+            _queue.Complete();
+
+            // Spin through the queue and pass in our cancelled token, so that the waiting tasks are cancelled.
+            // NOTE: This only really works because the first thing that CallbackAsync does is check for cancellation
+            // but generics make it annoying to store the TaskCompletionSource<TResult> on the QueueItem so this
+            // is the best we can do for now. Ideally we would manipulate the TaskCompletionSource directly here
+            // and just call SetCanceled
+            while (_queue.TryDequeue(out var item))
+            {
+                _ = item.CallbackAsync(default, new CancellationToken(true));
             }
         }
 
@@ -165,12 +262,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // TODO: Merge in changes to the solution that have been received from didChange LSP methods
             // https://github.com/dotnet/roslyn/issues/45427
             return mutatedSolution ?? solution;
-        }
-
-        public void Dispose()
-        {
-            _cancelSource.Cancel();
-            _cancelSource.Dispose();
         }
     }
 }

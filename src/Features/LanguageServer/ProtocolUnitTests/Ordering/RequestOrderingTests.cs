@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = StartTestRun(requests);
 
             // first task should fail
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
 
             // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
@@ -151,8 +151,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         }
 
         [Fact]
-        public async Task ThrowingMutableTaskDoesntBringDownQueue()
+        public async Task FailingMutableTaskShutsDownQueue()
         {
+            // NOTE: A failing task shuts down the queue not due to an exception escaping out of the handler
+            //       but because the solution state would be invalid. This doesn't test the queues exception
+            //       resiliancy.
+
             var requests = new[] {
                 new TestRequest(FailingMutatingRequestHandler.MethodName),
                 new TestRequest(NonMutatingRequestHandler.MethodName),
@@ -163,34 +167,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = StartTestRun(requests);
 
             // first task should fail
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
 
-            // remaining tasks should have executed normally
-            var responses = await Task.WhenAll(waitables.Skip(1));
+            // remaining tasks should be canceled
+            await Assert.ThrowsAsync<TaskCanceledException>(() => Task.WhenAll(waitables.Skip(1)));
 
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
-        }
-
-        [Fact]
-        public async Task ThrowingMutableTaskDoesntMutateTheSolution()
-        {
-            var requests = new[] {
-                new TestRequest(NonMutatingRequestHandler.MethodName),
-                new TestRequest(FailingMutatingRequestHandler.MethodName),
-                new TestRequest(NonMutatingRequestHandler.MethodName),
-            };
-
-            var waitables = StartTestRun(requests);
-
-            // second task should have failed
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[1]);
-
-            var responses = await Task.WhenAll(waitables.Where(t => !t.IsFaulted));
-
-            // First and last tasks use the same solution because the middle request failed
-            // Note the last task is the _second_ item in responses because it only contains the successful responses
-            Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
+            Assert.All(waitables.Skip(1), w => Assert.True(w.IsCanceled));
         }
 
         private async Task<TestResponse[]> TestAsync(TestRequest[] requests)
@@ -211,6 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             using var workspace = CreateTestWorkspace("class C { }", out _);
             var solution = workspace.CurrentSolution;
 
+            var queue = CreateRequestQueue(solution);
             var languageServer = GetLanguageServer(solution);
             var clientCapabilities = new LSP.ClientCapabilities();
 
@@ -219,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             foreach (var request in requests)
             {
                 request.RequestOrder = order++;
-                waitables.Add(languageServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+                waitables.Add(languageServer.ExecuteRequestAsync<TestRequest, TestResponse>(queue, request.MethodName, request, clientCapabilities, null, CancellationToken.None));
             }
 
             return waitables;
