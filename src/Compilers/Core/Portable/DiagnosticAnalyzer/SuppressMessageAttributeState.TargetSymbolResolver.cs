@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         results.Add(singleResult);
                     }
+
+                    break;
                 }
 
                 return results.ToImmutableAndFree();

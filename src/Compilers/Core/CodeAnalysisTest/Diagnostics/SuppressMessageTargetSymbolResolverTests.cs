@@ -366,6 +366,20 @@ End Class
                 "C.s");
         }
 
+        [Fact, WorkItem(1141257, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1141257")]
+        public void TestResolveEnumFieldWithoutName()
+        {
+            var source = @"
+enum E
+{
+    $$,
+}
+";
+            var syntaxTree = CreateSyntaxTree(source, LanguageNames.CSharp);
+            var compilation = CreateCompilation(syntaxTree, LanguageNames.CSharp, "");
+            _ = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, "E.", SuppressMessageAttributeState.TargetScope.Member);
+        }
+
         [Fact]
         public void TestResolveProperty1()
         {

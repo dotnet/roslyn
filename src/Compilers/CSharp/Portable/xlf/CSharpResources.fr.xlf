@@ -147,11 +147,6 @@
         <target state="new">Records may only inherit from object or another record</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have a non-empty parameter list</source>
-        <target state="needs-review-translation">Un enregistrement positionnel doit avoir à la fois un modificateur 'data' et une liste de paramètres non vide</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
@@ -445,6 +440,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Impossible d'utiliser les arguments avec le modificateur 'in' dans les expressions dispatchées dynamiquement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -912,6 +912,16 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
@@ -963,8 +973,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -2452,16 +2462,6 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">La nullabilité des types référence dans le type de retour ne correspond pas au membre substitué.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">

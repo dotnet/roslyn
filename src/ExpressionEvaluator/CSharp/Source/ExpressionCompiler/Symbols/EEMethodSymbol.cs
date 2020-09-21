@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal sealed override UnmanagedCallersOnlyAttributeData UnmanagedCallersOnlyAttributeData => throw ExceptionUtilities.Unreachable;
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
 
         internal ResultProperties ResultProperties
         {

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop64;
         internal override bool UseDefaultInitializationFile => false;
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47571")]
         public async Task OutputRedirection()
         {
             await Execute(@"

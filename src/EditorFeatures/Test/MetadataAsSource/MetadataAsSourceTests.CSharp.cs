@@ -130,6 +130,25 @@ namespace System
     }}
 }}");
             }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestExtendedPartialMethod1()
+            {
+                var metadataSource = "public partial class C { public partial void F(); public partial void F() { } }";
+                var symbolName = "C";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview",
+                    expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|C|]
+{{
+    public C();
+
+    public void F();
+}}");
+            }
         }
     }
 }
