@@ -41,6 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string CompletionHandlerConversion = "Conversion";
         private const string CompletionHandlerIndexer = "Indexer";
 
+        // Identifier can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
+        // Sorting is done via StringComparer.OrdinalIgnoreCase which compares the utf-16 bytes after converting to uppercase
+        // utf-16 \ufffd is the largest possible value for utf-16 and is also greater than surrogate pairs.´, if byte comparison is used
+        // The "biggest" possible characters are \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\uD884\uDF4A" and
+        // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
+
+        private const string SortingPrefix = "\uFFFD";
+
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
@@ -99,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                          let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
                                          select SymbolCompletionItem.CreateWithSymbolId(
                                              displayText: $"({typeName})", // The type to convert to
+                                             filterText: typeName,
+                                             sortText: $"{SortingPrefix}typeName",
                                              symbols: ImmutableList.Create(m),
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
