@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisContext : class, IDataFlowAnalysisContext
     {
         public InterproceduralAnalysisData(
-            TAnalysisData initialAnalysisData,
+            TAnalysisData? initialAnalysisData,
             (AnalysisEntity?, PointsToAbstractValue)? invocationInstance,
             (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCaller,
             ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             GetInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
         }
 
-        public TAnalysisData InitialAnalysisData { get; }
+        public TAnalysisData? InitialAnalysisData { get; }
         public (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? InvocationInstance { get; }
         public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCaller { get; }
         public ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> ArgumentValuesMap { get; }

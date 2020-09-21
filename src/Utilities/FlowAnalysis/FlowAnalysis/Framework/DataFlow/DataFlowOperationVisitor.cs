@@ -46,12 +46,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly HashSet<IArgumentOperation> _pendingArgumentsToReset;
         private readonly List<IArgumentOperation> _pendingArgumentsToPostProcess;
         private readonly HashSet<IOperation> _visitedFlowBranchConditions;
+        private readonly HashSet<IFlowAnonymousFunctionOperation> _visitedLambdas;
         private readonly HashSet<IOperation>? _returnValueOperations;
         private ImmutableDictionary<IParameterSymbol, AnalysisEntity>? _lazyParameterEntities;
         private ImmutableHashSet<IMethodSymbol>? _lazyContractCheckMethods;
         private TAnalysisData? _currentAnalysisData;
         private BasicBlock? _currentBasicBlock;
         private int _recursionDepth;
+
+        #region Fields specific to lambda/local function analysis
+
+        /// <summary>
+        /// Local functions that escaped from this method.
+        /// </summary>
+        private readonly ImmutableHashSet<IMethodSymbol>.Builder _escapedLocalFunctions;
+
+        /// <summary>
+        /// Local functions for which interprocedural analysis was performed at least once in this method.
+        /// </summary>
+        private readonly ImmutableHashSet<IMethodSymbol>.Builder _analyzedLocalFunctions;
+
+        /// <summary>
+        /// Lambda methods that escaped from this method.
+        /// </summary>
+        private readonly ImmutableHashSet<IFlowAnonymousFunctionOperation>.Builder _escapedLambdas;
+
+        /// <summary>
+        /// Lambda methods for which interprocedural analysis was performed at least once in this method.
+        /// </summary>
+        private readonly ImmutableHashSet<IFlowAnonymousFunctionOperation>.Builder _analyzedLambdas;
+
+        #endregion
 
         #region Fields specific to Interprocedural analysis
 
@@ -90,6 +115,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>>.Builder _interproceduralResultsBuilder;
 
         /// <summary>
+        /// Dictionary storing context insensitive interprocedural analysis results for escaped local function.
+        /// </summary>
+        private readonly ImmutableDictionary<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>>.Builder _standaloneLocalFunctionAnalysisResultsBuilder;
+
+        /// <summary>
         /// Dictionary from interprocedural method symbols invoked to their corresponding <see cref="ControlFlowGraph"/>.
         /// </summary>
         private readonly Dictionary<IMethodSymbol, ControlFlowGraph?>? _interproceduralMethodToCfgMap;
@@ -117,6 +147,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         internal Dictionary<ThrownExceptionInfo, TAnalysisData>? AnalysisDataForUnhandledThrowOperations { get; private set; }
         public ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> InterproceduralResultsMap => _interproceduralResultsBuilder.ToImmutable();
+        public ImmutableDictionary<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>> StandaloneLocalFunctionAnalysisResultsMap => _standaloneLocalFunctionAnalysisResultsBuilder.ToImmutable();
+        internal LambdaAndLocalFunctionAnalysisInfo LambdaAndLocalFunctionAnalysisInfo =>
+            new LambdaAndLocalFunctionAnalysisInfo(_escapedLocalFunctions, _analyzedLocalFunctions, _escapedLambdas, _analyzedLambdas);
 
         /// <summary>
         /// Optional map from points to values of tasks to the underlying abstract value returned by the task.
@@ -238,8 +271,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _pendingArgumentsToReset = new HashSet<IArgumentOperation>();
             _pendingArgumentsToPostProcess = new List<IArgumentOperation>();
             _visitedFlowBranchConditions = new HashSet<IOperation>();
+            _visitedLambdas = new HashSet<IFlowAnonymousFunctionOperation>();
             _returnValueOperations = OwningSymbol is IMethodSymbol method && !method.ReturnsVoid ? new HashSet<IOperation>() : null;
             _interproceduralResultsBuilder = ImmutableDictionary.CreateBuilder<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>>();
+            _standaloneLocalFunctionAnalysisResultsBuilder = ImmutableDictionary.CreateBuilder<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>>();
+            _escapedLocalFunctions = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
+            _analyzedLocalFunctions = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
+            _escapedLambdas = ImmutableHashSet.CreateBuilder<IFlowAnonymousFunctionOperation>();
+            _analyzedLambdas = ImmutableHashSet.CreateBuilder<IFlowAnonymousFunctionOperation>();
 
             _interproceduralCallStack = new Stack<IOperation>();
             _addressSharedEntitiesProvider = new AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>(analysisContext);
@@ -537,6 +576,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(exitBlock.Kind == BasicBlockKind.Exit);
 
+            PerformStandaloneLambdaOrLocalFunctionAnalysisOnExit();
+
             if (_lazyParameterEntities != null)
             {
                 foreach (var kvp in _lazyParameterEntities)
@@ -551,6 +592,51 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                 }
             }
+        }
+
+        private void PerformStandaloneLambdaOrLocalFunctionAnalysisOnExit()
+        {
+            // First append the escaped local functions and lambdas from points to result, if any.
+            if (DataFlowAnalysisContext.PointsToAnalysisResult is { } pointsToAnalysisResult)
+            {
+                _escapedLocalFunctions.AddRange(pointsToAnalysisResult.LambdaAndLocalFunctionAnalysisInfo.EscapedLocalFunctions);
+                _escapedLambdas.AddRange(pointsToAnalysisResult.LambdaAndLocalFunctionAnalysisInfo.EscapedLambdas);
+            }
+
+            // Perform standalone analysis for local functions, if required.
+            foreach (var localFunction in DataFlowAnalysisContext.ControlFlowGraph.LocalFunctions)
+            {
+                if (IsStandaloneAnalysisRequiredForLocalFunction(localFunction))
+                {
+                    PerformStandaloneLocalFunctionInterproceduralAnalysis(localFunction);
+                }
+            }
+
+            // Perform standalone analysis for lambdas, if required.
+            foreach (var lambda in _visitedLambdas)
+            {
+                if (IsStandaloneAnalysisRequiredForLambda(lambda))
+                {
+                    PerformStandaloneLambdaInterproceduralAnalysis(lambda);
+                }
+            }
+        }
+
+        private bool IsStandaloneAnalysisRequiredForLocalFunction(IMethodSymbol localFunction)
+        {
+            Debug.Assert(localFunction.MethodKind == MethodKind.LocalFunction);
+            Debug.Assert(DataFlowAnalysisContext.ControlFlowGraph.LocalFunctions.Contains(localFunction));
+
+            // Perform standalone analysis for local functions that escaped or were not analyzed.
+            return _escapedLocalFunctions.Contains(localFunction) || !_analyzedLocalFunctions.Contains(localFunction);
+        }
+
+        private bool IsStandaloneAnalysisRequiredForLambda(IFlowAnonymousFunctionOperation lambda)
+        {
+            Debug.Assert(_visitedLambdas.Contains(lambda));
+
+            // Perform standalone analysis for lambdas that escaped or were not analyzed.
+            return _escapedLambdas.Contains(lambda) || !_analyzedLambdas.Contains(lambda);
         }
 
         private void OnEndExitBlockAnalysis(BasicBlock exitBlock)
@@ -2048,8 +2134,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableArray<IArgumentOperation> arguments,
             IOperation originalOperation,
             TAbstractAnalysisValue defaultValue,
-            bool isLambdaOrLocalFunction)
+            bool isLambdaOrLocalFunction,
+            out bool wasAnalyzed)
         {
+            wasAnalyzed = false;
+
             // Use the original method definition for interprocedural analysis as the ControlFlowGraph can only be created for the original definition.
             invokedMethod = invokedMethod.OriginalDefinition;
 
@@ -2121,7 +2210,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 // Create analysis context for interprocedural analysis.
                 var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
-                    invokedMethod, cfg, originalOperation, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
+                    invokedMethod, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
 
                 // Check if the client configured skipping analysis for the given interprocedural analysis context.
                 if (DataFlowAnalysisContext.InterproceduralAnalysisPredicate?.SkipInterproceduralAnalysis(interproceduralDataFlowAnalysisContext) == true)
@@ -2137,9 +2226,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return defaultValue;
                     }
 
+                    wasAnalyzed = true;
+
                     // Save the interprocedural result for the invocation/creation operation.
                     // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
                     _interproceduralResultsBuilder[originalOperation] = analysisResult;
+
+                    _escapedLocalFunctions.AddRange(analysisResult.LambdaAndLocalFunctionAnalysisInfo.EscapedLocalFunctions);
+                    _analyzedLocalFunctions.AddRange(analysisResult.LambdaAndLocalFunctionAnalysisInfo.AnalyzedLocalFunctions);
+                    _escapedLambdas.AddRange(analysisResult.LambdaAndLocalFunctionAnalysisInfo.EscapedLambdas);
+                    _analyzedLambdas.AddRange(analysisResult.LambdaAndLocalFunctionAnalysisInfo.AnalyzedLambdas);
                 }
 
                 // Update the current analysis data based on interprocedural analysis result.
@@ -2202,6 +2298,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAbstractAnalysisValue ResetAnalysisDataAndReturnDefaultValue()
             {
                 ResetAnalysisData();
+                MarkEscapedLambdasAndLocalFunctionsFromArguments();
                 return defaultValue;
             }
 
@@ -2228,6 +2325,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
+            void MarkEscapedLambdasAndLocalFunctionsFromArguments()
+            {
+                if (!IsPointsToAnalysis)
+                {
+                    // Only mark escaped lambdas and local functions for points to analysis.
+                    return;
+                }
+
+                foreach (var argument in arguments)
+                {
+                    if (argument.Parameter.Type.TypeKind == TypeKind.Delegate ||
+                        argument.Parameter.Type.SpecialType == SpecialType.System_Object)
+                    {
+                        var pointsToValue = GetPointsToAbstractValue(argument);
+                        MarkEscapedLambdasAndLocalFunctions(pointsToValue);
+                    }
+                }
+            }
+
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> ComputeInterproceduralAnalysisData()
             {
                 RoslynDebug.Assert(cfg != null);
@@ -2246,7 +2362,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     invocationInstance,
                     thisOrMeInstance,
                     argumentValuesMap,
-                    GetCapturedVariablesMap(),
+                    GetCapturedVariablesMap(cfg, invokedMethod, isLambdaOrLocalFunction),
                     _addressSharedEntitiesProvider.GetAddressedSharedEntityMap(),
                     ImmutableStack.CreateRange(_interproceduralCallStack),
                     newMethodsBeingAnalyzed,
@@ -2367,42 +2483,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                 }
 
-                ImmutableDictionary<ISymbol, PointsToAbstractValue> GetCapturedVariablesMap()
-                {
-                    RoslynDebug.Assert(cfg != null);
-
-                    if (!isLambdaOrLocalFunction)
-                    {
-                        return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
-                    }
-
-                    using var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
-                    if (capturedVariables.Count == 0)
-                    {
-                        return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
-                    }
-                    else
-                    {
-                        var builder = ImmutableDictionary.CreateBuilder<ISymbol, PointsToAbstractValue>();
-                        foreach (var capturedVariable in capturedVariables)
-                        {
-                            if (capturedVariable.Kind == SymbolKind.NamedType)
-                            {
-                                // ThisOrMeInstance capture can be skipped here
-                                // as we already pass down the invocation instance through "GetInvocationInstance".
-                                continue;
-                            }
-
-                            var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(capturedVariable, out var capturedEntity);
-                            Debug.Assert(success);
-                            RoslynDebug.Assert(capturedEntity != null);
-                            builder.Add(capturedVariable, capturedEntity.InstanceLocation);
-                        }
-
-                        return builder.ToImmutable();
-                    }
-                }
-
                 AnalysisEntity? GetAnalysisEntityForFlowCapture(IOperation operation)
                 {
                     switch (operation.Kind)
@@ -2421,6 +2501,168 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return null;
                 }
             }
+        }
+
+        private ImmutableDictionary<ISymbol, PointsToAbstractValue> GetCapturedVariablesMap(
+            ControlFlowGraph cfg,
+            IMethodSymbol invokedMethod,
+            bool isLambdaOrLocalFunction)
+        {
+            RoslynDebug.Assert(cfg != null);
+
+            if (!isLambdaOrLocalFunction)
+            {
+                return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
+            }
+
+            using var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+            if (capturedVariables.Count == 0)
+            {
+                return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
+            }
+            else
+            {
+                var builder = ImmutableDictionary.CreateBuilder<ISymbol, PointsToAbstractValue>();
+                foreach (var capturedVariable in capturedVariables)
+                {
+                    if (capturedVariable.Kind == SymbolKind.NamedType)
+                    {
+                        // ThisOrMeInstance capture can be skipped here
+                        // as we already pass down the invocation instance through "GetInvocationInstance".
+                        continue;
+                    }
+
+                    var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(capturedVariable, out var capturedEntity);
+                    Debug.Assert(success);
+                    RoslynDebug.Assert(capturedEntity != null);
+                    builder.Add(capturedVariable, capturedEntity.InstanceLocation);
+                }
+
+                return builder.ToImmutable();
+            }
+        }
+
+        private void PerformStandaloneLocalFunctionInterproceduralAnalysis(IMethodSymbol localFunction)
+        {
+            Debug.Assert(IsStandaloneAnalysisRequiredForLocalFunction(localFunction));
+
+            // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.
+            var pointsToAnalysisResult = (PointsToAnalysisResult?)DataFlowAnalysisContext.PointsToAnalysisResult?.TryGetStandaloneLocalFunctionAnalysisResult(localFunction);
+            var copyAnalysisResult = DataFlowAnalysisContext.CopyAnalysisResult?.TryGetStandaloneLocalFunctionAnalysisResult(localFunction);
+            var valueContentAnalysisResult = DataFlowAnalysisContext.ValueContentAnalysisResult?.TryGetStandaloneLocalFunctionAnalysisResult(localFunction);
+
+            // Compute the CFG for the invoked method.
+            var cfg = pointsToAnalysisResult?.ControlFlowGraph ??
+                copyAnalysisResult?.ControlFlowGraph ??
+                valueContentAnalysisResult?.ControlFlowGraph ??
+                DataFlowAnalysisContext.GetLocalFunctionControlFlowGraph(localFunction);
+            if (cfg == null || !cfg.SupportsFlowAnalysis())
+            {
+                return;
+            }
+
+            // Ensure we are using the same control flow graphs across analyses.
+            Debug.Assert(pointsToAnalysisResult?.ControlFlowGraph == null || cfg == pointsToAnalysisResult?.ControlFlowGraph);
+            Debug.Assert(copyAnalysisResult?.ControlFlowGraph == null || cfg == copyAnalysisResult?.ControlFlowGraph);
+            Debug.Assert(valueContentAnalysisResult?.ControlFlowGraph == null || cfg == valueContentAnalysisResult?.ControlFlowGraph);
+
+            // Push a dummy operation for standalone local function analysis.
+            _interproceduralCallStack.Push(DataFlowAnalysisContext.ControlFlowGraph.OriginalOperation);
+
+            try
+            {
+                var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, localFunction);
+
+                // Create analysis context for interprocedural analysis.
+                var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
+                    localFunction, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
+
+                // Execute interprocedural analysis and get result.
+                var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                if (analysisResult != null)
+                {
+                    // Save the interprocedural result for the local function.
+                    // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
+                    _standaloneLocalFunctionAnalysisResultsBuilder[localFunction] = analysisResult;
+                }
+            }
+            finally
+            {
+                _interproceduralCallStack.Pop();
+            }
+        }
+
+        private void PerformStandaloneLambdaInterproceduralAnalysis(IFlowAnonymousFunctionOperation lambda)
+        {
+            Debug.Assert(IsStandaloneAnalysisRequiredForLambda(lambda));
+
+            // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.
+            var pointsToAnalysisResult = (PointsToAnalysisResult?)DataFlowAnalysisContext.PointsToAnalysisResult?.TryGetInterproceduralResult(lambda);
+            var copyAnalysisResult = DataFlowAnalysisContext.CopyAnalysisResult?.TryGetInterproceduralResult(lambda);
+            var valueContentAnalysisResult = DataFlowAnalysisContext.ValueContentAnalysisResult?.TryGetInterproceduralResult(lambda);
+
+            // Compute the CFG for the invoked method.
+            var cfg = pointsToAnalysisResult?.ControlFlowGraph ??
+                copyAnalysisResult?.ControlFlowGraph ??
+                valueContentAnalysisResult?.ControlFlowGraph ??
+                DataFlowAnalysisContext.GetAnonymousFunctionControlFlowGraph(lambda);
+            if (cfg == null || !cfg.SupportsFlowAnalysis())
+            {
+                return;
+            }
+
+            // Ensure we are using the same control flow graphs across analyses.
+            Debug.Assert(pointsToAnalysisResult?.ControlFlowGraph == null || cfg == pointsToAnalysisResult?.ControlFlowGraph);
+            Debug.Assert(copyAnalysisResult?.ControlFlowGraph == null || cfg == copyAnalysisResult?.ControlFlowGraph);
+            Debug.Assert(valueContentAnalysisResult?.ControlFlowGraph == null || cfg == valueContentAnalysisResult?.ControlFlowGraph);
+
+            _interproceduralCallStack.Push(lambda);
+
+            try
+            {
+                var interproceduralAnalysisData = GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(cfg, lambda.Symbol);
+
+                // Create analysis context for interprocedural analysis.
+                var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
+                    lambda.Symbol, cfg, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
+
+                // Execute interprocedural analysis and get result.
+                var analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                if (analysisResult != null)
+                {
+                    // Save the interprocedural result for the lambda operation.
+                    // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
+                    _interproceduralResultsBuilder[lambda] = analysisResult;
+                }
+            }
+            finally
+            {
+                _interproceduralCallStack.Pop();
+            }
+        }
+
+        private InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> GetInterproceduralAnalysisDataForStandaloneLambdaOrLocalFunctionAnalysis(
+            ControlFlowGraph cfg,
+            IMethodSymbol invokedMethod)
+        {
+            var invocationInstance = (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
+            var thisOrMeInstance = invocationInstance;
+            var currentMethodsBeingAnalyzed = DataFlowAnalysisContext.InterproceduralAnalysisData?.MethodsBeingAnalyzed ?? ImmutableHashSet<TAnalysisContext>.Empty;
+            var newMethodsBeingAnalyzed = currentMethodsBeingAnalyzed.Add(DataFlowAnalysisContext);
+
+            return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
+                initialAnalysisData: null,
+                invocationInstance,
+                thisOrMeInstance,
+                argumentValuesMap: ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>>.Empty,
+                GetCapturedVariablesMap(cfg, invokedMethod, isLambdaOrLocalFunction: true),
+                addressSharedEntities: ImmutableDictionary<AnalysisEntity, CopyAbstractValue>.Empty,
+                ImmutableStack.CreateRange(_interproceduralCallStack),
+                newMethodsBeingAnalyzed,
+                getCachedAbstractValueFromCaller: _ => ValueDomain.UnknownOrMayBeValue,
+                getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph,
+                getAnalysisEntityForFlowCapture: _ => null,
+                getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
         }
 
         #endregion
@@ -2832,7 +3074,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph? getCfg() => GetInterproceduralControlFlowGraph(method);
 
             return PerformInterproceduralAnalysis(getCfg, method, instanceReceiver: null,
-                operation.Arguments, operation, defaultValue, isLambdaOrLocalFunction: false);
+                operation.Arguments, operation, defaultValue, isLambdaOrLocalFunction: false, out _);
         }
 
         public sealed override TAbstractAnalysisValue VisitInvocation(IInvocationOperation operation, object? argument)
@@ -2935,69 +3177,102 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 invokedAsDelegate: false, originalOperation: operation, defaultValue: value);
         }
 
-        private TAbstractAnalysisValue VisitInvocation_LambdaOrDelegateOrLocalFunction(
-            IInvocationOperation operation,
-            object? argument,
-            out HashSet<(IMethodSymbol method, IOperation? instance)>? resolvedMethodTargets)
+        private protected void MarkEscapedLambdasAndLocalFunctions(PointsToAbstractValue pointsToAbstractValue)
         {
-            var value = base.VisitInvocation(operation, argument);
+            Debug.Assert(IsPointsToAnalysis);
+
+            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
+            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            if (ResolveLambdaOrDelegateOrLocalFunctionTargets(pointsToAbstractValue, methodTargetsOptBuilder, lambdaTargets))
+            {
+                foreach (var (targetMethod, _) in methodTargetsOptBuilder)
+                {
+                    if (targetMethod.MethodKind == MethodKind.LocalFunction)
+                    {
+                        _escapedLocalFunctions.Add(targetMethod);
+                    }
+                }
+
+                foreach (var flowAnonymousFunctionOperation in lambdaTargets)
+                {
+                    _escapedLambdas.Add(flowAnonymousFunctionOperation);
+                }
+            }
+        }
+
+        private bool ResolveLambdaOrDelegateOrLocalFunctionTargets(
+            PointsToAbstractValue invocationTarget,
+            PooledHashSet<(IMethodSymbol method, IOperation? instance)> methodTargetsOptBuilder,
+            PooledHashSet<IFlowAnonymousFunctionOperation> lambdaTargets)
+        => ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(operation: null, invocationTarget, methodTargetsOptBuilder, lambdaTargets);
+
+        private bool ResolveLambdaOrDelegateOrLocalFunctionTargets(
+            IOperation operation,
+            PooledHashSet<(IMethodSymbol method, IOperation? instance)> methodTargetsOptBuilder,
+            PooledHashSet<IFlowAnonymousFunctionOperation> lambdaTargets)
+        => ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(operation, invocationTarget: null, methodTargetsOptBuilder, lambdaTargets);
+
+        private bool ResolveLambdaOrDelegateOrLocalFunctionTargetsCore(
+            IOperation? operation,
+            PointsToAbstractValue? invocationTarget,
+            PooledHashSet<(IMethodSymbol method, IOperation? instance)> methodTargetsOptBuilder,
+            PooledHashSet<IFlowAnonymousFunctionOperation> lambdaTargets)
+        {
+            Debug.Assert(operation != null ^ invocationTarget != null);
 
             var knownTargetInvocations = false;
-            HashSet<(IMethodSymbol method, IOperation? instance)>? methodTargetsOptBuilder = null;
-            HashSet<IFlowAnonymousFunctionOperation>? lambdaTargets = null;
-
-            if (HasPointsToAnalysisResult)
+            IOperation? instance;
+            if (operation is IInvocationOperation invocation)
             {
-                if (operation.TargetMethod.MethodKind == MethodKind.LocalFunction)
+                instance = invocation.Instance;
+
+                var targetMethod = invocation.TargetMethod;
+                if (targetMethod.MethodKind == MethodKind.LocalFunction)
                 {
-                    Debug.Assert(operation.Instance == null);
+                    Debug.Assert(invocation.Instance == null);
 
                     knownTargetInvocations = true;
-                    AddMethodTarget(operation.TargetMethod, instance: null);
+                    AddMethodTarget(targetMethod, instance: null);
+                    return knownTargetInvocations;
                 }
-                else if (operation.Instance != null)
+                else
                 {
-                    Debug.Assert(operation.TargetMethod.MethodKind is MethodKind.LambdaMethod or
+                    Debug.Assert(targetMethod.MethodKind is MethodKind.LambdaMethod or
                         MethodKind.DelegateInvoke);
+                }
+            }
+            else
+            {
+                instance = operation;
+            }
 
-                    var invocationTarget = GetPointsToAbstractValue(operation.Instance);
-                    if (invocationTarget.Kind == PointsToAbstractValueKind.KnownLocations)
+            if (invocationTarget == null &&
+                HasPointsToAnalysisResult &&
+                instance != null)
+            {
+                invocationTarget = GetPointsToAbstractValue(instance);
+            }
+
+            if (invocationTarget?.Kind == PointsToAbstractValueKind.KnownLocations)
+            {
+                knownTargetInvocations = true;
+                foreach (var location in invocationTarget.Locations)
+                {
+                    if (!HandleCreationOpt(location.Creation))
                     {
-                        knownTargetInvocations = true;
-                        foreach (var location in invocationTarget.Locations)
-                        {
-                            if (!HandleCreationOpt(location.Creation))
-                            {
-                                knownTargetInvocations = false;
-                                break;
-                            }
-                        }
+                        knownTargetInvocations = false;
+                        break;
                     }
                 }
             }
 
-            if (knownTargetInvocations)
-            {
-                resolvedMethodTargets = methodTargetsOptBuilder;
-                AnalyzePossibleTargetInvocations();
-            }
-            else
-            {
-                resolvedMethodTargets = null;
-                if (PessimisticAnalysis)
-                {
-                    ResetCurrentAnalysisData();
-                }
-            }
-
-            return value;
+            return knownTargetInvocations;
 
             // Local functions.
             void AddMethodTarget(IMethodSymbol method, IOperation? instance)
             {
                 Debug.Assert(knownTargetInvocations);
 
-                methodTargetsOptBuilder ??= new HashSet<(IMethodSymbol method, IOperation? instance)>();
                 methodTargetsOptBuilder.Add((method, instance));
             }
 
@@ -3005,7 +3280,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(knownTargetInvocations);
 
-                lambdaTargets ??= new HashSet<IFlowAnonymousFunctionOperation>();
                 lambdaTargets.Add(lambda);
             }
 
@@ -3049,48 +3323,67 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return false;
                 }
             }
+        }
+
+        private TAbstractAnalysisValue VisitInvocation_LambdaOrDelegateOrLocalFunction(
+            IInvocationOperation operation,
+            object? argument,
+            out ImmutableHashSet<(IMethodSymbol method, IOperation? instance)>? resolvedMethodTargets)
+        {
+            var value = base.VisitInvocation(operation, argument);
+
+            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
+            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            if (ResolveLambdaOrDelegateOrLocalFunctionTargets(operation, methodTargetsOptBuilder, lambdaTargets))
+            {
+                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutable();
+                AnalyzePossibleTargetInvocations();
+            }
+            else
+            {
+                resolvedMethodTargets = null;
+                if (PessimisticAnalysis)
+                {
+                    ResetCurrentAnalysisData();
+                }
+            }
+
+            return value;
 
             void AnalyzePossibleTargetInvocations()
             {
-                Debug.Assert(knownTargetInvocations);
-                Debug.Assert(methodTargetsOptBuilder != null || lambdaTargets != null);
+                Debug.Assert(methodTargetsOptBuilder.Count > 0 || lambdaTargets.Count > 0);
 
                 TAnalysisData? mergedCurrentAnalysisData = null;
                 var first = true;
                 var defaultValue = value;
 
                 using var savedCurrentAnalysisData = GetClonedCurrentAnalysisData();
-                if (methodTargetsOptBuilder != null)
+                foreach (var (method, instance) in methodTargetsOptBuilder)
                 {
-                    foreach (var (method, instance) in methodTargetsOptBuilder)
-                    {
-                        var oldMergedAnalysisData = mergedCurrentAnalysisData;
-                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
-                            computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
-                                VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
-                                VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
-                                    invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
-                            inputAnalysisData: savedCurrentAnalysisData,
-                            mergedAnalysisData: mergedCurrentAnalysisData,
-                            first: ref first);
-                        Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
-                        oldMergedAnalysisData?.Dispose();
-                    }
+                    var oldMergedAnalysisData = mergedCurrentAnalysisData;
+                    mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                        computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
+                            VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
+                            VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
+                                invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
+                        inputAnalysisData: savedCurrentAnalysisData,
+                        mergedAnalysisData: mergedCurrentAnalysisData,
+                        first: ref first);
+                    Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
+                    oldMergedAnalysisData?.Dispose();
                 }
 
-                if (lambdaTargets != null)
+                foreach (var lambda in lambdaTargets)
                 {
-                    foreach (var lambda in lambdaTargets)
-                    {
-                        var oldMergedAnalysisData = mergedCurrentAnalysisData;
-                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
-                            computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
-                            inputAnalysisData: savedCurrentAnalysisData,
-                            mergedAnalysisData: mergedCurrentAnalysisData,
-                            first: ref first);
-                        Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
-                        oldMergedAnalysisData?.Dispose();
-                    }
+                    var oldMergedAnalysisData = mergedCurrentAnalysisData;
+                    mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                        computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
+                        inputAnalysisData: savedCurrentAnalysisData,
+                        mergedAnalysisData: mergedCurrentAnalysisData,
+                        first: ref first);
+                    Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
+                    oldMergedAnalysisData?.Dispose();
                 }
 
                 Debug.Assert(mergedCurrentAnalysisData == null || ReferenceEquals(mergedCurrentAnalysisData, CurrentAnalysisData));
@@ -3141,7 +3434,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph? getCfg() => GetInterproceduralControlFlowGraph(method);
 
             return PerformInterproceduralAnalysis(getCfg, method, visitedInstance,
-                visitedArguments, originalOperation, defaultValue, isLambdaOrLocalFunction: false);
+                visitedArguments, originalOperation, defaultValue, isLambdaOrLocalFunction: false, out _);
         }
 
         private ControlFlowGraph? GetInterproceduralControlFlowGraph(IMethodSymbol method)
@@ -3180,8 +3473,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAbstractAnalysisValue defaultValue)
         {
             ControlFlowGraph? getCfg() => DataFlowAnalysisContext.GetLocalFunctionControlFlowGraph(localFunction);
-            return PerformInterproceduralAnalysis(getCfg, localFunction, instanceReceiver: null, arguments: visitedArguments,
-                originalOperation: originalOperation, defaultValue: defaultValue, isLambdaOrLocalFunction: true);
+            var value = PerformInterproceduralAnalysis(getCfg, localFunction, instanceReceiver: null, arguments: visitedArguments,
+                originalOperation: originalOperation, defaultValue: defaultValue, isLambdaOrLocalFunction: true, out var wasAnalyzed);
+            if (wasAnalyzed)
+            {
+                Debug.Assert(_interproceduralResultsBuilder.ContainsKey(originalOperation));
+                _analyzedLocalFunctions.Add(localFunction);
+            }
+
+            return value;
         }
 
         public virtual TAbstractAnalysisValue VisitInvocation_Lambda(
@@ -3191,8 +3491,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAbstractAnalysisValue defaultValue)
         {
             ControlFlowGraph? getCfg() => DataFlowAnalysisContext.GetAnonymousFunctionControlFlowGraph(lambda);
-            return PerformInterproceduralAnalysis(getCfg, lambda.Symbol, instanceReceiver: null, arguments: visitedArguments,
-                originalOperation: originalOperation, defaultValue: defaultValue, isLambdaOrLocalFunction: true);
+            var value = PerformInterproceduralAnalysis(getCfg, lambda.Symbol, instanceReceiver: null, arguments: visitedArguments,
+                originalOperation: originalOperation, defaultValue: defaultValue, isLambdaOrLocalFunction: true, out var wasAnalyzed);
+            if (wasAnalyzed)
+            {
+                Debug.Assert(_interproceduralResultsBuilder.ContainsKey(originalOperation));
+                _analyzedLambdas.Add(lambda);
+            }
+
+            return value;
+        }
+
+        public override TAbstractAnalysisValue VisitDelegateCreation(IDelegateCreationOperation operation, object? argument)
+        {
+            var value = base.VisitDelegateCreation(operation, argument);
+            if (!HasPointsToAnalysisResult)
+            {
+                switch (operation.Target)
+                {
+                    case IFlowAnonymousFunctionOperation flowAnonymousFunction:
+                        _escapedLambdas.Add(flowAnonymousFunction);
+                        break;
+
+                    case IMethodReferenceOperation methodReference:
+                        if (methodReference.Method.MethodKind == MethodKind.LocalFunction)
+                        {
+                            _escapedLocalFunctions.Add(methodReference.Method);
+                        }
+                        break;
+                }
+            }
+
+            return value;
         }
 
         public virtual void HandleEnterLockOperation(IOperation lockedObject)
@@ -3363,8 +3693,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object? argument)
         {
-            // https://github.com/dotnet/roslyn-analyzers/issues/1571 tracks adding support.
-            return base.VisitFlowAnonymousFunction(operation, argument);
+            var value = base.VisitFlowAnonymousFunction(operation, argument);
+            _visitedLambdas.Add(operation);
+            return value;
         }
 
         public override TAbstractAnalysisValue VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object? argument)

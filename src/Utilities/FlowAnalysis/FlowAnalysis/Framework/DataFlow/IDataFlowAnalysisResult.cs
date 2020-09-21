@@ -12,5 +12,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKind { get; }
         object? AnalysisDataForUnhandledThrowOperations { get; }
         object? TaskWrappedValuesMap { get; }
+        LambdaAndLocalFunctionAnalysisInfo LambdaAndLocalFunctionAnalysisInfo { get; }
     }
 }
