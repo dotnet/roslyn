@@ -14,7 +14,6 @@ namespace RunTests
     {
         internal sealed class TestRunData
         {
-            public string Cache { get; set; }
             public int ElapsedSeconds { get; set; }
             public bool Succeeded { get; set; }
             public bool IsJenkins { get; set; }

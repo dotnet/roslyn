@@ -1934,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (part.Kind == BoundKind.StringInsert)
                 {
-                    builder.Add((IInterpolatedStringContentOperation)Create(part));
+                    builder.Add((IInterpolatedStringContentOperation)CreateInternal(part));
                 }
                 else
                 {

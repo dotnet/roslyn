@@ -7066,5 +7066,24 @@ record Student(string Id)
 }
 ", MainDescription("record Student"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(44904, "https://github.com/dotnet/roslyn/issues/44904")]
+        public async Task QuickInfoRecord_BaseTypeList()
+        {
+            await TestAsync(@"
+record Person(string First, string Last);
+record Student(int Id) : $$Person(null, null);
+", MainDescription("Person.Person(string First, string Last)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfo_BaseConstructorInitializer()
+        {
+            await TestAsync(@"
+public class Person { public Person(int id) { } }
+public class Student : Person { public Student() : $$base(0) { } }
+", MainDescription("Person.Person(int id)"));
+        }
     }
 }

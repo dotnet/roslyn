@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,16 +16,19 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Describes a single change when a particular span is replaced with a new text.
     /// </summary>
+    [DataContract]
     public readonly struct TextChange : IEquatable<TextChange>
     {
         /// <summary>
         /// The original span of the changed text. 
         /// </summary>
+        [DataMember(Order = 0)]
         public TextSpan Span { get; }
 
         /// <summary>
         /// The new text.
         /// </summary>
+        [DataMember(Order = 1)]
         public string? NewText { get; }
 
         /// <summary>

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
 
-                return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
+                return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
             }
 
             private static ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)

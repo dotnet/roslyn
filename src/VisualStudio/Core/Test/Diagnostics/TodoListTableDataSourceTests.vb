@@ -236,8 +236,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoCommentData() {
-                    New TodoCommentData With {.Priority = 1, .Message = "test2", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test2"},
-                    New TodoCommentData With {.Priority = 0, .Message = "test", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test1"}
+                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TodoCommentData(priority:=0, message:="test", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test1")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -270,8 +270,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoCommentData() {
-                    New TodoCommentData With {.Priority = 1, .Message = "test2", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test2"},
-                    New TodoCommentData With {.Priority = 0, .Message = "test3", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test3"}
+                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TodoCommentData(priority:=0, message:="test3", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test3")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -360,17 +360,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         Private Function CreateItem(documentId As DocumentId) As TodoCommentData
-            Return New TodoCommentData With {
-                .Priority = 0,
-                .Message = "test",
-                .DocumentId = documentId,
-                .MappedLine = 10,
-                .OriginalLine = 10,
-                .MappedColumn = 20,
-                .OriginalColumn = 20,
-                .MappedFilePath = Nothing,
-                .OriginalFilePath = "test1"
-                }
+            Return New TodoCommentData(
+                priority:=0,
+                message:="test",
+                documentId:=documentId,
+                mappedLine:=10,
+                originalLine:=10,
+                mappedColumn:=20,
+                originalColumn:=20,
+                mappedFilePath:=Nothing,
+                originalFilePath:="test1")
         End Function
 
         Private Class TestTodoListProvider

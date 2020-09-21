@@ -5837,6 +5837,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_SwitchExpressionNotExhaustiveWithWhen_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</value>
+  </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
   </data>
@@ -6251,9 +6257,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInitOnlySetters" xml:space="preserve">
     <value>init-only setters</value>
   </data>
-  <data name="ERR_BadRecordDeclaration" xml:space="preserve">
-    <value>A positional record must have a non-empty parameter list</value>
-  </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
@@ -6298,6 +6301,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
     <value>Partial method declarations must have matching ref return values.</value>
+  </data>
+  <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</value>
+  </data>
+  <data name="WRN_PartialMethodTypeDifference_Title" xml:space="preserve">
+    <value>Partial method declarations have differences in parameter or return types.</value>
   </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>
@@ -6387,7 +6396,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameters must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
     <value>Only a single record partial declaration may have a parameter list</value>
@@ -6525,6 +6534,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly" xml:space="preserve">
     <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_InitCannotBeReadonly" xml:space="preserve">
+    <value>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</value>
   </data>
   <data name="IDS_FeatureDiscards" xml:space="preserve">
     <value>discards</value>

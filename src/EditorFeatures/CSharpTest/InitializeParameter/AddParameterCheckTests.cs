@@ -197,6 +197,23 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnExtendedPartialMethodDefinition1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public partial void M([||]string s);
+
+    public partial void M(string s)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnPartialMethodDefinition2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -210,6 +227,23 @@ class C
     }
 
     partial void M([||]string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnExtendedPartialMethodDefinition2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public partial void M(string s)
+    {
+    }
+
+    public partial void M([||]string s);
 }");
         }
 
@@ -236,6 +270,38 @@ class C
     partial void M(string s);
 
     partial void M(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnExtendedPartialMethodImplementation1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public partial void M(string s);
+
+    public partial void M([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public partial void M(string s);
+
+    public partial void M(string s)
     {
         if (s is null)
         {
@@ -274,6 +340,38 @@ class C
     }
 
     partial void M(string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnExtendedPartialMethodImplementation2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public partial void M([||]string s)
+    {
+    }
+
+    public partial void M(string s);
+}",
+@"
+using System;
+
+class C
+{
+    public partial void M(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+
+    public partial void M(string s);
 }");
         }
 
