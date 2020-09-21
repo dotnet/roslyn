@@ -257,7 +257,6 @@ class X
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                         case ErrorCode.WRN_RecordNamedDisallowed:
-                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -267,6 +266,7 @@ class X
                             break;
                         case ErrorCode.WRN_PdbLocalNameTooLong:
                         case ErrorCode.WRN_UnreferencedLocalFunction:
+                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
