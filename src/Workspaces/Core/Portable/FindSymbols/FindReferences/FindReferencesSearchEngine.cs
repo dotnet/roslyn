@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
-        private readonly IImmutableSet<Document> _documents;
+        private readonly IImmutableSet<Document>? _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
         private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public FindReferencesSearchEngine(
             Solution solution,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
             FindReferencesSearchOptions options,
