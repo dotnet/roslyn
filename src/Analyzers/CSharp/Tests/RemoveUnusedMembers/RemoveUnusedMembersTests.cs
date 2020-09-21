@@ -2573,6 +2573,34 @@ static partial class B
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task UsedExtensionMethod_ReferencedFromExtendedPartialMethod()
+        {
+            var source1 = @"
+static partial class B
+{
+    public static void Entry() => PartialMethod();
+    public static partial void PartialMethod();
+}";
+            var source2 = @"
+static partial class B
+{
+    public static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void UsedMethod() { }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source1, source2 } },
+                FixedState = { Sources = { source1, source2 } },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
         [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
         public async Task FieldIsRead_NullCoalesceAssignment()
         {

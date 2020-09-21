@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _projectId = projectId;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (!(obj is HostArgsId other))
                 {

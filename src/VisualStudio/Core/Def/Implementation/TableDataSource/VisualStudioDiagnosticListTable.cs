@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 _errorList = errorList;
 
-                _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+                _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource);
                 _buildTableSource = new BuildTableDataSource(workspace, workspace.ExternalErrorDiagnosticUpdateSource);
 
                 AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());
