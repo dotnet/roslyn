@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public Glyph? Glyph { get; }
         public bool PreviewChanges { get; }
         public CannotChangeSignatureReason? CannotChangeSignatureReason { get; }
-        public string ConfirmationMessage { get; }
+        public string? ConfirmationMessage { get; }
 
         /// <summary>
         /// Name of the symbol. Needed here for the Preview Changes dialog.
