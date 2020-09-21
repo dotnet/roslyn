@@ -9140,6 +9140,24 @@ public class C
             );
         }
 
+        [Fact]
+        [WorkItem(47308, "https://github.com/dotnet/roslyn/issues/47308")]
+        public void ObsoleteAttributeWithUnsafeError()
+        {
+            string source = @"
+using System;
+unsafe delegate byte* D();
+class C
+{
+    [Obsolete(null, true)] unsafe static byte* F() => default;
+    unsafe static D M1() => new D(F);
+    static D M2() => new D(F);
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // To be added when the test fails.
+            );
+        }
         #endregion
     }
 }
