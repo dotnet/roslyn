@@ -5,6 +5,9 @@
 #nullable enable
 
 using System;
+using System.IO.Pipelines;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using StreamJsonRpc;
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }.GetFrozenCopy();
 
         private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, Formatters.UTF8, MessageDelimiters.HttpLikeHeaders, s_multiplexingStreamOptions)
+            : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
         {
         }
 
@@ -52,11 +55,18 @@ namespace Microsoft.CodeAnalysis.Remote
             => new ServiceDescriptor(this);
 
         protected override IJsonRpcMessageFormatter CreateFormatter()
-            => ConfigureFormatter((JsonMessageFormatter)base.CreateFormatter());
+            => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
 
-        internal static JsonMessageFormatter ConfigureFormatter(JsonMessageFormatter formatter)
+        private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
+            .WithSecurity(MessagePackSecurity.UntrustedData)
+            .WithResolver(CompositeResolver.Create(
+                MessagePackFormatters.GetFormatters(),
+                new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));
+
+        private static MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
         {
-            formatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            // See https://github.com/neuecc/messagepack-csharp.
+            formatter.SetMessagePackSerializerOptions(s_options);
             return formatter;
         }
 
@@ -66,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Remote
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
+        }
+
+        internal static class TestAccessor
+        {
+            public static MessagePackSerializerOptions Options => s_options;
         }
     }
 }

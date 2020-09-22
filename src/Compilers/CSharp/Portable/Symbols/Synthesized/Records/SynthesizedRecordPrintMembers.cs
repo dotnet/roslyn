@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isPrintable(Symbol m)
             {
-                if (m.DeclaredAccessibility != Accessibility.Public)
+                if (m.DeclaredAccessibility != Accessibility.Public || m.IsStatic)
                 {
                     return false;
                 }

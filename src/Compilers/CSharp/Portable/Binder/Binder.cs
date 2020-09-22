@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void ReportDiagnosticsIfUnmanagedCallersOnly(DiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
         {
-            var unmanagedCallersOnlyAttributeData = symbol.UnmanagedCallersOnlyAttributeData;
+            var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
             if (unmanagedCallersOnlyAttributeData != null)
             {
                 // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.

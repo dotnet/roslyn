@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IServiceBroker _serviceBroker;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
+        private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
             _errorReportingService = services.GetService<IErrorReportingService>();
+            _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
 
-                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService);
+                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {

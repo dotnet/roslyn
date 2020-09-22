@@ -229,20 +229,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As Task
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
 
-                Return Task.CompletedTask
+                Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
 
-                Return Task.CompletedTask
+                Return Nothing
             End Function
         End Class
 
