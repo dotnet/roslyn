@@ -24,7 +24,7 @@ namespace BuildActionTelemetryTable
             "Microsoft.CodeAnalysis.AnalyzerUtilities.dll"
         };
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Console.WriteLine("Loading assemblies and finding CodeActions...");
 
