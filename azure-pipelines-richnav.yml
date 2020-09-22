@@ -1,5 +1,6 @@
 trigger: none
-pr: none
+pr: 
+- master
 
 schedules:
 - cron: "0 0 * * *"
@@ -15,6 +16,7 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.Open
   variables:
     EnableRichCodeNavigation: true
+    System.Debug: true
   timeoutInMinutes: 200
 
   steps:
