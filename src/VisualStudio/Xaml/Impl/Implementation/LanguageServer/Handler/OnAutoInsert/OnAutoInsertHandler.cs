@@ -53,12 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return response.ToArray();
             }
 
-            var insertText = result.TextChange.NewText ?? "";
+            var insertText = result.TextChange.NewText;
             var insertFormat = LSP.InsertTextFormat.Plaintext;
             if (result.CaretOffset.HasValue)
             {
                 insertFormat = LSP.InsertTextFormat.Snippet;
-                insertText = insertText.Insert(result.CaretOffset.Value, "$0");
+                insertText = insertText?.Insert(result.CaretOffset.Value, "$0");
             }
 
             response.Add(new LSP.DocumentOnAutoInsertResponseItem

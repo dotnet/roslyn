@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ReferencesProvider = true,
                     ProjectContextProvider = true,
                     ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
-                    SupportsDiagnosticRequests = true,
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
                         Change = LSP.TextDocumentSyncKind.None

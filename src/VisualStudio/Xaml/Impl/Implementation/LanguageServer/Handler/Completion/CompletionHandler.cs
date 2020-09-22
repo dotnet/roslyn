@@ -56,12 +56,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
         {
-            var item = new VSCompletionItem
+            TextEdit? textEdit = null;
+
+            if (xamlCompletion.Span.HasValue)
+            {
+                textEdit = new TextEdit
+                {
+                    NewText = xamlCompletion.InsertText,
+                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
+                };
+            }
+
+            return new VSCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
                 CommitCharacters = xamlCompletion.CommitCharacters,
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
+                TextEdit = textEdit,
                 Preselect = xamlCompletion.Preselect,
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
@@ -70,20 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Icon = xamlCompletion.Icon,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
-
-            if (xamlCompletion.Span.HasValue)
-            {
-                item.TextEdit = new TextEdit
-                {
-                    NewText = xamlCompletion.InsertText,
-                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
-                };
-            }
-
-            return item;
         }
 
-        private static CompletionItem[] CreateErrorItem(string message, string details = "")
+        private static CompletionItem[] CreateErrorItem(string message, string? details = null)
         {
             var item = new CompletionItem
             {

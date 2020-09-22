@@ -171,7 +171,7 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string containerName = "")
+        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
             => new LSP.SymbolInformation()
             {
                 Kind = kind,
@@ -223,8 +223,7 @@ namespace Roslyn.Test.Utilities
             string text, LSP.CompletionItemKind kind, string[] tags,
             LSP.CompletionParams requestParameters, bool preselect = false,
             string[]? commitCharacters = null)
-        {
-            var item = new LSP.VSCompletionItem()
+            => new LSP.VSCompletionItem()
             {
                 FilterText = text,
                 InsertText = text,
@@ -238,17 +237,10 @@ namespace Roslyn.Test.Utilities
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position
                 },
+                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
                 Preselect = preselect,
+                CommitCharacters = commitCharacters
             };
-
-            if (tags != null)
-                item.Icon = new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId());
-
-            if (commitCharacters != null)
-                item.CommitCharacters = commitCharacters;
-
-            return item;
-        }
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
             => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
