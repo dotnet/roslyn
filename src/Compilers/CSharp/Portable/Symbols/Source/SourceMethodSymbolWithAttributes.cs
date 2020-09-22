@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MethodDeclarationSyntax m => m.ReturnType,
                 LocalFunctionStatementSyntax l => l.ReturnType,
-                _ => default
+                _ => null
             };
 
             if (returnTypeSyntax == null)
