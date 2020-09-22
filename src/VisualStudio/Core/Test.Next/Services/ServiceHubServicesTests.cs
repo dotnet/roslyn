@@ -138,7 +138,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsService>(callback, cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callback, cancellationTokenSource.Token);
 
             var invokeTask = connection.TryInvokeAsync(
                 (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
@@ -149,18 +149,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, data.Item2.Length);
 
             var commentInfo = data.Item2[0];
-            Assert.Equal(new TodoCommentData
-            {
-                DocumentId = solution.Projects.Single().Documents.Single().Id,
-                Priority = 1,
-                Message = "TODO: Test",
-                MappedFilePath = null,
-                OriginalFilePath = "test1.cs",
-                OriginalLine = 2,
-                MappedLine = 2,
-                OriginalColumn = 3,
-                MappedColumn = 3,
-            }, commentInfo);
+            Assert.Equal(new TodoCommentData(
+                documentId: solution.Projects.Single().Documents.Single().Id,
+                priority: 1,
+                message: "TODO: Test",
+                mappedFilePath: null,
+                originalFilePath: "test1.cs",
+                originalLine: 2,
+                mappedLine: 2,
+                originalColumn: 3,
+                mappedColumn: 3), commentInfo);
 
             cancellationTokenSource.Cancel();
 
@@ -216,7 +214,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callback, cancellationTokenSource.Token);
+            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeDiscoveryService>(callback, cancellationTokenSource.Token);
 
             var invokeTask = connection.TryInvokeAsync(
                 (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),

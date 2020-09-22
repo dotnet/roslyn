@@ -1077,7 +1077,7 @@ public class C
             );
 
             var m = finalComp.GetTypeByMetadataName("C").GetMethod("M");
-            var unmanagedCallersOnlyData = m.UnmanagedCallersOnlyAttributeData;
+            var unmanagedCallersOnlyData = m.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
             Assert.IsType<RetargetingMethodSymbol>(m);
             var containingAssembly = unmanagedCallersOnlyData.CallingConventionTypes.Single().ContainingAssembly;
             Assert.NotSame(containingAssembly, beforeRetargeting.Assembly);

@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         None = 0,
         RemoteHost = 1,
-        CodeAnalysis = 2,
-        RemoteSymbolSearchUpdateEngine = 3,
+        // obsolete: CodeAnalysis = 2,
+        // obsolete: RemoteSymbolSearchUpdateService = 3,
         // obsolete: RemoteDesignerAttributeService = 4,
         // obsolete: RemoteProjectTelemetryService = 5,
         // obsolete: RemoteTodoCommentsService = 6,

@@ -9617,6 +9617,30 @@ X = 1
             await AssertFormatAsync(expectedCode, code);
         }
 
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody_WithTrailingComma()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1,
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1,
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingAfterAttribute()

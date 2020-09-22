@@ -379,7 +379,6 @@ function TestUsingOptimizedRunner() {
   $args += " `"-out:$testResultsDir`""
   $args += " `"-logs:$LogDir`""
   $args += " `"-secondaryLogs:$secondaryLogDir`""
-  $args += " -nocache"
   $args += " -tfm:net472"
 
   if ($testDesktop -or $testIOperation) {
