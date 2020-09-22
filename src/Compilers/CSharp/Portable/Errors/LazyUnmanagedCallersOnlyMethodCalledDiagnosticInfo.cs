@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_lazyActualUnmanagedCallersOnlyDiagnostic is null)
             {
-                _method.ForceCompleteUnmanagedCallersOnlyAttribute();
-                UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = _method.UnmanagedCallersOnlyAttributeData;
+                UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = _method.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
                 Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized));
                 Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyAttributeData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
 

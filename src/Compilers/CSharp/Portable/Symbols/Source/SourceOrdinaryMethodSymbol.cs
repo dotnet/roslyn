@@ -602,15 +602,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
             MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
-            bool hasTypeDifferences = !constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
-            if (hasTypeDifferences)
+            bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+            if (!returnTypesEqual
+                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
+                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(definition.ReturnType))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
-            }
-            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
-            {
-                hasTypeDifferences = true;
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.Locations[0], definition, implementation);
             }
 
             if (definition.RefKind != implementation.RefKind)
@@ -659,32 +656,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
-            if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,
                 constructedDefinition,
                 implementation,
                 diagnostics,
-                static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
+                (diagnostics, implementedMethod, implementingMethod, topLevel, returnTypesEqual) =>
                 {
-                    // report only if this is an unsafe *nullability* difference
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                    if (returnTypesEqual)
+                    {
+                        // report only if this is an unsafe *nullability* difference
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                    }
                 },
-                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
-                extraArgument: (object)null))
-            {
-                hasTypeDifferences = true;
-            }
-
-            if (!hasTypeDifferences &&
-                !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation))
-            {
-                diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
-                    new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                    new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
-            }
+                extraArgument: returnTypesEqual);
         }
 
         private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)

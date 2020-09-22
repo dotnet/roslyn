@@ -114,7 +114,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.SourceCodeKind,
                 textLoader,
                 documentInfo.FilePath,
-                documentInfo.IsGenerated);
+                documentInfo.IsGenerated,
+                documentInfo.DesignTimeOnly,
+                documentServiceProvider: null);
         }
 
         private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums, CancellationToken cancellationToken)
