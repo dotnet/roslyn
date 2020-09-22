@@ -398,6 +398,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             static LanguageServer.Protocol.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
             {
+                Contract.ThrowIfNull(diagnosticData.Message);
+                Contract.ThrowIfNull(diagnosticData.DataLocation);
+
                 return new LanguageServer.Protocol.Diagnostic
                 {
                     Code = diagnosticData.Id,
