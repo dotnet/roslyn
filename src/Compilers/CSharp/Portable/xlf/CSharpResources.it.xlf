@@ -922,6 +922,16 @@
         <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="new">'{0}' defines 'Equals' but not 'GetHashCode'</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="new">Record defines 'Equals' but not 'GetHashCode'.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
