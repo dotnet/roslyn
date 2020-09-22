@@ -176,17 +176,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             var result = new LSP.VSReferenceItem
             {
                 ContainingMember = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : null,
+                    AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : "",
                 ContainingType = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
+                    AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : "",
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DisplayPath = location.Uri.LocalPath,
-                DocumentName = documentSpan == default ? null : documentSpan.Document.Name,
+                DocumentName = documentSpan.Document?.Name ?? "",
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
                 Location = location,
-                ProjectName = documentSpan == default ? null : documentSpan.Document.Project.Name,
+                ProjectName = documentSpan.Document?.Project.Name ?? "",
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
