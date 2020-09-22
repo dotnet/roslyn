@@ -912,14 +912,14 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -930,6 +930,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="new">Return value must be non-null because parameter '{0}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="new">Return value must be non-null because parameter is non-null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -2462,6 +2472,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">Допустимость значения NULL для ссылочных типов в возвращаемом типе не совпадает с переопределенным членом.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
