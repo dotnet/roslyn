@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindDerivedClassesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.DerivedClasses, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindDerivedInterfacesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.DerivedInterfaces, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindImplementingTypesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.ImplementingTypes, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 

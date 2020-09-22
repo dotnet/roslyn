@@ -844,7 +844,6 @@ class Program
 ");
 
             var comp = (CSharpCompilation)verifier.Compilation;
-            comp.VerifyEmitDiagnostics();
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -2065,6 +2064,61 @@ class C : Base<S>
                 //         _ = t with { X = 2, Property = 3 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("U", "Property").WithLocation(11, 29)
                 );
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void BothGetHashCodeAndEqualsAreDefined()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+    public bool Equals(C c) { return false; }
+    public override int GetHashCode() { return 0; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void BothGetHashCodeAndEqualsAreNotDefined()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void GetHashCodeIsDefinedButEqualsIsNot()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+    public override int GetHashCode() { return 0; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
+        public void EqualsIsDefinedButGetHashCodeIsNot()
+        {
+            var src = @"
+public sealed record C
+{
+    public object Data;
+    public bool Equals(C c) { return false; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,17): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(C c) { return false; }
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(5, 17));
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
@@ -15669,7 +15723,6 @@ public record A {
                 // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override Something GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 31),
-
                 // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // public record A {
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
@@ -15754,7 +15807,6 @@ public record A {
                 // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override bool GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 26),
-
                 // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // public record A {
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
@@ -16433,7 +16485,14 @@ class Program
 @"
 B.Equals(B)
 False
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+    // (5,26): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+    //     public abstract bool Equals(A x);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(5, 26),
+    // (9,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B other) => Report("B.Equals(B)");
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 25)
+);
         }
 
         [Fact]
@@ -16465,7 +16524,11 @@ class Program
 @"
 B.Equals(B)
 False
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+    // (9,26): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+    //     public override bool Equals(B other) => Report("B.Equals(B)");
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 26)
+);
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
             Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
@@ -16495,7 +16558,10 @@ record B : A
             comp.VerifyEmitDiagnostics(
                 // (9,33): error CS8872: 'B.Equals(B)' must allow overriding because the containing record is not sealed.
                 //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
-                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 33)
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 33),
+                // (9,33): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+                //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 33)
                 );
         }
 
@@ -16528,7 +16594,11 @@ class Program
 @"
 B.Equals(B)
 False
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+    // (9,33): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+    //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 33)
+);
 
             var copyCtor = comp.GetMember<NamedTypeSymbol>("A").InstanceConstructors.Where(c => c.ParameterCount == 1).Single();
             Assert.Equal(Accessibility.Protected, copyCtor.DeclaredAccessibility);
@@ -16766,7 +16836,10 @@ record A
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     { accessibility } virtual bool Equals(A x)
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
+                // (4,...): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     { accessibility } virtual bool Equals(A x)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 19 + accessibility.Length)
                 );
         }
 
@@ -16792,7 +16865,10 @@ record A
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
                 // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     { accessibility } virtual bool Equals(A x)
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
+                // (4,...): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //      virtual bool Equals(A x)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 19 + accessibility.Length)
                 );
         }
 
@@ -16853,7 +16929,10 @@ record A
             comp.VerifyEmitDiagnostics(
                 // (4,24): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
                 //     public virtual int Equals(A other)
-                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 24),
+                // (4,24): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public virtual int Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 24)
                 );
         }
 
@@ -16923,7 +17002,10 @@ record A
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
                 // (4,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     public virtual bool Equals(A other)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 20),
+                // (4,25): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public virtual bool Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 25)
                 );
         }
 
@@ -16944,7 +17026,10 @@ record A
             comp.VerifyEmitDiagnostics(
                 // (4,20): error CS0246: The type or namespace name 'Boolean' could not be found (are you missing a using directive or an assembly reference?)
                 //     public virtual Boolean Equals(A other)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Boolean").WithArguments("Boolean").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Boolean").WithArguments("Boolean").WithLocation(4, 20),
+                // (4,28): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public virtual Boolean Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 28)
                 );
         }
 
@@ -17082,6 +17167,9 @@ record B : A;
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
                 //     public static bool Equals(A x) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24),
+                // (4,24): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public static bool Equals(A x) => throw null;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 24),
                 // (7,8): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
                 // record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(7, 8)
@@ -17105,7 +17193,10 @@ sealed record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 15),
                 // (4,24): error CS8877: Record member 'A.Equals(A)' may not be static.
                 //     public static bool Equals(A x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24),
+                // (4,24): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public static bool Equals(A x) => throw null;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 24)
                 );
         }
 
@@ -18615,7 +18706,11 @@ True True False False
 Equals(A other)
 Equals(A other)
 False False True True
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+    // (6,25): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(A other)
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(6, 25)
+);
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
@@ -18779,7 +18874,10 @@ record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
                 //     public static bool Equals(A other)
-                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24),
+                // (4,24): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public static bool Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 24)
                 );
         }
 
@@ -18801,7 +18899,10 @@ record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)", "bool").WithLocation(2, 8),
                 // (4,27): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
                 //     public virtual string Equals(A other)
-                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 27),
+                // (4,27): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public virtual string Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 27)
                 );
         }
 
@@ -20957,7 +21058,11 @@ True
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (8,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(8, 25)
+);
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -21229,7 +21334,11 @@ True
 False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (15,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(15, 25)
+);
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
@@ -21608,7 +21717,14 @@ class Program
             CompileAndVerify(source, expectedOutput:
 @"True
 False
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (8,25): warning CS8851: 'B1' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B1 o) => base.Equals((A)o);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B1").WithLocation(8, 25),
+    // (15,25): warning CS8851: 'B2' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B2 o) => base.Equals((A)o);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B2").WithLocation(15, 25)
+);
         }
 
         [Fact]
@@ -21644,7 +21760,14 @@ class Program
             CompileAndVerify(comp, expectedOutput:
 @"True
 False
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+    // (8,25): warning CS8851: 'B1' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B1 b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B1").WithLocation(8, 25),
+    // (15,25): warning CS8851: 'B2' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B2 b) => base.Equals((A)b);
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B2").WithLocation(15, 25)
+);
         }
 
         [Fact]
@@ -21973,7 +22096,14 @@ B.Equals(B)
 B.Equals(B)
 A<T>.Equals(A<T>)
 B.Equals(B)
-B.Equals(B)").VerifyDiagnostics();
+B.Equals(B)").VerifyDiagnostics(
+    // (5,25): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(A<T> other) => Report("A<T>.Equals(A<T>)");
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(5, 25),
+    // (9,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(B other) => Report("B.Equals(B)");
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 25)
+);
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
@@ -22031,7 +22161,14 @@ B.Equals(B)",
                     Assert.Equal("B.Equals(B)", b.FindImplementationForInterfaceMember(b.InterfacesNoUseSiteDiagnostics()[1].GetMember("Equals")).ToDisplayString());
                     var c = m.GlobalNamespace.GetTypeMember("C");
                     Assert.Equal("C.Equals(C?)", c.FindImplementationForInterfaceMember(c.InterfacesNoUseSiteDiagnostics()[1].GetMember("Equals")).ToDisplayString());
-                }).VerifyDiagnostics();
+                }).VerifyDiagnostics(
+                    // (5,25): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                    //     public virtual bool Equals(A<T> other) => Report("A<T>.Equals(A<T>)");
+                    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(5, 25),
+                    // (9,25): warning CS8851: '{B}' defines 'Equals' but not 'GetHashCode'
+                    //     public virtual bool Equals(B other) => Report("B.Equals(B)");
+                    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 25)
+                    );
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
@@ -22444,7 +22581,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(1, 8),
                 // (3,27): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     internal virtual bool Equals(A other) => false;
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(3, 27)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(3, 27),
+                // (3,27): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     internal virtual bool Equals(A other) => false;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(3, 27)
                 );
         }
 
@@ -22464,6 +22604,9 @@ record B : A
                 // (3,17): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
                 //     public bool Equals(A other) => false;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(3, 17),
+                // (3,17): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(A other) => false;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(3, 17),
                 // (5,8): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
                 // record B : A
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(5, 8));
@@ -25629,6 +25772,237 @@ public record X(int a)
                 .VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void DefaultCtor_01()
+        {
+            var src = @"
+record C
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        System.Console.WriteLine(x == y);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "True");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefaultCtor_02()
+        {
+            var src = @"
+record B(int x);
+
+record C : B
+{
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,8): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                // record C : B
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(4, 8)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_03()
+        {
+            var src = @"
+record C
+{
+    public C(C c){}
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        System.Console.WriteLine(x == y);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "True");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefaultCtor_04()
+        {
+            var src = @"
+record B(int x);
+
+record C : B
+{
+    public C(C c) : base(c) {}
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,8): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                // record C : B
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(4, 8)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_05()
+        {
+            var src = @"
+record C(int x);
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.C(int)'
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "C.C(int)").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_06()
+        {
+            var src = @"
+record C
+{
+    C(int x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "0").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void DefaultCtor_07()
+        {
+            var src = @"
+class C
+{
+    C(C x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "0").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        public void ToString_RecordWithStaticMembers()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record C1(int I1)
+{
+    public static int field1 = 44;
+    public const int field2 = 44;
+    public static int P1 { set { } }
+    public static int P2 { get { return 1; } set { } }
+    public static int P3 { get { return 1; } }
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
+        public void ToString_NestedRecord()
+        {
+            var src = @"
+var c1 = new Outer.C1(42);
+System.Console.Write(c1.ToString());
+
+public class Outer
+{
+    public record C1(int I1);
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
         }
     }
 }

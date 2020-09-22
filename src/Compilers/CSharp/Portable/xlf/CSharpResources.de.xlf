@@ -912,25 +912,25 @@
         <target state="new">discards</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
-        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialMethodTypeDifference">
-        <source>Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</source>
-        <target state="new">Partial method declarations '{0}' and '{1}' have differences in parameter or return types.</target>
-        <note />
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="new">'{0}' defines 'Equals' but not 'GetHashCode'</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
       </trans-unit>
-      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
-        <source>Partial method declarations have differences in parameter or return types.</source>
-        <target state="new">Partial method declarations have differences in parameter or return types.</target>
-        <note />
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="new">Record defines 'Equals' but not 'GetHashCode'.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -940,6 +940,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="new">Return value must be non-null because parameter '{0}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="new">Return value must be non-null because parameter is non-null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -2472,6 +2482,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp entspricht nicht dem außer Kraft gesetzten Member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">

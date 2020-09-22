@@ -75,9 +75,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override Task OnCompletedAsync() => _workQueue.WaitUntilCurrentBatchCompletesAsync();
+        public override async ValueTask OnCompletedAsync()
+            => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
         {
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
         {
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {

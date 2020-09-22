@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
 
-        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData => UnderlyingMethod.UnmanagedCallersOnlyAttributeData;
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
