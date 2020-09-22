@@ -488,25 +488,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool canShareInputs,
                 out BoundExpression savedInputExpression)
             {
-                int count = loweredInput.Type.TupleElements.Length;
+                var tupleElements = loweredInput.Type.TupleElements;
+                int count = tupleElements.Length;
 
                 // first evaluate the inputs (in order) into temps
                 var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
-                var newArguments = ArrayBuilder<BoundExpression>.GetInstance(loweredInput.Arguments.Length);
                 for (int i = 0; i < count; i++)
                 {
-                    var field = loweredInput.Type.TupleElements[i].CorrespondingTupleField;
+                    var field = tupleElements[i].CorrespondingTupleField;
                     Debug.Assert(field != null);
                     var expr = getExpression(i, loweredInput);
                     var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
                     var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation);
                     storeToTemp(temp, expr);
-                    newArguments.Add(_tempAllocator.GetTemp(temp));
                 }
 
                 var rewrittenDag = decisionDag.Rewrite(makeReplacement);
                 savedInputExpression = loweredInput.Update(
-                    loweredInput.Constructor, arguments: newArguments.ToImmutableAndFree(), loweredInput.ArgumentNamesOpt, loweredInput.ArgumentRefKindsOpt,
+                    loweredInput.Constructor, arguments: loweredInput.Arguments, loweredInput.ArgumentNamesOpt, loweredInput.ArgumentRefKindsOpt,
                     loweredInput.Expanded, loweredInput.ArgsToParamsOpt, loweredInput.ConstantValueOpt,
                     loweredInput.InitializerExpressionOpt, loweredInput.BinderOpt, loweredInput.Type);
 
@@ -524,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // ValueTupleRestIndex should always be another tuple. Hence, it should always have BoundObjectCreationExpression.
-                            Debug.Assert(false, "This should be unreachable.");
+                            throw ExceptionUtilities.Unreachable;
                         }
                     }
 
