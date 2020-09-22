@@ -12676,12 +12676,12 @@ option1 = def");
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
-[file.cs]
+[/file.cs]
 option1 = abc");
 
             analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
-[file.cs]
+[/file.cs]
 option1 = def");
 
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -12689,7 +12689,7 @@ option1 = def");
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
             Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'file.cs'", output, StringComparison.Ordinal);
+            Assert.Contains("'/file.cs'", output, StringComparison.Ordinal);
         }
 
         [Fact]
