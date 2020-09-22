@@ -62,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
 
                 var statusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
                 var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                Debug.Assert(isFullyLoaded, "We should only be called by the incremental analyzer once the solution is fully loaded.");
 
                 await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
                     document.Project.Solution,
