@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -8,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -268,7 +270,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
                         // Display the SyntaxTree.
                         if (contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType))
                         {
-                            syntaxVisualizer.DisplaySyntaxTree(activeSyntaxTree, activeSemanticModel);
+                            syntaxVisualizer.DisplaySyntaxTree(activeSyntaxTree, activeSemanticModel, workspace: document.Project.Solution.Workspace);
                         }
 
                         NavigateFromSource();

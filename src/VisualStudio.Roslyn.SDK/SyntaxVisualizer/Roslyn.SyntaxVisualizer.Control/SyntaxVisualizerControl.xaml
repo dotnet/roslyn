@@ -5,7 +5,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0" 
+             xmlns:control="clr-namespace:Roslyn.SyntaxVisualizer.Control"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="300">
     <UserControl.Resources>
@@ -218,6 +219,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -228,6 +230,15 @@
                     <Label Grid.Row="1" Grid.Column="1" Name="typeValueLabel" Padding="5,2,5,2"/>
                     <Label Grid.Row="2" Grid.Column="0" Name="kindTextLabel" Visibility="Hidden" Content="Kind" Padding="5,2,5,2" Margin="20,0,0,0"/>
                     <Label Grid.Row="2" Grid.Column="1" Name="kindValueLabel" Padding="5,2,5,2"/>
+                    <Label Grid.Row="3" Grid.Column="0" Name="colorLabel" Content="Classification" Padding="5,2,5,2" Margin="20, 0, 0, 0" Visibility="Hidden" />
+                    <Grid Grid.Row="3" Grid.Column="1" Visibility="Hidden" x:Name="colorPickerGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Label Name="colorKindText" Padding="5,2,5,2" Grid.Column="0" />
+                        <Button Name="colorPickerButton" Width="30" Margin="5, 0, 5, 0" Grid.Column="1" AutomationProperties.Name="Color Picker" />
+                    </Grid>
                 </Grid>
             </Border>
             <WindowsFormsHost Grid.Row="1" x:Name="windowsFormsHost" Padding="0" />
