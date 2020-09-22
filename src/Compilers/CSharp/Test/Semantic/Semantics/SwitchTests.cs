@@ -2955,7 +2955,7 @@ public class TestClass
             var text = @"
 using System;
 public class C
-{   
+{
     public static void Main()
     {
         int x1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) switch
@@ -2984,6 +2984,198 @@ public class C
 ";
             var comp = CompileAndVerify(text, expectedOutput: "1 1 1 1");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void VerifyIL_8ElementsTuple()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        int x = (1, 2, 3, 4, 5, 6, 7, 8) switch
+        {
+            (1, 2, 3, 4, 5, 6, 7, 8) => 1,
+            _ => -1,
+        };
+
+        Console.WriteLine(x);
+    }
+}
+";
+            CompileAndVerify(text).VerifyIL("C.Main", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                int V_7)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.1
+  IL_0003:  ldc.i4.3
+  IL_0004:  stloc.2
+  IL_0005:  ldc.i4.4
+  IL_0006:  stloc.3
+  IL_0007:  ldc.i4.5
+  IL_0008:  stloc.s    V_4
+  IL_000a:  ldc.i4.6
+  IL_000b:  stloc.s    V_5
+  IL_000d:  ldc.i4.7
+  IL_000e:  stloc.s    V_6
+  IL_0010:  ldc.i4.8
+  IL_0011:  stloc.s    V_7
+  IL_0013:  ldc.i4.1
+  IL_0014:  bne.un.s   IL_003a
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.2
+  IL_0018:  bne.un.s   IL_003a
+  IL_001a:  ldloc.2
+  IL_001b:  ldc.i4.3
+  IL_001c:  bne.un.s   IL_003a
+  IL_001e:  ldloc.3
+  IL_001f:  ldc.i4.4
+  IL_0020:  bne.un.s   IL_003a
+  IL_0022:  ldloc.s    V_4
+  IL_0024:  ldc.i4.5
+  IL_0025:  bne.un.s   IL_003a
+  IL_0027:  ldloc.s    V_5
+  IL_0029:  ldc.i4.6
+  IL_002a:  bne.un.s   IL_003a
+  IL_002c:  ldloc.s    V_6
+  IL_002e:  ldc.i4.7
+  IL_002f:  bne.un.s   IL_003a
+  IL_0031:  ldloc.s    V_7
+  IL_0033:  ldc.i4.8
+  IL_0034:  bne.un.s   IL_003a
+  IL_0036:  ldc.i4.1
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_003c
+  IL_003a:  ldc.i4.m1
+  IL_003b:  stloc.0
+  IL_003c:  ldloc.0
+  IL_003d:  call       ""void System.Console.WriteLine(int)""
+  IL_0042:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void VerifyIL_GreatherThan8ElementsTuple()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        int x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13) switch
+        {
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13) => 1,
+            _ => -1,
+        };
+
+        Console.WriteLine(x);
+    }
+}
+";
+            CompileAndVerify(text).VerifyIL("C.Main", @"
+{
+  // Code size      117 (0x75)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                int V_7,
+                int V_8,
+                int V_9,
+                int V_10,
+                int V_11,
+                int V_12)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.1
+  IL_0003:  ldc.i4.3
+  IL_0004:  stloc.2
+  IL_0005:  ldc.i4.4
+  IL_0006:  stloc.3
+  IL_0007:  ldc.i4.5
+  IL_0008:  stloc.s    V_4
+  IL_000a:  ldc.i4.6
+  IL_000b:  stloc.s    V_5
+  IL_000d:  ldc.i4.7
+  IL_000e:  stloc.s    V_6
+  IL_0010:  ldc.i4.8
+  IL_0011:  stloc.s    V_7
+  IL_0013:  ldc.i4.s   9
+  IL_0015:  stloc.s    V_8
+  IL_0017:  ldc.i4.s   10
+  IL_0019:  stloc.s    V_9
+  IL_001b:  ldc.i4.s   11
+  IL_001d:  stloc.s    V_10
+  IL_001f:  ldc.i4.s   12
+  IL_0021:  stloc.s    V_11
+  IL_0023:  ldc.i4.s   13
+  IL_0025:  stloc.s    V_12
+  IL_0027:  ldc.i4.1
+  IL_0028:  bne.un.s   IL_006c
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4.2
+  IL_002c:  bne.un.s   IL_006c
+  IL_002e:  ldloc.2
+  IL_002f:  ldc.i4.3
+  IL_0030:  bne.un.s   IL_006c
+  IL_0032:  ldloc.3
+  IL_0033:  ldc.i4.4
+  IL_0034:  bne.un.s   IL_006c
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  ldc.i4.5
+  IL_0039:  bne.un.s   IL_006c
+  IL_003b:  ldloc.s    V_5
+  IL_003d:  ldc.i4.6
+  IL_003e:  bne.un.s   IL_006c
+  IL_0040:  ldloc.s    V_6
+  IL_0042:  ldc.i4.7
+  IL_0043:  bne.un.s   IL_006c
+  IL_0045:  ldloc.s    V_7
+  IL_0047:  ldc.i4.8
+  IL_0048:  bne.un.s   IL_006c
+  IL_004a:  ldloc.s    V_8
+  IL_004c:  ldc.i4.s   9
+  IL_004e:  bne.un.s   IL_006c
+  IL_0050:  ldloc.s    V_9
+  IL_0052:  ldc.i4.s   10
+  IL_0054:  bne.un.s   IL_006c
+  IL_0056:  ldloc.s    V_10
+  IL_0058:  ldc.i4.s   11
+  IL_005a:  bne.un.s   IL_006c
+  IL_005c:  ldloc.s    V_11
+  IL_005e:  ldc.i4.s   12
+  IL_0060:  bne.un.s   IL_006c
+  IL_0062:  ldloc.s    V_12
+  IL_0064:  ldc.i4.s   13
+  IL_0066:  bne.un.s   IL_006c
+  IL_0068:  ldc.i4.1
+  IL_0069:  stloc.0
+  IL_006a:  br.s       IL_006e
+  IL_006c:  ldc.i4.m1
+  IL_006d:  stloc.0
+  IL_006e:  ldloc.0
+  IL_006f:  call       ""void System.Console.WriteLine(int)""
+  IL_0074:  ret
+}
+");
         }
         #endregion
     }
