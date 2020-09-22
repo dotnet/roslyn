@@ -489,11 +489,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 var tupleElements = loweredInput.Type.TupleElements;
-                int count = tupleElements.Length;
 
                 // first evaluate the inputs (in order) into temps
                 var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < tupleElements.Length; i++)
                 {
                     var field = tupleElements[i].CorrespondingTupleField;
                     Debug.Assert(field != null);
