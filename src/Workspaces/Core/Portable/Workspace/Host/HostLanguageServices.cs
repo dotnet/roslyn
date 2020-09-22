@@ -5,13 +5,14 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
     /// Per language services provided by the host environment.
     /// </summary>
-    public abstract class HostLanguageServices
+    public abstract class HostLanguageServices : IDisposable
     {
         /// <summary>
         /// The <see cref="HostWorkspaceServices"/> that originated this language service.
@@ -28,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// If the host does not provide the service, this method returns null.
         /// </summary>
         public abstract TLanguageService? GetService<TLanguageService>() where TLanguageService : ILanguageService;
+
+        [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Derived types are not allowed to include a finalizer for this pattern.")]
+        public virtual void Dispose()
+        {
+        }
 
         /// <summary>
         /// Gets a language specific service provided by the host identified by the service type. 

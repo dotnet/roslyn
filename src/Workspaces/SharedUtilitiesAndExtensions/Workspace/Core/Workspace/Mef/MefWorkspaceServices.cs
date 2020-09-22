@@ -8,9 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 [assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override void Dispose()
         {
+            var allLanguageServices = Interlocked.Exchange(ref _languageServicesMap, _languageServicesMap.Clear());
+
             ImmutableArray<IDisposable> disposableServices;
             lock (_gate)
             {
@@ -68,21 +70,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             // Take care to give all disposal parts a chance to dispose even if some parts throw exceptions.
             List<Exception> exceptions = null;
+
+            foreach (var (_, languageServices) in allLanguageServices)
+            {
+                MefUtilities.DisposeWithExceptionTracking(languageServices, ref exceptions);
+            }
+
             foreach (var service in disposableServices)
             {
-                try
-                {
-                    service.Dispose();
-                }
-                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-                catch (Exception ex)
-                {
-                    exceptions ??= new List<Exception>();
-                    exceptions.Add(ex);
-                }
+                MefUtilities.DisposeWithExceptionTracking(service, ref exceptions);
             }
 
             if (exceptions is not null)
@@ -244,12 +240,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 #pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
                 var services = (MefLanguageServices)this.GetLanguageServices(language);
 #pragma warning restore RS0030 // Do not used banned APIs
-                if (services.TryGetService(typeof(TLanguageService), out var service))
+                if (services.TryGetService<TLanguageService>(filter, out var service))
                 {
-                    if (filter(service.Metadata.Data))
-                    {
-                        yield return (TLanguageService)service.Value;
-                    }
+                    yield return service;
                 }
             }
         }
