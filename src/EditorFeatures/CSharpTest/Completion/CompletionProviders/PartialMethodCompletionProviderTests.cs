@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,10 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public PartialMethodCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(PartialMethodCompletionProvider);
 
@@ -780,7 +775,9 @@ partial class Bar
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionBodyMethod()
         {
-            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));
@@ -809,7 +806,9 @@ partial class Bar
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionBodyMethodExtended()
         {
-            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));

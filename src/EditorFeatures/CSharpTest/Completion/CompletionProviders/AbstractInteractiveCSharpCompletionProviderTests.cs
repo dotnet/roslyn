@@ -8,8 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public abstract class AbstractInteractiveCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<InteractiveCSharpTestWorkspaceFixture>
     {
-        protected AbstractInteractiveCSharpCompletionProviderTests(InteractiveCSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
+        protected AbstractInteractiveCSharpCompletionProviderTests()
         {
         }
 

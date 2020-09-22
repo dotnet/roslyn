@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSuggestionModeCompletionProvider);
 
@@ -1359,8 +1354,7 @@ class C
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            using var workspaceFixture = new CSharpTestWorkspaceFixture();
-            try
+            using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
                 workspaceFixture.GetWorkspace(ExportProvider);
                 var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
@@ -1371,10 +1365,6 @@ class C
                     var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
-            }
-            finally
-            {
-                workspaceFixture.DisposeAfterTest();
             }
         }
 
