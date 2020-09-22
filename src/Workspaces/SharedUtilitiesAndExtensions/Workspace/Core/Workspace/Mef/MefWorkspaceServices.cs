@@ -66,16 +66,28 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 _ownedDisposableServices.Clear();
             }
 
+            // Take care to give all disposal parts a chance to dispose even if some parts throw exceptions.
+            List<Exception> exceptions = null;
             foreach (var service in disposableServices)
             {
                 try
                 {
                     service.Dispose();
                 }
-                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex))
                 {
-                    // Ignored
+                    throw ExceptionUtilities.Unreachable;
                 }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (exceptions is not null)
+            {
+                throw new AggregateException(CompilerExtensionsResources.Instantiated_parts_threw_exceptions_from_IDisposable_Dispose, exceptions);
             }
 
             base.Dispose();
