@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
                 foreach (var data in buffer)
-                    result.AddRange(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
+                    result.Add(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
             }
 
             return result.ToImmutable();
