@@ -452,10 +452,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else if (location.Kind == LocationKind.ExternalFile)
                 {
-                    if (document.Project.GetDocumentForExternalLocation(location) is { } textDocumentId)
-                    {
-                        builder.AddIfNotNull(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
-                    }
+                    var textDocumentId = document.Project.GetDocumentForExternalLocation(location);
+                    builder.AddIfNotNull(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
                 }
             }
 
