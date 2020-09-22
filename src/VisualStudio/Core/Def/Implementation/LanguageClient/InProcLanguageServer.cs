@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private bool IncludeDiagnostic(DiagnosticData diagnostic) =>
             diagnostic.Properties.GetOrDefault(nameof(DocumentPropertiesService.DiagnosticsLspClientName)) == _clientName;
 
-        private static LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
+        private static LanguageServer.Protocol.Range GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
         {
             var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);

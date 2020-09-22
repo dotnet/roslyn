@@ -166,9 +166,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                foreach (var args in diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
+                foreach (var bucket in diagnosticService.GetDiagnosticBuckets(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
                 {
-                    OnDataAddedOrChanged(args);
+                    OnDataAddedOrChanged(bucket);
                 }
             }
 

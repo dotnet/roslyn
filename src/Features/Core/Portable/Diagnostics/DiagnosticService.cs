@@ -262,11 +262,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 buffer.Clear();
                 if (source.SupportGetDiagnostics)
                 {
-                    result.AddRange(source.GetDiagnostics(workspace, projectId, documentId, null, includeSuppressedDiagnostics, cancellationToken));
+                    result.AddRange(source.GetDiagnostics(workspace, projectId, documentId, id: null, includeSuppressedDiagnostics, cancellationToken));
                 }
                 else
                 {
-                    AppendMatchingData(source, workspace, projectId, documentId, null, buffer);
+                    AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
 
                     foreach (var data in buffer)
                     {
@@ -283,10 +283,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutable();
         }
 
-        public ImmutableArray<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(
+        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
-            using var _1 = ArrayBuilder<UpdatedEventArgs>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
             using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
 
             foreach (var source in _updateSources)
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
                 foreach (var data in buffer)
-                    result.AddRange(new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
+                    result.AddRange(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
             }
 
             return result.ToImmutable();
