@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public ImmutableArray<TItem> AggregateItems<X>(IEnumerable<IGrouping<X, TItem>> groupedItems)
+        public ImmutableArray<TItem> AggregateItems<TKey>(IEnumerable<IGrouping<TKey, TItem>> groupedItems)
         {
             using var _0 = ArrayBuilder<TItem>.GetInstance(out var aggregateItems);
             using var _1 = ArrayBuilder<string>.GetInstance(out var projectNames);
