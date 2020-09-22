@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             CompletionResolveData data;
-            if (completionItem.Data is CompletionResolveData)
+            if (completionItem.Data is JToken token)
             {
-                data = (CompletionResolveData)completionItem.Data;
+                data = token.ToObject<CompletionResolveData>();
             }
             else
             {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+                return completionItem;
             }
 
             var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
