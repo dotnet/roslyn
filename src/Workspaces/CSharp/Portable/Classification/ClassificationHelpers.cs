@@ -350,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordName,
                 _ => null,
             };
 

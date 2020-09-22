@@ -25,9 +25,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static readonly SymbolEqualityComparer IncludeNullability = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
 
+        /// <summary>
+        /// Compares two <see cref="ISymbol"/> instances, ignoring all options
+        /// </summary>
+        public static readonly SymbolEqualityComparer IgnoreAll = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
+
         // Internal only comparisons:
         internal static readonly SymbolEqualityComparer ConsiderEverything = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything);
-        internal static readonly SymbolEqualityComparer IgnoreAll = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
 
         internal TypeCompareKind CompareKind { get; }
 
