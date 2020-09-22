@@ -2785,7 +2785,7 @@ void outer()
 ");
         }
 
-        [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestAddParameter_TargetTypedNew()
         {
