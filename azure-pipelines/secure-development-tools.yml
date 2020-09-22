@@ -1,0 +1,11 @@
+steps:
+
+ ### Check for checked in credentials.
+- task: CredScan@3
+  displayName: 'Run CredScan'
+
+ ### Run PoliCheck to check for disallowed terms. targetType: F indicates we're searching files and folders.
+- task: PoliCheck@1
+  displayName: 'Run PoliCheck'
+  inputs:
+    targetType: F
