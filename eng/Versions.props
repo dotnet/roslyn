@@ -35,7 +35,7 @@
     <VisualStudioEditorPackagesVersion>16.8.39</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.8.103</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
-    <MicrosoftVisualStudioShellPackagesVersion>16.8.30323.125</MicrosoftVisualStudioShellPackagesVersion>
+    <MicrosoftVisualStudioShellPackagesVersion>16.8.30406.65-pre</MicrosoftVisualStudioShellPackagesVersion>
   </PropertyGroup>
   <!--
     Dependency versions
