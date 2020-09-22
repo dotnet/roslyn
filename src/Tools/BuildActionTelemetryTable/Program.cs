@@ -15,30 +15,25 @@ using TelemetryInfo = System.Tuple<string, string, string>;
 
 namespace BuildActionTelemetryTable
 {
-   public class Program
+    public class Program
     {
         private static readonly string s_executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        private static readonly string[] s_excludeList = new[]
-        {
-            "Microsoft.CodeAnalysis.AnalyzerUtilities.dll"
-        };
-
         public static void Main(string[] args)
         {
-            Console.WriteLine("Loading assemblies and finding CodeActions...");
+            Console.WriteLine("Loading assemblies and finding CodeActions ...");
 
             var assemblies = GetAssemblies(args);
             var codeActionTypes = GetCodeActionTypes(assemblies);
 
-            Console.WriteLine("Generating Kusto datatable of CodeAction hashes...");
+            Console.WriteLine($"Generating Kusto datatable of {codeActionTypes.Length} CodeAction hashes ...");
 
             var telemetryInfos = GetTelemetryInfos(codeActionTypes);
             var datatable = GenerateKustoDatatable(telemetryInfos);
 
             var filepath = Path.GetFullPath(".\\ActionTable.txt");
 
-            Console.WriteLine($"Writing datatable to {filepath}...");
+            Console.WriteLine($"Writing datatable to {filepath} ...");
 
             File.WriteAllText(filepath, datatable);
 
@@ -51,12 +46,24 @@ namespace BuildActionTelemetryTable
             {
                 // By default inspect the Roslyn assemblies
                 paths = Directory.EnumerateFiles(s_executingPath, "Microsoft.CodeAnalysis*.dll")
-                    .Where(path => !s_excludeList.Any(exclude => path.EndsWith(exclude)))
                     .ToArray();
             }
 
-            return paths.Select(path => Assembly.LoadFrom(path))
-                .ToImmutableArray();
+            var currentDirectory = new Uri(Environment.CurrentDirectory + "\\");
+            return paths.Select(path =>
+            {
+                Console.WriteLine($"Loading assembly from {GetRelativePath(path, currentDirectory)}.");
+                return Assembly.LoadFrom(path);
+            }).ToImmutableArray();
+
+            static string GetRelativePath(string path, Uri baseUri)
+            {
+                var rootedPath = Path.IsPathRooted(path)
+                    ? path
+                    : Path.GetFullPath(path);
+                var relativePath = baseUri.MakeRelativeUri(new Uri(rootedPath));
+                return relativePath.ToString();
+            }
         }
 
         internal static ImmutableArray<Type> GetCodeActionTypes(IEnumerable<Assembly> assemblies)
