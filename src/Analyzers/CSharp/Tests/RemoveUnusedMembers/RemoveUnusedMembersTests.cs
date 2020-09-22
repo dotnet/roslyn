@@ -40,6 +40,23 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [Fact, WorkItem(47917, "https://github.com/dotnet/roslyn/issues/47917")]
+        public async Task FieldIsNotReadButHaveDataMemberAttribute()
+        {
+            var code = @"
+using System.Runtime.Serialization;
+
+public class C
+{
+    [DataMember]
+    private string _x;
+
+    public C(string x) => _x = x;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
         [InlineData("internal")]
