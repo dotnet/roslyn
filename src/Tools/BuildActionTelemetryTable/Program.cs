@@ -15,7 +15,7 @@ using TelemetryInfo = System.Tuple<string, string, string>;
 
 namespace BuildActionTelemetryTable
 {
-    class Program
+   public class Program
     {
         private static readonly string s_executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
