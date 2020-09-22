@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected override void ShutdownSource()
             => _source.Shutdown();
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem, UpdatedEventArgs>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
@@ -88,9 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;
+            public override object GetItemKey(UpdatedEventArgs data) => data.DocumentId;
 
-            protected override object GetOrUpdateAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(UpdatedEventArgs data)
             {
                 var key = TryGetAggregateKey(data);
                 if (key == null)
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key == documents;
             }
 
-            private object CreateAggregationKey(object data)
+            private object CreateAggregationKey(UpdatedEventArgs data)
             {
                 var args = data as TodoItemsUpdatedArgs;
                 if (args?.Solution == null)
