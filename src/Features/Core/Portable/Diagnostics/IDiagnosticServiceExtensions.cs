@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class IDiagnosticServiceExtensions
     {
+        public static ImmutableArray<DiagnosticData> GetDiagnostics(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => service.GetDiagnostics(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, cancellationToken);
+
         public static ImmutableArray<DiagnosticData> GetDiagnostics(this IDiagnosticService service, Document document, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             var project = document.Project;
@@ -18,14 +21,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
 
-            foreach (var arg in service.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
+            foreach (var bucket in service.GetDiagnosticBuckets(workspace, project.Id, document.Id, cancellationToken))
             {
-                Contract.ThrowIfFalse(workspace.Equals(arg.Workspace));
-                Contract.ThrowIfFalse(document.Id.Equals(arg.DocumentId));
+                Contract.ThrowIfFalse(workspace.Equals(bucket.Workspace));
+                Contract.ThrowIfFalse(document.Id.Equals(bucket.DocumentId));
 
-                var diagnostics = service.GetDiagnostics(arg.Workspace, arg.ProjectId, arg.DocumentId, arg.Id, includeSuppressedDiagnostics, cancellationToken);
-                if (diagnostics != null)
-                    result.AddRange(diagnostics);
+                var diagnostics = service.GetDiagnostics(bucket, includeSuppressedDiagnostics, cancellationToken);
+                result.AddRange(diagnostics);
             }
 
             return result.ToImmutable();

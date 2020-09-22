@@ -841,16 +841,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of UpdatedEventArgs) Implements IDiagnosticService.GetDiagnosticsUpdatedEventArgs
+            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
                 Assert.NotNull(workspace)
 
-                Dim diagnosticsArgs As ImmutableArray(Of UpdatedEventArgs)
+                Dim diagnosticsArgs As ImmutableArray(Of DiagnosticBucket)
 
                 If documentId IsNot Nothing Then
                     diagnosticsArgs = Items.Where(Function(t) t.DocumentId Is documentId) _
                                            .Select(
                                                 Function(t)
-                                                    Return New UpdatedEventArgs(
+                                                    Return New DiagnosticBucket(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
                                                         workspace, t.ProjectId, t.DocumentId)
                                                 End Function).ToImmutableArrayOrEmpty()
@@ -858,14 +858,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     diagnosticsArgs = Items.Where(Function(t) t.ProjectId Is projectId) _
                                            .Select(
                                                 Function(t)
-                                                    Return New UpdatedEventArgs(
+                                                    Return New DiagnosticBucket(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
                                                         workspace, t.ProjectId, t.DocumentId)
                                                 End Function).ToImmutableArrayOrEmpty()
                 Else
                     diagnosticsArgs = Items.Select(
                                                 Function(t)
-                                                    Return New UpdatedEventArgs(
+                                                    Return New DiagnosticBucket(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
                                                         workspace, t.ProjectId, t.DocumentId)
                                                 End Function).ToImmutableArrayOrEmpty()

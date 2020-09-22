@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             return new LSP.TextEdit
             {
-                NewText = textChange.NewText,
+                NewText = textChange.NewText ?? "",
                 Range = TextSpanToRange(textChange.Span, text)
             };
         }
