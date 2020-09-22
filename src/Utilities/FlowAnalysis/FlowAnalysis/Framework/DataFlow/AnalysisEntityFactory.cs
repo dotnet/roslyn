@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Dictionary<IOperation, AnalysisEntity?> _analysisEntityMap;
         private readonly Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>> _tupleElementEntitiesMap;
         private readonly Dictionary<CaptureId, AnalysisEntity> _captureIdEntityMap;
+        private readonly Dictionary<CaptureId, CopyAbstractValue> _captureIdCopyValueMap;
         private readonly Dictionary<ISymbol, PointsToAbstractValue> _instanceLocationsForSymbols;
         private readonly Func<IOperation, PointsToAbstractValue>? _getPointsToAbstractValue;
         private readonly Func<bool> _getIsInsideAnonymousObjectInitializer;
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity?>();
             _tupleElementEntitiesMap = new Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>>();
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
+            _captureIdCopyValueMap = new Dictionary<CaptureId, CopyAbstractValue>();
 
             _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
             if (interproceduralCapturedVariablesMap != null)
@@ -200,7 +203,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return TryCreate(argument.Value, out analysisEntity);
 
                 case IFlowCaptureOperation flowCapture:
-                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture, _getIsLValueFlowCapture(flowCapture));
+                    var isLvalueFlowCapture = _getIsLValueFlowCapture(flowCapture);
+                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture, isLvalueFlowCapture);
+
+                    // Store flow capture copy values for simple flow captures of non-flow captured entity.
+                    // This enables pseudo copy-analysis of values of these two entities in absence of true copy analysis, which is expensive.
+                    if (!isLvalueFlowCapture &&
+                        TryCreate(flowCapture.Value, out var capturedEntity) &&
+                        capturedEntity.CaptureId == null &&
+                        !_captureIdCopyValueMap.ContainsKey(flowCapture.Id) &&
+                        analysisEntity.Type.IsValueType == capturedEntity.Type.IsValueType)
+                    {
+                        var kind = capturedEntity.Type.IsValueType ? CopyAbstractValueKind.KnownValueCopy : CopyAbstractValueKind.KnownReferenceCopy;
+                        var copyValue = new CopyAbstractValue(ImmutableHashSet.Create(analysisEntity, capturedEntity), kind);
+                        _captureIdCopyValueMap.Add(flowCapture.Id, copyValue);
+                    }
+
                     break;
 
                 case IFlowCaptureReferenceOperation flowCaptureReference:
@@ -283,7 +301,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool TryCreateForSymbolDeclaration(ISymbol symbol, [NotNullWhen(returnValue: true)] out AnalysisEntity? analysisEntity)
         {
-            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Property);
+            Debug.Assert(symbol.Kind is SymbolKind.Local or SymbolKind.Parameter or SymbolKind.Field or SymbolKind.Property);
 
             var indices = ImmutableArray<AbstractIndex>.Empty;
             IOperation? instance = null;
@@ -342,14 +360,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
 
-                var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
+                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
                 foreach (var field in tupleType.TupleElements)
                 {
                     var tupleFieldName = field.CorrespondingTupleField.Name;
                     var mappedValueTupleField = underlyingValueTupleType.GetMembers(tupleFieldName).OfType<IFieldSymbol>().FirstOrDefault();
                     if (mappedValueTupleField == null)
                     {
-                        builder.Free();
                         return false;
                     }
 
@@ -357,7 +374,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         type: mappedValueTupleField.Type, instanceLocation, parentEntity));
                 }
 
-                elementEntities = builder.ToImmutableAndFree();
+                elementEntities = builder.ToImmutable();
                 return true;
             }
             finally
@@ -375,6 +392,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool TryGetForFlowCapture(CaptureId captureId, out AnalysisEntity analysisEntity)
             => _captureIdEntityMap.TryGetValue(captureId, out analysisEntity);
+
+        public bool TryGetCopyValueForFlowCapture(CaptureId captureId, out CopyAbstractValue copyValue)
+            => _captureIdCopyValueMap.TryGetValue(captureId, out copyValue);
 
         public bool TryGetForInterproceduralAnalysis(IOperation operation, out AnalysisEntity? analysisEntity)
             => _analysisEntityMap.TryGetValue(operation, out analysisEntity);
@@ -513,18 +533,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AnalysisEntity CreateWithNewInstanceRoot(AnalysisEntity analysisEntity, AnalysisEntity newRootInstance)
         {
             if (analysisEntity.InstanceLocation == newRootInstance.InstanceLocation &&
-                analysisEntity.ParentOpt == newRootInstance.ParentOpt)
+                analysisEntity.Parent == newRootInstance.Parent)
             {
                 return analysisEntity;
             }
 
-            if (analysisEntity.ParentOpt == null)
+            if (analysisEntity.Parent == null)
             {
                 return newRootInstance;
             }
 
-            AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.ParentOpt, newRootInstance);
-            return Create(analysisEntity.SymbolOpt, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
+            AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.Parent, newRootInstance);
+            return Create(analysisEntity.Symbol, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             foreach (var diagnostic in context.ReportedDiagnostics)
             {
-                if (!(diagnostic.Location.SourceTree is { } tree))
+                if (diagnostic.Location.SourceTree is not { } tree)
                 {
                     continue;
                 }

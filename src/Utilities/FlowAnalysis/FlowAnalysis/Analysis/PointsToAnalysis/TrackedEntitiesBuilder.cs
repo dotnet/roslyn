@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public void Dispose()
         {
-            AllEntities.Free();
-            PointsToValues.Free();
+            AllEntities.Dispose();
+            PointsToValues.Dispose();
         }
 
         public void AddEntityAndPointsToValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)

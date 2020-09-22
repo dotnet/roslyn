@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
-        <target state="translated">To miejsce wywołania wywołuje funkcję z parametrem „params”. Powoduje to alokację tablicy.</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">To miejsce wywołania wywołuje funkcję z parametrem „params”. Powoduje to alokację tablicy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">Konwersja typu wartości na typ referencyjny powoduje konwersję boxing w lokacji wywołania (tutaj) i w konwersję unboxing w lokacji wywoływanej. Rozważ użycie typów ogólnych, jeśli mają zastosowanie</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">Konwersja typu wartości na typ referencyjny powoduje konwersję boxing w lokacji wywołania (tutaj) i w konwersję unboxing w lokacji wywoływanej. Rozważ użycie typów ogólnych, jeśli mają zastosowanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -113,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">Typ wartości ({0}) jest poddawany konwersji boxing na typ referencyjny dla łączenia ciągów.</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">Typ wartości ({0}) jest poddawany konwersji boxing na typ referencyjny dla łączenia ciągów.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

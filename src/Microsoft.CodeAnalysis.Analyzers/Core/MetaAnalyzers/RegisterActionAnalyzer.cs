@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 // Get the context parameter on which we are registering an action.
-                if (!(model.GetSymbolInfo(receiver, cancellationToken).Symbol is IParameterSymbol contextParameter))
+                if (model.GetSymbolInfo(receiver, cancellationToken).Symbol is not IParameterSymbol contextParameter)
                 {
                     return;
                 }

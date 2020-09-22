@@ -56,7 +56,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
             else if (type.IsValueType)
             {
-                if (!(type is INamedTypeSymbol namedType)
+                if (type is not INamedTypeSymbol namedType
                     || namedType.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T)
                 {
                     return;

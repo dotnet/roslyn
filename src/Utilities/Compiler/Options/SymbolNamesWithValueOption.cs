@@ -348,7 +348,7 @@ namespace Analyzer.Utilities
             {
                 // ...At this point we couldn't match any part of the symbol name in the 'AllKinds' part of the list, let's try with the type fully qualified name...
                 Debug.Assert(fullyQualifiedSymbolName.Length > 0);
-                Debug.Assert(symbolKindsToCheck.Count >= 1 && symbolKindsToCheck.Count <= 4);
+                Debug.Assert(symbolKindsToCheck.Count is >= 1 and <= 4);
 
                 firstMatch = NoWildcardMatch;
 
@@ -399,7 +399,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                Debug.Assert(symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.Property);
+                Debug.Assert(symbol.Kind is SymbolKind.Method or SymbolKind.Property);
 
                 var nameBuilder = new StringBuilder(symbol.Name);
 

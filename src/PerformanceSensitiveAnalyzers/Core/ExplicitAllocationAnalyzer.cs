@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 return;
             }
 
-            if (context.Operation is IObjectCreationOperation || context.Operation is ITypeParameterObjectCreationOperation)
+            if (context.Operation is IObjectCreationOperation or ITypeParameterObjectCreationOperation)
             {
                 if (context.Operation.Type.IsReferenceType)
                 {

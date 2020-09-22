@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private async Task<Document> CreateTestAccessorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
@@ -71,7 +71,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 accessibility: Accessibility.Internal,
                 statements: new[] { syntaxGenerator.ReturnStatement(newTestAccessorExpression) });
 
-            var parameterName = char.ToLowerInvariant(type.Name[0]) + type.Name.Substring(1);
+            var parameterName = char.ToLowerInvariant(type.Name[0]) + type.Name[1..];
             var fieldName = "_" + parameterName;
             var testAccessorField = syntaxGenerator.FieldDeclaration(
                 fieldName,

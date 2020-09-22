@@ -161,23 +161,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 newLength = this.KnownPropertyAbstractValues.Length;
             }
 
-            ArrayBuilder<PropertySetAbstractValueKind> kinds = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength);
-            try
-            {
-                kinds.AddRange(this.KnownPropertyAbstractValues);
+            using ArrayBuilder<PropertySetAbstractValueKind> kinds = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength);
+            kinds.AddRange(this.KnownPropertyAbstractValues);
 
-                while (kinds.Count < newLength)
-                {
-                    kinds.Add(PropertySetAbstractValueKind.Unknown);
-                }
-
-                kinds[index] = kind;
-                return GetInstance(kinds);
-            }
-            finally
+            while (kinds.Count < newLength)
             {
-                kinds.Free();
+                kinds.Add(PropertySetAbstractValueKind.Unknown);
             }
+
+            kinds[index] = kind;
+            return GetInstance(kinds);
         }
     }
 }

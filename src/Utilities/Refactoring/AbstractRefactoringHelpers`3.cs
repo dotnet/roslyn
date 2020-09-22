@@ -207,7 +207,7 @@ namespace Analyzer.Utilities
 
                 // Change location to nearest token only if the token is off by one line or less
                 var lineDistance = tokenLine.LineNumber - locationLine.LineNumber;
-                if (lineDistance != 0 && lineDistance != 1)
+                if (lineDistance is not 0 and not 1)
                     return false;
 
                 // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 

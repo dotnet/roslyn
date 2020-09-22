@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 else
                 {
                     DeclarationId = text.Substring(0, index).Trim();
-                    Message = text.Substring(index + 1).Trim();
+                    Message = text[(index + 1)..].Trim();
                 }
 
                 Span = span;

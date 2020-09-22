@@ -66,7 +66,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
 
             var root = editor.OriginalRoot;
             var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
-            if (!(node is StatementSyntax startStatement))
+            if (node is not StatementSyntax startStatement)
             {
                 Debug.Fail("Couldn't find statement in fixer");
                 return;

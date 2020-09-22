@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 #pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.PooledHashSet<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
@@ -23,12 +24,19 @@ namespace Analyzer.Utilities.PooledObjects
             _pool = pool;
         }
 
-        public void Dispose() => Free();
+        public void Dispose() => Free(CancellationToken.None);
 
-        public void Free()
+        public void Free(CancellationToken cancellationToken)
         {
+            // Do not free in presence of cancellation.
+            // See https://github.com/dotnet/roslyn/issues/46859 for details.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             this.Clear();
-            _pool?.Free(this);
+            _pool?.Free(this, cancellationToken);
         }
 
         public ImmutableHashSet<T> ToImmutableAndFree()
@@ -44,7 +52,7 @@ namespace Analyzer.Utilities.PooledObjects
                 this.Clear();
             }
 
-            _pool?.Free(this);
+            _pool?.Free(this, CancellationToken.None);
             return result;
         }
 
@@ -71,6 +79,17 @@ namespace Analyzer.Utilities.PooledObjects
                 s_poolInstancesByComparer.GetOrAdd(comparer, c => CreatePool(c));
             var instance = pool.Allocate();
             Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+
+        public static PooledHashSet<T> GetInstance(IEnumerable<T> initializer, IEqualityComparer<T>? comparer = null)
+        {
+            var instance = GetInstance(comparer);
+            foreach (var value in initializer)
+            {
+                instance.Add(value);
+            }
+
             return instance;
         }
     }

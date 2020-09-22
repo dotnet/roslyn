@@ -115,7 +115,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return true;
 
                 case TypeKind.Struct:
-                    if (!(type is INamedTypeSymbol namedType))
+                    if (type is not INamedTypeSymbol namedType)
                         return true;
 
                     if (knownNonDefaultableTypes.TryGetValue(namedType, out var isNonDefaultable))

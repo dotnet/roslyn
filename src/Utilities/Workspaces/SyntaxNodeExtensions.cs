@@ -24,6 +24,11 @@ namespace Analyzer.Utilities
             }
         }
 
+        /// <summary>
+        /// Annotates a syntax node representing a type so that any missing imports get automatically added. Does not work in any other kinds of nodes.
+        /// </summary>
+        /// <param name="syntaxNode">The type node to annotate.</param>
+        /// <returns>The annotated type node.</returns>
         public static SyntaxNode WithAddImportsAnnotation(this SyntaxNode syntaxNode)
         {
             if (AddImportsAnnotation is null)

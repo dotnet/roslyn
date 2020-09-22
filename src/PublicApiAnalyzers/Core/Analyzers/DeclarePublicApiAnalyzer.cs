@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +31,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string InvalidReasonShippedCantHaveRemoved = "The shipped API file can't have removed members";
         internal const string InvalidReasonMisplacedNullableEnable = "The '#nullable enable' marker can only appear as the first line in the shipped API file";
         internal const string PublicApiIsShippedPropertyBagKey = "PublicAPIIsShipped";
+
+        /// <summary>
+        /// Boolean option to configure if public API analyzer should bail out silently if public API files are missing.
+        /// </summary>
+        private const string BailOnMissingPublicApiFilesEditorConfigOptionName = "dotnet_public_api_analyzer.require_api_files";
 
         internal static readonly DiagnosticDescriptor DeclareNewApiRule = new DiagnosticDescriptor(
             id: DiagnosticIds.DeclarePublicApiRuleId,
@@ -205,11 +212,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var additionalFiles = compilationContext.Options.AdditionalFiles;
             var errors = new List<Diagnostic>();
 
             // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
-            if (!TryGetApiData(additionalFiles, errors, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData) ||
+            if (!TryGetApiData(compilationContext.Options, compilationContext.Compilation, errors, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData) ||
                 !ValidateApiFiles(shippedData, unshippedData, errors))
             {
                 compilationContext.RegisterCompilationEndAction(context =>
@@ -264,7 +270,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
-                    string removedtext = text.Substring(RemovedApiPrefix.Length);
+                    string removedtext = text[RemovedApiPrefix.Length..];
                     removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
                 }
                 else
@@ -276,12 +282,20 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
         }
 
-        private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, List<Diagnostic> errors, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
+        private static bool TryGetApiData(AnalyzerOptions analyzerOptions, Compilation compilation, List<Diagnostic> errors, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
         {
-            if (!TryGetApiText(additionalTexts, cancellationToken, out var shippedText, out var unshippedText))
+            if (!TryGetApiText(analyzerOptions.AdditionalFiles, cancellationToken, out var shippedText, out var unshippedText))
             {
                 if (shippedText == null && unshippedText == null)
                 {
+                    if (TryGetEditorConfigOptionForMissingFiles(analyzerOptions, compilation, out var silentlyBailOutOnMissingApiFiles) &&
+                        silentlyBailOutOnMissingApiFiles)
+                    {
+                        shippedData = default;
+                        unshippedData = default;
+                        return false;
+                    }
+
                     // Bootstrapping public API files.
                     (shippedData, unshippedData) = (ApiData.Empty, ApiData.Empty);
                     return true;
@@ -297,6 +311,56 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             shippedData = ReadApiData(shippedText.Path, shippedText.GetText(cancellationToken), isShippedApi: true);
             unshippedData = ReadApiData(unshippedText.Path, unshippedText.GetText(cancellationToken), isShippedApi: false);
             return true;
+        }
+
+        private static bool TryGetEditorConfigOptionForMissingFiles(AnalyzerOptions analyzerOptions, Compilation compilation, out bool optionValue)
+        {
+            optionValue = false;
+            try
+            {
+                var provider = analyzerOptions.GetType().GetRuntimeProperty("AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+                if (provider == null || !compilation.SyntaxTrees.Any())
+                {
+                    return false;
+                }
+
+                var getOptionsMethod = provider.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "GetOptions");
+                if (getOptionsMethod == null)
+                {
+                    return false;
+                }
+
+                var options = getOptionsMethod.Invoke(provider, new object[] { compilation.SyntaxTrees.First() });
+                var tryGetValueMethod = options.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetValue");
+                if (tryGetValueMethod == null)
+                {
+                    return false;
+                }
+
+                // bool TryGetValue(string key, out string value);
+                var parameters = new object?[] { BailOnMissingPublicApiFilesEditorConfigOptionName, null };
+                if (tryGetValueMethod.Invoke(options, parameters) is not bool hasOption ||
+                    !hasOption)
+                {
+                    return false;
+                }
+
+                if (parameters[1] is not string value ||
+                    !bool.TryParse(value, out var boolValue))
+                {
+                    return false;
+                }
+
+                optionValue = boolValue;
+                return true;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                // Gracefully handle any exception from reflection.
+                return false;
+            }
         }
 
         private static bool TryGetApiText(

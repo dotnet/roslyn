@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
             if (location is null)
                 return;
 
-            if (!(testAccessorType.ContainingSymbol is ITypeSymbol containingType))
+            if (testAccessorType.ContainingSymbol is not ITypeSymbol containingType)
                 return;
 
             foreach (var member in containingType.GetMembers())
@@ -85,12 +85,12 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private static string GetTestAccessorName(ISymbol symbol)
         {
             var name = symbol.Name.TrimStart('_');
-            return char.ToUpperInvariant(name[0]) + name.Substring(1);
+            return char.ToUpperInvariant(name[0]) + name[1..];
         }
 
         private async Task<Solution> AddMemberToTestAccessorAsync(Document document, TextSpan sourceSpan, string memberName, string memberDocumentationCommentId, CancellationToken cancellationToken)

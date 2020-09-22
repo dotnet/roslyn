@@ -10,12 +10,14 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
         public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
+        public const string MicrosoftAspNetCoreMvcControllerAttribute = "Microsoft.AspNetCore.Mvc.ControllerAttribute";
         public const string MicrosoftAspNetCoreMvcControllerBase = "Microsoft.AspNetCore.Mvc.ControllerBase";
         public const string MicrosoftAspNetCoreMvcFiltersAuthorizationFilterContext = "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext";
         public const string MicrosoftAspNetCoreMvcFiltersFilterCollection = "Microsoft.AspNetCore.Mvc.Filters.FilterCollection";
         public const string MicrosoftAspNetCoreMvcFiltersIAsyncAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter";
         public const string MicrosoftAspNetCoreMvcFiltersIAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter";
         public const string MicrosoftAspNetCoreMvcFiltersIFilterMetadata = "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata";
+        public const string MicrosoftAspNetCoreMvcFromServicesAttribute = "Microsoft.AspNetCore.Mvc.FromServicesAttribute";
         public const string MicrosoftAspNetCoreMvcHttpDeleteAttribute = "Microsoft.AspNetCore.Mvc.HttpDeleteAttribute";
         public const string MicrosoftAspNetCoreMvcHttpGetAttribute = "Microsoft.AspNetCore.Mvc.HttpGetAttribute";
         public const string MicrosoftAspNetCoreMvcHttpHeadAttribute = "Microsoft.AspNetCore.Mvc.HttpHeadAttribute";
@@ -24,6 +26,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpPostAttribute = "Microsoft.AspNetCore.Mvc.HttpPostAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPutAttribute = "Microsoft.AspNetCore.Mvc.HttpPutAttribute";
         public const string MicrosoftAspNetCoreMvcNonActionAttribute = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
+        public const string MicrosoftAspNetCoreMvcNonControllerAttribute = "Microsoft.AspNetCore.Mvc.NonControllerAttribute";
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
         public const string MicrosoftAspNetCoreMvcRoutingHttpMethodAttribute = "Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute";
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
@@ -52,6 +55,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
+        public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
@@ -95,6 +99,10 @@ namespace Analyzer.Utilities
         public const string SystemChar = "System.Char";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemCodeDomCompilerGeneratedCodeAttribute = "System.CodeDom.Compiler.GeneratedCodeAttribute";
+        public const string SystemCollectionsConcurrentConcurrentBag1 = "System.Collections.Concurrent.ConcurrentBag`1";
+        public const string SystemCollectionsConcurrentConcurrentDictionary2 = "System.Collections.Concurrent.ConcurrentDictionary`2";
+        public const string SystemCollectionsConcurrentConcurrentQueue1 = "System.Collections.Concurrent.ConcurrentQueue`1";
+        public const string SystemCollectionsConcurrentConcurrentStack1 = "System.Collections.Concurrent.ConcurrentStack`1";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
         public const string SystemCollectionsGenericIEnumerable1 = "System.Collections.Generic.IEnumerable`1";
         public const string SystemCollectionsGenericIEnumerator1 = "System.Collections.Generic.IEnumerator`1";
@@ -140,6 +148,7 @@ namespace Analyzer.Utilities
         public const string SystemDataDataSet = "System.Data.DataSet";
         public const string SystemDataDataTable = "System.Data.DataTable";
         public const string SystemDataDataViewManager = "System.Data.DataViewManager";
+        public const string SystemDataEntityDbSet1 = "System.Data.Entity.DbSet`1";
         public const string SystemDataEntityQueryableExtensions = "System.Data.Entity.QueryableExtensions";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
@@ -212,7 +221,9 @@ namespace Analyzer.Utilities
         public const string SystemNotSupportedException = "System.NotSupportedException";
         public const string SystemNullable1 = "System.Nullable`1";
         public const string SystemNumber = "System.Number";
+        public const string SystemObject = "System.Object";
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
+        public const string SystemOperatingSystem = "System.OperatingSystem";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
         public const string SystemRandom = "System.Random";
         public const string SystemRange = "System.Range";

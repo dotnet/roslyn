@@ -178,13 +178,13 @@ namespace Analyzer.Utilities
         /// </summary>
         public bool IsDisposableCreationOrDisposeOwnershipTransfer(AbstractLocation location, IMethodSymbol containingMethod)
         {
-            if (location.CreationOpt == null)
+            if (location.Creation == null)
             {
-                return location.SymbolOpt?.Kind == SymbolKind.Parameter &&
+                return location.Symbol?.Kind == SymbolKind.Parameter &&
                     HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
             }
 
-            return IsDisposableCreation(location.CreationOpt);
+            return IsDisposableCreation(location.Creation);
         }
 
         public bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
