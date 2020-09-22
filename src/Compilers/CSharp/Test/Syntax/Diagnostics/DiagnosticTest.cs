@@ -268,6 +268,7 @@ class X
                             break;
                         case ErrorCode.WRN_PdbLocalNameTooLong:
                         case ErrorCode.WRN_UnreferencedLocalFunction:
+                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
@@ -409,6 +410,7 @@ class X
                     ErrorCode.WRN_ParameterIsStaticClass,
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
+                    ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
