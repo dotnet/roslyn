@@ -448,17 +448,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (location.IsInSource)
                 {
-                    if (CreateLocation(document.Project.GetDocument(location.SourceTree), location) is { } dataLocation)
-                    {
-                        builder.Add(dataLocation);
-                    }
+                    builder.AddIfNotNull(CreateLocation(document.Project.GetDocument(location.SourceTree), location));
                 }
                 else if (location.Kind == LocationKind.ExternalFile)
                 {
-                    if (document.Project.GetDocumentForExternalLocation(location) is { } textDocumentId &&
-                        CreateLocation(document.Project.GetTextDocument(textDocumentId), location) is { } dataLocation)
+                    if (document.Project.GetDocumentForExternalLocation(location) is { } textDocumentId)
                     {
-                        builder.Add(dataLocation);
+                        builder.AddIfNotNull(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
                     }
                 }
             }
