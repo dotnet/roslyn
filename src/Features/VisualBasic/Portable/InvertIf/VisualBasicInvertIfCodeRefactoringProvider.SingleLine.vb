@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 Dim lastTrue = trueStatements.LastOrDefault()
                 Dim lastFalse = falseStatements.LastOrDefault()
 
-                If lastTrue IsNot Nothing And lastFalse IsNot Nothing Then
+                If lastTrue IsNot Nothing AndAlso lastFalse IsNot Nothing Then
                     Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
                     Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
 
