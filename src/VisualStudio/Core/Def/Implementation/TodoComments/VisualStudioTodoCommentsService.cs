@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 : ImmutableArray<TodoCommentData>.Empty;
         }
 
-        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(
+        public ImmutableArray<TodoItemBucket> GetTodoItemBuckets(
             Workspace workspace, CancellationToken cancellationToken)
         {
             // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need

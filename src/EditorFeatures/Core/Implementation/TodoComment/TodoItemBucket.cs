@@ -4,9 +4,9 @@
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Editor
 {
-    internal readonly struct DiagnosticBucket
+    internal readonly struct TodoItemBucket
     {
         /// <summary>
         /// The identity of bucket group. 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public readonly DocumentId? DocumentId;
 
-        public DiagnosticBucket(object id, Workspace workspace, ProjectId? projectId, DocumentId? documentId)
+        public TodoItemBucket(object id, Workspace workspace, ProjectId? projectId, DocumentId? documentId)
         {
             Id = id;
             Workspace = workspace;

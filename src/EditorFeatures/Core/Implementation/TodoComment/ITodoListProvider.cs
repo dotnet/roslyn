@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -27,8 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor
         ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get current UpdatedEventArgs stored in ITodoListProvider
+        /// Get current buckets stored our todo items are grouped into.  Specific buckets can be retrieved by calling
+        /// <see cref="GetTodoItems"/>.
         /// </summary>
-        IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken);
+        ImmutableArray<TodoItemBucket> GetTodoItemBuckets(Workspace workspace, CancellationToken cancellationToken);
     }
 }
