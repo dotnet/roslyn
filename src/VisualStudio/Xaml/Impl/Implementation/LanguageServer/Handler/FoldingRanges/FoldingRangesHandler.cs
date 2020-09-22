@@ -19,20 +19,22 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentFoldingRangeName, StringConstants.XamlLanguageName)]
-    internal class FoldingRangesHandler : AbstractRequestHandler<FoldingRangeParams, FoldingRange[]>
+    [ExportLspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FoldingRangesHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FoldingRangesHandler()
         {
         }
 
-        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+
+        public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return foldingRanges.ToArrayAndFree();
