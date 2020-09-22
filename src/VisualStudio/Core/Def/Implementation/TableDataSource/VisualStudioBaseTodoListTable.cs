@@ -82,8 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
-
-                PopulateInitialData(workspace, _todoListProvider);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
@@ -144,12 +142,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 return groupedItems.OrderBy(d => d.Data.OriginalLine)
                                    .ThenBy(d => d.Data.OriginalColumn);
-            }
-
-            private void PopulateInitialData(Workspace workspace, ITodoListProvider todoListService)
-            {
-                foreach (var bucket in todoListService.GetTodoItemBuckets(workspace, cancellationToken: CancellationToken.None))
-                    OnDataAddedOrChanged(new TodoItemsUpdatedArgs(bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId, ImmutableArray<TodoCommentData>.Empty));
             }
 
             private void OnTodoListUpdated(object sender, TodoItemsUpdatedArgs e)

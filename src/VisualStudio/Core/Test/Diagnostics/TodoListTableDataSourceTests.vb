@@ -390,10 +390,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
             End Function
 
-            Public Function GetTodoItemsUpdatedEventArgs(workspace As Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
-                Return Items.Select(Function(t) New UpdatedEventArgs(Tuple.Create(Me, t.DocumentId), workspace, t.DocumentId.ProjectId, t.DocumentId)).ToImmutableArray()
-            End Function
-
             Public Sub RaiseTodoListUpdated(workspace As Workspace)
                 Dim map = Items.ToLookup(Function(t) t.DocumentId)
 

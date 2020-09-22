@@ -23,11 +23,5 @@ namespace Microsoft.CodeAnalysis.Editor
         event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;
 
         ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get current buckets stored our todo items are grouped into.  Specific buckets can be retrieved by calling
-        /// <see cref="GetTodoItems"/>.
-        /// </summary>
-        ImmutableArray<TodoItemBucket> GetTodoItemBuckets(Workspace workspace, CancellationToken cancellationToken);
     }
 }
