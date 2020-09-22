@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -443,6 +444,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 property.IsWriteOnly)
                             {
                                 continue;
+                            }
+
+                            if (rule == s_removeUnreadMembersRule)
+                            {
+                                var dataMemberAttribute = symbolEndContext.Compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName);
+                                if (member.GetAttributes().Any(attr => attr.AttributeClass.Equals(dataMemberAttribute)))
+                                {
+                                    continue;
+                                }
                             }
 
                             // Most of the members should have a single location, except for partial methods.
