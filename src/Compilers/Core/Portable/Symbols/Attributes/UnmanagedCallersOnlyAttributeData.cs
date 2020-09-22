@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly UnmanagedCallersOnlyAttributeData AttributePresentDataNotBound = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
         private static readonly UnmanagedCallersOnlyAttributeData PlatformDefault = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: true);
 
+        public const string CallConvsPropertyName = "CallConvs";
+
         internal static UnmanagedCallersOnlyAttributeData Create(ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes, bool isValid)
             => (callingConventionTypes, isValid) switch
             {
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsCallConvsTypedConstant(string key, in TypedConstant value)
         {
-            return key == "CallConvs"
+            return key == CallConvsPropertyName
                    && value.Kind == TypedConstantKind.Array
                    && (value.Values.IsDefaultOrEmpty || value.Values.All(v => v.Kind == TypedConstantKind.Type));
         }

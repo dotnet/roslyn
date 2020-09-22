@@ -884,54 +884,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
-            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
-            {
-                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
-            }
 
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
                 DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
 
-            var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
+            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, arguments.Diagnostics);
+
+            var returnTypeSyntax = SyntaxNode switch
             {
-                MethodDeclarationSyntax m => (m.ReturnType, m.TypeParameterList),
-                LocalFunctionStatementSyntax l => (l.ReturnType, l.TypeParameterList),
+                MethodDeclarationSyntax m => m.ReturnType,
+                LocalFunctionStatementSyntax l => l.ReturnType,
                 _ => default
             };
 
-            if (returnTypeSyntax is null)
+            if (returnTypeSyntax == null)
             {
-                // We already issued an error for these above. We don't immediately bail out so we can error on invalid
-                // calling convention types as well, but erroring on parameter or return types will likely just be noise.
-                Debug.Assert(MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction));
+                // If there's no syntax for the return type, then we already errored because this isn't a valid
+                // unmanagedcallersonly target (it's a property getter/setter or some other non-regular-method).
+                // Any more errors would just be noise.
+                Debug.Assert(reportedError);
                 return;
-            }
-
-            if (isGenericMethod(this) || ContainingType.IsGenericType)
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, arguments.AttributeSyntaxOpt.Name.Location);
             }
 
             checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
             foreach (var param in Parameters)
             {
                 checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
-            }
-
-            static bool isGenericMethod([DisallowNull] MethodSymbol? method)
-            {
-                do
-                {
-                    if (method.IsGenericMethod)
-                    {
-                        return true;
-                    }
-
-                    method = method.ContainingSymbol as MethodSymbol;
-                } while (method is not null);
-
-                return false;
             }
 
             static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, DiagnosticBag diagnostics)

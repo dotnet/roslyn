@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -967,45 +968,105 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var (key, value) in attribute.CommonNamedArguments)
                 {
-                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
-                    {
-                        continue;
-                    }
+                    var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsProperty(key, value, location, diagnostics);
 
-                    if (callingConventionTypes != null)
+                    if (namedArgumentDecoded.IsCallConvs)
                     {
-                        isValid = false;
+                        isValid = isValid && namedArgumentDecoded.IsValid;
+                        callingConventionTypes = namedArgumentDecoded.CallConvs;
                     }
-
-                    if (value.Values.IsDefaultOrEmpty)
-                    {
-                        callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
-                        continue;
-                    }
-
-                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
-                    foreach (var callConvTypedConstant in value.Values)
-                    {
-                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
-                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
-                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
-                        {
-                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
-                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
-                            isValid = false;
-                        }
-                        else
-                        {
-                            _ = builder.Add(callConvType);
-                        }
-
-                    }
-                    callingConventionTypes = builder.ToImmutableHashSet();
-                    builder.Free();
                 }
             }
 
             return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid);
+        }
+
+        internal static (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs, bool IsValid) TryDecodeUnmanagedCallersOnlyCallConvsProperty(
+            string key,
+            TypedConstant value,
+            Location? location,
+            DiagnosticBag? diagnostics)
+        {
+            ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
+            bool isValid = true;
+
+            if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
+            {
+                return (false, callingConventionTypes, isValid);
+            }
+
+            if (callingConventionTypes != null)
+            {
+                isValid = false;
+            }
+
+            if (value.Values.IsDefaultOrEmpty)
+            {
+                callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                return (true, callingConventionTypes, isValid);
+            }
+
+            var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+            foreach (var callConvTypedConstant in value.Values)
+            {
+                Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                    || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                {
+                    // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                    diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
+                    isValid = false;
+                }
+                else
+                {
+                    _ = builder.Add(callConvType);
+                }
+
+            }
+            callingConventionTypes = builder.ToImmutableHashSet();
+            builder.Free();
+
+            return (true, callingConventionTypes, isValid);
+        }
+
+        /// <summary>
+        /// Determines if this method is a valid target for UnmanagedCallersOnly, reporting an error in the given diagnostic
+        /// bag if it is not null. <paramref name="location"/> and <paramref name="diagnostics"/> should both be null, or 
+        /// neither should be null. If an error would be reported (whether or not diagnostics is null), true is returned.
+        /// </summary>
+        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, DiagnosticBag? diagnostics)
+        {
+            Debug.Assert((location == null) == (diagnostics == null));
+
+            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            {
+                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location);
+                return true;
+            }
+
+            if (isGenericMethod(this) || ContainingType.IsGenericType)
+            {
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location);
+                return true;
+            }
+
+            return false;
+
+            static bool isGenericMethod([DisallowNull] MethodSymbol? method)
+            {
+                do
+                {
+                    if (method.IsGenericMethod)
+                    {
+                        return true;
+                    }
+
+                    method = method.ContainingSymbol as MethodSymbol;
+                } while (method is not null);
+
+                return false;
+            }
         }
 #nullable restore
 
