@@ -405,9 +405,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static ImageElement GlyphToImageElement(Glyph glyph)
-            => new ImageElement(glyph.GetImageId());
-
         // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
         public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
         {
