@@ -3304,7 +3304,6 @@ class C2 : IA, IB
         }
 
         [Fact]
-        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
         public void Partial_01()
         {
             var source =
@@ -3317,15 +3316,6 @@ class C2 : IA, IB
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (4,25): warning CS8824: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' have differences in parameter or return types.
-                //     static partial void F2(System.UIntPtr x) { }
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void Program.F2(nuint x)", "void Program.F2(UIntPtr x)").WithLocation(4, 25),
-                // (5,25): warning CS8824: Partial method declarations 'void Program.F1(IntPtr x)' and 'void Program.F1(nint x)' have differences in parameter or return types.
-                //     static partial void F1(nint x) { }
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void Program.F1(IntPtr x)", "void Program.F1(nint x)").WithLocation(5, 25));
         }
 
         [Fact]
@@ -12019,15 +12009,14 @@ class Program
             binaryOperator("bool", "!=", "nuint", "0", "nuint", uintMaxValue, "True");
             binaryOperator("bool", "!=", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            // https://github.com/dotnet/roslyn/issues/42460: Results of `<<` should be dependent on platform.
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
-            binaryOperator("nint", "<<", "nint", intMinValue, "int", "1", "0");
+            binaryOperatorNotConstant("nint", "<<", "nint", intMinValue, "int", "1", IntPtr.Size == 4 ? "0" : "-4294967296");
             binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);
-            binaryOperator("nint", "<<", "nint", "-1", "int", "32", "-1");
+            binaryOperatorNotConstant("nint", "<<", "nint", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : "-4294967296");
             binaryOperator("nuint", "<<", "nuint", "0", "int", "1", "0");
-            binaryOperator("nuint", "<<", "nuint", uintMaxValue, "int", "1", "4294967294");
+            binaryOperatorNotConstant("nuint", "<<", "nuint", uintMaxValue, "int", "1", IntPtr.Size == 4 ? "4294967294" : "8589934590");
             binaryOperator("nuint", "<<", "nuint", "1", "int", "31", "2147483648");
-            binaryOperator("nuint", "<<", "nuint", "1", "int", "32", "1");
+            binaryOperatorNotConstant("nuint", "<<", "nuint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "4294967296");
 
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "0", intMinValue);
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "1", "-1073741824");
@@ -12142,6 +12131,20 @@ class Program
                 constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
             }
 
+            void binaryOperatorNotConstant(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
+            {
+                var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
+                var expr = $"A {op} B";
+                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+
+                expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
+                constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"checked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+            }
+
             void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string sourceA =
@@ -12245,6 +12248,54 @@ System.OverflowException
 {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}
 0
 {(IntPtr.Size == 4 ? "System.OverflowException" : "0")}");
+        }
+
+        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [Fact]
+        public void UncheckedLeftShift_01()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nint x = 0x7fffffff;
+        Report(x << 1);
+        Report(LeftShift(x, 1));
+    }
+    static nint LeftShift(nint x, int y) => unchecked(x << y);
+    static void Report(long l) => Console.WriteLine(""{0:x}"", l);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var expectedValue = IntPtr.Size == 4 ? "fffffffffffffffe" : "fffffffe";
+            CompileAndVerify(comp, expectedOutput:
+$@"{expectedValue}
+{expectedValue}");
+        }
+
+        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [Fact]
+        public void UncheckedLeftShift_02()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nuint x = 0xffffffff;
+        Report(x << 1);
+        Report(LeftShift(x, 1));
+    }
+    static nuint LeftShift(nuint x, int y) => unchecked(x << y);
+    static void Report(ulong u) => Console.WriteLine(""{0:x}"", u);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var expectedValue = IntPtr.Size == 4 ? "fffffffe" : "1fffffffe";
+            CompileAndVerify(comp, expectedOutput:
+$@"{expectedValue}
+{expectedValue}");
         }
 
         [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]

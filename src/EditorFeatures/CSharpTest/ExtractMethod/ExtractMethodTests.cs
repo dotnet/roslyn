@@ -11246,12 +11246,14 @@ local = [|true|];
 ";
             var expected = @"
 bool local;
-local = NewMethod();
 
 bool NewMethod()
 {
     return true;
-}";
+}
+
+local = NewMethod();
+";
             await TestExtractMethodAsync(code, expected);
         }
 

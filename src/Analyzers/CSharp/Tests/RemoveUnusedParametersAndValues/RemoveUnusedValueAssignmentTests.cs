@@ -8683,5 +8683,56 @@ class C
 ";
             await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
         }
+
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
+        {
+            var source = @"
+using System;
+namespace ConsoleApp
+{
+	public static class ConsoleApp
+    {
+		public static void Main(string[] args)
+        {
+            {|FixAllInDocument:Foo(() => { Bar(); return true; })|};
+        }
+
+        public static bool Foo(Func<bool> func)
+        {
+            return func. Invoke();
+        }
+
+        public static bool Bar()
+        {
+            return true;
+        }
+	}
+}";
+            var expected = @"
+using System;
+namespace ConsoleApp
+{
+	public static class ConsoleApp
+    {
+		public static void Main(string[] args)
+        {
+            _ = Foo(() => { _ = Bar(); return true; });
+        }
+
+        public static bool Foo(Func<bool> func)
+        {
+            return func. Invoke();
+        }
+
+        public static bool Bar()
+        {
+            return true;
+        }
+	}
+}";
+            await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
+        }
     }
 }

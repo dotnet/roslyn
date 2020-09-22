@@ -384,9 +384,11 @@ function LocateVisualStudio([object]$vsRequirements = $null){
     }
   }
 
-  $vsInfo =& $vsWhereExe $args | ConvertFrom-Json
+  $rawInfo =& $vsWhereExe $args 
+  $vsInfo = $rawInfo | ConvertFrom-Json
 
   if ($lastExitCode -ne 0) {
+    Write-Host $rawInfo
     return $null
   }
 

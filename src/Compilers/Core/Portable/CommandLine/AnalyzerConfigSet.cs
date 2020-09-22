@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -104,6 +105,15 @@ namespace Microsoft.CodeAnalysis
                 "MultipleGlobalAnalyzerKeys",
                 CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys_Title,
                 CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys,
+                "AnalyzerConfig",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+        private static readonly DiagnosticDescriptor InvalidGlobalAnalyzerSectionDescriptor
+            = new DiagnosticDescriptor(
+                "InvalidGlobalSectionName",
+                CodeAnalysisResources.WRN_InvalidGlobalSectionName_Title,
+                CodeAnalysisResources.WRN_InvalidGlobalSectionName,
                 "AnalyzerConfig",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
@@ -452,17 +462,17 @@ namespace Microsoft.CodeAnalysis
         internal static GlobalAnalyzerConfig MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics)
         {
             GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
+            DiagnosticBag diagnosticBag = DiagnosticBag.GetInstance();
             for (int i = 0; i < analyzerConfigs.Count; i++)
             {
                 if (analyzerConfigs[i].IsGlobal)
                 {
-                    globalAnalyzerConfigBuilder.MergeIntoGlobalConfig(analyzerConfigs[i]);
+                    globalAnalyzerConfigBuilder.MergeIntoGlobalConfig(analyzerConfigs[i], diagnosticBag);
                     analyzerConfigs.RemoveAt(i);
                     i--;
                 }
             }
 
-            DiagnosticBag diagnosticBag = DiagnosticBag.GetInstance();
             var globalConfig = globalAnalyzerConfigBuilder.Build(diagnosticBag);
             diagnostics = diagnosticBag.ToReadOnlyAndFree();
             return globalConfig;
@@ -479,7 +489,7 @@ namespace Microsoft.CodeAnalysis
             internal const string GlobalConfigPath = "<Global Config>";
             internal const string GlobalSectionName = "Global Section";
 
-            internal void MergeIntoGlobalConfig(AnalyzerConfig config)
+            internal void MergeIntoGlobalConfig(AnalyzerConfig config, DiagnosticBag diagnostics)
             {
                 if (_values is null)
                 {
@@ -490,7 +500,18 @@ namespace Microsoft.CodeAnalysis
                 MergeSection(config.PathToFile, config.GlobalSection, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
-                    MergeSection(config.PathToFile, section, isGlobalSection: false);
+                    if (IsAbsoluteEditorConfigPath(section.Name))
+                    {
+                        MergeSection(config.PathToFile, section, isGlobalSection: false);
+                    }
+                    else
+                    {
+                        diagnostics.Add(Diagnostic.Create(
+                            InvalidGlobalAnalyzerSectionDescriptor,
+                            Location.None,
+                            section.Name,
+                            config.PathToFile));
+                    }
                 }
             }
 
