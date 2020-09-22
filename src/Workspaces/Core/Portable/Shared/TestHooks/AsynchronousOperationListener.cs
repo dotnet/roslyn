@@ -42,7 +42,15 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            if (expeditedDelayCancellationToken.IsCancellationRequested)
+            {
+                // The operation is already being expedited
+                return false;
+            }
+
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
 
             try
