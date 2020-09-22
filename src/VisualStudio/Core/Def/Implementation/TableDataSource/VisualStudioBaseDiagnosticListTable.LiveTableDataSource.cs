@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// See <see cref="VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.BuildTableDataSource"/>
         /// for error list diagnostic source for "Build only" setting.
         /// </summary>
-        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
+        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem, DiagnosticsUpdatedArgs>
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
+            public override object GetItemKey(DiagnosticsUpdatedArgs data) => data.Id;
 
             private void ConnectToBuildUpdateSource(ExternalErrorDiagnosticUpdateSource? buildUpdateSource)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return snapshot;
             }
 
-            protected override object GetOrUpdateAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(DiagnosticsUpdatedArgs data)
             {
                 var key = TryGetAggregateKey(data);
                 if (key == null)
@@ -147,20 +147,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key.DocumentIds == documents;
             }
 
-            private object CreateAggregationKey(object data)
+            private object CreateAggregationKey(DiagnosticsUpdatedArgs data)
             {
-                var args = data as DiagnosticsUpdatedArgs;
-                if (args?.DocumentId == null || args?.Solution == null)
-                {
+                if (data.DocumentId == null || data.Solution == null)
                     return GetItemKey(data);
-                }
 
-                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
-                {
+                if (data.Id is not LiveDiagnosticUpdateArgsId liveArgsId)
                     return GetItemKey(data);
-                }
 
-                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(data.Solution, data.DocumentId);
                 return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
             }
 
@@ -168,7 +163,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 foreach (var bucket in diagnosticService.GetDiagnosticBuckets(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
                 {
-                    OnDataAddedOrChanged(bucket);
+                    OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                        bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
                 }
             }
 
