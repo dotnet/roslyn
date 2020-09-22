@@ -1212,6 +1212,54 @@ partial class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task ReturnIEnumerableExtendedPartialMethod()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|];
+    }
+}
+";
+
+            var output = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return n1;
+            }
+        }
+
+        yield break;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task ReturnIEnumerableWithOtherReturn()
         {
             var source = @"
@@ -2479,7 +2527,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        IEnumerable<int> queryables()
+        IEnumerable<int> queryable()
         {
             foreach (int n1 in nums.AsQueryable())
             {
@@ -2487,7 +2535,7 @@ class C
             }
         }
 
-        IEnumerable<int> q = queryables();
+        IEnumerable<int> q = queryable();
     }
 }";
 

@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MemberAccessExpressionSyntax memberAccessExpression => InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token),
                     NameColonSyntax nameColon => InferTypeInNameColon(nameColon, token),
                     NameEqualsSyntax nameEquals => InferTypeInNameEquals(nameEquals, token),
-                    ObjectCreationExpressionSyntax objectCreation => InferTypeInObjectCreationExpression(objectCreation, token),
+                    BaseObjectCreationExpressionSyntax objectCreation => InferTypeInObjectCreationExpression(objectCreation, token),
                     LambdaExpressionSyntax lambdaExpression => InferTypeInLambdaExpression(lambdaExpression, token),
                     PostfixUnaryExpressionSyntax postfixUnary => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     PrefixUnaryExpressionSyntax prefixUnary => InferTypeInPrefixUnaryExpression(prefixUnary, token),
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, methods, argument, parentInvocationExpressionToTypeInfer: null);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
+            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(BaseObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
             {
                 // A couple of broken code scenarios where the new keyword in objectcreationexpression
                 // appears to be a part of a subsequent assignment.  For example:
@@ -426,11 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypes(expression);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInObjectCreationExpression(BaseObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
             {
-                var info = SemanticModel.GetSymbolInfo(creation.Type, CancellationToken);
+                var info = SemanticModel.GetTypeInfo(creation, CancellationToken);
 
-                if (!(info.Symbol is INamedTypeSymbol type))
+                if (!(info.Type is INamedTypeSymbol type))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return InferTypeInInvocationExpression(invocation, index);
                         }
 
-                    case ObjectCreationExpressionSyntax objectCreation:
+                    case BaseObjectCreationExpressionSyntax objectCreation:
                         {
                             var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInObjectCreationExpression(objectCreation, index);

@@ -378,8 +378,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append('"');
             }
 
-            sb.Append(", isSuppressed: ");
-            sb.Append(_isSuppressed ? "true" : "false");
+            if (_isSuppressed)
+            {
+                sb.Append(", isSuppressed: true");
+            }
 
             sb.Append(")");
 

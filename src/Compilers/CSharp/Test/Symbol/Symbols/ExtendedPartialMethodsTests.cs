@@ -3074,5 +3074,74 @@ partial class C
                 //     public partial string? M12(); // 7
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
         }
+
+        [Fact]
+        public void DifferentReturnTypes_18()
+        {
+            var source =
+@"partial class C
+{
+    public partial ref int F1();
+    public partial string F1() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial string F1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "F1").WithLocation(4, 27),
+                // (4,27): error CS8818: Partial method declarations must have matching ref return values.
+                //     public partial string F1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 27));
+        }
+
+        [Fact]
+        public void DifferentReturnTypes_19()
+        {
+            var source =
+@"partial class C
+{
+    public partial ref (int x, int y) F1();
+    public partial (int, int) F1() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,31): error CS8818: Partial method declarations must have matching ref return values.
+                //     public partial (int, int) F1() => default;
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31));
+        }
+
+        [Fact]
+        public void PublicAPI()
+        {
+            var source = @"
+#nullable enable
+
+partial class C
+{
+    public partial string M1();
+    public partial string M1() => ""a"";
+
+    partial void M2();
+    partial void M2() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol());
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol());
+
+            void verifyPublicAPI(IMethodSymbol defSymbol)
+            {
+                var implSymbol = defSymbol.PartialImplementationPart;
+                Assert.NotNull(implSymbol);
+                Assert.NotEqual(implSymbol, defSymbol);
+
+                Assert.Null(defSymbol.PartialDefinitionPart);
+                Assert.Null(implSymbol.PartialImplementationPart);
+
+                Assert.Equal(implSymbol.PartialDefinitionPart, defSymbol);
+                Assert.Equal(implSymbol.ToTestDisplayString(includeNonNullable: false), defSymbol.ToTestDisplayString(includeNonNullable: false));
+            }
+        }
     }
 }

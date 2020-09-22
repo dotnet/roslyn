@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -3613,25 +3612,21 @@ class Program
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,34): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
                 //         Console.WriteLine(nameof(nint));
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(6, 34),
-                // (7,34): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
                 //         Console.WriteLine(nameof(nuint));
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
-@"nint
-nuint");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().First(n => n is IdentifierNameSyntax { Identifier: { ValueText: "nint" } });
-            var symbol = (ITypeSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.Equal("nint", symbol.ToTestDisplayString());
-            Assert.True(symbol.IsNativeIntegerType);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
+                //         Console.WriteLine(nameof(nint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
+                //         Console.WriteLine(nameof(nuint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
         }
 
         [Fact]
@@ -3652,12 +3647,15 @@ nuint");
                 // (3,19): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     static void F(nint nint)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(3, 19),
-                // (6,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
                 //         _ = nameof(nuint);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
         }
 
         [Fact]
@@ -3707,6 +3705,28 @@ nuint");
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_05()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = nameof(nint.Equals);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = nameof(nint.Equals);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(5, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
@@ -6942,16 +6962,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null,
-// https://github.com/dotnet/roslyn/issues/42457: Investigate whether this conversion (and other
-// conversions to/from void*) can use conv.i or conv.u instead of explicit operators on System.[U]IntPtr.
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "delegate*<void>", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "bool", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "sbyte", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
@@ -7045,12 +7057,35 @@ $@"{{
             conversions(sourceType: "string", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nint?", expectedImplicitIL: null,
 @"{
-  // Code size       12 (0xc)
+  // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
-  IL_0006:  newobj     ""nint?..ctor(nint)""
-  IL_000b:  ret
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newobj     ""nint?..ctor(nint)""
+  IL_0007:  ret
+}");
+            conversions(sourceType: "delegate*<void>", destType: "nint?", expectedImplicitIL: null,
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newobj     ""nint?..ctor(nint)""
+  IL_0007:  ret
 }");
             conversions(sourceType: "bool", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
@@ -7190,14 +7225,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "nint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
             conversions(sourceType: "nint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1"));
@@ -7294,15 +7323,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size       13 (0xd)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
-  IL_0007:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_000c:  ret
-}");
+            conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
             conversions(sourceType: "nint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1", "nint"));
@@ -7400,14 +7422,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null,
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "delegate*<void>", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
             conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
@@ -7501,12 +7517,19 @@ $@"{{
             conversions(sourceType: "string", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nuint?", expectedImplicitIL: null,
 @"{
-  // Code size       12 (0xc)
+  // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
-  IL_0006:  newobj     ""nuint?..ctor(nuint)""
-  IL_000b:  ret
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}");
+            conversions(sourceType: "delegate*<void>", destType: "nuint?", expectedImplicitIL: null,
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
 }");
             conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
@@ -7646,14 +7669,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convNone);
             conversions(sourceType: "nuint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
             conversions(sourceType: "nuint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1.un"));
@@ -7748,15 +7765,8 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nuint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size       13 (0xd)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
-  IL_0007:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_000c:  ret
-}");
+            conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1.un", "nuint"));
@@ -7862,6 +7872,7 @@ $@"{{
 }");
             conversions(sourceType: "System.IntPtr", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
             conversions(sourceType: "System.IntPtr", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
             conversions(sourceType: "System.IntPtr", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
@@ -7999,6 +8010,7 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "delegate*<void>", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
             conversions(sourceType: "bool", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "sbyte", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
@@ -8114,6 +8126,7 @@ $@"{{
 }");
             conversions(sourceType: "System.UIntPtr", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
             conversions(sourceType: "System.UIntPtr", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
             conversions(sourceType: "System.UIntPtr", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
@@ -8309,6 +8322,7 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "delegate*<void>", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
             conversions(sourceType: "bool", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
             conversions(sourceType: "sbyte", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
@@ -8460,7 +8474,7 @@ $@"{{
                     verifier.VerifyIL("Program.Convert", expectedIL);
                 }
 
-                static bool useUnsafe(string type) => type == "void*";
+                static bool useUnsafe(string type) => type == "void*" || type == "delegate*<void>";
             }
         }
 
@@ -11995,15 +12009,14 @@ class Program
             binaryOperator("bool", "!=", "nuint", "0", "nuint", uintMaxValue, "True");
             binaryOperator("bool", "!=", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            // https://github.com/dotnet/roslyn/issues/42460: Results of `<<` should be dependent on platform.
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
-            binaryOperator("nint", "<<", "nint", intMinValue, "int", "1", "0");
+            binaryOperatorNotConstant("nint", "<<", "nint", intMinValue, "int", "1", IntPtr.Size == 4 ? "0" : "-4294967296");
             binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);
-            binaryOperator("nint", "<<", "nint", "-1", "int", "32", "-1");
+            binaryOperatorNotConstant("nint", "<<", "nint", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : "-4294967296");
             binaryOperator("nuint", "<<", "nuint", "0", "int", "1", "0");
-            binaryOperator("nuint", "<<", "nuint", uintMaxValue, "int", "1", "4294967294");
+            binaryOperatorNotConstant("nuint", "<<", "nuint", uintMaxValue, "int", "1", IntPtr.Size == 4 ? "4294967294" : "8589934590");
             binaryOperator("nuint", "<<", "nuint", "1", "int", "31", "2147483648");
-            binaryOperator("nuint", "<<", "nuint", "1", "int", "32", "1");
+            binaryOperatorNotConstant("nuint", "<<", "nuint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "4294967296");
 
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "0", intMinValue);
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "1", "-1073741824");
@@ -12118,6 +12131,20 @@ class Program
                 constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
             }
 
+            void binaryOperatorNotConstant(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
+            {
+                var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
+                var expr = $"A {op} B";
+                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+
+                expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
+                constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"checked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+            }
+
             void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string sourceA =
@@ -12221,6 +12248,387 @@ System.OverflowException
 {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}
 0
 {(IntPtr.Size == 4 ? "System.OverflowException" : "0")}");
+        }
+
+        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [Fact]
+        public void UncheckedLeftShift_01()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nint x = 0x7fffffff;
+        Report(x << 1);
+        Report(LeftShift(x, 1));
+    }
+    static nint LeftShift(nint x, int y) => unchecked(x << y);
+    static void Report(long l) => Console.WriteLine(""{0:x}"", l);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var expectedValue = IntPtr.Size == 4 ? "fffffffffffffffe" : "fffffffe";
+            CompileAndVerify(comp, expectedOutput:
+$@"{expectedValue}
+{expectedValue}");
+        }
+
+        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [Fact]
+        public void UncheckedLeftShift_02()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nuint x = 0xffffffff;
+        Report(x << 1);
+        Report(LeftShift(x, 1));
+    }
+    static nuint LeftShift(nuint x, int y) => unchecked(x << y);
+    static void Report(ulong u) => Console.WriteLine(""{0:x}"", u);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var expectedValue = IntPtr.Size == 4 ? "fffffffe" : "1fffffffe";
+            CompileAndVerify(comp, expectedOutput:
+$@"{expectedValue}
+{expectedValue}");
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void ExplicitImplementationReturnTypeDifferences()
+        {
+            string source =
+@"struct S<T>
+{
+}
+interface I
+{
+    S<nint> F1();
+    S<System.IntPtr> F2();
+    S<nint> F3();
+    S<System.IntPtr> F4();
+}
+class C : I
+{
+    S<System.IntPtr> I.F1() => default;
+    S<nint> I.F2() => default;
+    S<nint> I.F3() => default;
+    S<System.IntPtr> I.F4() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("I");
+            Assert.Equal("S<nint> I.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> I.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("S<nint> I.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> I.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("C");
+            Assert.Equal("S<System.IntPtr> C.I.F1()", type.GetMember("I.F1").ToTestDisplayString());
+            Assert.Equal("S<nint> C.I.F2()", type.GetMember("I.F2").ToTestDisplayString());
+            Assert.Equal("S<nint> C.I.F3()", type.GetMember("I.F3").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> C.I.F4()", type.GetMember("I.F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem(44358, "https://github.com/dotnet/roslyn/issues/44358")]
+        [Fact]
+        public void OverrideReturnTypeDifferences()
+        {
+            string source =
+@"class A
+{
+    public virtual nint[] F1() => null;
+    public virtual System.IntPtr[] F2() => null;
+    public virtual nint[] F3() => null;
+    public virtual System.IntPtr[] F4() => null;
+}
+class B : A
+{
+    public override System.IntPtr[] F1() => null;
+    public override nint[] F2() => null;
+    public override nint[] F3() => null;
+    public override System.IntPtr[] F4() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("nint[] A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] A.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("System.IntPtr[] B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint[] B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] B.F4()", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void OverrideParameterTypeCustomModifierDifferences()
+        {
+            var sourceA =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public virtual void F1(native int modopt(int32) i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ret
+  }
+  .method public virtual void F2(native int modopt(int32) i)
+  {
+    ret
+  }
+  .method public virtual void F3(native int modopt(int32) i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ret
+  }
+  .method public virtual void F4(native int modopt(int32) i)
+  {
+    ret
+  }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class B : A
+{
+    public override void F1(System.IntPtr i) { }
+    public override void F2(nint i) { }
+    public override void F3(nint i) { }
+    public override void F4(System.IntPtr i) { }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("void A.F1(nint modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("void A.F2(System.IntPtr modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("void A.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("void A.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("void B.F1(System.IntPtr modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("void B.F2(nint modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("void B.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("void B.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void OverrideReturnTypeCustomModifierDifferences()
+        {
+            var sourceA =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public virtual native int[] modopt(int32) F1()
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public virtual native int[] modopt(int32) F2()
+  {
+    ldnull
+    throw
+  }
+  .method public virtual native int[] modopt(int32) F3()
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public virtual native int[] modopt(int32) F4()
+  {
+    ldnull
+    throw
+  }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class B : A
+{
+    public override System.IntPtr[] F1() => default;
+    public override nint[] F2() => default;
+    public override nint[] F3() => default;
+    public override System.IntPtr[] F4() => default;
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("nint[] modopt(System.Int32) A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(44810, "https://github.com/dotnet/roslyn/issues/44810")]
+        [Theory]
+        [InlineData("void*")]
+        [InlineData("byte*")]
+        [InlineData("delegate*<void>")]
+        public void PointerConversions(string pointerType)
+        {
+            string source =
+$@"using System;
+unsafe class Program
+{{
+    static {pointerType} ToPointer1(nint i) => ({pointerType})i;
+    static {pointerType} ToPointer2(nuint u) => ({pointerType})u;
+    static {pointerType} ToPointer3(nint i) => checked(({pointerType})i);
+    static {pointerType} ToPointer4(nuint u) => checked(({pointerType})u);
+    static nint FromPointer1({pointerType} p) => (nint)p;
+    static nuint FromPointer2({pointerType} p) => (nuint)p;
+    static nint FromPointer3({pointerType} p) => checked((nint)p);
+    static nuint FromPointer4({pointerType} p) => checked((nuint)p);
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Execute({pointerType} p)
+    {{
+        Console.WriteLine((int)p);
+        Console.WriteLine(Execute(() => FromPointer1(p)));
+        Console.WriteLine(Execute(() => FromPointer2(p)));
+        Console.WriteLine(Execute(() => FromPointer3(p)));
+        Console.WriteLine(Execute(() => FromPointer4(p)));
+    }}
+    static void Main()
+    {{
+        Execute(ToPointer1(-42));
+        Execute(ToPointer2(42));
+        Execute(ToPointer1(int.MinValue));
+        Execute(ToPointer2(uint.MaxValue));
+        Console.WriteLine(Execute(() => (ulong)ToPointer3(-42)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer4(42)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer3(int.MinValue)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer4(uint.MaxValue)));
+    }}
+}}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            string expectedOutput =
+$@"-42
+-42
+{(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
+System.OverflowException
+{(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
+42
+42
+42
+42
+42
+-2147483648
+-2147483648
+{(IntPtr.Size == 4 ? "2147483648" : "18446744071562067968")}
+System.OverflowException
+{(IntPtr.Size == 4 ? "2147483648" : "18446744071562067968")}
+-1
+{(IntPtr.Size == 4 ? "-1" : "4294967295")}
+4294967295
+{(IntPtr.Size == 4 ? "System.OverflowException" : "4294967295")}
+4294967295
+System.OverflowException
+42
+System.OverflowException
+4294967295";
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.ToPointer1",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer2",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer4",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer1",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer2",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer4",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
         }
     }
 }

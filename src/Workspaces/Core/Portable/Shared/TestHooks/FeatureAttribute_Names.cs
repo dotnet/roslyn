@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string NavigateTo = nameof(NavigateTo);
         public const string NavigationBar = nameof(NavigationBar);
         public const string Outlining = nameof(Outlining);
+        public const string PackageInstaller = nameof(PackageInstaller);
         public const string QuickInfo = nameof(QuickInfo);
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);
