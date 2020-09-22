@@ -7,7 +7,7 @@ RoslynEx is a fork of [Roslyn](https://github.com/dotnet/roslyn) (the C# compile
 Existing code transformers that use RoslynEx include:
 
 * [RoslynEx.Virtuosity](https://github.com/postsharp/RoslynEx.Virtuosity): makes all possible methods in a project `virtual`.
-* [RoslynEx.Cancellation](https://github.com/postsharp/RoslynEx.Cancellation): automatically propagtes `CancellationToken` parameter
+* [RoslynEx.AutoCancellationToken](https://github.com/postsharp/RoslynEx.AutoCancellationToken): automatically propagtes `CancellationToken` parameter
 * [RoslynEx.Costura](https://github.com/postsharp/RoslynEx.Costura): bundles .NET Framework applications into a single executable file
 
 See the above projects to learn how to use RoslynEx to write your own source transformers.
