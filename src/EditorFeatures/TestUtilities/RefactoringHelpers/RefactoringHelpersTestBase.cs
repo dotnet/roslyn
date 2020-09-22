@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -20,18 +19,23 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 {
     [UseExportProvider]
-    public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
+    public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected readonly TWorkspaceFixture fixture;
+        private readonly object _workspaceFixtureGate = new();
+        private ReferenceCountedDisposable<TWorkspaceFixture>.WeakReference _weakWorkspaceFixture;
 
-        protected RefactoringHelpersTestBase(TWorkspaceFixture workspaceFixture)
-            => this.fixture = workspaceFixture;
-
-        public override void Dispose()
+        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
         {
-            this.fixture.DisposeAfterTest();
-            base.Dispose();
+            lock (_workspaceFixtureGate)
+            {
+                if (_weakWorkspaceFixture.TryAddReference() is { } workspaceFixture)
+                    return workspaceFixture;
+
+                var result = new ReferenceCountedDisposable<TWorkspaceFixture>(new TWorkspaceFixture());
+                _weakWorkspaceFixture = new ReferenceCountedDisposable<TWorkspaceFixture>.WeakReference(result);
+                return result;
+            }
         }
 
         protected Task TestAsync<TNode>(string text) where TNode : SyntaxNode => TestAsync<TNode>(text, Functions<TNode>.True);
@@ -105,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 
         private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
-            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
             var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, CancellationToken.None).ConfigureAwait(false);
 
             return relevantNodes.FirstOrDefault(predicate);
