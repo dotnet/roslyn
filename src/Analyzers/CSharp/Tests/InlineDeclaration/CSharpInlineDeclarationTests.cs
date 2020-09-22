@@ -2293,6 +2293,7 @@ if (int.TryParse(v, out i))
 }", new TestParameters(TestOptions.Regular));
         }
 
+        [WorkItem(47041, "https://github.com/dotnet/roslyn/issues/47041")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task CollectionInitializer()
         {
