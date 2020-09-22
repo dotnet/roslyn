@@ -39,14 +39,11 @@ namespace Microsoft.CodeAnalysis
                     return false;
 
                 case ReportDiagnostic.Warn:
-                    switch (other)
+                    return other switch
                     {
-                        case ReportDiagnostic.Error:
-                            return true;
-
-                        default:
-                            return false;
-                    }
+                        ReportDiagnostic.Error => true,
+                        _ => false,
+                    };
 
                 case ReportDiagnostic.Info:
                     switch (other)
