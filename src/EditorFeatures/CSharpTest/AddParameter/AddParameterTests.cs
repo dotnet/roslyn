@@ -2784,5 +2784,31 @@ void outer()
 }
 ");
         }
+
+        [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestAddParameter_TargetTypedNew()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    C(int i) { }
+
+    void M()
+    {
+       C c = [||]new(1, 2);
+    }
+}",
+@"
+class C
+{
+    C(int i, int v) { }
+
+    void M()
+    {
+       C c = new(1, 2);
+    }
+}");
+        }
     }
 }

@@ -140,15 +140,30 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
 
                 // Not supported if this is "new { ... }" (as there are no parameters at all.
-                var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
+                var typeNode = syntaxFacts.IsImplicitObjectCreationExpression(node) ?
+                    node : syntaxFacts.GetObjectCreationType(objectCreation);
                 if (typeNode == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
                 }
 
+                INamedTypeSymbol type = null;
+                var symbol = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol();
+
+                // Implicit object creation expressions
+                if (symbol is IMethodSymbol methodSymbol)
+                {
+                    type = methodSymbol.ContainingType;
+                }
+                // Regular object creation expressions
+                else if (symbol is INamedTypeSymbol namedTypeSymbol)
+                {
+                    type = namedTypeSymbol;
+                }
+
                 // If we can't figure out the type being created, or the type isn't in source,
                 // then there's nothing we can do.
-                if (!(semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() is INamedTypeSymbol type))
+                if (type == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
                 }
