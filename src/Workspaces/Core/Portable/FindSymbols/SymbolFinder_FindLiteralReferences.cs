@@ -29,11 +29,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // the 'progress' parameter which will then update the UI.
                     var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
-                    await client.RunRemoteAsync(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
+                    _ = await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                         solution,
-                        new object[] { value, typeCode },
+                        (service, solutionInfo, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, value, typeCode, cancellationToken),
                         serverCallback,
                         cancellationToken).ConfigureAwait(false);
                 }

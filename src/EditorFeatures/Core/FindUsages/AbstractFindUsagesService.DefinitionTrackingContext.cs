@@ -37,20 +37,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;
 
-            public Task ReportMessageAsync(string message)
+            public ValueTask ReportMessageAsync(string message)
                 => _underlyingContext.ReportMessageAsync(message);
 
-            public Task SetSearchTitleAsync(string title)
+            public ValueTask SetSearchTitleAsync(string title)
                 => _underlyingContext.SetSearchTitleAsync(title);
 
-            public Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
                 => _underlyingContext.OnReferenceFoundAsync(reference);
 
             [Obsolete("Use ProgressTracker instead", error: false)]
-            public Task ReportProgressAsync(int current, int maximum)
+            public ValueTask ReportProgressAsync(int current, int maximum)
                 => _underlyingContext.ReportProgressAsync(current, maximum);
 
-            public Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (_gate)
                 {

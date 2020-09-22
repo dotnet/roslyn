@@ -1187,8 +1187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedTypeSymbol_IsImplicitClass As Boolean Implements INamedTypeSymbol.IsImplicitClass
             Get
-                ' TODO (tomat):
-                Return False
+                Return Me.IsImplicitClass
             End Get
         End Property
 

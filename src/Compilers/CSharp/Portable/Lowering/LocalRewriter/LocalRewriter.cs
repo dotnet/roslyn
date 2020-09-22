@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             Debug.Assert(!node.HasErrors, "nodes with errors should not be lowered");
 
-            return VisitExpressionImpl(node);
+            // https://github.com/dotnet/roslyn/issues/47682
+            return VisitExpressionImpl(node)!;
         }
 
         private BoundStatement? VisitStatement(BoundStatement? node)
