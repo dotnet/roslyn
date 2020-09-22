@@ -14,16 +14,18 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentFormattingName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentFormattingName, mutatesSolutionState: false)]
     internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FormatDocumentHandler()
         {
         }
 
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
+
         public override Task<LSP.TextEdit[]> HandleRequestAsync(LSP.DocumentFormattingParams request, RequestContext context, CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.TextDocument, context, cancellationToken);
+            => GetTextEditsAsync(context, cancellationToken);
     }
 }

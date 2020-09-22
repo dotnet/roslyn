@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Handle a completion request.
     /// </summary>
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
+    [ExportLspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
+    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         private readonly ImmutableHashSet<string> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<string> _vbTriggerCharacters;
@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler(
-            ILspSolutionProvider solutionProvider,
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
-            : base(solutionProvider)
         {
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
@@ -45,9 +43,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lz => GetTriggerCharacters(lz.Value)).Select(c => c.ToString()).ToImmutableHashSet();
         }
 
-        public override async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
+
+        public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return null;
