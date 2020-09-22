@@ -10,12 +10,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -375,13 +375,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var project = document.Project;
             var location = CreateLocation(document, diagnostic.Location);
 
-            var additionalLocations = diagnostic.AdditionalLocations.Count == 0
-                ? (IReadOnlyCollection<DiagnosticDataLocation>)Array.Empty<DiagnosticDataLocation>()
-                : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource)
-                                                .Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc))
-                                                .WhereNotNull()
-                                                .ToReadOnlyCollection();
-
+            var additionalLocations = GetAdditionalLocations(document, diagnostic);
             var additionalProperties = GetAdditionalProperties(document, diagnostic);
 
             var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
@@ -440,6 +434,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var service = document.Project.GetLanguageService<IDiagnosticPropertiesService>();
             return service?.GetAdditionalProperties(diagnostic);
+        }
+
+        private static ImmutableArray<DiagnosticDataLocation> GetAdditionalLocations(TextDocument document, Diagnostic diagnostic)
+        {
+            if (diagnostic.AdditionalLocations.Count == 0)
+            {
+                return ImmutableArray<DiagnosticDataLocation>.Empty;
+            }
+
+            using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(diagnostic.AdditionalLocations.Count, out var builder);
+            foreach (var location in diagnostic.AdditionalLocations)
+            {
+                if (location.IsInSource)
+                {
+                    if (CreateLocation(document.Project.GetDocument(location.SourceTree), location) is { } dataLocation)
+                    {
+                        builder.Add(dataLocation);
+                    }
+                }
+                else if (location.Kind == LocationKind.ExternalFile)
+                {
+                    if (document.Project.GetDocumentForExternalLocation(location) is { } textDocumentId &&
+                        CreateLocation(document.Project.GetTextDocument(textDocumentId), location) is { } dataLocation)
+                    {
+                        builder.Add(dataLocation);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
