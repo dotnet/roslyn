@@ -16,17 +16,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : AbstractRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
     {
-        protected AbstractFormatDocumentHandlerBase(ILspSolutionProvider solutionProvider) : base(solutionProvider)
-        {
-        }
+        public abstract LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
+        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
         protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, LSP.FormattingOptions formattingOptions, RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var edits);
 
-            var document = SolutionProvider.GetTextDocument(documentIdentifier, context.ClientName);
+            var document = context.Document;
             var formattingService = document?.Project.LanguageServices.GetService<IXamlFormattingService>();
 
             if (document != null && formattingService != null)

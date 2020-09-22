@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.InitializeName, StringConstants.XamlLanguageName)]
+    [ExportLspMethod(Methods.InitializeName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
         [ImportingConstructor]
@@ -24,6 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public InitializeHandler()
         {
         }
+
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(InitializeParams request) => null;
 
         public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
