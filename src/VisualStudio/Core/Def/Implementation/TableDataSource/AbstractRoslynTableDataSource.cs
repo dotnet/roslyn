@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// <summary>
     /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
     /// </summary>
-    internal abstract class AbstractRoslynTableDataSource<TItem> : AbstractTableDataSource<TItem>
+    internal abstract class AbstractRoslynTableDataSource<TItem, TData> : AbstractTableDataSource<TItem, TData>
         where TItem : TableItem
     {
         public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)

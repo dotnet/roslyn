@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(
-            ISymbol symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options, cancellationToken);
-            return engine.FindReferencesAsync(symbolAndProjectId);
+            return engine.FindReferencesAsync(symbol);
         }
     }
 }
