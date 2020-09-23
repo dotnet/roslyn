@@ -565,9 +565,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return member switch
             {
-                IEventSymbol _ => true,
-                IMethodSymbol method when method.MethodKind == MethodKind.Ordinary => true,
-                IPropertySymbol property when !property.IsWithEvents => true,
+                IEventSymbol => true,
+                IMethodSymbol { MethodKind: MethodKind.Ordinary } => true,
+                IPropertySymbol { IsWithEvents: false } => true,
                 _ => false,
             };
         }
