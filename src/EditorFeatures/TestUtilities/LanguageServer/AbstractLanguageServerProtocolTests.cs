@@ -171,14 +171,20 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string containerName = "")
-            => new LSP.SymbolInformation()
+        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
+        {
+            var info = new LSP.SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
-                ContainerName = containerName
             };
+
+            if (containerName != null)
+                info.ContainerName = containerName;
+
+            return info;
+        }
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
