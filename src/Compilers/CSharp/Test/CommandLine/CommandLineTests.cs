@@ -12521,7 +12521,7 @@ class C
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
-            ValidateWrittenSources(new() { { generatedDir.Path, null } });
+            ValidateWrittenSources(new() { { generatedDir.Path, new() } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);

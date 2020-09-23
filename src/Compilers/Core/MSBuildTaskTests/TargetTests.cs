@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var emit = instance.GetPropertyValue("EmitCompilerGeneratedFiles");
             var dir = instance.GetPropertyValue("CompilerGeneratedFilesOutputPath");
 
-            Assert.Equal("true", emit);
+            Assert.Equal("false", emit);
             Assert.Equal(string.Empty, dir);
         }
 
@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 <Project>
     <PropertyGroup>
         <IntermediateOutputPath>fallbackDirectory</IntermediateOutputPath>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
     <Import Project=""Microsoft.Managed.Core.targets"" />
 </Project>
