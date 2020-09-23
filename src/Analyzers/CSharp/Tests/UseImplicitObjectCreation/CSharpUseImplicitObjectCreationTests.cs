@@ -463,7 +463,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
-        public async Task TestNotInNonApparentCode()
+        public async Task TestNotInNonApparentCode1()
         {
             await new VerifyCS.Test
             {
@@ -472,6 +472,24 @@ class C
 {
     void X() => Bar(new C());
     void Bar(C c) { }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotInNonApparentCode2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void X()
+    {
+        C c;
+        c = new C();
+    }
 }",
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
