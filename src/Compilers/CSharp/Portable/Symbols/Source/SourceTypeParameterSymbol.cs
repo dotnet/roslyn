@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return CalculateReferenceTypeConstraintIsNullable(this.GetDeclaredConstraints(canIgnoreNullableContext: true));
+                return CalculateReferenceTypeConstraintIsNullable(this.GetDeclaredConstraints(canIgnoreNullableContext: false));
             }
         }
 

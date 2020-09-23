@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (bestObjectConstraint.HasType)
             {
                 // See if we need to put Object! or Object~ back in order to preserve nullability information for the type parameter.
-                if (ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
+                if (!canIgnoreNullableContext && ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
                 {
                     Debug.Assert(!HasNotNullConstraint && !HasValueTypeConstraint);
                     if (constraintTypes.Count == 0)
