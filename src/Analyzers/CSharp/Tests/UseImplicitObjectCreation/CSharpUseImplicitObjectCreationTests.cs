@@ -49,5 +49,104 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithObjectInitializer()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C c = new [|C|]() { };
+}",
+                FixedCode = @"
+class C
+{
+    C c = new() { };
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithObjectInitializerWithoutArguments()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C c = new [|C|] { };
+}",
+                FixedCode = @"
+class C
+{
+    C c = new() { };
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithTriviaAfterNew()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C c = new /*x*/ [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    C c = new /*x*/ ();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithDifferentTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    Object c = new C();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithErrorTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    E c = new E();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithArrayTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    int[] c = new int[0];
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
