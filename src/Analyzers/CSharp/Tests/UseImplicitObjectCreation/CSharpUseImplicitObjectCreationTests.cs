@@ -518,5 +518,27 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestAlias()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Collections.Generic;
+using X = System.Collections.Generic.List<int>;
+class C
+{
+    System.Collections.Generic.List<int> list = new [|X|]();
+}",
+                FixedCode = @"
+using System.Collections.Generic;
+class C
+{
+    System.Collections.Generic.List<int> list = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
