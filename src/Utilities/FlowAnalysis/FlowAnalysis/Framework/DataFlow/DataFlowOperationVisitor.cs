@@ -3595,7 +3595,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public virtual TAbstractAnalysisValue VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)
         {
-            return base.VisitUnaryOperator(operation, argument);
+            return Visit(operation.Operand, argument);
         }
 
         public sealed override TAbstractAnalysisValue VisitUnaryOperator(IUnaryOperation operation, object? argument)
