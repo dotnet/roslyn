@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -69,16 +72,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 // the only accessor method referenced in a foreach-statement is the .Current's
                 // get-accessor
-                return ImmutableArray.Create(symbols.CurrentProperty.GetMethod);
+                return symbols.CurrentProperty.GetMethod == null
+                    ? ImmutableArray<IMethodSymbol>.Empty
+                    : ImmutableArray.Create(symbols.CurrentProperty.GetMethod);
             }
 
             if (semanticFacts.IsWrittenTo(model, node, cancellationToken))
             {
                 // if it was only written to, then only the setter was referenced.
                 // if it was written *and* read, then both accessors were referenced.
-                return semanticFacts.IsOnlyWrittenTo(model, node, cancellationToken)
-                    ? ImmutableArray.Create(property.SetMethod)
-                    : ImmutableArray.Create(property.GetMethod, property.SetMethod);
+                using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var result);
+                result.AddIfNotNull(property.SetMethod);
+
+                if (!semanticFacts.IsOnlyWrittenTo(model, node, cancellationToken))
+                    result.AddIfNotNull(property.GetMethod);
+
+                return result.ToImmutable();
             }
             else
             {
@@ -93,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var inNameOf = semanticFacts.IsInsideNameOfExpression(model, node, cancellationToken);
                 var inStructuredTrivia = node.IsPartOfStructuredTrivia();
 
-                return inNameOf || inStructuredTrivia
+                return inNameOf || inStructuredTrivia || property.GetMethod == null
                     ? ImmutableArray<IMethodSymbol>.Empty
                     : ImmutableArray.Create(property.GetMethod);
             }

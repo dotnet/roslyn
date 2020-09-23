@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// See <see cref="VisualStudioBaseDiagnosticListTable.LiveTableDataSource"/>
             /// for error list diagnostic source for "Build + Intellisense" setting.
             /// </summary>
-            private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem>
+            private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem, object>
             {
                 private readonly object _key = new object();
 
