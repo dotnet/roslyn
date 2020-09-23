@@ -327,11 +327,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 source.AddNewErrors(projectId1, GetDiagnosticData(projectId1))
                 Await waiter.ExpeditedWaitAsync()
 
-                Dim numberOfUpdateCalls = 0
                 AddHandler source.BuildProgressChanged, Sub(o, progress)
                                                             If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Updated Then
-                                                                numberOfUpdateCalls += 1
-                                                                Assert.Equal(numberOfUpdateCalls, source.GetBuildErrors().Length)
+                                                                Assert.Equal(1, source.GetBuildErrors().Length)
                                                             ElseIf progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
                                                                 Assert.Equal(2, source.GetBuildErrors().Length)
                                                             End If
