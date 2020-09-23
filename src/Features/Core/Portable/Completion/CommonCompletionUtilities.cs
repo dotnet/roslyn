@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
+                case SymbolKind.Property:
                 case SymbolKind.NamedType:
                     if (overloadCount > 0)
                     {
