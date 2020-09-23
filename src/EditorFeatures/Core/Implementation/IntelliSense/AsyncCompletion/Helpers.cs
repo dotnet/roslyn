@@ -140,7 +140,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             => c == '\t' || c == '\n' || c == '\0';
 
         internal static bool TryGetInitialTriggerLocation(EditorAsyncCompletion.IAsyncCompletionSession session, out SnapshotPoint initialTriggerLocation)
-            => session.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation);
+        {
+            if (session != null)
+            {
+                return session.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation);
+            }
+
+            initialTriggerLocation = default;
+            return false;
+        }
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
