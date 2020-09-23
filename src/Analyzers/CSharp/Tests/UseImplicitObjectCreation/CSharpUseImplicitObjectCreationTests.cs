@@ -461,5 +461,20 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotInNonApparentCode()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void X() => Bar(new C());
+    void Bar(C c) { }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
