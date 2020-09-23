@@ -76,11 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // Look for patterns we know will never cause any runtime changes.
+            // Look for simple patterns we know will never cause any runtime changes.  
             if (CastDefinitelyHasNoRuntimeImpact(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
-            return !CastHasNoRuntimeImpact(speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+            // Call into our legacy codepath that tries to make the same determination. 
+            return !CastHasNoRuntimeImpact_Legacy(speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
         }
 
         private static bool CastDefinitelyHasNoRuntimeImpact(
@@ -89,6 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            // NOTE: Keep this method simple.  Each type of runtime impact check should just be a new check added
+            // independently from the rest.  We want to make it very clear exactly which cases each check is covering.
+
             // castNode is:             `(Type)expr` or `expr as Type`.
             // castedExpressionnode is: `expr`
 
@@ -109,11 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool CastHasNoRuntimeImpact(
+        private static bool CastHasNoRuntimeImpact_Legacy(
             SpeculationAnalyzer speculationAnalyzer,
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // Note: Legacy codepaths for determining if a cast is removable.  As much as possible we should attempt to 
+            // extract simple and clearly defined checks from here and move to CastDefinitelyHasNoRuntimeImpact.
+
             // Then look for patterns for cases where we never want to remove casts.
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
