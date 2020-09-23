@@ -476,5 +476,47 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestQualifiedUnqualified1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Collections.Generic;
+class C
+{
+    List<int> list = new [|System.Collections.Generic.List<int>|]();
+}",
+                FixedCode = @"
+using System.Collections.Generic;
+class C
+{
+    List<int> list = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestQualifiedUnqualified2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Collections.Generic;
+class C
+{
+    System.Collections.Generic.List<int> list = new [|List<int>|]();
+}",
+                FixedCode = @"
+using System.Collections.Generic;
+class C
+{
+    System.Collections.Generic.List<int> list = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
