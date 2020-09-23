@@ -22,27 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         public static bool IsBuiltInType(ITypeSymbol type)
             => type?.IsSpecialType() == true;
 
-#if false
-        public static bool IsImplicitStylePreferred(
-            OptionSet optionSet, bool isBuiltInTypeContext, bool isTypeApparentContext)
-        {
-            return IsImplicitStylePreferred(
-                GetCurrentTypeStylePreferences(optionSet),
-                isBuiltInTypeContext,
-                isTypeApparentContext);
-        }
-
-        private static bool IsImplicitStylePreferred(
-            UseVarPreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
-        {
-            return isBuiltInTypeContext
-                    ? stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes)
-                    : isTypeApparentContext
-                        ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)
-                        : stylePreferences.HasFlag(UseVarPreference.Elsewhere);
-        }
-#endif
-
         /// <summary>
         /// Analyzes if type information is obvious to the reader by simply looking at the assignment expression.
         /// </summary>
