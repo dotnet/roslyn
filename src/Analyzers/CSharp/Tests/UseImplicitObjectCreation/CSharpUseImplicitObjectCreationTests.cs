@@ -179,7 +179,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
-        public async Task TestNotWithTypeParameter()
+        public async Task TestWithTypeParameter()
         {
             await new VerifyCS.Test
             {
@@ -533,9 +533,43 @@ class C
 }",
                 FixedCode = @"
 using System.Collections.Generic;
+using X = System.Collections.Generic.List<int>;
 class C
 {
     System.Collections.Generic.List<int> list = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestFixAll1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+class C
+{
+    public C() { }
+    public C(Action action) { }
+
+    C c1 = new [|C|](() =>
+    {
+        C c2 = new [|C|]();
+    });
+}",
+                FixedCode = @"
+using System;
+class C
+{
+    public C() { }
+    public C(Action action) { }
+
+    C c1 = new(() =>
+    {
+        C c2 = new();
+    });
 }",
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
