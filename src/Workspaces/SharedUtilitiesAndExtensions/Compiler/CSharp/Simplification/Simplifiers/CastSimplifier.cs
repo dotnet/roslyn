@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         private static bool CastMustBePreservedInConditionalBranch(
-            ExpressionSyntax expression, Conversion conversion)
+            ExpressionSyntax castNode, Conversion conversion)
         {
             // `... ? (int?)i : default`.  This cast is necessary as the 'null/default' on the other side of the
             // conditional can change meaning since based on the type on the other side.
@@ -566,13 +566,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // `... ? (int)1 : default`.
             if (!conversion.IsIdentity)
             {
-                expression = expression.WalkUpParentheses();
-                if (expression.Parent is ConditionalExpressionSyntax conditionalExpression)
+                castNode = castNode.WalkUpParentheses();
+                if (castNode.Parent is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    if (conditionalExpression.WhenTrue == expression ||
-                        conditionalExpression.WhenFalse == expression)
+                    if (conditionalExpression.WhenTrue == castNode ||
+                        conditionalExpression.WhenFalse == castNode)
                     {
-                        var otherSide = conditionalExpression.WhenTrue == expression
+                        var otherSide = conditionalExpression.WhenTrue == castNode
                             ? conditionalExpression.WhenFalse
                             : conditionalExpression.WhenTrue;
 
