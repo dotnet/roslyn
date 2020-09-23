@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                          select SymbolCompletionItem.CreateWithSymbolId(
                                              displayText: $"({typeName})", // The type to convert to
                                              filterText: typeName,
-                                             sortText: $"{SortingPrefix}typeName",
+                                             sortText: $"{SortingPrefix}{typeName}",
                                              symbols: ImmutableList.Create(m),
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
