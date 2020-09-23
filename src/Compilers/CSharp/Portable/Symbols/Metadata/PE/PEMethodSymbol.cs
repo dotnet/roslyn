@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                    if (!data.IsValid || CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
+                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
                     {
                         result = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                     }
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var containingModule = (PEModuleSymbol)ContainingModule;
                 var unmanagedCallersOnlyData = containingModule.Module.TryGetUnmanagedCallersOnlyAttribute(_handle, new MetadataDecoder(containingModule),
-                    static (name, value) => MethodSymbol.TryDecodeUnmanagedCallersOnlyCallConvsProperty(name, value, location: null, diagnostics: null));
+                    static (name, value, isProperty) => MethodSymbol.TryDecodeUnmanagedCallersOnlyCallConvsField(name, value, isProperty, location: null, diagnostics: null));
 
                 Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized)
                              && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));

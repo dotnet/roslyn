@@ -959,51 +959,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location? location, DiagnosticBag? diagnostics)
+        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location location, DiagnosticBag diagnostics)
         {
-            Debug.Assert((location is null) == (diagnostics is null));
+            Debug.Assert(attribute.AttributeClass is not null);
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
-            bool isValid = true;
             if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
             {
                 foreach (var (key, value) in attribute.CommonNamedArguments)
                 {
-                    var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsProperty(key, value, location, diagnostics);
+                    // Technically, CIL can define a field and a property with the same name. However, such a
+                    // member results in an Ambiguous Member error, and we never get to piece of code at all.
+                    // See UnmanagedCallersOnly_PropertyAndFieldNamedCallConvs for an example
+                    bool isField = attribute.AttributeClass.GetMembers(key).Any(m => m is FieldSymbol);
+
+                    var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsField(key, value, isField, location, diagnostics);
 
                     if (namedArgumentDecoded.IsCallConvs)
                     {
-                        isValid = isValid && namedArgumentDecoded.IsValid;
                         callingConventionTypes = namedArgumentDecoded.CallConvs;
                     }
                 }
             }
 
-            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid);
+            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
         }
 
-        internal static (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs, bool IsValid) TryDecodeUnmanagedCallersOnlyCallConvsProperty(
+        internal static (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs) TryDecodeUnmanagedCallersOnlyCallConvsField(
             string key,
             TypedConstant value,
+            bool isField,
             Location? location,
             DiagnosticBag? diagnostics)
         {
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
-            bool isValid = true;
 
-            if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
+            if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, isField, in value))
             {
-                return (false, callingConventionTypes, isValid);
-            }
-
-            if (callingConventionTypes != null)
-            {
-                isValid = false;
+                return (false, callingConventionTypes);
             }
 
             if (value.Values.IsDefaultOrEmpty)
             {
                 callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
-                return (true, callingConventionTypes, isValid);
+                return (true, callingConventionTypes);
             }
 
             var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
@@ -1015,7 +1013,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
                     diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
-                    isValid = false;
                 }
                 else
                 {
@@ -1026,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             callingConventionTypes = builder.ToImmutableHashSet();
             builder.Free();
 
-            return (true, callingConventionTypes, isValid);
+            return (true, callingConventionTypes);
         }
 
         /// <summary>

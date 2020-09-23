@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis
         internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder attributeArgumentDecoder,
-            Func<string, TypedConstant, (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs, bool IsValid)> unmanagedCallersOnlyDecoder)
+            Func<string, TypedConstant, bool, (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs)> unmanagedCallersOnlyDecoder)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.UnmanagedCallersOnlyAttribute);
             if (!info.HasValue || info.SignatureIndex != 0 || !TryGetAttributeReader(info.Handle, out BlobReader sigReader))
@@ -1147,7 +1147,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             var unmanagedConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
-            bool isValid = true;
 
             if (sigReader.RemainingBytes > 0)
             {
@@ -1156,22 +1155,22 @@ namespace Microsoft.CodeAnalysis
                     var numNamed = sigReader.ReadUInt16();
                     for (int i = 0; i < numNamed; i++)
                     {
-                        var ((name, value), _, _) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
-                        var namedArgumentDecoded = unmanagedCallersOnlyDecoder(name, value);
+                        // typeCode of the value is checked by the decoder itself
+                        var ((name, value), isProperty, /* typeCode */ _) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+                        var namedArgumentDecoded = unmanagedCallersOnlyDecoder(name, value, !isProperty);
                         if (namedArgumentDecoded.IsCallConvs)
                         {
-                            isValid = isValid && namedArgumentDecoded.IsValid;
                             unmanagedConventionTypes = namedArgumentDecoded.CallConvs;
+                            break;
                         }
                     }
                 }
                 catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
                 {
-                    return UnmanagedCallersOnlyAttributeData.Create(ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
                 }
             }
 
-            return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes, isValid);
+            return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
         }
 #nullable restore
 

@@ -890,14 +890,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, arguments.Diagnostics);
 
-            var returnTypeSyntax = SyntaxNode switch
-            {
-                MethodDeclarationSyntax m => m.ReturnType,
-                LocalFunctionStatementSyntax l => l.ReturnType,
-                _ => null
-            };
+            var returnTypeSyntax = this.ExtractReturnTypeSyntax();
 
-            if (returnTypeSyntax == null)
+            if (returnTypeSyntax is CompilationUnitSyntax && this is not SynthesizedSimpleProgramEntryPointSymbol)
             {
                 // If there's no syntax for the return type, then we already errored because this isn't a valid
                 // unmanagedcallersonly target (it's a property getter/setter or some other non-regular-method).
