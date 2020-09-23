@@ -59249,6 +59249,168 @@ interface I1<out T1, in T2>
         }
 
         [Fact]
+        public void VarianceSafety_13()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.P1 = ""a"";
+        I2<string, string>.P2 = ""b"";
+        System.Console.WriteLine(I2<string, string>.P1);
+        System.Console.WriteLine(I2<string, string>.P2);
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 P1 { get; set; }
+    static T2 P2 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (15,12): error CS9100: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static T1 P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "preview").WithLocation(15, 12),
+                // (16,12): error CS9100: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static T2 P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "preview").WithLocation(16, 12)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
+        public void VarianceSafety_14()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(I2<string, string>.M1(""a""));
+        System.Console.WriteLine(I2<string, string>.M2(""b""));
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 M1(T1 x) => x;
+    static T2 M2(T2 x) => x;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static T1 M1(T1 x) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "preview").WithLocation(13, 18),
+                // (14,12): error CS9100: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static T2 M2(T2 x) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "preview").WithLocation(14, 12)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
+        public void VarianceSafety_15()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.E1 += Print1;
+        I2<string, string>.E2 += Print2;
+        I2<string, string>.Raise();
+    }
+
+    static void Print1(System.Func<string, string> x)
+    {
+        System.Console.WriteLine(x(""a""));
+    }
+
+    static void Print2(System.Func<string, string> x)
+    {
+        System.Console.WriteLine(x(""b""));
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static event System.Action<System.Func<T1, T1>> E1;
+    static event System.Action<System.Func<T2, T2>> E2;
+
+    static void Raise()
+    {
+        E1(Print);
+        E2(Print);
+    }
+
+    static T3 Print<T3>(T3 x)
+    {
+        return x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (24,53): error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static event System.Action<System.Func<T1, T1>> E1;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "preview").WithLocation(24, 53),
+                // (25,53): error CS9100: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static event System.Action<System.Func<T2, T2>> E2;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "preview").WithLocation(25, 53)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
         [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_01()
         {
