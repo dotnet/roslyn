@@ -5,6 +5,7 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -13,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static string? GetClassification(this ITypeSymbol type)
             => type.TypeKind switch
             {
-                TypeKind.Class => SymbolDisplayVisitorHelpers.FindValidCloneMethod(type) == null
-                    ? ClassificationTypeNames.ClassName : ClassificationTypeNames.RecordName,
+                TypeKind.Class => type.IsRecord() ? ClassificationTypeNames.RecordName : ClassificationTypeNames.ClassName,
                 TypeKind.Module => ClassificationTypeNames.ModuleName,
                 TypeKind.Struct => ClassificationTypeNames.StructName,
                 TypeKind.Interface => ClassificationTypeNames.InterfaceName,

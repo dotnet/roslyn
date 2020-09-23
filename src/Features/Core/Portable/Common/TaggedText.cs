@@ -217,6 +217,9 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.Text:
                     return ClassificationTypeNames.Text;
 
+                case TextTags.Record:
+                    return ClassificationTypeNames.RecordName;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(taggedTextTag);
             }

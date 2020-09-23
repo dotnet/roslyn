@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SymbolDisplayVisitorHelpers
     {
-        public static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
+        internal static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
         {
             if (containingType.SpecialType == SpecialType.System_Object)
             {

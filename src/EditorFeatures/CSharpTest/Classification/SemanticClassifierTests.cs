@@ -4425,5 +4425,16 @@ class X
                 testHost,
                 Record("R"));
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task ParameterizedRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R(int X, int Y);",
+                testHost,
+                Record("R"));
+        }
     }
 }

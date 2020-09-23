@@ -205,15 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
             {
-                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
-                    ? ClassificationTypeNames.ClassName
-                    : ClassificationTypeNames.StructName;
+                return GetClassificationTypeForConstructorOrDestructorParent(constructorDeclaration.Parent!);
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
             {
-                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
-                    ? ClassificationTypeNames.ClassName
-                    : ClassificationTypeNames.StructName;
+                return GetClassificationTypeForConstructorOrDestructorParent(destructorDeclaration.Parent!);
             }
             else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
@@ -300,6 +296,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return ClassificationTypeNames.Identifier;
             }
         }
+
+        private static string? GetClassificationTypeForConstructorOrDestructorParent(SyntaxNode parentNode)
+            => parentNode.Kind() switch
+            {
+                SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordName,
+                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                _ => null
+            };
 
         private static bool IsNamespaceName(IdentifierNameSyntax identifierSyntax)
         {

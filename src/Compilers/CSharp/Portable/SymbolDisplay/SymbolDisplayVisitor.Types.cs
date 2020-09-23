@@ -564,7 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
-                    return SymbolDisplayPartKind.ClassName;
+                    return SymbolDisplayVisitorHelpers.FindValidCloneMethod(symbol) == null
+                        ? SymbolDisplayPartKind.ClassName
+                        : SymbolDisplayPartKind.RecordName;
                 case TypeKind.Delegate:
                     return SymbolDisplayPartKind.DelegateName;
                 case TypeKind.Enum:

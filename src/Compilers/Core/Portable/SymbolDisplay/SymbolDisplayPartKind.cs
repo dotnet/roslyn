@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis
         ExtensionMethodName = 29,
         /// <summary>The name of a field or local constant.</summary>
         ConstantName = 30,
+        /// <summary>The name of a record.</summary>
+        RecordName = 31,
     }
 
     internal static class InternalSymbolDisplayPartKind

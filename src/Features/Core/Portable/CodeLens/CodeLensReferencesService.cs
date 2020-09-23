@@ -287,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             switch (parts[index + 1].Kind)
                             {
                                 case SymbolDisplayPartKind.ClassName:
+                                case SymbolDisplayPartKind.RecordName:
                                 case SymbolDisplayPartKind.DelegateName:
                                 case SymbolDisplayPartKind.EnumName:
                                 case SymbolDisplayPartKind.ErrorTypeName:
@@ -306,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         }
 
                         previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
+                                           part.Kind == SymbolDisplayPartKind.RecordName ||
                                            part.Kind == SymbolDisplayPartKind.InterfaceName ||
                                            part.Kind == SymbolDisplayPartKind.StructName;
                     }
