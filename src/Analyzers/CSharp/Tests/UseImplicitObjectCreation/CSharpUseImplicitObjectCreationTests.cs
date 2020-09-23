@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
         CSharpUseImplicitObjectCreationDiagnosticAnalyzer,
         CSharpUseImplicitObjectCreationCodeFixProvider>;
 
-    public partial class UseImplicitObjectCreationTests
+    public class UseImplicitObjectCreationTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
         public async Task TestMissingBeforeCSharp9()
