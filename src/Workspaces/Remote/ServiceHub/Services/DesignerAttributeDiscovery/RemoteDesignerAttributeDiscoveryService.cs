@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     analyzerProvider,
                     new IncrementalAnalyzerProviderMetadata(
                         nameof(RemoteDesignerAttributeIncrementalAnalyzerProvider),
-                        highPriorityForActiveFile: false,
+                        highPriorityForActiveFile: true,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
                 return default;

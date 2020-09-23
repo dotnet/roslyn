@@ -24,6 +24,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteDesignerAttributeIncrementalAnalyzer(workspace, _callback);
+            => new RemoteDesignerAttributeIncrementalAnalyzer(_callback);
     }
 }
