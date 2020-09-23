@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -143,6 +144,21 @@ namespace Analyzer.Utilities.Extensions
                      properties: properties,
                      messageArgs: args);
         }
+
+        public static Diagnostic CreateDiagnostic(
+            this SyntaxReference syntaxReference,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
+            params object[] args)
+            => syntaxReference.GetSyntax(cancellationToken).CreateDiagnostic(rule, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this IEnumerable<SyntaxReference> syntaxReferences,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            CancellationToken cancellationToken,
+            params object[] args)
+            => syntaxReferences.Select(s => s.GetSyntax(cancellationToken).GetLocation()).CreateDiagnostic(rule, properties, args);
 
         /// <summary>
         /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0

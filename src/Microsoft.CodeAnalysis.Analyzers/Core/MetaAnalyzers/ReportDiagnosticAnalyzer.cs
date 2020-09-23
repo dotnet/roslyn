@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 if (descriptorFields.Length == 1 &&
                                     !_supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
                                 {
-                                    Diagnostic diagnostic = Diagnostic.Create(InvalidReportDiagnosticRule, invocation.GetLocation(), descriptorFields[0].Name);
+                                    Diagnostic diagnostic = invocation.CreateDiagnostic(InvalidReportDiagnosticRule, descriptorFields[0].Name);
                                     symbolContext.ReportDiagnostic(diagnostic);
                                 }
                             }
