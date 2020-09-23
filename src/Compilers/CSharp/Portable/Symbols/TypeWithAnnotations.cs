@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public ImmutableArray<CustomModifier> CustomModifiers => _extensions.CustomModifiers;
 
         public TypeKind TypeKind => Type.TypeKind;
+        public bool IsAnnotatedOrUnannotatedTypeParameter => DefaultType.TypeKind == TypeKind.TypeParameter;
+
         public SpecialType SpecialType => _extensions.GetSpecialType(DefaultType);
         public Cci.PrimitiveTypeCode PrimitiveTypeCode => Type.PrimitiveTypeCode;
 
@@ -428,6 +430,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
         }
 
+        public void AddUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics) =>
+            DefaultType.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
             _extensions.SubstituteType(this, typeMap);
 
@@ -468,9 +473,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            //Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
 
-            if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            if (newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            {
+                if (newTypeWithModifiers._extensions is LazyNullableTypeParameter)
+                {
+                    Debug.Assert(newCustomModifiers.IsEmpty);
+                    return newTypeWithModifiers;
+                }
+                newAnnotation = NullableAnnotation.Annotated;
+            }
+            else if (NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
