@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -54,7 +53,7 @@ namespace Analyzer.Utilities
         /// </summary>
         internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
 
-        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, string> _symbolToFullyQualifiedName = new ConcurrentDictionary<ISymbol, string>();
+        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new ConcurrentDictionary<ISymbol, string>();
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
@@ -186,13 +185,11 @@ namespace Analyzer.Utilities
                     ? parts.SymbolName
                     : optionalPrefix + parts.SymbolName;
 
-#pragma warning disable CA1307 // Specify StringComparison - https://github.com/dotnet/roslyn-analyzers/issues/1552
                 // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
                 // We instead search for a '..ctor' in editorconfig and replace it with a '.#ctor' here.
                 // Similarly, handle static constructors ".cctor"
-                nameWithPrefix = nameWithPrefix.Replace("..ctor", ".#ctor");
-                nameWithPrefix = nameWithPrefix.Replace("..cctor", ".#cctor");
-#pragma warning restore
+                nameWithPrefix = nameWithPrefix.Replace("..ctor", ".#ctor", StringComparison.Ordinal);
+                nameWithPrefix = nameWithPrefix.Replace("..cctor", ".#cctor", StringComparison.Ordinal);
 
                 foreach (var symbol in DocumentationCommentId.GetSymbolsForDeclarationId(nameWithPrefix, compilation))
                 {
@@ -291,26 +288,37 @@ namespace Analyzer.Utilities
                 return !firstMatch.Equals(NoWildcardMatch);
             }
 
-            // First, try to match the qualified name
+            var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, s => GetDeclarationId(s));
+
+            // We start by trying to match with the most precise definition (prefix)...
             if (_wildcardNamesBySymbolKind.ContainsKey(symbol.Kind))
             {
-                var fullyQualifiedName = _symbolToFullyQualifiedName.GetOrAdd(symbol, s => DocumentationCommentId.CreateDeclarationId(s)[2..]);
-                if (_wildcardNamesBySymbolKind[symbol.Kind].FirstOrDefault(kvp => fullyQualifiedName.StartsWith(kvp.Key, StringComparison.Ordinal)) is var qualifiedFirstMatchOrDefault &&
-                    !string.IsNullOrWhiteSpace(qualifiedFirstMatchOrDefault.Key))
+                if (_wildcardNamesBySymbolKind[symbol.Kind].FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
+                    !string.IsNullOrWhiteSpace(prefixedFirstMatchOrDefault.Key))
                 {
-                    firstMatch = qualifiedFirstMatchOrDefault;
-                    _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => qualifiedFirstMatchOrDefault);
+                    firstMatch = prefixedFirstMatchOrDefault;
+                    _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => prefixedFirstMatchOrDefault);
                     return true;
                 }
             }
 
-            // Then, match by unqualified name
+            // If not found, then we try to match with the symbol full declaration ID...
             if (_wildcardNamesBySymbolKind.ContainsKey(AllKinds) &&
-                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unqualifiedFirstMatchOrDefault &&
-                !string.IsNullOrWhiteSpace(unqualifiedFirstMatchOrDefault.Key))
+                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unprefixedFirstMatchOrDefault &&
+                !string.IsNullOrWhiteSpace(unprefixedFirstMatchOrDefault.Key))
             {
-                firstMatch = unqualifiedFirstMatchOrDefault;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => unqualifiedFirstMatchOrDefault);
+                firstMatch = unprefixedFirstMatchOrDefault;
+                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => unprefixedFirstMatchOrDefault);
+                return true;
+            }
+
+            // If not found, then we try to match with the symbol name...
+            if (_wildcardNamesBySymbolKind.ContainsKey(AllKinds) &&
+                _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var partialFirstMatchOrDefault &&
+                !string.IsNullOrWhiteSpace(partialFirstMatchOrDefault.Key))
+            {
+                firstMatch = partialFirstMatchOrDefault;
+                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => partialFirstMatchOrDefault);
                 return true;
             }
 
@@ -318,6 +326,18 @@ namespace Analyzer.Utilities
             firstMatch = NoWildcardMatch;
             _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => NoWildcardMatch);
             return false;
+
+            static string GetDeclarationId(ISymbol symbol)
+            {
+                var declarationIdWithoutPrefix = DocumentationCommentId.CreateDeclarationId(symbol)[2..];
+
+                // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
+                declarationIdWithoutPrefix = declarationIdWithoutPrefix
+                    .Replace(".#ctor", "..ctor", StringComparison.Ordinal)
+                    .Replace(".#cctor", "..cctor", StringComparison.Ordinal);
+
+                return declarationIdWithoutPrefix;
+            }
         }
 
         /// <summary>
