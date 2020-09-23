@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
 {
-    internal interface IReferenceUpdateService : IWorkspaceService
+    internal interface IReferenceCleanupService : IWorkspaceService
     {
         /// <summary>
         /// Gets the current selected TargetFramework for the specified project.
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// </summary>
         Task<ImmutableArray<Reference>> GetProjectReferencesAsync(
             string projectPath,
+            string targetFramework,
             CancellationToken cancellationToken);
 
         /// <summary>

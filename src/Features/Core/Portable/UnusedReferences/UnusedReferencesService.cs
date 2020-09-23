@@ -22,19 +22,19 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
         }
 
-        public async Task<ImmutableArray<UnusedReference>> GetUnusedReferencesAsync(Project project, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Reference>> GetUnusedReferencesAsync(Project project, CancellationToken cancellationToken)
         {
             var workspace = project.Solution.Workspace;
-            var referenceUpdateService = workspace.Services.GetService<IReferenceUpdateService>();
+            var referenceUpdateService = workspace.Services.GetService<IReferenceCleanupService>();
             if (referenceUpdateService is null)
             {
-                return ImmutableArray<UnusedReference>.Empty;
+                return ImmutableArray<Reference>.Empty;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (compilation is null)
             {
-                return ImmutableArray<UnusedReference>.Empty;
+                return ImmutableArray<Reference>.Empty;
             }
 
             var usedReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
             var projectAssetsText = File.ReadAllText(projectAssetsFilePath);
 
-            return ImmutableArray<UnusedReference>.Empty;
+            return ImmutableArray<Reference>.Empty;
         }
 
         public Task<Project> UpdateReferencesAsync(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)

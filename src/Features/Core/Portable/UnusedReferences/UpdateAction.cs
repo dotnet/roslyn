@@ -20,10 +20,5 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// Indicates the reference should be removed from the project.
         /// </summary>
         Remove,
-
-        /// <summary>
-        /// Indicates the reference should be added to the project.
-        /// </summary>
-        Add,
     }
 }

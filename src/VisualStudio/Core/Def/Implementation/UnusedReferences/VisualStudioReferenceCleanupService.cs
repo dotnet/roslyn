@@ -21,16 +21,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     /// <summary>
     /// This service forwards Reference requests from the feature layer to the ProjectSystem.
     /// </summary>
-    [ExportWorkspaceService(typeof(IReferenceUpdateService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioReferenceUpdateService : IReferenceUpdateService
+    [ExportWorkspaceService(typeof(IReferenceCleanupService), ServiceLayer.Host), Shared]
+    internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
     {
-        private readonly IProjectSystemReferenceUpdateService _projectSystemReferenceUpdateService;
+        private readonly IProjectSystemReferenceCleanupService _projectSystemReferenceUpdateService;
         private readonly VisualStudioWorkspaceImpl _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioReferenceUpdateService(
-            IProjectSystemReferenceUpdateService projectSystemReferenceUpdateService,
+        public VisualStudioReferenceCleanupService(
+            IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService,
             VisualStudioWorkspaceImpl workspace)
         {
             _projectSystemReferenceUpdateService = projectSystemReferenceUpdateService;
@@ -53,9 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, targetFramework, cancellationToken);
         }
 
-        public async Task<ImmutableArray<Reference>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Reference>> GetProjectReferencesAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
         {
-            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
+            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, targetFramework, cancellationToken).ConfigureAwait(false);
             return projectSystemReferences.Select(reference => reference.ToReference()).ToImmutableArray();
         }
 

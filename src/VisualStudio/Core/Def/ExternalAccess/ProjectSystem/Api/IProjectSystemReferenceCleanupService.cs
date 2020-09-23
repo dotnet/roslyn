@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
 {
     // Interface to be implemented and MEF exported by Project System
-    internal interface IProjectSystemReferenceUpdateService
+    internal interface IProjectSystemReferenceCleanupService
     {
         /// <summary>
         /// For the given project, returns the full path to the project.assets.json file
@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// </summary>
         Task<ImmutableArray<ProjectSystemReference>> GetProjectReferencesAsync(
             string projectPath,
+            string targetFramework,
             CancellationToken cancellationToken);
 
         /// <summary>

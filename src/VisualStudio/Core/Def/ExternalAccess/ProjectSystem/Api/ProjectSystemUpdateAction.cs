@@ -20,10 +20,5 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// Indicates the reference should be removed from the project.
         /// </summary>
         Remove,
-
-        /// <summary>
-        /// Indicates the reference should be added to the project.
-        /// </summary>
-        Add,
     }
 }
