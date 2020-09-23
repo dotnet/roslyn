@@ -551,30 +551,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
+            if (!member.IsAbstract && !member.IsVirtual && !member.IsOverride)
+                return false;
+
+            if (member.IsSealed)
+                return false;
+
+            if (!member.CanBeReferencedByName)
+                return false;
+
+            if (!member.IsAccessibleWithin(containingType))
+                return false;
+
+            return member switch
             {
-                if (member.IsSealed)
-                {
-                    return false;
-                }
-
-                if (!member.IsAccessibleWithin(containingType))
-                {
-                    return false;
-                }
-
-                switch (member.Kind)
-                {
-                    case SymbolKind.Event:
-                        return true;
-                    case SymbolKind.Method:
-                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
-                    case SymbolKind.Property:
-                        return !((IPropertySymbol)member).IsWithEvents;
-                }
-            }
-
-            return false;
+                IEventSymbol _ => true,
+                IMethodSymbol method when method.MethodKind == MethodKind.Ordinary => true,
+                IPropertySymbol property when !property.IsWithEvents => true,
+                _ => false,
+            };
         }
 
         private static void RemoveOverriddenMembers(
