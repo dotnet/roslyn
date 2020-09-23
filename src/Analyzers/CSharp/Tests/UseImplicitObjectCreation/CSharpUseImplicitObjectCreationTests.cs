@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreationTests
@@ -115,7 +116,7 @@ class C
                 TestCode = @"
 class C
 {
-    Object c = new C();
+    object c = new C();
 }",
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
@@ -126,11 +127,23 @@ class C
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
+                TestState = {
+                    Sources =
+                    {
+                        @"
 class C
 {
     E c = new E();
-}",
+}"
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(4,5): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(4, 5, 4, 6).WithArguments("E"),
+                        // /0/Test0.cs(4,15): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(4, 15, 4, 16).WithArguments("E"),
+                    }
+                },
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
