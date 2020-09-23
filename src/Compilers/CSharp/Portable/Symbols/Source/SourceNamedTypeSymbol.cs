@@ -259,7 +259,7 @@ next:;
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(canIgnoreNullableContext, diagnostics), clauses) == clauses)
                 {
-                    if (!canIgnoreNullableContext)
+                    if  (_lazyTypeParameterConstraints.IsSet(false))
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }
@@ -321,7 +321,7 @@ next:;
                         // to avoid checking constraints when binding type names.
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(
-                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canIgnoreNullableContext ? BinderFlags.IgnoreNullableAnnotationsEnabled : 0));
+                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canIgnoreNullableContext ? BinderFlags.IgnoreNullableContext : 0));
 
                         constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, canIgnoreNullableContext, ref isValueTypeOverride, diagnostics);
                     }

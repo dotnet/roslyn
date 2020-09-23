@@ -110,7 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InEEMethodBinder = 1 << 30,
 
-        IgnoreNullableAnnotationsEnabled = 1u << 31,
+        /// <summary>
+        /// Assume '#nullable disabled'.
+        /// </summary>
+        IgnoreNullableContext = 1u << 31,
 
         // Groups
 
