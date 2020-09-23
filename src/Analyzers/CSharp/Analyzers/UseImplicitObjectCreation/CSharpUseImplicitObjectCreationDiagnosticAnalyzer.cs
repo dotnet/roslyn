@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             //
             // 1. Variable declarations.    i.e. `List<int> list = new ...`.  Note: we will suppress ourselves if this
             //    is a field and the 'var' preferences would lead to preferring this as `var list = ...`
-            // 2. Expr-bodied constructs with an explicit return type.  i.e. `List<int> Prop => new ...` or `List<int>
-            //    GetX(...) => ...` The latter doesn't necessarily have the object creation spatially next to the type.
-            //    However, the type is always in a very easy to ascertain location in c#, so it counts as apparent. 
+            // 2. Expression-bodied constructs with an explicit return type.  i.e. `List<int> Prop => new ...` or
+            //    `List<int> GetValue(...) => ...` The latter doesn't necessarily have the object creation spatially next to
+            //    the type.  However, the type is always in a very easy to ascertain location in C#, so it is treated as
+            //    apparent. 
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
