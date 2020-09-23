@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
             var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (container is null)
             {
