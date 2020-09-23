@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
             // Create new tasks that both start executing, rather than invoking the delegates directly.
-            // If the reader started synchronously reading before the writer task started it would hang, and vice versa
-            // if the writer synchronously filled the buffer before the reader task started it would also hang.
+            // If the reader started synchronously reading before the writer task started it would deadlock, and vice versa
+            // if the writer synchronously filled the buffer before the reader task started it would also deadlock.
             var writerTask = Task.Run(async () => await invocation(service, serverStream, cancellationToken).ConfigureAwait(false), cancellationToken);
             var readerTask = Task.Run(async () => await reader(clientStream, cancellationToken).ConfigureAwait(false), cancellationToken);
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
