@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -149,6 +151,20 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithDynamic()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    dynamic c = new C();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
         public async Task TestNotWithArrayTypes()
         {
             await new VerifyCS.Test
@@ -159,6 +175,75 @@ class C
     int[] c = new int[0];
 }",
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithTypeParameter()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C<T> where T : new()
+{
+    T t = new [|T|]();
+}",
+                FixedCode = @"
+class C<T> where T : new()
+{
+    T t = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithLocalWhenUserDoesNotPreferVar()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void M()
+    {
+        C c = new [|C|]();
+    }
+}",
+                FixedCode = @"
+class C
+{
+    void M()
+    {
+        C c = new();
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.FalseWithSuggestionEnforcement },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithLocalWhenUserDoesPreferVar()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void M()
+    {
+        C c = new C();
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement },
+                }
             }.RunAsync();
         }
     }
