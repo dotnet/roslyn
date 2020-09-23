@@ -79,7 +79,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         {
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
-            var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var editorBrowsableInfo = new EditorBrowsableInfo(currentCompilation);
+
+            var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, editorBrowsableInfo, cancellationToken).ConfigureAwait(false);
 
             // We always force create a cache for current project.
             Debug.Assert(cacheResult.HasValue);
@@ -88,7 +91,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             var solution = currentProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
             var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(id => solution.GetRequiredProject(id));
-            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
             {
@@ -102,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         referencedProject,
                         syntaxContext,
                         forceCacheCreation,
+                        editorBrowsableInfo: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (cacheResult.HasValue)
@@ -116,8 +119,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     }
                 }
             }
-
-            var editorBrowsableInfo = new EditorBrowsableInfo(currentCompilation);
 
             foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
+            EditorBrowsableInfo? editorBrowsableInfo,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 syntaxContext,
                 forceCacheCreation,
                 CacheService.ProjectItemsCache,
-                new EditorBrowsableInfo(compilation),
+                editorBrowsableInfo ?? new EditorBrowsableInfo(compilation),
                 cancellationToken);
         }
 
@@ -399,6 +401,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         // Things needed for determining whether a symbol is EditorBrowsable.
         // Grouped together and reused within each compilation.
+        //
+        // Based on profiling results, initializing these symbols upfront for each referenced
+        // project every time a completion is triggered is expensive. Making them lazy would
+        // eliminate this overhead when we have a cache hit while keeping it easy to share 
+        // between original projects and PE references when trying to get completion items.
         private class EditorBrowsableInfo
         {
             private Optional<INamedTypeSymbol?>? _hideModuleNameAttribute;

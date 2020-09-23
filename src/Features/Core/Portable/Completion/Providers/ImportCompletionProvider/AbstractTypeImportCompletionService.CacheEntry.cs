@@ -52,12 +52,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 // 1. attribute context, then we will not show or complete with "Attribute" suffix.
                 // 2. a project with different language than when the cache entry was created,
                 //    then we will change the generic suffix accordingly.
-                // 3. asked to hide advanced members and there is advanced member in the cache
+                // 3. option to show advanced members is false and there is advanced member items in this cache entry
+                //    (which need to be filtered out)
                 // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;
+                var needToFilterOutAdvancedMembers = hideAdvancedMembers && ContainsAdvancedMembers;
                 if (isSameLanguage &&
                     !isAttributeContext &&
-                    !(hideAdvancedMembers && ContainsAdvancedMembers))
+                    !needToFilterOutAdvancedMembers)
                 {
                     return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
                 }
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
                 {
-                    // We want to cache items with EditoBrowsableState == Advanced regarless of current "hide adv members" option value
+                    // We want to cache items with EditoBrowsableState == Advanced regardless of current "hide adv members" option value
                     var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
                         hideAdvancedMembers: false,
                         _editorBrowsableInfo.Compilation,
