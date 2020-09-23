@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -135,15 +136,15 @@ class C
                         @"
 class C
 {
-    E c = new E();
+    {|#0:E|} c = new {|#1:E|}();
 }"
                     },
                     ExpectedDiagnostics =
                     {
                         // /0/Test0.cs(4,5): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(4, 5, 4, 6).WithArguments("E"),
+                        DiagnosticResult.CompilerError("CS0246").WithLocation(0).WithArguments("E"),
                         // /0/Test0.cs(4,15): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(4, 15, 4, 16).WithArguments("E"),
+                        DiagnosticResult.CompilerError("CS0246").WithLocation(1).WithArguments("E"),
                     }
                 },
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
