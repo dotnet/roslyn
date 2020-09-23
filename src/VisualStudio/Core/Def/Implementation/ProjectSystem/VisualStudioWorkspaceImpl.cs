@@ -93,6 +93,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private ImmutableHashSet<DocumentId> _documentsNotFromFiles = ImmutableHashSet<DocumentId>.Empty;
 
+        /// <summary>
+        /// Indicates whether the current solution is closing.
+        /// </summary>
+        private bool _solutionClosing;
+
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker? _projectTracker;
 
@@ -140,7 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()), isThreadSafe: true);
+                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                    _threadingContext), isThreadSafe: true);
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -185,7 +191,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
         {
             // Create services that are bound to the UI thread
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
+            var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
+            solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
 
@@ -641,6 +650,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         break;
                     }
                 }
+            }
+        }
+
+        internal override void ApplyMappedFileChanges(SolutionChanges solutionChanges)
+        {
+            // Get the original text changes from all documents and call the span mapping service to get span mappings for the text changes.
+            // Create mapped text changes using the mapped spans and original text changes' text.
+
+            // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
+            // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
+            // using ConfigureAwait(true).  This deadlocks as it then attempts to return to the UI thread which is already blocked by us.
+            // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
+            // tries to switch back to the main thread in the LSP client.
+            // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
+
+            // Group the mapped text changes by file, then apply all mapped text changes for the file.
+            foreach (var changesForFile in mappedChanges)
+            {
+                // It doesn't matter which of the file's projectIds we pass to the invisible editor, so just pick the first.
+                var projectId = changesForFile.Value.First().ProjectId;
+                // Make sure we only take distinct changes - we'll have duplicates from different projects for linked files or multi-targeted files.
+                var distinctTextChanges = changesForFile.Value.Select(change => change.TextChange).Distinct().ToImmutableArray();
+                using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectId), needsSave: true, needsUndoDisabled: false);
+                TextEditApplication.UpdateText(distinctTextChanges, invisibleEditor.TextBuffer, EditOptions.None);
+            }
+
+            return;
+
+            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
+            {
+                var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
+                foreach (var projectChanges in solutionChanges.GetProjectChanges())
+                {
+                    foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
+                    {
+                        var oldDocument = projectChanges.OldProject.GetRequiredDocument(changedDocumentId);
+                        if (!ShouldApplyChangesToMappedDocuments(oldDocument, out var mappingService))
+                        {
+                            continue;
+                        }
+
+                        var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
+                        var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
+                        var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+
+                        Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
+
+                        for (var i = 0; i < mappedSpanResults.Length; i++)
+                        {
+                            // Only include changes that could be mapped.
+                            var newText = textChanges[i].NewText;
+                            if (!mappedSpanResults[i].IsDefault && newText != null)
+                            {
+                                var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
+                                filePathToMappedTextChanges.Add(mappedSpanResults[i].FilePath, (newTextChange, projectChanges.ProjectId));
+                            }
+                        }
+                    }
+                }
+
+                return filePathToMappedTextChanges;
+            }
+
+            bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
+            {
+                spanMappingService = document.Services.GetService<ISpanMappingService>();
+                // Only consider files that are mapped and that we are unable to apply changes to.
+                // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
+                return spanMappingService != null && document?.CanApplyChange() == false;
             }
         }
 
@@ -1815,20 +1894,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectReferenceInformation.OutputPaths.Remove(outputPath);
                 _projectsByOutputPath.MultiRemove(outputPath, projectId);
 
-                if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
+                // When a project is closed, we may need to convert project references to metadata references (or vice
+                // versa). Failure to convert the references could leave a project in the workspace with a project
+                // reference to a project which is not open.
+                //
+                // For the specific case where the entire solution is closing, we do not need to update the state for
+                // remaining projects as each project closes, because we know those projects will be closed without
+                // further use. Avoiding reference conversion when the solution is closing improves performance for both
+                // IDE close scenarios and solution reload scenarios that occur after complex branch switches.
+                if (!_solutionClosing)
                 {
-                    var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
-                    if (distinctRemainingProjects.Count() == 1)
+                    if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
                     {
-                        // We had more than one project outputting to the same path. Now we're back down to one
-                        // so we can reference that one again
-                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
+                        var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
+                        if (distinctRemainingProjects.Count() == 1)
+                        {
+                            // We had more than one project outputting to the same path. Now we're back down to one
+                            // so we can reference that one again
+                            ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
+                        }
                     }
-                }
-                else
-                {
-                    // No projects left, we need to convert back to metadata references
-                    ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    else
+                    {
+                        // No projects left, we need to convert back to metadata references
+                        ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    }
                 }
             }
         }

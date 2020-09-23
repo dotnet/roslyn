@@ -584,10 +584,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var overriddenMember = member.OverriddenMember();
-                if (overriddenMember != null)
+                if (!member.IsImplicitlyDeclared)
                 {
-                    result.Remove(overriddenMember);
+                    var overriddenMember = member.OverriddenMember();
+                    if (overriddenMember != null)
+                        result.Remove(overriddenMember);
                 }
             }
         }

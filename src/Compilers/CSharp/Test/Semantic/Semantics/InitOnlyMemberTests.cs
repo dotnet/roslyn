@@ -3774,5 +3774,265 @@ class Program
             var setter = (RetargetingMethodSymbol)property.SetMethod;
             Assert.True(setter.IsInitOnly);
         }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyStruct_AutoProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public readonly struct S
+{
+    public int I { get; init; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyStruct_ManualProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public readonly struct S
+{
+    private readonly int i;
+    public int I { get => i; init => i = value; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyProperty_AutoProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    public readonly int I { get; init; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyProperty_ManualProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    private readonly int i;
+    public readonly int I { get => i; init => i = value; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_AutoProp()
+        {
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, @"
+public struct S
+{
+    public int I { get; readonly init; }
+}
+" });
+
+            comp.VerifyDiagnostics(
+                // (4,34): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.I' readonly instead.
+                //     public int I { get; readonly init; }
+                Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init", isSuppressed: false).WithArguments("S.I").WithLocation(4, 34)
+            );
+
+            var s = ((Compilation)comp).GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+            Assert.True(((Symbols.PublicModel.PropertySymbol)i).GetSymbol<PropertySymbol>().SetMethod.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_ManualProp()
+        {
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, @"
+public struct S
+{
+    public int I { get => 1; readonly init { } }
+}
+" });
+
+            comp.VerifyDiagnostics(
+                // (4,39): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.I' readonly instead.
+                //     public int I { get => 1; readonly init { } }
+                Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init", isSuppressed: false).WithArguments("S.I").WithLocation(4, 39)
+            );
+
+            var s = ((Compilation)comp).GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+            Assert.True(((Symbols.PublicModel.PropertySymbol)i).GetSymbol<PropertySymbol>().SetMethod.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_ReassignsSelf()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I1 = 1, I2 = 2 };
+System.Console.WriteLine($""I1 is {s.I1}"");
+
+public readonly struct S
+{
+    private readonly int i;
+    public readonly int I1 { get => i; init => i = value; }
+    public int I2
+    { 
+        get => throw null;
+        init
+        {
+            System.Console.WriteLine($""I1 was {I1}"");
+            this = default;
+        }
+    }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: @"I1 was 1
+I1 is 0");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i1 = s.GetMember<IPropertySymbol>("I1");
+            Assert.False(i1.SetMethod.IsReadOnly);
+            var i2 = s.GetMember<IPropertySymbol>("I2");
+            Assert.False(i2.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I1.init""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""void S.I2.init""
+  IL_0018:  ldloc.1
+  IL_0019:  stloc.0
+  IL_001a:  ldstr      ""I1 is {0}""
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""int S.I1.get""
+  IL_0026:  box        ""int""
+  IL_002b:  call       ""string string.Format(string, object)""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
+}
+");
+        }
     }
 }

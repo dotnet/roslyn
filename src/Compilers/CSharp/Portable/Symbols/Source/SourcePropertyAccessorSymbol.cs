@@ -496,10 +496,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.MethodKind == MethodKind.PropertyGet)
             {
                 var type = _property.TypeWithAnnotations;
-                if (!ContainingType.IsInterfaceType() && type.Type.IsStatic)
+                if (type.Type.IsStatic)
                 {
                     // '{0}': static types cannot be used as return types
-                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, this.locations[0], type.Type);
+                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), this.locations[0], type.Type);
                 }
 
                 return type;
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (LocalDeclaredReadOnly || _property.HasReadOnlyModifier)
+                if (LocalDeclaredReadOnly || (_property.HasReadOnlyModifier && IsValidReadOnlyTarget))
                 {
                     return true;
                 }
@@ -672,6 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (LocalDeclaredReadOnly && IsInitOnly)
+            {
+                // 'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.
+                diagnostics.Add(ErrorCode.ERR_InitCannotBeReadonly, location, _property);
             }
             else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertySet)
             {
@@ -802,10 +807,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isGetMethod)
             {
                 var propertyType = _property.TypeWithAnnotations;
-                if (!ContainingType.IsInterfaceType() && propertyType.IsStatic)
+                if (propertyType.IsStatic)
                 {
                     // '{0}': static types cannot be used as parameters
-                    diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, this.locations[0], propertyType.Type);
+                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), this.locations[0], propertyType.Type);
                 }
 
                 parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));

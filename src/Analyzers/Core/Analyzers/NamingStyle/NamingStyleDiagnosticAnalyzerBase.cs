@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -42,12 +44,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
+        protected abstract bool ShouldIgnore(ISymbol symbol);
+
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
 
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
-            var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>>(
+            var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>>(
                 concurrencyLevel: 2, capacity: 0);
 
             context.RegisterSymbolAction(SymbolAction, _symbolKinds);
@@ -94,17 +98,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
-            _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
+        private static readonly Func<Guid, ConcurrentDictionary<string, string?>> s_createCache =
+            _ => new ConcurrentDictionary<string, string?>(concurrencyLevel: 2, capacity: 0);
 
-        private Diagnostic TryGetDiagnostic(
+        private Diagnostic? TryGetDiagnostic(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult,
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(symbol.Name))
+            {
+                return null;
+            }
+
+            if (ShouldIgnore(symbol))
             {
                 return null;
             }
@@ -148,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
-        private static NamingStylePreferences GetNamingStylePreferences(
+        private static NamingStylePreferences? GetNamingStylePreferences(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,

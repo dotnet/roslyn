@@ -40781,6 +40781,7 @@ true
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetStandardLatest,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
@@ -41031,6 +41032,7 @@ class Test3 : I1
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetStandardLatest,
                                                  parseOptions: TestOptions.Regular7_3);
 
             var expected9 = new DiagnosticDescription[]

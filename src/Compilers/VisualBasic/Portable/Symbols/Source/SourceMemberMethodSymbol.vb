@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
         ''' by calling AssignAsyncStateMachineType(...).
         ''' </summary>
-        Private _asyncStateMachineType As NamedTypeSymbol = Nothing
+        Private ReadOnly _asyncStateMachineType As NamedTypeSymbol = Nothing
 
         ' lazily evaluated state of the symbol (StateFlags)
         Private _lazyState As Integer

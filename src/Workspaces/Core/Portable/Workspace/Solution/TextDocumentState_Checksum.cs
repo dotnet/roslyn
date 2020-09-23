@@ -35,12 +35,11 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
-
                     var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
 
                     var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
-                    var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);
+                    var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
+                    var textChecksum = serializer.CreateChecksum(serializableText, cancellationToken);
 
                     return new DocumentStateChecksums(infoChecksum, textChecksum);
                 }

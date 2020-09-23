@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -101,6 +101,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
 
         internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
+
+#nullable enable
+        /// <summary>
+        /// Returns the <see cref="UnmanagedCallersOnlyAttributeData"/> data for this method, if there is any. If forceComplete
+        /// is false and the data has not yet been loaded or only early attribute binding has occurred, then either
+        /// <see cref="UnmanagedCallersOnlyAttributeData.Uninitialized"/> or
+        /// <see cref="UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound"/> will be returned, respectively.
+        /// If passing true for forceComplete, ensure that cycles will not occur by not calling in the process of binding
+        /// an attribute argument.
+        /// </summary>
+        internal abstract UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete);
+#nullable restore
 
         /// <summary>
         /// Returns true if this method is an extension method.
@@ -347,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsEffectivelyReadOnly => (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
 
-        protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor;
+        protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor && !IsInitOnly;
 
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.
@@ -944,6 +956,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return false;
         }
+
+#nullable enable
+        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location? location, DiagnosticBag? diagnostics)
+        {
+            Debug.Assert((location is null) == (diagnostics is null));
+            ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
+            bool isValid = true;
+            if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+            {
+                foreach (var (key, value) in attribute.CommonNamedArguments)
+                {
+                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
+                    {
+                        continue;
+                    }
+
+                    if (callingConventionTypes != null)
+                    {
+                        isValid = false;
+                    }
+
+                    if (value.Values.IsDefaultOrEmpty)
+                    {
+                        callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                        continue;
+                    }
+
+                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                    foreach (var callConvTypedConstant in value.Values)
+                    {
+                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                        {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
+                            isValid = false;
+                        }
+                        else
+                        {
+                            _ = builder.Add(callConvType);
+                        }
+
+                    }
+                    callingConventionTypes = builder.ToImmutableHashSet();
+                    builder.Free();
+                }
+            }
+
+            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid);
+        }
+#nullable restore
 
         /// <summary>
         /// Return error code that has highest priority while calculating use site error for this symbol.

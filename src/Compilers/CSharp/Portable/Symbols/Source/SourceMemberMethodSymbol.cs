@@ -876,9 +876,8 @@ done:
 
             if (this.RequiresExplicitOverride(out _))
             {
-                // If present, we add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
-                var attr = moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor, isOptionalUse: true);
-                AddSynthesizedAttribute(ref attributes, attr);
+                // On platforms where it is present, add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizePreserveBaseOverridesAttribute());
             }
 
             bool isAsync = this.IsAsync;

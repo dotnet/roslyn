@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
             nullableWarnings.Add(getId(ErrorCode.WRN_ParameterDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterNotNullIfNotNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ReturnNotNullIfNotNull));
 
             NullableWarnings = nullableWarnings.ToImmutable();
 
@@ -229,6 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                case ErrorCode.WRN_ParameterIsStaticClass:
+                case ErrorCode.WRN_ReturnTypeIsStaticClass:
                     // Warning level 5 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
                     return 5;
@@ -266,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IsDynamicIsConfusing:
                 case ErrorCode.WRN_DebugFullNameTooLong:
                 case ErrorCode.WRN_PdbLocalNameTooLong:
+                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                     return 3;
                 case ErrorCode.WRN_NewRequired:
                 case ErrorCode.WRN_NewOrOverrideExpected:
@@ -445,6 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_UnboxPossibleNull:
@@ -476,6 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                case ErrorCode.WRN_ReturnNotNullIfNotNull:
                     return 1;
                 default:
                     return 0;
@@ -549,5 +557,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        internal static ErrorCode GetStaticClassParameterCode(bool useWarning)
+            => useWarning ? ErrorCode.WRN_ParameterIsStaticClass : ErrorCode.ERR_ParameterIsStaticClass;
+
+        internal static ErrorCode GetStaticClassReturnCode(bool useWarning)
+            => useWarning ? ErrorCode.WRN_ReturnTypeIsStaticClass : ErrorCode.ERR_ReturnTypeIsStaticClass;
     }
 }

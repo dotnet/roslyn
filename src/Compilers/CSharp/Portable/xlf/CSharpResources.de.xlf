@@ -147,11 +147,6 @@
         <target state="new">Records may only inherit from object or another record</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have a non-empty parameter list</source>
-        <target state="needs-review-translation">Ein positioneller Datensatz muss sowohl einen data-Modifizierer als auch eine nicht leere Parameterliste aufweisen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
@@ -307,6 +302,11 @@
         <target state="translated">Eine Anweisung kann nicht mit "else" beginnen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Die explizite Anwendung von "System.Runtime.CompilerServices.NullableAttribute" ist unzulässig.</target>
@@ -442,6 +442,11 @@
         <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch gebundenen Ausdrücken verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="new">Instance properties in interfaces cannot have initializers.</target>
@@ -526,6 +531,11 @@
         <source>Pattern missing</source>
         <target state="translated">Muster fehlt.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
         <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
@@ -887,6 +897,71 @@
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="new">discards</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="new">'{0}' defines 'Equals' but not 'GetHashCode'</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="new">Record defines 'Equals' but not 'GetHashCode'.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="new">Return value must be non-null because parameter '{0}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="new">Return value must be non-null because parameter is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
+        <target state="new">The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</source>
+        <target state="new">The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SyncAndAsyncEntryPoints">
         <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
         <target state="new">Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</target>
@@ -918,8 +993,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -2519,6 +2594,16 @@
         <target state="new">Parameter must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass">
+        <source>'{0}': static types cannot be used as parameters</source>
+        <target state="new">'{0}': static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="new">Static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrecedenceInversion">
         <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
         <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
@@ -2539,14 +2624,14 @@
         <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_RecordNamedDisallowed">
-        <source>Types and aliases should not be named 'record'.</source>
-        <target state="new">Types and aliases should not be named 'record'.</target>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass">
+        <source>'{0}': static types cannot be used as return types</source>
+        <target state="new">'{0}': static types cannot be used as return types</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_RecordNamedDisallowed_Title">
-        <source>Types and aliases should not be named 'record'.</source>
-        <target state="new">Types and aliases should not be named 'record'.</target>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="new">Static types cannot be used as return types</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">

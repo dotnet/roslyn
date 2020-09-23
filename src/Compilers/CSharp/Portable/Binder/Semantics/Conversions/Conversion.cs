@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeconstructMethodInfo = deconstructMethodInfoOpt;
             }
 
-            readonly internal DeconstructMethodInfo DeconstructMethodInfo;
+            internal readonly DeconstructMethodInfo DeconstructMethodInfo;
         }
 
         private Conversion(
@@ -1050,9 +1050,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
         }
 
-        readonly internal BoundExpression Invocation;
-        readonly internal BoundDeconstructValuePlaceholder InputPlaceholder;
-        readonly internal ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
+        internal readonly BoundExpression Invocation;
+        internal readonly BoundDeconstructValuePlaceholder InputPlaceholder;
+        internal readonly ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
         internal bool IsDefault => Invocation is null;
     }
 }
