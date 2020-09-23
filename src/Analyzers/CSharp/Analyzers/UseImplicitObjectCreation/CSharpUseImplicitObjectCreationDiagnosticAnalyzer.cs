@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     ConversionOperatorDeclarationSyntax conversion => conversion.Type,
                     OperatorDeclarationSyntax op => op.ReturnType,
                     BasePropertyDeclarationSyntax property => property.Type,
-                    AccessorDeclarationSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } accessor when accessor.IsKind(SyntaxKind.GetAccessorDeclaration) => baseProperty.Type,
+                    AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } accessor when accessor.IsKind(SyntaxKind.GetAccessorDeclaration) => baseProperty.Type,
                     _ => null,
                 };
             }

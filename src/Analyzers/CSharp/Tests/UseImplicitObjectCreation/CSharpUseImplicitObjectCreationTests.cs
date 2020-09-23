@@ -246,5 +246,220 @@ class C
                 }
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithForVariable()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void M()
+    {
+        for (C c = new [|C|]();;)
+        {
+        }
+    }
+}",
+                FixedCode = @"
+class C
+{
+    void M()
+    {
+        for (C c = new();;)
+        {
+        }
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithLocalFunctionExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void M()
+    {
+        C Func() => new [|C|]();
+    }
+}",
+                FixedCode = @"
+class C
+{
+    void M()
+    {
+        C Func() => new();
+    }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithMethodExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C Func() => new [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    C Func() => new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithConversionExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    public static implicit operator C(int i) => new [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    public static implicit operator C(int i) => new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithOperatorExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    public static C operator +(C c1, C c2) => new [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    public static C operator +(C c1, C c2) => new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithPropertyExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C P => new [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    C P => new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithPropertyAccessorExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C P { get => new [|C|](); }
+}",
+                FixedCode = @"
+class C
+{
+    C P { get => new(); }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithPropertySetAccessorExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C P { set => new C(); }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithIndexerExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C this[int i] => new [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    C this[int i] => new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestWithIndexerAccessorExpressionBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C this[int i] { get => new [|C|](); }
+}",
+                FixedCode = @"
+class C
+{
+    C this[int i] { get => new(); }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithMethodBlockBody()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C Func() { return new C(); }
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
