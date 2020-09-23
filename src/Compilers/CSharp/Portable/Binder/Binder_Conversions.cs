@@ -1115,17 +1115,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
+            {
+                return true;
+            }
+            
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
             }
-
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
-
-            if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe())
-            {
-                return ReportUnsafeIfNotAllowed(syntax, diagnostics);
-            }
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
