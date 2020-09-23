@@ -5,12 +5,15 @@
 #nullable enable
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -27,6 +30,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             expectedItemOrNull?.Length >= 2 && (expectedItemOrNull.StartsWith("(") || expectedItemOrNull.StartsWith("["))
             ? expectedItemOrNull.Substring(1, 1)
             : base.ItemPartiallyWritten(expectedItemOrNull);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorIndexerCompletionItemsShouldBePlacedLastInCompletionList()
+        {
+            var castCompletionItem = (await GetCompletionItemsAsync(@"
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", SourceCodeKind.Regular)).Single();
+
+            var completionList = new[] {
+                CompletionItem.Create("SomeText0"),
+                castCompletionItem,
+                CompletionItem.Create("SomeText1"),
+                CompletionItem.Create("\uffdcStartWith_FFDC_Identifier"), // http://www.fileformat.info/info/unicode/char/ffdc/index.htm
+                CompletionItem.Create("SomeText2"),
+                CompletionItem.Create("\uD884\uDF4AStartWith_3134A_Identifier"), // http://www.fileformat.info/info/unicode/char/3134a/index.htm
+                CompletionItem.Create("SomeText3"),
+            };
+            Array.Sort(completionList);
+            Assert.Collection(completionList,
+                c => Assert.Equal("SomeText0", c.DisplayText),
+                c => Assert.Equal("SomeText1", c.DisplayText),
+                c => Assert.Equal("SomeText2", c.DisplayText),
+                c => Assert.Equal("SomeText3", c.DisplayText),
+                c => Assert.Equal("\uD884\uDF4AStartWith_3134A_Identifier", c.DisplayText),
+                c => Assert.Equal("\uffdcStartWith_FFDC_Identifier", c.DisplayText),
+                c =>
+                {
+                    Assert.Same(c, castCompletionItem);
+                    Assert.Equal("(float)", c.DisplayText);
+                    Assert.Equal("\uFFFDfloat", c.SortText);
+                    Assert.Equal("float", c.FilterText);
+                });
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
