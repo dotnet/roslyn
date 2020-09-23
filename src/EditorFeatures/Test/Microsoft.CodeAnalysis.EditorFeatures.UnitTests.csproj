@@ -9,8 +9,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\CodeAnalysis\Diagnostics\DiagnosticComputer.cs" Link="Diagnostics\DiagnosticComputer.cs" />
-    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\CodeAnalysis\Diagnostics\IPerformanceTrackerService.cs" Link="Diagnostics\IPerformanceTrackerService.cs" />
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\DiagnosticAnalyzer\DiagnosticComputer.cs" Link="Diagnostics\DiagnosticComputer.cs" />
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\DiagnosticAnalyzer\IPerformanceTrackerService.cs" Link="Diagnostics\IPerformanceTrackerService.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

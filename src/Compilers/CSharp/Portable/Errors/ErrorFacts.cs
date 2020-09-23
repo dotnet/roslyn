@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
             nullableWarnings.Add(getId(ErrorCode.WRN_ParameterDisallowsNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterNotNullIfNotNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ReturnNotNullIfNotNull));
 
             NullableWarnings = nullableWarnings.ToImmutable();
 
@@ -231,7 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                 case ErrorCode.WRN_ParameterIsStaticClass:
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
-                case ErrorCode.WRN_PartialMethodTypeDifference:
                     // Warning level 5 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
                     return 5;
@@ -269,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IsDynamicIsConfusing:
                 case ErrorCode.WRN_DebugFullNameTooLong:
                 case ErrorCode.WRN_PdbLocalNameTooLong:
+                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                     return 3;
                 case ErrorCode.WRN_NewRequired:
                 case ErrorCode.WRN_NewOrOverrideExpected:
@@ -480,6 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                case ErrorCode.WRN_ReturnNotNullIfNotNull:
                     return 1;
                 default:
                     return 0;

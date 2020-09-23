@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (IsCandidate(token, expectedDocCommentId, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
                 {
                     var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, document, syntaxFacts);
-                    locations.Add(new FinderLocation(token.Parent, referenceLocation));
+                    locations.Add(new FinderLocation(token.GetRequiredParent(), referenceLocation));
                 }
             }
 

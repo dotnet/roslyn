@@ -1434,21 +1434,22 @@ End Enum
 Public Class MyAttribute
     Inherits System.Attribute
 
-    Private v1 As Short()
+    Private vs As Short()
     Private a1 As A
-    Private v2 As Boolean
-    Private v3 As Integer
-    Private v4 As Char
-    Private v5 As Short
-    Private v6 As Integer
-    Private v7 As Long
-    Private v8 As Double
-    Private v9 As Single
-    Private v10 As String
+    Private v1 As Boolean
+    Private v2 As Integer
+    Private v3 As Char
+    Private v4 As Short
+    Private v5 As Integer
+    Private v6 As Long
+    Private v7 As Double
+    Private v8 As Single
+    Private v9 As String
 
-    Public Sub New(v1() As Short, a1 As A, v2 As Boolean, v3 As Integer, v4 As Char, v5 As Short, v6 As Integer, v7 As Long, v8 As Double, v9 As Single, v10 As String)
-        Me.v1 = v1
+    Public Sub New(vs() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
+        Me.vs = vs
         Me.a1 = a1
+        Me.v1 = v1
         Me.v2 = v2
         Me.v3 = v3
         Me.v4 = v4
@@ -1457,7 +1458,6 @@ Public Class MyAttribute
         Me.v7 = v7
         Me.v8 = v8
         Me.v9 = v9
-        Me.v10 = v10
     End Sub
 End Class
 <MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>
@@ -1983,6 +1983,70 @@ Class Test
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")>
+        Public Async Function TestGenerateNameFromTypeArgument() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Collections.Generic
+
+Class Frog
+End Class
+
+Class C
+    Private Function M() As C
+        Return New C([||]New List(Of Frog)())
+    End Function
+End Class
+",
+"Imports System.Collections.Generic
+
+Class Frog
+End Class
+
+Class C
+    Private frogs As List(Of Frog)
+
+    Public Sub New(frogs As List(Of Frog))
+        Me.frogs = frogs
+    End Sub
+
+    Private Function M() As C
+        Return New C(New List(Of Frog)())
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(44708, "https://github.com/dotnet/roslyn/issues/44708")>
+        Public Async Function TestDoNotGenerateNameFromTypeArgumentIfNotEnumerable() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Frog(Of T)
+End Class
+
+Class C
+    Private Function M() As C
+        Return New C([||]New Frog(Of Integer)())
+    End Function
+End Class
+",
+"Class Frog(Of T)
+End Class
+
+Class C
+    Private frog As Frog(Of Integer)
+
+    Public Sub New(frog As Frog(Of Integer))
+        Me.frog = frog
+    End Sub
+
+    Private Function M() As C
+        Return New C(New Frog(Of Integer)())
+    End Function
 End Class
 ")
         End Function
