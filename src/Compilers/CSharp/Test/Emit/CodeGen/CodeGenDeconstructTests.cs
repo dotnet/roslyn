@@ -7117,7 +7117,30 @@ class Program
 
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "1");
+            CompileAndVerify(compilation, expectedOutput: "1")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1, //z
+                int V_2) //x1
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  nop
+  IL_001f:  ret
+}");
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
