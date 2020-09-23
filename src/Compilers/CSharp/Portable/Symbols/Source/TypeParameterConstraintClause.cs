@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterConstraintClauseExtensions
     {
-        internal static bool IsSet(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool canIgnoreNullableContext)
+        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool canIgnoreNullableContext)
         {
             if (constraintClauses.IsDefault)
             {

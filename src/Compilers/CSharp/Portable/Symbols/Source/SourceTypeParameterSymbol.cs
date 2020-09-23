@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
         {
-            if (!_lazyBounds.IsSet(canIgnoreNullableContext))
+            if (!_lazyBounds.HasValue(canIgnoreNullableContext))
             {
                 EnsureAllConstraintsAreResolved(this.ContainerTypeParameters, canIgnoreNullableContext);
             }
@@ -221,14 +221,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
             var currentBounds = _lazyBounds;
-            if (!currentBounds.IsSet(canIgnoreNullableContext))
+            if (!currentBounds.HasValue(canIgnoreNullableContext))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 var bounds = this.ResolveBounds(inProgress, canIgnoreNullableContext, diagnostics);
 
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds), currentBounds))
                 {
-                    if (_lazyBounds?.IsEarly != true)
+                    if (_lazyBounds?.IgnoresNullableContext != true)
                     {
                         this.CheckConstraintTypeConstraints(diagnostics);
                         this.CheckUnmanagedConstraint(diagnostics);
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constraintTypes = constraintClause.ConstraintTypes;
             if (canIgnoreNullableContext)
             {
-                return new TypeParameterBounds(constraintTypes);
+                return TypeParameterBounds.ConstraintTypesOnlyNoNullableContext(constraintTypes);
             }
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, this.DeclaringCompilation, diagnostics);
         }
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constraintTypes = constraintClause.ConstraintTypes;
             if (canIgnoreNullableContext)
             {
-                return new TypeParameterBounds(constraintTypes);
+                return TypeParameterBounds.ConstraintTypesOnlyNoNullableContext(constraintTypes);
             }
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, this.DeclaringCompilation, diagnostics);
         }
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
             if (canIgnoreNullableContext)
             {
-                return new TypeParameterBounds(constraintTypes);
+                return TypeParameterBounds.ConstraintTypesOnlyNoNullableContext(constraintTypes);
             }
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, this.DeclaringCompilation, diagnostics);
         }

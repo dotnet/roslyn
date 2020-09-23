@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
         {
             canIgnoreNullableContext = false; // Resolve bounds eagerly.
-            if (!_lazyBounds.IsSet(canIgnoreNullableContext))
+            if (!_lazyBounds.HasValue(canIgnoreNullableContext))
             {
                 var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
                     ((PEMethodSymbol)_containingSymbol).TypeParameters :

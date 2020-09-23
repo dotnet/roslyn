@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -18,17 +20,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
         /// <summary>
-        /// Creates a "early" bound instance that has constraint types set
-        /// but no other fields.
+        /// Creates an instance that has constraint types set but no other fields.
+        /// Used specifically when binding constraints ignoring #nullable context.
         /// </summary>
-        public TypeParameterBounds(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        public static TypeParameterBounds ConstraintTypesOnlyNoNullableContext(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        {
+            return new TypeParameterBounds(constraintTypes);
+        }
+
+        private TypeParameterBounds(ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             this.ConstraintTypes = constraintTypes;
         }
 
         /// <summary>
-        /// Creates a "late" bound instance with all fields set.
+        /// Creates a fully bound instance with all fields set.
         /// </summary>
         public TypeParameterBounds(
             ImmutableArray<TypeWithAnnotations> constraintTypes,
@@ -51,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        public bool IsEarly => EffectiveBaseClass is null;
+        public bool IgnoresNullableContext => EffectiveBaseClass is null;
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
@@ -69,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// As defined in 10.1.5 of the specification.
         /// </summary>
-        public readonly NamedTypeSymbol EffectiveBaseClass;
+        public readonly NamedTypeSymbol? EffectiveBaseClass;
 
         /// <summary>
         /// The "exact" effective base type. 
@@ -87,12 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// When computing the deduced type we don't perform this abstraction. We keep the original constraint T.
         /// Deduced base type is used to check that consistency rules are satisfied.
         /// </summary>
-        public readonly TypeSymbol DeducedBaseType;
+        public readonly TypeSymbol? DeducedBaseType;
     }
 
     internal static class TypeParameterBoundsExtensions
     {
-        internal static bool IsSet(this TypeParameterBounds boundsOpt, bool canIgnoreNullableContext)
+        internal static bool HasValue(this TypeParameterBounds? boundsOpt, bool canIgnoreNullableContext)
         {
             if (boundsOpt == TypeParameterBounds.Unset)
             {
@@ -102,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            return canIgnoreNullableContext || !boundsOpt.IsEarly;
+            return canIgnoreNullableContext || !boundsOpt.IgnoresNullableContext;
         }
     }
 }

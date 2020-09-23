@@ -254,12 +254,12 @@ next:;
         internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool canIgnoreNullableContext, int ordinal)
         {
             var clauses = _lazyTypeParameterConstraints;
-            if (!clauses.IsSet(canIgnoreNullableContext))
+            if (!clauses.HasValue(canIgnoreNullableContext))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(canIgnoreNullableContext, diagnostics), clauses) == clauses)
                 {
-                    if  (_lazyTypeParameterConstraints.IsSet(false))
+                    if  (_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext: false))
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }
