@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ?? throw new InvalidOperationException();
         }
 
+        public static IOperation GetRequiredOperation(this SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetOperation(syntaxNode, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             where TSymbol : class, ISymbol
         {
@@ -123,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool>? filter)
-                => filter != null ? filter(node) : true;
+                => filter == null || filter(node);
         }
     }
 }

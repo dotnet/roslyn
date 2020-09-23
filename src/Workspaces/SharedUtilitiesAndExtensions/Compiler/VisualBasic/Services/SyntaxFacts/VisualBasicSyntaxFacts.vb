@@ -2402,5 +2402,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
             Return False
         End Function
+
+        Public Function GetIOperationRootNode(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetIOperationRootNode
+            If (node Is Nothing) Then
+                Return Nothing
+            End If
+
+            Return node.AncestorsAndSelf(False).Where(Function(n) NodeIsOperationRoot(n)).LastOrDefault()
+        End Function
+
+        Private Shared Function NodeIsOperationRoot(node As SyntaxNode) As Boolean
+
+            Dim statementNode = TryCast(node, StatementSyntax)
+            If (statementNode IsNot Nothing) Then
+                Return True
+            End If
+
+            Select Case node.Kind()
+                Case SyntaxKind.Attribute,
+                     SyntaxKind.MyBaseExpression,
+                     SyntaxKind.EqualsValue
+                    Return True
+            End Select
+
+            Return False
+        End Function
     End Class
 End Namespace

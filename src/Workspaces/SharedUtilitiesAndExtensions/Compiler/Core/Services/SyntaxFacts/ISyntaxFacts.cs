@@ -519,6 +519,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
         bool IsThrowStatement(SyntaxNode node);
         bool IsLocalFunction(SyntaxNode node);
+
+        /// <summary>
+        /// Returns the topmost ancestor node for the IOperation tree structure that contains
+        /// the node passed in. 
+        /// This guarantees that the node has an IOperation associated with it and that 
+        /// going through the IOperation tree will encapsulate the node passed in. 
+        /// </summary>
+        SyntaxNode GetIOperationRootNode(SyntaxNode node);
     }
 
     [Flags]

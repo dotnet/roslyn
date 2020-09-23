@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             TypeSyntax? typeSyntax = null;
             ParenthesizedVariableDesignationSyntax? parensDesignation = null;
-            SyntaxToken? variableIdentifier = null;
+            SyntaxNode? declarationSyntax = null;
 
             if (declarationContext is RefTypeSyntax refType)
             {
@@ -80,16 +80,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             if (declarationContext is VariableDeclarationSyntax varDecl)
             {
                 typeSyntax = varDecl.Type;
-                variableIdentifier = varDecl.Variables.First().Identifier;
+                declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
             }
             else if (declarationContext is ForEachStatementSyntax forEach)
             {
                 typeSyntax = forEach.Type;
-                variableIdentifier = forEach.Identifier;
+                declarationSyntax = forEach.Identifier.Parent;
             }
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
+
                 if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax? variableDesignation))
                 {
                     parensDesignation = variableDesignation;
@@ -107,17 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 var newTypeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
                 RoslynDebug.AssertNotNull(newTypeSymbol);
 
-                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && variableIdentifier?.Parent is not null)
+                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && declarationSyntax is not null)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                     // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
                     // determine if it needs to be null
-                    var encapsulatingNode = node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFacts.IsMethodBody(n) || n is CompilationUnitSyntax);
-                    RoslynDebug.AssertNotNull(encapsulatingNode);
+                    var encapsulatingNode = syntaxFacts.GetIOperationRootNode(node);
+                    Contract.ThrowIfNull(encapsulatingNode);
 
-                    var operationScope = semanticModel.GetOperation(encapsulatingNode, cancellationToken);
-                    var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent, cancellationToken);
+                    var operationScope = semanticModel.GetRequiredOperation(encapsulatingNode, cancellationToken);
+                    var declSymbol = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
 
                     if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
                     {

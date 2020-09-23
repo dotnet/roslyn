@@ -2132,5 +2132,38 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsLocalFunction(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
+
+        public SyntaxNode GetIOperationRootNode(SyntaxNode syntaxNode)
+        {
+            Contract.ThrowIfNull(syntaxNode);
+
+            var rootNode = syntaxNode
+                .AncestorsAndSelf(ascendOutOfTrivia: false)
+                .Where(IsRootOperationNode)
+                .LastOrDefault();
+
+            return rootNode;
+
+            static bool IsRootOperationNode(SyntaxNode node)
+                => (node is StatementSyntax && StatementIsRoot(node)) ||
+                    node.Kind() == SyntaxKind.Attribute ||
+                    node.Kind() == SyntaxKind.ThisConstructorInitializer ||
+                    node.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                    node.Kind() == SyntaxKind.EqualsValueClause ||
+                    node.Kind() == SyntaxKind.ArrowExpressionClause ||
+                    node.Kind() == SyntaxKind.MethodDeclaration;
+
+            static bool StatementIsRoot(SyntaxNode node)
+            {
+                if (node.Kind() == SyntaxKind.Block)
+                {
+                    var parentKind = node.Parent?.Kind();
+                    return parentKind == SyntaxKind.GetAccessorDeclaration ||
+                        parentKind == SyntaxKind.SetAccessorDeclaration;
+                }
+
+                return true;
+            }
+        }
     }
 }
