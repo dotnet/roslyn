@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
             if (objectCreation.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
-                objectCreation.Parent.Parent.Parent is VariableDeclarationSyntax variableDeclaration)
+                objectCreation.Parent.Parent.Parent is VariableDeclarationSyntax variableDeclaration &&
+                !variableDeclaration.Type.IsVar)
             {
                 typeNode = variableDeclaration.Type;
 
@@ -73,11 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     return;
                 }
             }
-            else
+            else if (objectCreation.Parent.IsKind(SyntaxKind.ArrowExpressionClause))
             {
-                if (!objectCreation.Parent.IsKind(SyntaxKind.ArrowExpressionClause))
-                    return;
-
                 typeNode = objectCreation.Parent.Parent switch
                 {
                     LocalFunctionStatementSyntax localFunction => localFunction.ReturnType,
@@ -90,8 +88,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     _ => null,
                 };
             }
+            else
+            {
+                // more cases can be added here if we discover more cases we think the type is readily apparent from context.
+                return;
+            }
 
-            if (typeNode == null || typeNode.IsVar)
+            if (typeNode == null)
                 return;
 
             // Only offer if the type being constructed is the exact same as the type being assigned into.  We don't
