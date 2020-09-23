@@ -605,7 +605,7 @@ public class Program
             var indexerCompletionItem = completionItems.Single();
             Assert.Equal("this[]", indexerCompletionItem.DisplayText);
             Assert.True(indexerCompletionItem.Properties.TryGetValue("Symbols", out var symbols));
-            var symbolSplitted = symbols.Split('|');
+            var symbolSplitted = symbols!.Split('|');
             Assert.Equal(2, symbolSplitted.Length);
         }
     }
