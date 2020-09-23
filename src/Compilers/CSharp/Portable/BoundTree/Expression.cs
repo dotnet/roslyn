@@ -181,4 +181,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(Receiver, Argument);
     }
+
+    internal partial class BoundFunctionPointerInvocation : IBoundInvalidNode
+    {
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => CSharpOperationFactory.CreateInvalidChildrenFromArgumentsExpression(receiverOpt: this.InvokedExpression, Arguments);
+        protected override ImmutableArray<BoundNode?> Children => StaticCast<BoundNode?>.From(((IBoundInvalidNode)this).InvalidNodeChildren);
+    }
 }

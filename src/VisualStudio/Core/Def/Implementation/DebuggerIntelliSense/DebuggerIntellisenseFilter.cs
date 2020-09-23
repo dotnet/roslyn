@@ -107,8 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _context.DebuggerTextLines.GetStateFlags(out var bufferFlags);
             _context.DebuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
 
-            var result = VSConstants.S_OK;
-
             // If the caret is outside our projection, defer to the next command target.
             var caretPosition = _context.DebuggerTextView.GetCaretPoint(_context.Buffer);
             if (caretPosition == null)
@@ -116,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
 
+            int result;
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {
                 // If we see a RETURN, and we're in the immediate window, we'll want to rebuild

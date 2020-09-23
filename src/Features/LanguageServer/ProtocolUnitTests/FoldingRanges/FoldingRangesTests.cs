@@ -69,7 +69,9 @@ comment */|}";
                 TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
             };
 
-            return await GetLanguageServer(solution).GetFoldingRangeAsync(solution, request, new LSP.ClientCapabilities(), CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(queue, LSP.Methods.TextDocumentFoldingRangeName,
+                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range)

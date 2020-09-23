@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -53,7 +53,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleReturn_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -83,7 +83,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleReturn_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -178,7 +178,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleReturnNoBlocks()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -203,7 +203,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleReturnNoBlocks_NotInBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -337,7 +337,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestWithNoElseBlockButFollowingReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -365,7 +365,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestWithNoElseBlockButFollowingReturn_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -393,7 +393,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestWithNoElseBlockButFollowingReturn_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -455,7 +455,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -482,10 +482,10 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44036"), Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion1_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -512,10 +512,10 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44036"), Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion1_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -544,7 +544,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -574,7 +574,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion2_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -604,7 +604,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion2_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -633,7 +633,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -663,7 +663,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion3_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -693,7 +693,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversion3_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -722,7 +722,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestKeepTriviaAroundIf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -753,7 +753,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -791,7 +791,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestMultiLine1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -824,7 +824,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestMultiLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -857,7 +857,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestMultiLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -892,7 +892,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestElseIfWithBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -931,7 +931,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestElseIfWithBlock_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -970,7 +970,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestElseIfWithBlock_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1008,7 +1008,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestElseIfWithoutBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1033,7 +1033,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestRefReturns1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1107,7 +1107,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1138,7 +1138,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1169,7 +1169,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1199,7 +1199,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn_IEnumerableReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System.Collections.Generic;
 
@@ -1394,7 +1394,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1424,7 +1424,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse1_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1454,7 +1454,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse1_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1483,7 +1483,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1513,7 +1513,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse2_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1543,7 +1543,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse2_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1572,7 +1572,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1600,7 +1600,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse3_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1628,7 +1628,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse3_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1655,7 +1655,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System.Collections.Generic;
 
@@ -1689,7 +1689,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse4_Throw1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System.Collections.Generic;
 
@@ -1723,7 +1723,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestReturnTrueFalse4_Throw2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System.Collections.Generic;
 

@@ -7,10 +7,14 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
+    [ExportLanguageService(typeof(IConvertTupleToStructCodeRefactoringProvider), LanguageNames.CSharp)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ConvertTupleToStruct)), Shared]
     internal class CSharpConvertTupleToStructCodeRefactoringProvider :
         AbstractConvertTupleToStructCodeRefactoringProvider<
@@ -31,11 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
         {
         }
 
-        protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
-            NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
+        protected override ArgumentSyntax GetArgumentWithChangedName(ArgumentSyntax argument, string name)
+            => argument.WithNameColon(ChangeName(argument.NameColon, name));
+
+        private static NameColonSyntax? ChangeName(NameColonSyntax? nameColon, string name)
         {
-            return SyntaxFactory.ObjectCreationExpression(
-                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: null);
+            if (nameColon == null)
+            {
+                return null;
+            }
+
+            var newName = SyntaxFactory.IdentifierName(name).WithTriviaFrom(nameColon.Name);
+            return nameColon.WithName(newName);
         }
     }
 }

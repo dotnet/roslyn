@@ -4,6 +4,9 @@
 
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -17,14 +20,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public partial class SerializationTests : TestBase
     {
-        private Document CreateSolutionDocument(string sourceText)
+        private static Document CreateSolutionDocument(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             var solution = new AdhocWorkspace().CurrentSolution
                     .AddProject(pid, "test", "test", LanguageNames.CSharp)
-                    .AddMetadataReference(pid, TestReferences.NetFx.v4_0_30319.mscorlib)
+                    .AddMetadataReference(pid, TestMetadata.Net451.mscorlib)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
 
             return solution.GetDocument(did);
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(versionStamp, deserializedVersionStamp);
         }
 
-        private void TestSymbolSerialization(Document document, string symbolName)
+        private static void TestSymbolSerialization(Document document, string symbolName)
         {
             var model = document.GetSemanticModelAsync().Result;
             var name = CS.SyntaxFactory.ParseName(symbolName);

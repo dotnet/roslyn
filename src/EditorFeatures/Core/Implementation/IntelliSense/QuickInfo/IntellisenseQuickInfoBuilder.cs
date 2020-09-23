@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal static class IntellisenseQuickInfoBuilder
     {
-        internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(ITrackingSpan trackingSpan,
-            CodeAnalysisQuickInfoItem quickInfoItem,
-            ITextSnapshot snapshot,
+        private static async Task<ContainerElement> BuildInteractiveContentAsync(CodeAnalysisQuickInfoItem quickInfoItem,
             Document document,
+            IThreadingContext threadingContext,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             CancellationToken cancellationToken)
         {
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (descSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildInteractiveTextElements(descSection.TaggedParts, document, streamingPresenter))
+                foreach (var element in Helpers.BuildInteractiveTextElements(descSection.TaggedParts, document, threadingContext, streamingPresenter))
                 {
                     if (isFirstElement)
                     {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (documentationCommentSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildInteractiveTextElements(documentationCommentSection.TaggedParts, document, streamingPresenter))
+                foreach (var element in Helpers.BuildInteractiveTextElements(documentationCommentSection.TaggedParts, document, threadingContext, streamingPresenter))
                 {
                     if (isFirstElement)
                     {
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
-                                      .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, document, streamingPresenter)));
+                                      .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, document, threadingContext, streamingPresenter)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
@@ -110,9 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 }
 
                 var tabSize = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
-                var text = await document.GetTextAsync().ConfigureAwait(false);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpanList.ToImmutableArray(), tabSize);
-                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, snapshot.GetText(s.TextSpan.ToSpan()), ClassifiedTextRunStyle.UseClassificationFont));
+                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont));
 
                 if (textRuns.Any())
                 {
@@ -120,11 +119,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 }
             }
 
-            var content = new ContainerElement(
+            return new ContainerElement(
                                 ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                                 elements);
+        }
+
+        internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(
+            ITrackingSpan trackingSpan,
+            CodeAnalysisQuickInfoItem quickInfoItem,
+            Document document,
+            IThreadingContext threadingContext,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+            CancellationToken cancellationToken)
+        {
+            var content = await BuildInteractiveContentAsync(quickInfoItem, document, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);
+        }
+
+        /// <summary>
+        /// Builds the classified hover content without navigation actions and requiring
+        /// an instance of <see cref="IStreamingFindUsagesPresenter"/>
+        /// TODO - This can be removed once LSP supports colorization in markupcontent
+        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
+        /// </summary>
+        internal static Task<ContainerElement> BuildContentWithoutNavigationActionsAsync(
+            CodeAnalysisQuickInfoItem quickInfoItem,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            return BuildInteractiveContentAsync(quickInfoItem, document, threadingContext: null, streamingPresenter: null, cancellationToken);
         }
     }
 }

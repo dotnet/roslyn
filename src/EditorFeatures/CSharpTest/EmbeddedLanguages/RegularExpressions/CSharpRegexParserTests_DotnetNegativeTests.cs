@@ -242,13 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Test(@"@""(?>""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
         <Sequence />
         <CloseParenToken />
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>

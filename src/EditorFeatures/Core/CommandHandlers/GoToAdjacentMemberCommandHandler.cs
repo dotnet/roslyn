@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public bool ExecuteCommand(GoToPreviousMemberCommandArgs args, CommandExecutionContext context)
             => ExecuteCommandImpl(args, gotoNextMember: false, context);
 
-        private CommandState GetCommandStateImpl(EditorCommandArgs args)
+        private static CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
             var subjectBuffer = args.SubjectBuffer;
             var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 return false;
             }
-
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)

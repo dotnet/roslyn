@@ -1,3 +1,1 @@
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.RemarksDocumentationComments = "RemarksDocumentationComments" -> string
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ReturnsDocumentationComments = "ReturnsDocumentationComments" -> string
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ValueDocumentationComments = "ValueDocumentationComments" -> string
+

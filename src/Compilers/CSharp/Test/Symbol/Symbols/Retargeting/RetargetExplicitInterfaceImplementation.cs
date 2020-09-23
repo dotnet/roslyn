@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -45,7 +46,7 @@ public class C : Interface1
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -110,7 +111,7 @@ public  class D : C
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -340,7 +341,7 @@ public class C3 : Interface2<Class1>
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -375,7 +376,7 @@ public  class D3 : C3
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });

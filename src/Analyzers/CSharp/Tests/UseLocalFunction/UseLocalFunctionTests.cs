@@ -161,7 +161,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SimpleLambda_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -201,7 +201,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_ParenLambdaNoType_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -241,7 +241,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_ParenLambdaWithType_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -281,7 +281,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_AnonymousMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -321,7 +321,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SimpleLambda_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -351,7 +351,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_ParenLambdaNoType_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -381,7 +381,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_ParenLambdaWithType_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -411,7 +411,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SimpleLambda_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -451,7 +451,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SimpleLambda_Block_ExtraParens()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -491,7 +491,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_ParenLambdaNoType_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -531,7 +531,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_ParenLambdaWithType_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -571,7 +571,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_AnonymousMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -611,7 +611,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SimpleLambda_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -641,7 +641,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_ParenLambdaNoType_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -671,7 +671,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_ParenLambdaWithType_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -749,7 +749,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -790,7 +790,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -831,7 +831,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_Block_DefaultLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -869,13 +869,13 @@ class C
 }",
             // 7.1 is required for default literals, so 7.2 should be sufficient
             // and is used in other tests
-            parseOptions: CSharp72ParseOptions);
+            new TestParameters(parseOptions: CSharp72ParseOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -916,7 +916,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_Block_DefaultExpression_var()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -957,7 +957,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_ParenLambdaNoType_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -998,7 +998,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_ParenLambdaWithType_Block()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1039,7 +1039,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_AnonymousMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1080,7 +1080,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1111,7 +1111,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_ParenLambdaNoType_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1142,7 +1142,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_ParenLambdaWithType_ExprBody()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1173,7 +1173,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1207,7 +1207,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1241,7 +1241,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestFixAll3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1276,7 +1276,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestFixAll4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1311,7 +1311,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1353,7 +1353,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestInWithParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 delegate void D(in int p);
 class C
@@ -1373,13 +1373,13 @@ class C
     }
 }",
             // Run with 7.2 to get read-only references
-            parseOptions: CSharp72ParseOptions);
+            new TestParameters(parseOptions: CSharp72ParseOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestRefReadOnlyWithReturnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 delegate ref readonly int D();
 class C
@@ -2434,7 +2434,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2459,7 +2459,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2484,7 +2484,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine2Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2509,7 +2509,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine2MultiToken()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2532,7 +2532,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine2MultiTokenAsync()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 using System.Threading.Tasks;
 class C
@@ -2557,7 +2557,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2582,7 +2582,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2607,7 +2607,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine4Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2632,7 +2632,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2657,7 +2657,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2682,7 +2682,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine2Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2707,7 +2707,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2732,7 +2732,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2757,7 +2757,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine4Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2782,7 +2782,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2808,7 +2808,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2834,7 +2834,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine2Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2860,7 +2860,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2886,7 +2886,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -2912,7 +2912,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine4Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class C
 {
@@ -3391,7 +3391,6 @@ class C
 ");
         }
 
-
         [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithInvalidUnrelatedCode()
@@ -3557,7 +3556,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestMakeStaticIfNoCaptures()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -3597,7 +3596,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestDoNotMakeStaticIfCaptures()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -3639,7 +3638,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithAsyncLambdaExpression_MakeStatic()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
  @"using System;
 using System.Threading.Tasks;
 
@@ -3665,7 +3664,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithNullableParameterAndReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3693,7 +3692,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithDiscardParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class Program
 {

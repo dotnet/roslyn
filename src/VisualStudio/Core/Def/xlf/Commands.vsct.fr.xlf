@@ -403,8 +403,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidGoToImplementation|CommandName">
-        <source>GoToImplementation</source>
-        <target state="translated">GoToImplementation</target>
+        <source>Go To Implementation</source>
+        <target state="translated">Accéder à l'implémentation</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

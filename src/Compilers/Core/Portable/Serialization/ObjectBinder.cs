@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Lock for all data in this type.
         /// </summary>
-        private static object s_gate = new object();
+        private static readonly object s_gate = new object();
 
         /// <summary>
         /// Last created snapshot of our data.  We hand this out instead of exposing our raw

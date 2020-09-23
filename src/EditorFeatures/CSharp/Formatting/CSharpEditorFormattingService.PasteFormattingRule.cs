@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         internal class PasteFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (currentToken.Parent != null)
                 {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                     }
                 }
 
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
         }
     }

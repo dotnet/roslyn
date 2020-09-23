@@ -185,6 +185,27 @@ partial class PartialClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtendedPartialMethods()
+        {
+            var markup = @"
+partial class PartialClass
+{
+    public static partial void Goo(int declaring);
+    public static partial void Goo(int implementing)
+    {
+    }
+    static void Caller()
+    {
+        Goo($$
+    }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterColon()
         {
             var markup = @"
@@ -481,7 +502,7 @@ class Program
     }
 }
 ";
-            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "args");
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -492,7 +513,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Main(ar$$)
+        Main(arg$$)
     }
 }
 ";
@@ -506,7 +527,7 @@ class Program
     }
 }
 ";
-            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "arg");
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
     }
 }

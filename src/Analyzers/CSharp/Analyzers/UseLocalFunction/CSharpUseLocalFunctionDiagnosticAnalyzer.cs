@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
         }
 
-        private bool CheckForPattern(
+        private static bool CheckForPattern(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Look for:
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                    CheckForLocalDeclarationAndAssignment(anonymousFunction, out localDeclaration);
         }
 
-        private bool CheckForSimpleLocalDeclarationPattern(
+        private static bool CheckForSimpleLocalDeclarationPattern(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Type t = <anonymous function>
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return false;
         }
 
-        private bool CanReplaceAnonymousWithLocalFunction(
+        private static bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
             AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> referenceLocations, CancellationToken cancellationToken)
         {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return true;
         }
 
-        private bool CheckForCastedLocalDeclarationPattern(
+        private static bool CheckForCastedLocalDeclarationPattern(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // var t = (Type)(<anonymous function>)
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return false;
         }
 
-        private bool CheckForLocalDeclarationAndAssignment(
+        private static bool CheckForLocalDeclarationAndAssignment(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Type t = null;

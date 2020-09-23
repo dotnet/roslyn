@@ -1467,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Faire de {0} une fonction Async.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Insérer le cast manquant</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Convertir {0} en itérateur</target>

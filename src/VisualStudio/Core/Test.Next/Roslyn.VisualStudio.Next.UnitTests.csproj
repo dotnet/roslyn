@@ -39,7 +39,6 @@
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -78,9 +77,6 @@
          it _only_ for runtime dependencies and not anything compile time -->
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" IncludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\Def\Implementation\EditAndContinue\VisualStudioActiveStatementProvider.Utilities.cs" Link="EditAndContiue\Mocks\VisualStudioActiveStatementProvider.Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

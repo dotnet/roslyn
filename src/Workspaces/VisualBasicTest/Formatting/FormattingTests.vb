@@ -780,98 +780,139 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation1() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation1(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim a = 1 + _
-                            2 + _
+                    Dim a = 1 + {continuation}
+                            2 + {continuation}
                             3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim a = 1 + _
-                2 + _
+        Dim a = 1 + {continuation}
+                2 + {continuation}
                 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation2() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation2(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-                             2 + _
+                    Dim aa = 1 + {continuation}
+                             2 + {continuation}
                              3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
-                 2 + _
+        Dim aa = 1 + {continuation}
+                 2 + {continuation}
                  3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation3() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation3(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-    2 + _
+                    Dim aa = 1 + {continuation}
+    2 + {continuation}
     3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
-2 + _
+        Dim aa = 1 + {continuation}
+2 + {continuation}
 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation4() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation4(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-            _
-                                          _
-                                     _
-    _
-            _
-    2 + _
+                    Dim aa = 1 + {continuation}
+            {continuation}
+                                          {continuation}
+                                     {continuation}
+    {continuation}
+            {continuation}
+    2 + {continuation}
     3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
- _
- _
- _
- _
- _
-2 + _
+        Dim aa = 1 + {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+2 + {continuation}
 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation5(continuation As String) As Task
+            Dim code = $"Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim aa = 1 + {continuation}
+            {continuation}
+                                          {continuation}
+                                     {continuation}
+    {continuation}
+            {continuation}
+    2 + {continuation}
+    3
+    End Sub
+End Class"
+
+            Dim expected = $"Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim aa = 1 + {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+    2 + {continuation}
+    3
+    End Sub
+End Class"
+
+            Await AssertFormatAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
@@ -1029,27 +1070,29 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function Trivia3() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function Trivia3(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-Dim a =             _
-                _
-                        _
+Dim a =             {continuation}
+                {continuation}
+                        {continuation}
         1
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim a = _
- _
- _
+        Dim a = {continuation}
+ {continuation}
+ {continuation}
                 1
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
         <WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")>

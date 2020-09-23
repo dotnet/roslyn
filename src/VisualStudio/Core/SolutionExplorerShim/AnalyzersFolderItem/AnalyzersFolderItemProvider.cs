@@ -86,19 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return null;
         }
 
-        private static ImmutableArray<string> GetProjectCapabilities(IVsHierarchy hierarchy)
-        {
-            if (hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID5.VSHPROPID_ProjectCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
-            {
-                var capabilitiesString = (string)capabilitiesObj;
-                return ImmutableArray.Create(capabilitiesString.Split(' '));
-            }
-            else
-            {
-                return ImmutableArray<string>.Empty;
-            }
-        }
-
         private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
         {
             if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)

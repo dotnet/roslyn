@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
+        private static async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
 
             var spanStart = position;
             while (true)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken) ||
+            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
                    syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                    syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                    syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||

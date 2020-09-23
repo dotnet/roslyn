@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return declarator?.Initializer?.Value
         End Function
 
-        Private Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
+        Private Shared Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
             If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function GetNodeToFade(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
+        Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 

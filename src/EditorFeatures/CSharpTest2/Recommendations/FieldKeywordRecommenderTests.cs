@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -61,6 +62,16 @@ $$");
             await VerifyKeywordAsync(
 @"class C {
     [$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttributeInsideRecord()
+        {
+            // The recommender doesn't work in record in script
+            // Tracked by https://github.com/dotnet/roslyn/issues/44865
+            await VerifyWorkerAsync(
+@"record C {
+    [$$", absent: false, TestOptions.RegularPreview);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

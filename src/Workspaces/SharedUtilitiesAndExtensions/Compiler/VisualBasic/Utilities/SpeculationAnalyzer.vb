@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                                           .DescendantNodes() _
                                           .OfType(Of IdentifierNameSyntax)() _
                                           .Where(Function(node) paramNames.Contains(node.Identifier.ValueText))
-            Return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody, replacedLambdaBody)
+            Return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody)
         End Function
 
         Private Function HaveSameParameterType(originalParam As ParameterSyntax, replacedParam As ParameterSyntax) As Boolean
@@ -308,8 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Private Function ReplacementChangesSemanticsForNodes(
             originalIdentifierNodes As IEnumerable(Of IdentifierNameSyntax),
             replacedIdentifierNodes As IEnumerable(Of IdentifierNameSyntax),
-            originalRoot As SyntaxNode,
-            replacedRoot As SyntaxNode) As Boolean
+            originalRoot As SyntaxNode) As Boolean
 
             Debug.Assert(originalIdentifierNodes.Any())
             Debug.Assert(originalIdentifierNodes.Count() = replacedIdentifierNodes.Count())

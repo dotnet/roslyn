@@ -211,7 +211,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
             };
 
-
         [Fact]
         public void Top1000Test()
         {

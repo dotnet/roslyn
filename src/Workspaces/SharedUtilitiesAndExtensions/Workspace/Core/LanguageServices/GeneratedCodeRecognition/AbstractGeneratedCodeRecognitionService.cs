@@ -28,18 +28,8 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
 
         private static bool IsGeneratedCode(SyntaxTree syntaxTree, Document document, CancellationToken cancellationToken)
         {
-            // First check if user has configured "generated_code = true | false" in .editorconfig
-            var analyzerOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerOptions);
-            if (isUserConfiguredGeneratedCode.HasValue)
-            {
-                return isUserConfiguredGeneratedCode.Value;
-            }
-
-            // Otherwise, fallback to generated code heuristic.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return GeneratedCodeUtilities.IsGeneratedCode(
-                syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
+            return syntaxTree.IsGeneratedCode(document.Project.AnalyzerOptions, syntaxFacts, cancellationToken);
         }
     }
 }

@@ -16,14 +16,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             public readonly string InlineDescription;
             public readonly string FullDescription;
             public readonly CompletionChange Change;
+            public readonly bool IsDefault;
 
             public DateAndTimeItem(
-                string displayText, string inlineDescription, string fullDescription, CompletionChange change)
+                string displayText, string inlineDescription, string fullDescription, CompletionChange change, bool isDefault)
             {
                 DisplayText = displayText;
                 InlineDescription = inlineDescription;
                 FullDescription = fullDescription;
                 Change = change;
+                IsDefault = isDefault;
             }
         }
     }

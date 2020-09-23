@@ -4,7 +4,6 @@
 
 #nullable enable
 
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
     internal enum PythiaGlyph

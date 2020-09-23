@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
     {
         private const WORD RT_DLGINCLUDE = 17;
 
-        static internal List<RESOURCE> ReadResFile(Stream stream)
+        internal static List<RESOURCE> ReadResFile(Stream stream)
         {
             var reader = new BinaryReader(stream, Encoding.Unicode);
             var resourceNames = new List<RESOURCE>();
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSectionSize);
         }
 
-        static internal Microsoft.Cci.ResourceSection ReadWin32ResourcesFromCOFF(Stream stream)
+        internal static Microsoft.Cci.ResourceSection ReadWin32ResourcesFromCOFF(Stream stream)
         {
             var peHeaders = new PEHeaders(stream);
             var rsrc1 = new SectionHeader();

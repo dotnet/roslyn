@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicit
     public partial class AddExplicitCastTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new AddExplicitCastCodeFixProvider());
+            => (null, new CSharpAddExplicitCastCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
@@ -430,7 +430,6 @@ class Program
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task VariableDeclarationWithPublicFieldMember()
@@ -1052,32 +1051,6 @@ class Program
 {
     interface Base1 {}
     interface Base2 : Base1 {}
-
-    void Foo(Base1 b) {
-        Base2 b2 = [||]b;
-    }
-}",
-            @"
-class Program
-{
-    interface Base1 {}
-    interface Base2 : Base1 {}
-
-    void Foo(Base1 b) {
-        Base2 b2 = (Base2)b;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        public async Task InheritInterfaces6()
-        {
-            await TestInRegularAndScriptAsync(
-            @"
-class Program
-{
-    interface Base1 {}
-    interface Base2 : Base1 {}
     interface Base3 {}
     class Derived1 : Base2, Base3 {}
     class Derived2 : Derived1 {}
@@ -1582,7 +1555,6 @@ class Program
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task ExactMethodCandidate()
@@ -2452,7 +2424,6 @@ class Program
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task MultipleOptions1()
         {
@@ -2495,7 +2466,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_1 =
     @"
@@ -2514,7 +2485,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2559,7 +2530,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_1 =
     @"
@@ -2578,7 +2549,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
 
         }
 
@@ -2711,7 +2682,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_1 =
     @"
@@ -2733,7 +2704,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -2789,7 +2760,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "string"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "string"));
 
             var expect_1 =
 @"
@@ -2814,7 +2785,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived"));
 
             var expect_2 =
 @"
@@ -2839,7 +2810,7 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initialMarkup, expect_2, index: 2,
-                title: string.Format(CodeAnalysis.CSharp.CSharpFeaturesResources.Convert_type_to_0, "Derived2"));
+                title: string.Format(FeaturesResources.Convert_type_to_0, "Derived2"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
@@ -3037,6 +3008,34 @@ class C
     { 
         TypeThatDoesntExist t = new TypeThatDoesntExist();
         M([||]t);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task AttributeArgument()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+using System;
+class C 
+{
+    static object str = """";
+
+    [Obsolete([||]str, false)]
+    void M() 
+    {
+    }
+}",
+                @"
+using System;
+class C 
+{
+    static object str = """";
+
+    [Obsolete((string)str, false)]
+    void M() 
+    {
     }
 }");
         }

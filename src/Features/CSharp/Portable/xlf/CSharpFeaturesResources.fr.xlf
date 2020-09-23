@@ -12,11 +12,6 @@
         <target state="translated">Ajouter une expression await</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Ajouter les instructions using manquantes</target>
@@ -35,6 +30,11 @@
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">Appliquer les préférences de corps d'expression/de bloc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="new">Apply file header preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -62,6 +62,11 @@
         <target state="translated">Appliquer les préférences de qualification 'this.'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="translated">Appliquer les préférences de placement de 'using' par défaut</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">Assigner des paramètres 'out'</target>
@@ -74,12 +79,17 @@
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">Affecter à '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
+        <source>Autoselect disabled due to potential pattern variable declaration.</source>
+        <target state="translated">Sélection automatique désactivée en raison d'une déclaration de variable de modèle éventuelle.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">Comparer à '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -89,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">Convertir en chaîne classique</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -104,12 +114,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
+        <target state="translated">Convertir en chaîne verbatim</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -141,6 +146,16 @@
         <source>Make 'ref struct'</source>
         <target state="translated">Définir 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">Supprimer le mot clé 'in'</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">Supprimer le modificateur 'new'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -182,14 +197,9 @@
         <target state="translated">Avertissement : Inlining temporaire dans un appel de méthode conditionnel.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_not_null_here">
-        <source>'{0}' is not null here.</source>
-        <target state="translated">'{0}' n'a pas une valeur null ici.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_may_be_null_here">
-        <source>'{0}' may be null here.</source>
-        <target state="translated">'{0}' a peut-être une valeur null ici.</target>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="translated">Avertissement : L'inlining sur une variable temporaire peut changer la signification du code.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -235,6 +245,11 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
         <target state="translated">Sélection automatique désactivée en raison de la création possible d'un élément de type tuple.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="pattern_variable">
+        <source>&lt;pattern variable&gt;</source>
+        <target state="translated">&lt;variable de modèle&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

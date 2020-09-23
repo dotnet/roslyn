@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _baseType = baseType;
         }
 
-        public abstract new ImmutableArray<MethodSymbol> Constructors { get; }
+        public new abstract ImmutableArray<MethodSymbol> Constructors { get; }
 
         public override int Arity => 0;
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal override ManagedKind ManagedKind => ManagedKind.Managed;
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => ManagedKind.Managed;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 

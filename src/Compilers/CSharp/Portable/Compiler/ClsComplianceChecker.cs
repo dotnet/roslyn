@@ -982,6 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // but that's way too much work in the 99.9% case.
                     return true;
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return false;
                 case TypeKind.Error:
                 case TypeKind.TypeParameter:

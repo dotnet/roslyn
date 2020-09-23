@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis
 
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
                 serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
-                changedOptionKeys: ImmutableHashSet<OptionKey>.Empty);
+                changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
 
-            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
+            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create());
         }
 
         internal void LogTestMessage(string message)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetProjectLanguages());
+            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetRemoteSupportedProjectLanguages());
             return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
         }
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
+            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetRemoteSupportedProjectLanguages());
             this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
@@ -791,7 +791,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         /// <summary>
         /// Call this method when the text of a analyzer config document is changed on disk.
         /// </summary>
@@ -1084,7 +1083,7 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution != oldSolution)
                 {
                     newSolution = this.SetCurrentSolution(newSolution);
-                    var ignore = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
                 }
             }
         }
@@ -1145,8 +1144,6 @@ namespace Microsoft.CodeAnalysis
 
         #region Apply Changes
 
-        internal virtual bool CanRenameFilesDuringCodeActions(Project project) => true;
-
         /// <summary>
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.
         /// </summary>
@@ -1157,8 +1154,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if a reference to referencedProject can be added to
         /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
-        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
-            => false;
+        internal virtual Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
         /// <summary>
         /// Apply changes made to a solution back to the workspace.
@@ -1210,7 +1207,7 @@ namespace Microsoft.CodeAnalysis
                 // added projects
                 foreach (var proj in solutionChanges.GetAddedProjects())
                 {
-                    this.ApplyProjectAdded(this.CreateProjectInfo(proj));
+                    this.ApplyProjectAdded(CreateProjectInfo(proj));
                 }
 
                 // changed projects
@@ -1222,6 +1219,9 @@ namespace Microsoft.CodeAnalysis
                     this.ApplyProjectChanges(projectChanges);
                     progressTracker.ItemCompleted();
                 }
+
+                // changes in mapped files outside the workspace (may span multiple projects)
+                this.ApplyMappedFileChanges(solutionChanges);
 
                 // removed projects
                 foreach (var proj in solutionChanges.GetRemovedProjects())
@@ -1251,6 +1251,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal virtual void ApplyMappedFileChanges(SolutionChanges solutionChanges)
+        {
+            return;
+        }
+
         private void CheckAllowedSolutionChanges(SolutionChanges solutionChanges)
         {
             if (solutionChanges.GetRemovedProjects().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveProject))
@@ -1271,15 +1276,36 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
-            // It's OK to use the null-suppression operator when calling CanApplyCompilationOptionChange: if they were both null,
-            // we'd bail right away since they didn't change. Thus, at least one is non-null, and once you have a non-null CompilationOptions and ParseOptions
-            // you can't ever make it null again, and it'll be non-null as long as the language supported it in the first place.
-            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
-                && !this.CanApplyCompilationOptionChange(
-                    projectChanges.OldProject.CompilationOptions!, projectChanges.NewProject.CompilationOptions!, projectChanges.NewProject))
+            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
             {
-                throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
+                // It's OK to assert this: if they were both null, the if check above would have been false right away
+                // since they didn't change. Thus, at least one is non-null, and once you have a non-null CompilationOptions
+                // and ParseOptions, we don't let you ever make it null again. Further, it can't ever start non-null:
+                // we replace a null when a project is created with default compilation options.
+                Contract.ThrowIfNull(projectChanges.OldProject.CompilationOptions);
+                Contract.ThrowIfNull(projectChanges.NewProject.CompilationOptions);
+
+                // The changes in CompilationOptions may include a change to the SyntaxTreeOptionsProvider, which would be happening
+                // if an .editorconfig was added, removed, or modified. We'll compute the options without that change, and if there's
+                // still changes then we need to verify we can apply those. The .editorconfig changes will also be represented as
+                // document edits, which the host is expected to actually apply directly.
+                var newOptionsWithoutSyntaxTreeOptionsChange =
+                    projectChanges.NewProject.CompilationOptions.WithSyntaxTreeOptionsProvider(
+                        projectChanges.OldProject.CompilationOptions.SyntaxTreeOptionsProvider);
+
+                if (projectChanges.OldProject.CompilationOptions != newOptionsWithoutSyntaxTreeOptionsChange)
+                {
+                    // We're actually changing in a meaningful way, so now validate that the workspace can take it.
+                    // We will pass into the CanApplyCompilationOptionChange newOptionsWithoutSyntaxTreeOptionsChange,
+                    // which means it's only having to validate that the changes it's expected to apply are changing.
+                    // The common pattern is to reject all changes not recognized, so this keeps existing code running just fine.
+                    if (!this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
+                        && !this.CanApplyCompilationOptionChange(
+                                projectChanges.OldProject.CompilationOptions, newOptionsWithoutSyntaxTreeOptionsChange, projectChanges.NewProject))
+                    {
+                        throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
+                    }
+                }
             }
 
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
@@ -1384,9 +1410,29 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Called during a call to <see cref="TryApplyChanges(Solution)"/> to determine if a specific change to <see cref="Project.CompilationOptions"/> is allowed.
+        /// </summary>
+        /// <remarks>
+        /// This method is only called if <see cref="CanApplyChange" /> returns false for <see cref="ApplyChangesKind.ChangeCompilationOptions"/>.
+        /// If <see cref="CanApplyChange" /> returns true, then that means all changes are allowed and this method does not need to be called.
+        /// </remarks>
+        /// <param name="oldOptions">The old <see cref="CompilationOptions"/> of the project from prior to the change.</param>
+        /// <param name="newOptions">The new <see cref="CompilationOptions"/> of the project that was passed to <see cref="TryApplyChanges(Solution)"/>.</param>
+        /// <param name="project">The project contained in the <see cref="Solution"/> passed to <see cref="TryApplyChanges(Solution)"/>.</param>
         protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
             => false;
 
+        /// <summary>
+        /// Called during a call to <see cref="TryApplyChanges(Solution)"/> to determine if a specific change to <see cref="Project.ParseOptions"/> is allowed.
+        /// </summary>
+        /// <remarks>
+        /// This method is only called if <see cref="CanApplyChange" /> returns false for <see cref="ApplyChangesKind.ChangeParseOptions"/>.
+        /// If <see cref="CanApplyChange" /> returns true, then that means all changes are allowed and this method does not need to be called.
+        /// </remarks>
+        /// <param name="oldOptions">The old <see cref="ParseOptions"/> of the project from prior to the change.</param>
+        /// <param name="newOptions">The new <see cref="ParseOptions"/> of the project that was passed to <see cref="TryApplyChanges(Solution)"/>.</param>
+        /// <param name="project">The project contained in the <see cref="Solution"/> passed to <see cref="TryApplyChanges(Solution)"/>.</param>
         public virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;
 
@@ -1401,10 +1447,16 @@ namespace Microsoft.CodeAnalysis
             // It's OK to use the null-suppression operator when calling ApplyCompilation/ParseOptionsChanged: the only change that is allowed
             // is going from one non-null value to another which is blocked by the Project.WithCompilationOptions() API directly.
 
-            // changed compilation options
-            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
+            // The changes in CompilationOptions may include a change to the SyntaxTreeOptionsProvider, which would be happening
+            // if an .editorconfig was added, removed, or modified. We'll compute the options without that change, and if there's
+            // still changes then we need to verify we can apply those. The .editorconfig changes will also be represented as
+            // document edits, which the host is expected to actually apply directly.
+            var newOptionsWithoutSyntaxTreeOptionsChange =
+                projectChanges.NewProject.CompilationOptions?.WithSyntaxTreeOptionsProvider(
+                    projectChanges.OldProject.CompilationOptions!.SyntaxTreeOptionsProvider);
+            if (projectChanges.OldProject.CompilationOptions != newOptionsWithoutSyntaxTreeOptionsChange)
             {
-                this.ApplyCompilationOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions!);
+                this.ApplyCompilationOptionsChanged(projectChanges.ProjectId, newOptionsWithoutSyntaxTreeOptionsChange!);
             }
 
             // changed parse options
@@ -1472,7 +1524,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var document = projectChanges.NewProject.GetDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
-                var info = this.CreateDocumentInfoWithoutText(document);
+                var info = CreateDocumentInfoWithoutText(document);
                 this.ApplyDocumentAdded(info, text);
             }
 
@@ -1481,7 +1533,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var document = projectChanges.NewProject.GetAdditionalDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
-                var info = this.CreateDocumentInfoWithoutText(document);
+                var info = CreateDocumentInfoWithoutText(document);
                 this.ApplyAdditionalDocumentAdded(info, text);
             }
 
@@ -1490,7 +1542,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var document = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
-                var info = this.CreateDocumentInfoWithoutText(document);
+                var info = CreateDocumentInfoWithoutText(document);
                 this.ApplyAnalyzerConfigDocumentAdded(info, text);
             }
 
@@ -1503,7 +1555,6 @@ namespace Microsoft.CodeAnalysis
             // changed additional documents
             foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetAdditionalDocument(documentId)!;
                 var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId)!;
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
@@ -1514,7 +1565,6 @@ namespace Microsoft.CodeAnalysis
             // changed analyzer config documents
             foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetAnalyzerConfigDocument(documentId)!;
                 var newDoc = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId)!;
 
                 // We don't understand the text of analyzer config documents and so we just replace the entire text.
@@ -1570,7 +1620,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Conditional("DEBUG")]
-        private void CheckNoChanges(Solution oldSolution, Solution newSolution)
+        private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
         {
             var changes = newSolution.GetChanges(oldSolution);
             Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
@@ -1578,7 +1628,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
         }
 
-        private ProjectInfo CreateProjectInfo(Project project)
+        private static ProjectInfo CreateProjectInfo(Project project)
         {
             return ProjectInfo.Create(
                 project.Id,
@@ -1602,10 +1652,10 @@ namespace Microsoft.CodeAnalysis
                 .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
-        private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
+        private static DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
             => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
-        internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
+        internal static DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {
             var sourceDoc = doc as Document;
             return DocumentInfo.Create(
@@ -1645,7 +1695,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
         {
-            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeCompilationOptions));
+#if DEBUG
+            var oldProject = CurrentSolution.GetRequiredProject(projectId);
+            var newProjectForAssert = oldProject.WithCompilationOptions(options);
+
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeCompilationOptions) ||
+                         CanApplyCompilationOptionChange(oldProject.CompilationOptions!, options, newProjectForAssert));
+#endif
+
             this.OnCompilationOptionsChanged(projectId, options);
         }
 
@@ -1656,7 +1713,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
-            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeParseOptions));
+#if DEBUG
+            var oldProject = CurrentSolution.GetRequiredProject(projectId);
+            var newProjectForAssert = oldProject.WithParseOptions(options);
+
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeParseOptions) ||
+                         CanApplyParseOptionChange(oldProject.ParseOptions!, options, newProjectForAssert));
+#endif
             this.OnParseOptionsChanged(projectId, options);
         }
 
@@ -1985,7 +2048,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Throws an exception if a project already has a specific analyzer reference.
         /// </summary>
-        internal void CheckSolutionHasAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        internal static void CheckSolutionHasAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
         {
             if (!solution.AnalyzerReferences.Contains(analyzerReference))
             {
@@ -1996,7 +2059,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Throws an exception if a project already has a specific analyzer reference.
         /// </summary>
-        internal void CheckSolutionDoesNotHaveAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        internal static void CheckSolutionDoesNotHaveAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
         {
             if (solution.AnalyzerReferences.Contains(analyzerReference))
             {

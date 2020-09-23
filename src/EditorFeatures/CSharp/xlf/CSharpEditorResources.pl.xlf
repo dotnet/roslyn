@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="translated">Nie można odnaleźć według nazwy: „{0}”</target>
+        <target state="translated">Nie można było odnaleźć według nazwy: „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">

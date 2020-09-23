@@ -63,8 +63,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
             ISyntaxFactsService syntaxFacts,
-            Document document,
-            VersionStamp version,
             SemanticModel model,
             SyntaxNode root,
             SourceText sourceText,
@@ -76,22 +74,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var entry = GetCachedEntry(model);
             if (entry == null)
             {
-                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
+                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
             }
 
             return entry.IdentifierCache.GetOrAdd(normalized,
                 key => GetIdentifierOrGlobalNamespaceTokensWithText(
-                    syntaxFacts, document, version, root, sourceText, key, cancellationToken));
+                    syntaxFacts, root, sourceText, key, cancellationToken));
         }
 
         private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
+            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
             // identifier is not escaped
             if (sourceText != null)
             {
-                return GetTokensFromText(syntaxFacts, document, version, root, sourceText, text, IsCandidate, cancellationToken);
+                return GetTokensFromText(syntaxFacts, root, sourceText, text, IsCandidate, cancellationToken);
             }
 
             // identifier is escaped
@@ -102,17 +100,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root,
-            SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            return text.Length > 0
-                ? GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken)
-                : ImmutableArray<SyntaxToken>.Empty;
-        }
-
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
+            if (text.Length == 0)
+            {
+                return ImmutableArray<SyntaxToken>.Empty;
+            }
+
             var result = ImmutableArray.CreateBuilder<SyntaxToken>();
 
             var index = 0;

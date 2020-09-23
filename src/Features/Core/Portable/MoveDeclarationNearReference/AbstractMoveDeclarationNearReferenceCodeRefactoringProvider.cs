@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 declaration.Span);
         }
 
-        private async Task<Document> MoveDeclarationNearReferenceAsync(
+        private static async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, SyntaxNode statement, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();

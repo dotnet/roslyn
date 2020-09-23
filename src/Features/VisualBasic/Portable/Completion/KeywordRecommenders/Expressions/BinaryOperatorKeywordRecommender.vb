@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function IsBinaryOperatorContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsBinaryOperatorContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
             If context.FollowsEndOfStatement Then
                 Return False
             End If

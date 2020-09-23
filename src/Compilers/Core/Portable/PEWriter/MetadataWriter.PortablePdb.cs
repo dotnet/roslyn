@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -830,6 +831,143 @@ namespace Microsoft.Cci
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
+        }
+
+        /// <summary>
+        /// Capture the set of compilation options to allow a compilation 
+        /// to be reconstructed from the pdb
+        /// </summary>
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
+
+            WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+
+            if (module.EmitOptions.FallbackSourceFileEncoding != null)
+            {
+                WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
+            }
+
+            if (module.EmitOptions.DefaultSourceFileEncoding != null)
+            {
+                WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
+            }
+
+            int portabilityPolicy = 0;
+            if (module.CommonCompilation.Options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+            {
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
+            }
+
+            if (portabilityPolicy != 0)
+            {
+                WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            }
+
+            var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
+            var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
+            if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+            {
+                WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+            }
+
+            var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
+
+            module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        /// <summary>
+        /// Writes information about metadata references to the pdb so the same
+        /// reference can be found on sourcelink to create the compilation again
+        /// </summary>
+        private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            // Order of information
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // MetadataImageKind (byte)
+            // EmbedInteropTypes (boolean)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
+            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            {
+                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                {
+                    var fileName = PathUtilities.GetFileName(portableReference.FilePath);
+                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
+                    var peReader = GetReader(reference);
+
+                    // Don't write before checking that we can get a peReader for the metadata reference
+                    if (peReader is null)
+                        continue;
+
+                    // Write file name first
+                    builder.WriteUTF8(fileName);
+
+                    // Make sure to add null terminator
+                    builder.WriteByte(0);
+
+                    // Extern alias
+                    if (portableReference.Properties.Aliases.Any())
+                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+
+                    // Always null terminate the extern alias list
+                    builder.WriteByte(0);
+
+                    byte kindAndEmbedInteropTypes = (byte)(portableReference.Properties.EmbedInteropTypes
+                        ? 0b10
+                        : 0b0);
+
+                    kindAndEmbedInteropTypes |= portableReference.Properties.Kind switch
+                    {
+                        MetadataImageKind.Assembly => 1,
+                        MetadataImageKind.Module => 0,
+                        _ => throw ExceptionUtilities.UnexpectedValue(portableReference.Properties.Kind)
+                    };
+
+                    builder.WriteByte(kindAndEmbedInteropTypes);
+                    builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
+                    builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
+
+                    var metadataReader = peReader.GetMetadataReader();
+                    var moduleDefinition = metadataReader.GetModuleDefinition();
+                    builder.WriteGuid(metadataReader.GetGuid(moduleDefinition.Mvid));
+                }
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            static PEReader GetReader(ISymbol symbol)
+                => symbol switch
+                {
+                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
+                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
+                    _ => null
+                };
         }
     }
 }

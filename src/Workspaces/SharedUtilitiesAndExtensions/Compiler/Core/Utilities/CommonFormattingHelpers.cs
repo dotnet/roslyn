@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 yield break;
             }
 
-            var pairs = new List<ValueTuple<SyntaxToken, SyntaxToken>>();
             var previousOne = root.ConvertToTokenPair(spans[0]);
 
             // iterate through each spans and make sure each one doesn't overlap each other
@@ -178,8 +177,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 AppendTrailingTriviaText(token1, builder);
                 return;
             }
-
-            var token1PartOftoken2LeadingTrivia = token1.FullSpan.Start > token2.FullSpan.Start;
 
             if (token1.FullSpan.End == token2.FullSpan.Start)
             {

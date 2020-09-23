@@ -18,18 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly LambdaSimplifierCodeRefactoringProvider _codeIssueProvider;
             private readonly SemanticDocument _document;
             private readonly Func<SyntaxNode, bool> _predicate;
             private readonly CancellationToken _cancellationToken;
 
             public Rewriter(
-                LambdaSimplifierCodeRefactoringProvider codeIssueProvider,
                 SemanticDocument document,
                 Func<SyntaxNode, bool> predicate,
                 CancellationToken cancellationToken)
             {
-                _codeIssueProvider = codeIssueProvider;
                 _document = document;
                 _predicate = predicate;
                 _cancellationToken = cancellationToken;

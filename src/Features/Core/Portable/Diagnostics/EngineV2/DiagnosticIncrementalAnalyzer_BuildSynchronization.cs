@@ -24,17 +24,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        public async Task InitializeSynchronizationStateWithBuildAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            foreach (var project in solution.Projects)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
+                _ = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData: false, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task SynchronizeWithBuildAsync(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics, bool onBuildCompleted, CancellationToken cancellationToken)
         {
             var options = Workspace.Options;
 
-            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, options, buildDiagnostics, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, options, buildDiagnostics, cancellationToken))
             {
                 DebugVerifyDiagnosticLocations(buildDiagnostics);
 
                 if (!PreferBuildErrors(options))
                 {
-                    // prefer live errors over build errors
+                    // Prefer live errors over build errors
                     return;
                 }
 
@@ -42,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 foreach (var (projectId, diagnostics) in buildDiagnostics)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var project = solution.GetProject(projectId);
                     if (project == null)
                     {
@@ -51,12 +64,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // REVIEW: do build diagnostics include suppressed diagnostics?
                     var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
 
-                    // we load data since we don't know right version.
-                    var oldAnalysisData = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
+                    // We load data since we don't know right version.
+                    var oldAnalysisData = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData: false, cancellationToken).ConfigureAwait(false);
                     var newResult = CreateAnalysisResults(project, stateSets, oldAnalysisData, diagnostics);
 
                     foreach (var stateSet in stateSets)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         var state = stateSet.GetOrCreateProjectState(project.Id);
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
                         await state.SaveAsync(PersistentStorageService, project, result).ConfigureAwait(false);
@@ -66,17 +81,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, oldAnalysisData.Result, newResult);
                 }
 
-                // if we have updated errors, refresh open files
-                if (buildDiagnostics.Count > 0 && PreferLiveErrorsOnOpenedFiles(options))
+                // Refresh diagnostics for open files after solution build completes.
+                if (onBuildCompleted && PreferLiveErrorsOnOpenedFiles(options))
                 {
-                    // enqueue re-analysis of open documents.
+                    // Enqueue re-analysis of active document.
+                    if (_documentTrackingService?.GetActiveDocument(solution) is { } activeDocument)
+                    {
+                        AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
+                    }
+
+                    // Enqueue re-analysis of open documents.
                     AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }
         }
 
         [Conditional("DEBUG")]
-        private void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        private static void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
         {
             foreach (var diagnostic in buildDiagnostics.Values.SelectMany(v => v))
             {
@@ -135,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return builder == null ? ImmutableArray<DiagnosticData>.Empty : builder.ToImmutable();
         }
 
-        private ImmutableArray<DiagnosticData> ConvertToLiveDiagnostics(
+        private static ImmutableArray<DiagnosticData> ConvertToLiveDiagnostics(
             ILookup<string, DiagnosticData> lookup, ImmutableArray<DiagnosticDescriptor> descriptors, HashSet<string> seen)
         {
             if (lookup == null)

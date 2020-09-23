@@ -4,7 +4,6 @@
 
 using System.Runtime.InteropServices;
 
-
 namespace Microsoft.VisualStudio.Feedback.Interop
 {
     [Guid("26E7ECA7-4DB3-49AD-B478-33FCF05F3995")]

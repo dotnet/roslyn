@@ -17,11 +17,20 @@ using Microsoft.CodeAnalysis.Text;
 #nullable enable
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
+    /// <summary>
+    /// A <see cref="GeneratorDriver"/> implementation for the CSharp language.
+    /// </summary>
     public sealed class CSharpGeneratorDriver : GeneratorDriver
     {
-        public CSharpGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
-            : base(parseOptions, generators, additionalTexts)
+        /// <summary>
+        /// Creates a new instance of <see cref="CSharpGeneratorDriver"/>
+        /// </summary>
+        /// <param name="parseOptions">The <see cref="CSharpParseOptions"/> that should be used when parsing generated files.</param>
+        /// <param name="generators">The generators that will run as part of this driver.</param>
+        /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver.</param>
+        /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver.</param>
+        internal CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+            : base(parseOptions, generators, optionsProvider, additionalTexts)
         {
         }
 
@@ -30,8 +39,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken)
-            => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.HintName, cancellationToken); // https://github.com/dotnet/roslyn/issues/42628: hint path/ filename uniqueness
+        /// <summary>
+        /// Creates a new instance of <see cref="CSharpGeneratorDriver"/> with the specified <see cref="ISourceGenerator"/>s and default options
+        /// </summary>
+        /// <param name="generators">The generators to create this driver with</param>
+        /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
+        public static CSharpGeneratorDriver Create(params ISourceGenerator[] generators)
+            => Create(generators, additionalTexts: null);
+
+        /// <summary>
+        /// Creates a new instance of <see cref="CSharpGeneratorDriver"/> with the specified <see cref="ISourceGenerator"/>s and the provided options or default.
+        /// </summary>
+        /// <param name="generators">The generators to create this driver with</param>
+        /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver, or <c>null</c> if there are none.</param>
+        /// <param name="parseOptions">The <see cref="CSharpParseOptions"/> that should be used when parsing generated files, or <c>null</c> to use <see cref="CSharpParseOptions.Default"/></param>
+        /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver, or <c>null</c> if there are none.</param>
+        /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
+        public static CSharpGeneratorDriver Create(IEnumerable<ISourceGenerator> generators, IEnumerable<AdditionalText>? additionalTexts = null, CSharpParseOptions? parseOptions = null, AnalyzerConfigOptionsProvider? optionsProvider = null)
+            => new CSharpGeneratorDriver(parseOptions ?? CSharpParseOptions.Default, generators.ToImmutableArray(), optionsProvider ?? CompilerAnalyzerConfigOptionsProvider.Empty, additionalTexts.AsImmutableOrEmpty());
+
+        internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
+            => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, fileName, cancellationToken);
 
         internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
 

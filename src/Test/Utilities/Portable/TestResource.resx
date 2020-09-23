@@ -209,6 +209,9 @@ namespace My
             }
         }
 
+        public static bool IsAsciiLetter(char c) => c is (>= 'a' and &lt;= 'z') or (>= 'A' and &lt;= 'Z');
+        public static bool NotInteger(object o) => o is not int;
+
         [method: Obsolete]
         public A([param: Obsolete] int goo) :
             base(1)
@@ -416,6 +419,10 @@ namespace My
                 return;
             yield return this.items[3];
             yield break;
+            delegate*&lt;int, string, void&gt; fp1 = null;
+            delegate* managed&lt;int, string, void&gt; fp2 = null;
+            delegate* unmanaged&lt;int, string, void&gt; fp3 = null;
+            delegate* unmanaged[Cdecl]&lt;int, string, void&gt; fp4 = null;
             fixed (int* p = stackalloc int[100], q = &amp;y)
             {
                 *intref = 1;

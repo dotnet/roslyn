@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Compilation output file paths.
         /// </summary>
-        public CompilationOutputFilePaths CompilationOutputFilePaths => _projectState.CompilationOutputFilePaths;
+        public CompilationOutputInfo CompilationOutputInfo => _projectState.CompilationOutputInfo;
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -555,14 +555,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            foreach (var documentId in documentIds)
-            {
-                // Handling of null entries is handled by Solution.RemoveDocuments.
-                if (documentId?.ProjectId != this.Id)
-                {
-                    throw new ArgumentException(string.Format(WorkspacesResources._0_is_in_a_different_project, documentId));
-                }
-            }
+            CheckIdsContainedInProject(documentIds);
 
             return this.Solution.RemoveDocuments(documentIds).GetRequiredProject(this.Id);
         }
@@ -571,21 +564,60 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this project updated to no longer include the specified additional document.
         /// </summary>
         public Project RemoveAdditionalDocument(DocumentId documentId)
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
             => this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id)!;
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified additional documents.
+        /// </summary>
+        public Project RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            CheckIdsContainedInProject(documentIds);
+
+            return this.Solution.RemoveAdditionalDocuments(documentIds).GetRequiredProject(this.Id);
+        }
 
         /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified analyzer config document.
         /// </summary>
         public Project RemoveAnalyzerConfigDocument(DocumentId documentId)
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
             => this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id)!;
 
-        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
-            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.
+        /// </summary>
+        public Project RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            CheckIdsContainedInProject(documentIds);
+
+            return this.Solution.RemoveAnalyzerConfigDocuments(documentIds).GetRequiredProject(this.Id);
+        }
+
+        private void CheckIdsContainedInProject(ImmutableArray<DocumentId> documentIds)
+        {
+            foreach (var documentId in documentIds)
+            {
+                // Dealing with nulls is handled by the caller of this
+                if (documentId?.ProjectId != this.Id)
+                {
+                    throw new ArgumentException(string.Format(WorkspacesResources._0_is_in_a_different_project, documentId));
+                }
+            }
+        }
+
+        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
+            => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()
             => this.Name;
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(CancellationToken cancellationToken)
+            => _solution.State.GetGeneratorDriverRunResultAsync(_projectState, cancellationToken);
     }
 }

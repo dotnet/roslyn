@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         private static long CombineInt32ValuesToInt64(int v1, int v2)
             => ((long)v1 << 32) | (long)v2;
 
-
         private static (byte[] bytes, int length, bool fromPool) GetBytes(
             Checksum checksumOpt, CancellationToken cancellationToken)
         {

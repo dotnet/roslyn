@@ -17,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-                    : base(instanceFactory, testOutputHelper, nameof(CSharpGoToImplementation))
+        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory)
+                    : base(instanceFactory, nameof(CSharpGoToImplementation))
         {
         }
 
@@ -67,7 +67,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
-
 
         // TODO: Enable this once the GoToDefinition tests are merged
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]

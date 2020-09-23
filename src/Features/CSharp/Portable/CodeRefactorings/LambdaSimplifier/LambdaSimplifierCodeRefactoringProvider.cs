@@ -60,23 +60,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 lambda.Span);
         }
 
-        private async Task<Document> SimplifyLambdaAsync(
+        private static async Task<Document> SimplifyLambdaAsync(
             Document document,
             SyntaxNode lambda,
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, n => n == lambda, cancellationToken);
+            var rewriter = new Rewriter(semanticDocument, n => n == lambda, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
 
-        private async Task<Document> SimplifyAllLambdasAsync(
+        private static async Task<Document> SimplifyAllLambdasAsync(
             Document document,
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, n => true, cancellationToken);
+            var rewriter = new Rewriter(semanticDocument, n => true, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }

@@ -66,14 +66,21 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var upperIfOrElseIf = root.FindNode(upperIfOrElseIfSpan);
-            var lowerIfOrElseIf = root.FindNode(lowerIfOrElseIfSpan);
+            var upperIfOrElseIf = FindIfOrElseIf(upperIfOrElseIfSpan, ifGenerator, root);
+            var lowerIfOrElseIf = FindIfOrElseIf(lowerIfOrElseIfSpan, ifGenerator, root);
 
             Debug.Assert(ifGenerator.IsIfOrElseIf(upperIfOrElseIf));
             Debug.Assert(ifGenerator.IsIfOrElseIf(lowerIfOrElseIf));
 
             var newRoot = GetChangedRoot(document, root, upperIfOrElseIf, lowerIfOrElseIf);
             return document.WithSyntaxRoot(newRoot);
+
+            static SyntaxNode FindIfOrElseIf(TextSpan span, IIfLikeStatementGenerator ifGenerator, SyntaxNode root)
+            {
+                var innerMatch = root.FindNode(span, getInnermostNodeForTie: true);
+                return innerMatch?.FirstAncestorOrSelf<SyntaxNode>(
+                    node => ifGenerator.IsIfOrElseIf(node) && node.Span == span);
+            }
         }
 
         protected static IReadOnlyList<SyntaxNode> WalkDownScopeBlocks(

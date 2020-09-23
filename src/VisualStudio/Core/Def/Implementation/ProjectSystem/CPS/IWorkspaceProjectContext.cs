@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -20,10 +21,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         bool LastDesignTimeBuildSucceeded { get; set; }
         string BinOutputPath { get; set; }
 
+        /// <summary>
+        /// When this project is one of a multi-targeting group of projects, this value indicates whether or not this
+        /// particular project is the primary one.  The primary project is responsible for certain things when reporting
+        /// data from Roslyn's individual projects back to the project system itself.  For example, designer attributes
+        /// are only associated with the primary project, and should be skipped for other projects.
+        /// </summary>
+        bool IsPrimary { get; set; }
+
         ProjectId Id { get; }
 
         // Options.
+
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         void SetOptions(string commandLineForOptions);
+        void SetOptions(ImmutableArray<string> arguments);
 
         // Other project properties.
         void SetProperty(string name, string value);

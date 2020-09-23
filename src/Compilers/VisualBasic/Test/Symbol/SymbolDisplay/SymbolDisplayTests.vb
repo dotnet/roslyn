@@ -7,6 +7,7 @@ Imports System.Globalization
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -5232,7 +5233,7 @@ End Class")
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

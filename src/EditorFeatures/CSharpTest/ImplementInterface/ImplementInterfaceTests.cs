@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -158,6 +159,32 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodInRecord()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task TestMethodWithNativeIntegers()
         {
@@ -187,9 +214,7 @@ namespace System.Runtime.CompilerServices
 class Class : [|IInterface|]
 {
 }" + nativeIntegerAttributeDefinition,
-    @"using System;
-
-interface IInterface
+    @"interface IInterface
 {
     [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
     (nint, nuint) Method(nint x, nuint x2);
@@ -199,7 +224,7 @@ class Class : IInterface
 {
     public (nint, nuint) Method(nint x, nuint x2)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }" + nativeIntegerAttributeDefinition);
         }
@@ -892,6 +917,136 @@ class C : I
     {
         i.Method1();
     }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_SameMemberInDifferentType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOnePropInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i { get; }
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i { get; }
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOneNonViableInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    int i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    int i;
 }",
 index: 1);
         }
@@ -8415,6 +8570,30 @@ class C : [|I|]
         throw new System.NotImplementedException();
     }
 }", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementInitOnlyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+    public int Property { get => throw new System.NotImplementedException(); init => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]

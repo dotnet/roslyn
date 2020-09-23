@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -2325,7 +2326,7 @@ Module Program
 End Module    
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={TestMetadata.Net40.SystemCore})
             compilation.AssertNoDiagnostics()
             ' NOTE: this did not succeed in Dev10, but it does in Roslyn because we do a full overload resolution and can decide whether this 
             ' is ambiguous or not.
@@ -2375,7 +2376,7 @@ Module Program
 End Module
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={TestMetadata.Net40.SystemCore})
             AssertTheseDiagnostics(compilation,
                               <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -2428,7 +2429,7 @@ Module Program
 End Module
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={TestMetadata.Net40.SystemCore})
             AssertTheseDiagnostics(compilation,
                               <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -3240,7 +3241,7 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
 1
 2
 3
-]]>, references:={SystemCoreRef})
+]]>, references:={TestMetadata.Net40.SystemCore})
         End Sub
 
         <Fact()>

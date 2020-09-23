@@ -13,8 +13,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpErrorListDesktop : CSharpErrorListCommon
     {
-        public CSharpErrorListDesktop(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.ClassLibrary)
+        public CSharpErrorListDesktop(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 

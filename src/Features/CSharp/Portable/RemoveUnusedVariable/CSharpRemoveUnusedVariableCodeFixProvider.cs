@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
                     editor.ReplaceNode(node, ((AssignmentExpressionSyntax)node).Right);
                     return;
                 default:
-                    RemoveNode(editor, node, syntaxFacts);
+                    RemoveNode(editor, node.IsParentKind(SyntaxKind.GlobalStatement) ? node.Parent : node, syntaxFacts);
                     return;
             }
         }

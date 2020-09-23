@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class GenericNameSignatureHelpProvider
     {
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             INamedTypeSymbol namedType,
             SemanticModel semanticModel,
             int position)
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(INamedTypeSymbol namedType)
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.GreaterThanToken));

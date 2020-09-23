@@ -1058,7 +1058,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { TestMetadata.Net40.System, ValueTupleRef, TestMetadata.Net40.SystemCore }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"

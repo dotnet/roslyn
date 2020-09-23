@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         protected abstract Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash);
 
-        protected FileSystemCompletionHelper GetFileSystemCompletionHelper(
+        protected static FileSystemCompletionHelper GetFileSystemCompletionHelper(
             Document document,
             Glyph itemGlyph,
             ImmutableArray<string> extensions,

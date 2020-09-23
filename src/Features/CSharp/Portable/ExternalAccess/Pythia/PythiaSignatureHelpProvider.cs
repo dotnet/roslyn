@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
         public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
             => _lazyImplementation = implementation;
 
-        internal async override Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
+        internal override async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
             ImmutableArray<IMethodSymbol> accessibleMethods,
             Document document,
             InvocationExpressionSyntax invocationExpression,

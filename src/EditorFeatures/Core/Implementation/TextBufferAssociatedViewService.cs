@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextBufferAssociatedViewService()
         {
         }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         [Conditional("DEBUG")]
-        private void DebugRegisterView_NoLock(ITextView textView)
+        private static void DebugRegisterView_NoLock(ITextView textView)
         {
 #if DEBUG
             if (s_registeredViews.Add(textView))
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
 #if DEBUG
-        private void OnTextViewClose(object sender, EventArgs e)
+        private static void OnTextViewClose(object sender, EventArgs e)
         {
             var view = sender as ITextView;
 

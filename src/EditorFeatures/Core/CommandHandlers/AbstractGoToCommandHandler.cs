@@ -26,14 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;
 
-        public abstract string DisplayName { get; }
-
-        protected abstract string ScopeDescription { get; }
-
-        protected abstract FunctionId FunctionId { get; }
-
-        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
-
         public AbstractGoToCommandHandler(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
@@ -41,6 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
+
+        public abstract string DisplayName { get; }
+        protected abstract string ScopeDescription { get; }
+        protected abstract FunctionId FunctionId { get; }
+        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
 
         public CommandState GetCommandState(TCommandArgs args)
         {
@@ -56,29 +53,25 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
+                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (!caret.HasValue)
+                    return false;
+
                 var subjectBuffer = args.SubjectBuffer;
                 if (!subjectBuffer.TryGetWorkspace(out var workspace))
-                {
                     return false;
-                }
 
                 var service = workspace.Services.GetLanguageServices(args.SubjectBuffer)?.GetService<TLanguageService>();
-                if (service != null)
-                {
-                    var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                    if (caret.HasValue)
-                    {
-                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                            context.OperationContext, _threadingContext);
-                        if (document != null)
-                        {
-                            ExecuteCommand(document, caret.Value, service, context);
-                            return true;
-                        }
-                    }
-                }
+                if (service == null)
+                    return false;
 
-                return false;
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                    context.OperationContext, _threadingContext);
+                if (document == null)
+                    return false;
+
+                ExecuteCommand(document, caret.Value, service, context);
+                return true;
             }
         }
 
@@ -95,10 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 var userCancellationToken = context.OperationContext.UserCancellationToken;
                 using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
                 {
-                    StreamingGoTo(
-                        document, caretPosition,
-                        service, _streamingPresenter,
-                        userCancellationToken, out messageToShow);
+                    messageToShow = _threadingContext.JoinableTaskFactory.Run(() =>
+                        NavigateToOrPresentResultsAsync(document, caretPosition, service, userCancellationToken));
                 }
 
                 if (messageToShow != null)
@@ -108,39 +99,33 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     // and also will take it into consideration when measuring command handling duration.
                     context.OperationContext.TakeOwnership();
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(messageToShow,
-                        title: EditorFeaturesResources.Go_To_Implementation,
+                    notificationService.SendNotification(
+                        message: messageToShow,
+                        title: DisplayName,
                         severity: NotificationSeverity.Information);
                 }
             }
         }
 
-        private void StreamingGoTo(
-            Document document, int caretPosition,
+        private async Task<string> NavigateToOrPresentResultsAsync(
+            Document document,
+            int caretPosition,
             TLanguageService service,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken,
-            out string messageToShow)
+            CancellationToken cancellationToken)
         {
             // We create our own context object, simply to capture all the definitions reported by 
             // the individual TLanguageService.  Once we get the results back we'll then decide 
             // what to do with them.  If we get only a single result back, then we'll just go 
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
             var context = new SimpleFindUsagesContext(cancellationToken);
-            FindActionAsync(service, document, caretPosition, context).Wait(cancellationToken);
 
-            // If FindAction reported a message, then just stop and show that 
-            // message to the user.
-            messageToShow = context.Message;
-            if (messageToShow != null)
-            {
-                return;
-            }
+            await FindActionAsync(service, document, caretPosition, context).ConfigureAwait(false);
+            if (context.Message != null)
+                return context.Message;
 
-            var definitionItems = context.GetDefinitions();
-
-            streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                document.Project.Solution.Workspace, context.SearchTitle, definitionItems).Wait(cancellationToken);
+            await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions()).ConfigureAwait(false);
+            return null;
         }
     }
 }

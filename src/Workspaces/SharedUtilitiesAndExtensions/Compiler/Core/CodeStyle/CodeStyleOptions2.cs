@@ -267,6 +267,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: "",
             EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
 
+        internal static readonly Option2<string> RemoveUnnecessarySuppressionExclusions = CreateCommonOption(
+            CodeStyleOptionGroups.Suppressions,
+            nameof(RemoveUnnecessarySuppressionExclusions),
+            defaultValue: "",
+            storageLocations: new OptionStorageLocation2[]{
+                EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions") });
+
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]
             {
@@ -433,5 +441,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority: 6);
         public static readonly OptionGroup Field = new OptionGroup(CompilerExtensionsResources.Field_preferences, priority: 7);
         public static readonly OptionGroup Parameter = new OptionGroup(CompilerExtensionsResources.Parameter_preferences, priority: 8);
+        public static readonly OptionGroup Suppressions = new OptionGroup(CompilerExtensionsResources.Suppression_preferences, priority: 9);
     }
 }

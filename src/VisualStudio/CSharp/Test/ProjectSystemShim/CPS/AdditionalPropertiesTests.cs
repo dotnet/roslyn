@@ -4,7 +4,6 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
@@ -41,21 +40,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]
         [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion? maxSupportedLangVersion)
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-
-            using (var environment = new TestEnvironment(exportProviderFactory: factory))
+            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
             using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
@@ -82,15 +76,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [WpfFact]
         public void SetProperty_MaxSupportedLangVersion_CPS_NotSet()
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-
-            using (var environment = new TestEnvironment(exportProviderFactory: factory))
+            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
             using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();

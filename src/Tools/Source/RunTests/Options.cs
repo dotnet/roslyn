@@ -42,11 +42,6 @@ namespace RunTests
         public bool TestVsi { get; set; }
 
         /// <summary>
-        /// Allow the caching of test results.
-        /// </summary>
-        public bool UseCachedResults { get; set; }
-
-        /// <summary>
         /// Display the results files.
         /// </summary>
         public Display Display { get; set; }
@@ -75,6 +70,11 @@ namespace RunTests
         /// Whether or not to use proc dump to monitor running processes for failures.
         /// </summary>
         public bool UseProcDump { get; set; }
+
+        /// <summary>
+        /// Disable partitioning and parallelization across test assemblies.
+        /// </summary>
+        public bool Sequential { get; set; }
 
         /// <summary>
         /// The directory which contains procdump.exe. 
@@ -119,7 +119,7 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
+            var opt = new Options { XunitPath = args[0], UseHtml = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
             var index = 1;
             var allGood = true;
             while (index < args.Length)
@@ -133,17 +133,11 @@ namespace RunTests
                 else if (comparer.Equals(current, "-testVsi"))
                 {
                     opt.TestVsi = true;
-                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (comparer.Equals(current, "-xml"))
                 {
                     opt.UseHtml = false;
-                    index++;
-                }
-                else if (comparer.Equals(current, "-nocache"))
-                {
-                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (isOption(current, "-tfm", out string targetFrameworkMoniker))
@@ -212,6 +206,11 @@ namespace RunTests
                 else if (comparer.Equals(current, "-useprocdump"))
                 {
                     opt.UseProcDump = false;
+                    index++;
+                }
+                else if (comparer.Equals(current, "-sequential"))
+                {
+                    opt.Sequential = true;
                     index++;
                 }
                 else

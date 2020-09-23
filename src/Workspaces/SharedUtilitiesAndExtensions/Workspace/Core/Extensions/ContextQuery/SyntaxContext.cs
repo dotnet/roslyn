@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isInImportsDirective,
             bool isWithinAsyncMethod,
             bool isPossibleTupleContext,
-            bool isPatternContext,
+            bool isAtStartOfPattern,
+            bool isAtEndOfPattern,
             bool isRightSideOfNumericType,
             bool isOnArgumentListBracketOrComma,
             CancellationToken cancellationToken)
@@ -60,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsInImportsDirective = isInImportsDirective;
             this.IsWithinAsyncMethod = isWithinAsyncMethod;
             this.IsPossibleTupleContext = isPossibleTupleContext;
-            this.IsPatternContext = isPatternContext;
+            this.IsAtStartOfPattern = isAtStartOfPattern;
+            this.IsAtEndOfPattern = isAtEndOfPattern;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
@@ -71,7 +73,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public SyntaxTree SyntaxTree { get; }
         public int Position { get; }
 
+        /// <summary>
+        /// The token to the left of <see cref="Position"/>. This token may be touching the position.
+        /// </summary>
         public SyntaxToken LeftToken { get; }
+
+        /// <summary>
+        /// The first token to the left of <see cref="Position"/> that we're not touching. Equal to <see cref="LeftToken"/>
+        /// if we aren't touching <see cref="LeftToken" />.
+        /// </summary>
         public SyntaxToken TargetToken { get; }
 
         public bool IsTypeContext { get; }
@@ -92,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsInImportsDirective { get; }
         public bool IsWithinAsyncMethod { get; }
         public bool IsPossibleTupleContext { get; }
-        public bool IsPatternContext { get; }
+        public bool IsAtStartOfPattern { get; }
+        public bool IsAtEndOfPattern { get; }
 
         public bool IsRightSideOfNumericType { get; }
         public bool IsOnArgumentListBracketOrComma { get; }

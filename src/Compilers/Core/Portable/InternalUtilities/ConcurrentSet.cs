@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -105,7 +104,7 @@ namespace Roslyn.Utilities
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
         public bool Remove(T value)
         {
-            return _dictionary.TryRemove(value, out var b);
+            return _dictionary.TryRemove(value, out _);
         }
 
         /// <summary>
@@ -178,7 +177,13 @@ namespace Roslyn.Utilities
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            // PERF: Do not use dictionary.Keys here because that creates a snapshot
+            // of the collection resulting in a List<T> allocation.
+            // Instead, enumerate the set and copy over the elements.
+            foreach (var element in this)
+            {
+                array[arrayIndex++] = element;
+            }
         }
     }
 }

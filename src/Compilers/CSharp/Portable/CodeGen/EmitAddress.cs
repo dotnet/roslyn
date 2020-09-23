@@ -120,6 +120,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     goto default;
 
+                case BoundKind.FunctionPointerInvocation:
+                    var funcPtrInvocation = (BoundFunctionPointerInvocation)expression;
+                    var funcPtrRefKind = funcPtrInvocation.FunctionPointer.Signature.RefKind;
+                    if (funcPtrRefKind == RefKind.Ref ||
+                        (IsAnyReadOnly(addressKind) && funcPtrRefKind == RefKind.RefReadOnly))
+                    {
+                        EmitCalli(funcPtrInvocation, UseKind.UsedAsAddress);
+                        break;
+                    }
+
+                    goto default;
+
                 case BoundKind.DefaultExpression:
                     var type = expression.Type;
 

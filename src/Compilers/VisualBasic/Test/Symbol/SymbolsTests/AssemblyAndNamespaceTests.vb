@@ -5,6 +5,7 @@
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -517,7 +518,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
+            Dim aliasedCorlib = TestMetadata.Net451.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
             Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 

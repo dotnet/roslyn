@@ -2825,7 +2825,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        private string CreateMethod(string body)
+        private static string CreateMethod(string body)
         {
             return @"Imports System
 Class C
@@ -2834,7 +2834,7 @@ Class C
 End Class";
         }
 
-        private async Task VerifyAsync(string codeWithMarker, string expectedResult)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
@@ -2853,7 +2853,7 @@ End Class";
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

@@ -281,12 +281,10 @@ End Class
                     actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage.Additional"}, globalNamespace).Single()
                     Assert.Equal(expectedIdentity, actualIdentity)
 
-
                     expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=AssemblyContentType.WindowsRuntime)
 
                     actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
                     Assert.Equal(expectedIdentity, actualIdentity)
-
 
                     Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
                 End Sub)

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     Friend NotInheritable Class ImportCompletionProviderHelper
 
-        Public Shared Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
+        Public Shared Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel) As ImmutableArray(Of String)
             Dim builder = ArrayBuilder(Of String).GetInstance()
 
             ' Get namespaces from import directives

@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -75,6 +76,11 @@ namespace Microsoft.CodeAnalysis
         /// null is returned.
         /// </summary>
         INamedTypeSymbol? ResolveForwardedType(string fullyQualifiedMetadataName);
+
+        /// <summary>
+        /// Returns type symbols for top-level (non-nested) types forwarded by this assembly.
+        /// </summary>
+        ImmutableArray<INamedTypeSymbol> GetForwardedTypes();
 
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.

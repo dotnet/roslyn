@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     {
                         var argumentToAdd = DetermineFirstArgumentToAdd(
                             semanticModel, syntaxFacts, comparer, method,
-                            arguments, argumentOpt);
+                            arguments);
 
                         if (argumentToAdd != null)
                         {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private void RegisterFixForMethodOverloads(
+        private static void RegisterFixForMethodOverloads(
             CodeFixContext context,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
+        private static ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
             Document document,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return title;
         }
 
-        private async Task<Solution> FixAsync(
+        private static async Task<Solution> FixAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
@@ -380,12 +380,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            var argumentType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
             var refKind = syntaxFacts.GetRefKindOfArgument(argument);
             return (argumentType, refKind);
         }
 
-        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
+        private static async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
             Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
@@ -418,8 +418,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             ISyntaxFactsService syntaxFacts,
             StringComparer comparer,
             IMethodSymbol method,
-            SeparatedSyntaxList<TArgumentSyntax> arguments,
-            TArgumentSyntax argumentOpt)
+            SeparatedSyntaxList<TArgumentSyntax> arguments)
         {
             var compilation = semanticModel.Compilation;
             var methodParameterNames = new HashSet<string>(comparer);

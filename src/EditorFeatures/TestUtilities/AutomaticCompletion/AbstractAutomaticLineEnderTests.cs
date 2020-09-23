@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,39 +19,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
     [UseExportProvider]
     public abstract class AbstractAutomaticLineEnderTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string code);
+        protected abstract string Language { get; }
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
-        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations);
+        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45892
         protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            using (var workspace = CreateWorkspace(code))
-            {
-                var view = workspace.Documents.Single().GetTextView();
-                var buffer = workspace.Documents.Single().GetTextBuffer();
-                var nextHandlerInvoked = false;
+            // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
+            using var workspace = TestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, new[] { code }, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-                view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
+            var view = workspace.Documents.Single().GetTextView();
+            var buffer = workspace.Documents.Single().GetTextBuffer();
+            var nextHandlerInvoked = false;
 
-                var commandHandler = CreateCommandHandler(
-                                        GetExportedValue<ITextUndoHistoryRegistry>(workspace),
-                                        GetExportedValue<IEditorOperationsFactoryService>(workspace));
+            view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
 
-                commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer),
-                                                    assertNextHandlerInvoked
-                                                        ? () => { nextHandlerInvoked = true; }
-                : CreateNextHandler(workspace), TestCommandExecutionContext.Create());
+            var commandHandler = GetCommandHandler(workspace);
+            var nextHandler = assertNextHandlerInvoked ? () => nextHandlerInvoked = true : CreateNextHandler(workspace);
 
-                Test(view, buffer, expected);
+            commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer), nextHandler, TestCommandExecutionContext.Create());
 
-                Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
-            }
+            Test(view, buffer, expected);
+
+            Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
         }
 
-        private void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
+        private static void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
         {
             MarkupTestFile.GetPosition(expectedWithAnnotations, out var expected, out int expectedPosition);
 
@@ -64,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Equal(expectedPosition, virtualPosition.Position.Position + virtualPosition.VirtualSpaces);
         }
 
-        public T GetService<T>(TestWorkspace workspace)
+        public static T GetService<T>(TestWorkspace workspace)
             => workspace.GetService<T>();
 
-        public T GetExportedValue<T>(TestWorkspace workspace)
+        public static T GetExportedValue<T>(TestWorkspace workspace)
             => workspace.ExportProvider.GetExportedValue<T>();
     }
 }

@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -200,7 +201,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
                 );
         }
 
-        private static string s_arraysOfRank1IlSource = @"
+        private static readonly string s_arraysOfRank1IlSource = @"
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object
 {

@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool IsInGAC(string filePath)
+        private static bool IsInGAC(string filePath)
         {
             return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => PathUtilities.IsChildPath(gloc, filePath));
         }
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool IsFrameworkReferenceAssembly(string filePath)
+        private static bool IsFrameworkReferenceAssembly(string filePath)
         {
             return PathUtilities.IsChildPath(FrameworkRoot, filePath);
         }
@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveProjectReference(string projectName, string projectFilePath)
         {
-            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
             var item = FindProjectReferenceItem(projectName, projectFilePath);
             if (item != null)
             {

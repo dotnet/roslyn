@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnVariableDeclarator()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnAssignmentExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestStopOnDuplicateMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestComplexInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestNotOnCompoundAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -560,13 +561,19 @@ class C
 
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            CompileAndVerify(compilation).VerifyIL("C<T>..cctor", @"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}
-");
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                // note: we could make the synthesized constructor smarter and realize that
+                // nothing needs to be emitted for these initializers.
+                // but it doesn't serve any realistic scenarios at this time.
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C`1");
+                Assert.NotNull(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(530445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530445")]

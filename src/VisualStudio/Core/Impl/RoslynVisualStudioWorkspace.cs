@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -32,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
+        private readonly IThreadingContext _threadingContext;
+
         /// <remarks>
         /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
         /// backreference to <see cref="VisualStudioWorkspace"/>.
@@ -42,10 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
+            IThreadingContext threadingContext,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
+            _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
@@ -77,6 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
+            // Documents in the VisualStudioWorkspace always have file paths since that's how we get files given
+            // to us from the project system.
+            Contract.ThrowIfNull(textDocument.FilePath);
 
             return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
@@ -98,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var currentCompilation = currentProject.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
 
             if (symbolInfo.Symbol == null)
@@ -123,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject.Solution,
-                _streamingPresenter.Value, cancellationToken);
+                _threadingContext, _streamingPresenter.Value, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -184,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
             if (fileCodeModel != null)
             {
-                SyntaxNode? syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
+                var syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
                 while (syntaxNode != null)
                 {
                     if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -3786,7 +3787,7 @@ End Module
 
         <WorkItem(546132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546132")>
         <Fact()>
-        Public Sub SymbolInfoForFunctionAggregationSyntax()
+        Public Sub SymbolInfoForFunctionAgtAregationSyntax()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3820,7 +3821,7 @@ Module AggrArgsInvalidmod
     End Sub
 End Module
     ]]></file>
-</compilation>, references:={TestReferences.NetFx.v4_0_30319.System_Core})
+</compilation>, references:={TestMetadata.Net40.SystemCore})
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_QueryOperatorNotFound, "aggr4").WithArguments("aggr4"))
 

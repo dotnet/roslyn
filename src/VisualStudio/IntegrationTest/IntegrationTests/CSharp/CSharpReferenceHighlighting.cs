@@ -21,8 +21,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpReferenceHighlighting))
         {
         }
 
@@ -79,8 +79,7 @@ class C
 }";
             VisualStudio.Editor.SetText(text);
             VisualStudio.Editor.PlaceCaret("x");
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }

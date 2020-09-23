@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             public void Visit(RegexNegativeLookbehindGroupingNode node)
                 => ClassifyGrouping(node);
 
-            public void Visit(RegexNonBacktrackingGroupingNode node)
+            public void Visit(RegexAtomicGroupingNode node)
                 => ClassifyGrouping(node);
 
             public void Visit(RegexCaptureGroupingNode node)

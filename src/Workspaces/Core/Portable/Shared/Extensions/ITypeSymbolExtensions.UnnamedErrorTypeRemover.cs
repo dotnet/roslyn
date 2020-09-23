@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): implement this
+                return symbol;
+            }
+
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
                 if (symbol.IsErrorType() && symbol.Name == string.Empty)

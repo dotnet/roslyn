@@ -151,7 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 async tasks =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
-                    _stopCancellationToken.ThrowIfCancellationRequested();
 
                     if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
                     {

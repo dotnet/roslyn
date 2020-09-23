@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             string code,
             IEnumerable<TextSpan> spans,
             string language,
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/44225
             bool debugMode = false,
+#pragma warning restore IDE0060 // Remove unused parameter
             OptionsCollection? changedOptionSet = null,
             bool treeCompare = true,
             ParseOptions? parseOptions = null)

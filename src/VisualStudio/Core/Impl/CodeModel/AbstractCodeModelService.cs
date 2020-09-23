@@ -1032,16 +1032,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        private int GetAttributeArgumentInsertionIndex(SyntaxNode container, int insertionIndex)
+        private int GetAttributeArgumentInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetAttributeInsertionIndex(SyntaxNode container, int insertionIndex)
+        private int GetAttributeInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetImportInsertionIndex(SyntaxNode container, int insertionIndex)
+        private int GetImportInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetParameterInsertionIndex(SyntaxNode container, int insertionIndex)
+        private int GetParameterInsertionIndex(int insertionIndex)
             => insertionIndex;
 
         protected abstract bool IsCodeModelNode(SyntaxNode node);
@@ -1164,7 +1164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetAttributeInsertionIndex(containerNode, insertionIndex),
+                GetAttributeInsertionIndex(insertionIndex),
                 containerNode,
                 attributeNode,
                 InsertAttributeListIntoContainer,
@@ -1186,7 +1186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetAttributeArgumentInsertionIndex(containerNode, insertionIndex),
+                GetAttributeArgumentInsertionIndex(insertionIndex),
                 containerNode,
                 attributeArgumentNode,
                 InsertAttributeArgumentIntoContainer,
@@ -1208,7 +1208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetImportInsertionIndex(containerNode, insertionIndex),
+                GetImportInsertionIndex(insertionIndex),
                 containerNode,
                 importNode,
                 InsertImportIntoContainer,
@@ -1230,7 +1230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetParameterInsertionIndex(containerNode, insertionIndex),
+                GetParameterInsertionIndex(insertionIndex),
                 containerNode,
                 parameterNode,
                 InsertParameterIntoContainer,

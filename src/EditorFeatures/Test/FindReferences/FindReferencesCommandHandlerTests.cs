@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
 
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (Result)
                 {
                     Result.Add(definition);
                 }
 
-                return Task.CompletedTask;
+                return default;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             AssertResult(context.Result, "C.C()", "class C");
         }
 
-        private void AssertResult(
+        private static void AssertResult(
             List<DefinitionItem> result,
             params string[] definitions)
         {

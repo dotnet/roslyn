@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
         }
 
-        private bool CouldBeGenericType(SyntaxToken identifier)
+        private static bool CouldBeGenericType(SyntaxToken identifier)
         {
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
@@ -72,10 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
-            if (identifierName.IsMemberAccessExpressionName() &&
-                identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+            if (identifierName.IsSimpleMemberAccessExpressionName() ||
+                identifierName.IsMemberBindingExpressionName())
             {
-                return false;
+                if (identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+                    return false;
             }
 
             // Add more cases as necessary.

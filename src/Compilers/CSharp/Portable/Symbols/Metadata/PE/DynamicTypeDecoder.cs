@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var decoder = new DynamicTypeDecoder(dynamicTransformFlags, haveCustomModifierFlags, checkLength, containingAssembly);
 
             // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is ref or out.
-            if (decoder.HandleCustomModifiers(targetSymbolCustomModifierCount) && decoder.HandleParameterRefKind(targetSymbolRefKind))
+            if (decoder.HandleCustomModifiers(targetSymbolCustomModifierCount) && decoder.HandleRefKind(targetSymbolRefKind))
             {
                 TypeSymbol transformedType = decoder.TransformType(metadataType);
 
@@ -164,6 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.PointerType:
                     return TransformPointerType((PointerTypeSymbol)type);
 
+                case SymbolKind.FunctionPointerType:
+                    return TransformFunctionPointerType((FunctionPointerTypeSymbol)type);
+
                 case SymbolKind.DynamicType:
                     Debug.Assert(!_haveCustomModifierFlags, "This shouldn't happen during decoding.");
                     return ConsumeFlag()
@@ -200,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is ref or out.
-        private bool HandleParameterRefKind(RefKind refKind)
+        // Native compiler encodes bools (always false) for custom modifiers and parameter ref-kinds, if ref-kind is not none.
+        private bool HandleRefKind(RefKind refKind)
         {
             Debug.Assert(_index >= 0);
             return refKind == RefKind.None || !ConsumeFlag();
@@ -337,6 +340,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 pointerType :
                 new PointerTypeSymbol(pointerType.PointedAtTypeWithAnnotations.WithTypeAndModifiers(transformedPointedAtType, pointerType.PointedAtTypeWithAnnotations.CustomModifiers));
         }
+
+#nullable enable
+        private FunctionPointerTypeSymbol? TransformFunctionPointerType(FunctionPointerTypeSymbol type)
+        {
+            var flag = ConsumeFlag();
+            Debug.Assert(!flag);
+
+            var sig = type.Signature;
+
+            var (transformedReturnWithAnnotations, madeChanges) = handle(ref this, sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
+            if (transformedReturnWithAnnotations.IsDefault)
+            {
+                return null;
+            }
+
+            var transformedParameters = ImmutableArray<TypeWithAnnotations>.Empty;
+            if (sig.ParameterCount > 0)
+            {
+                var paramsTransformed = false;
+                var paramsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(sig.ParameterCount);
+                try
+                {
+                    foreach (var param in sig.Parameters)
+                    {
+                        var (transformedParamType, paramTransformed) = handle(ref this, param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
+                        if (transformedParamType.IsDefault)
+                        {
+                            return null;
+                        }
+
+                        paramsBuilder.Add(transformedParamType);
+                        paramsTransformed |= paramTransformed;
+                    }
+
+                    transformedParameters = paramsTransformed ? paramsBuilder.ToImmutable() : sig.ParameterTypesWithAnnotations;
+                    madeChanges |= paramsTransformed;
+                }
+                finally
+                {
+                    paramsBuilder.Free();
+                }
+            }
+
+            if (madeChanges)
+            {
+                return type.SubstituteTypeSymbol(transformedReturnWithAnnotations, transformedParameters,
+                                                 refCustomModifiers: default, paramRefCustomModifiers: default);
+            }
+            else
+            {
+                return type;
+            }
+
+            static (TypeWithAnnotations, bool madeChanges) handle(ref DynamicTypeDecoder decoder, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations typeWithAnnotations)
+            {
+                if (!decoder.HandleCustomModifiers(refCustomModifiers.Length)
+                    || !decoder.HandleRefKind(refKind)
+                    || !decoder.HandleCustomModifiers(typeWithAnnotations.CustomModifiers.Length))
+                {
+                    return (default, false);
+                }
+
+                var transformedType = decoder.TransformType(typeWithAnnotations.Type);
+                if (transformedType is null)
+                {
+                    return (default, false);
+                }
+
+                if (transformedType.Equals(typeWithAnnotations.Type, TypeCompareKind.ConsiderEverything))
+                {
+                    return (typeWithAnnotations, false);
+                }
+
+                return (typeWithAnnotations.WithType(transformedType), true);
+            }
+        }
+#nullable restore
 
         private bool HasFlag => _index < _dynamicTransformFlags.Length || !_checkLength;
 

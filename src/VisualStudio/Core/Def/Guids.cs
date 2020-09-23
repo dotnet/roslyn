@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOptionPageCodeStyleIdString = "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F";
         public const string CSharpOptionPageFormattingGeneralIdString = "DA0446DD-55BA-401F-A364-7D3238412AE4";
         public const string CSharpOptionPageFormattingIndentationIdString = "5E21D017-6D2A-4114-A1F1-C923F001CBBB";
-        public const string CSharpOptionPageFormattingNewLinesIdString = "607D8062-68D1-41E4-9A35-B5E7F14D0481";
+        public const string CSharpOptionPageFormattingNewLinesIdString = "EADC6AD3-91D4-3CC8-BE96-3CDE7D3080F0";
         public const string CSharpOptionPageFormattingSpacingIdString = "234FB566-73DD-4612-8DE4-29031FF27052";
         public const string CSharpOptionPageFormattingWrappingIdString = "8E334D9C-B7DC-4CF3-B7B7-014B831FE76B";
 

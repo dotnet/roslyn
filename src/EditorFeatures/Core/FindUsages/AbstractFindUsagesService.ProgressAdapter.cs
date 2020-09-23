@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _definition = definition;
             }
 
-            public async Task OnReferenceFoundAsync(Document document, TextSpan span)
+            public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span)
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private class FindReferencesProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
+        private class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
@@ -74,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 => _context.ProgressTracker;
 
             public FindReferencesProgressAdapter(
-                IThreadingContext threadingContext, Solution solution,
-                IFindUsagesContext context, FindReferencesSearchOptions options)
-                : base(threadingContext)
+                Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options)
             {
                 _solution = solution;
                 _context = context;
@@ -85,16 +82,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public Task OnStartedAsync() => Task.CompletedTask;
-            public Task OnCompletedAsync() => Task.CompletedTask;
-            public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
-            public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
+            public ValueTask OnStartedAsync() => default;
+            public ValueTask OnCompletedAsync() => default;
+            public ValueTask OnFindInDocumentStartedAsync(Document document) => default;
+            public ValueTask OnFindInDocumentCompletedAsync(Document document) => default;
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async Task<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
+            private async ValueTask<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
             {
                 var cancellationToken = _context.CancellationToken;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -115,13 +112,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
             }
 
-            public async Task OnDefinitionFoundAsync(ISymbol definition)
+            public async ValueTask OnDefinitionFoundAsync(ISymbol definition)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(

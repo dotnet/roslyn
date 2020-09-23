@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3018,10 +3019,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3062,10 +3060,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 35)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3387,10 +3382,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3431,10 +3423,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 40)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3716,7 +3705,7 @@ class C
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36),
-                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance definition for 'GetEnumerator'
+                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "M(x1)").WithArguments("(int, int)", "GetEnumerator").WithLocation(6, 34),
                 // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.

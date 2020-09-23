@@ -1,0 +1,16 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+   
+    <PropertyGroup>
+        <RestoreSources Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
+          $(RestoreSources);
+          https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json;
+          https://api.nuget.org/v3/index.json;
+        </RestoreSources>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Microsoft.DevDiv.Optimization.Data.PowerShell" Version="$(MicrosoftDevDivOptimizationDataPowerShellVersion)" ExcludeAssets="all" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'"/>
+    </ItemGroup>
+
+</Project>

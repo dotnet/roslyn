@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using RemoteHostClientService = Microsoft.VisualStudio.LanguageServices.Remote.RemoteHostClientServiceFactory.RemoteHostClientService;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -35,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const long MemoryThreshold = 200 * 1024 * 1024;
 
         // low vm more info page link
-        private const string LowVMMoreInfoLink = "http://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
+        private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;

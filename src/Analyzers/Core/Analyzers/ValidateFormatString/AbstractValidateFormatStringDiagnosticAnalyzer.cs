@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             Title,
             MessageFormat,
             DiagnosticCategory.Compiler,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: Description);
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
 
-        private bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
+        private static bool IsValidFormatMethod(ISyntaxFacts syntaxFacts, SyntaxNode expression)
         {
             // When calling string.Format(...), the expression will be MemberAccessExpressionSyntax
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
 
             var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
-            return semanticModel.GetTypeInfo(expression).Type;
+            return semanticModel.GetTypeInfo(expression).ConvertedType;
         }
 
         protected SyntaxNode? TryGetArgument(
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return arguments[parameterWithMatchingName.Ordinal];
         }
 
-        private IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
+        private static IParameterSymbol? GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
         {
             foreach (var p in parameters)
             {
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return (IMethodSymbol)symbolInfo.Symbol;
         }
 
-        private bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)
+        private static bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)
         {
             var testArray = new object[numberOfPlaceholderArguments];
             for (var i = 0; i < numberOfPlaceholderArguments; i++)
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return true;
         }
 
-        protected void ValidateAndReportDiagnostic(
+        protected static void ValidateAndReportDiagnostic(
             SyntaxNodeAnalysisContext context,
             int numberOfPlaceholderArguments,
             string formatString,

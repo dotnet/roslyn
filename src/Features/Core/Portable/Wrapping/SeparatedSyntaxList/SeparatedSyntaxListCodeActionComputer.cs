@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                var result = ArrayBuilder<WrappingGroup>.GetInstance();
+                using var _ = ArrayBuilder<WrappingGroup>.GetInstance(out var result);
                 await AddWrappingGroupsAsync(result).ConfigureAwait(false);
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             private async Task<WrappingGroup> GetUnwrapGroupAsync()
             {
-                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var unwrapActions);
 
                 var parentTitle = Wrapper.Unwrap_list;
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
             }
 
             private async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             private ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 }
 
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             #endregion
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_long_list;
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
                 // MethodName(int a, int b, int c,
                 //            int d, int e, int f,
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // We can't in-line these nested actions because the parent title is necessary to
                 // determine which situation each child action applies to.
 
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
             private async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private ImmutableArray<Edit> GetWrapLongLinesEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     currentOffset += nextToken.Span.Length;
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             #endregion
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 var parentTitle = Wrapper.Wrap_every_item;
 
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
                 // MethodName(int a,
                 //            int b,
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
                 // not inlinable.
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
             private async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // last item.  Delete whatever is between it and the close token of the list.
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             #endregion

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 return node switch
                 {
-                    AccessorDeclarationSyntax access => false,
+                    AccessorDeclarationSyntax _ => false,
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
                     ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
                     SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,

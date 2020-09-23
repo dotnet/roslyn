@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             private ConcurrentDictionary<int, TriviaData> _map;
 
             public bool TryRemove(int pairIndex)
-                => _map?.TryRemove(pairIndex, out var temp) ?? false;
+                => _map?.TryRemove(pairIndex, out _) ?? false;
 
             public void AddOrReplace(int key, TriviaData triviaInfo)
             {

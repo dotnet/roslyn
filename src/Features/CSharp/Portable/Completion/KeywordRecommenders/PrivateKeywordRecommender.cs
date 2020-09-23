@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                context.IsGlobalStatementContext ||
+                (context.IsGlobalStatementContext && context.SyntaxTree.IsScript()) ||
                 IsValidContextForAccessor(context) ||
                 IsValidContextForType(context, cancellationToken) ||
                 IsValidContextForMember(context, cancellationToken);
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsValidContextForMember(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             if (context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-                context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 var modifiers = context.PrecedingModifiers;
 
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 // private things can't be in namespaces.
                 var typeDecl = context.ContainingTypeDeclaration;

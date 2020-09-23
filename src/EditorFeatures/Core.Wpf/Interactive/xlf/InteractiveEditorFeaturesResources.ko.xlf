@@ -17,6 +17,11 @@
         <target state="translated">선택 영역을 대화형 창에서 실행하는 중입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interactive_host_process_platform">
+        <source>Interactive host process platform</source>
+        <target state="new">Interactive host process platform</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Print_a_list_of_referenced_assemblies">
         <source>Print a list of referenced assemblies.</source>
         <target state="translated">참조된 어셈블리의 목록을 인쇄합니다.</target>

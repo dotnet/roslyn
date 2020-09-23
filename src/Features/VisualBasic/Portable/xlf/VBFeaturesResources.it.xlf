@@ -1467,11 +1467,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Trasformare {0} in una funzione asincrona.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Inserisci cast mancante</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Converti {0} in iteratore</target>

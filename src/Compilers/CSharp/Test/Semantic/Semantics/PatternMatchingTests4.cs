@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1482,10 +1483,9 @@ class _
 {
 }";
             var compilation = CreatePatternCompilation(source);
+            // Diagnostics are not ideal here.  On the other hand, this is not likely to be a frequent occurrence except in test code
+            // so any effort at improving the diagnostics would not likely be well spent.
             compilation.VerifyDiagnostics(
-                // (9,18): error CS0119: '_' is a type, which is not valid in the given context
-                //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "_").WithArguments("_", "type").WithLocation(9, 18),
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),
@@ -1778,9 +1778,9 @@ class _
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (6,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(true, false)' is not covered.
                 //         return (b1, b2) switch {
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 25)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(true, false)").WithLocation(6, 25)
                 );
         }
 
@@ -1855,7 +1855,7 @@ class _
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (13,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
@@ -2050,9 +2050,9 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = t switch { (3, 4) => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
             CompileAndVerify(compilation, expectedOutput: "InvalidOperationException");
         }
@@ -2093,9 +2093,9 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = t switch { (3, 4) => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
             CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
         }
@@ -2136,9 +2136,9 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = t switch { (3, 4) => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
             CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
         }
@@ -2178,9 +2178,9 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (8,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = (1, 2) switch { (3, 4) => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(8, 24)
                 );
             CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
         }
@@ -2225,9 +2225,9 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = r switch { (3, 4) => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
             CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
         }
@@ -2817,9 +2817,9 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (7,32): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (7,32): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '((0, _), _)' is not covered.
                 //         Console.Write((x, 300) switch  { ((1, int x2), int y) => x2+y });
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 32)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("((0, _), _)").WithLocation(7, 32)
                 );
             CompileAndVerify(compilation, expectedOutput: "320");
         }
@@ -2893,9 +2893,9 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
                 //         _ = o switch { null => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 15)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(6, 15)
                 );
         }
 
@@ -2932,9 +2932,9 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (22,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (22,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'false' is not covered.
                 //         return b switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(22, 18)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("false").WithLocation(22, 18)
                 );
             CompileAndVerify(compilation, expectedOutput: "1 throw");
         }
@@ -3084,9 +3084,9 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (17,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (17,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //         return (x, y) switch { (1, 2) => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(17, 23)
                 );
             CompileAndVerify(compilation, expectedOutput: @"3
 SwitchExpressionException((1, 3))");
@@ -3220,9 +3220,9 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (17,44): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (17,44): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _, _, _, _, _, _, _, _)' is not covered.
                 //         return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 44)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _, _, _, _, _, _, _, _)").WithLocation(17, 44)
                 );
             CompileAndVerify(compilation, expectedOutput: @"3
 SwitchExpressionException((1, 3, 3, 4, 5, 6, 7, 8, 9))");
@@ -3339,6 +3339,169 @@ public class A
                 // (16,18): error CS8651: It is not legal to use nullable reference type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
                 //         _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
                 Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
+                );
+        }
+
+        [Fact]
+        public void IsPatternOnPointerTypeIn7_3()
+        {
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        int* ptr = null;
+        _ = ptr is var v;
+    }
+}";
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is var v;
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var v").WithLocation(7, 20)
+            );
+        }
+
+        [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
+        public void NamespaceQualifiedEnumConstantInSwitchCase()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(E e)
+    {
+        switch (e)
+        {
+            case global::E.A: break;
+            case global::E.B: break;
+            case global::E.C: break;
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedEnumConstantInIsPattern_01()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E.A) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_02()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_03()
+        {
+            var source =
+@"namespace E
+{
+    public class A { }
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E.A) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_04()
+        {
+            var source =
+@"namespace E
+{
+    public class A<T> { }
+}
+
+class Class1
+{
+    void M<T>(object e)
+    {
+        if (e is global::E.A<int>) { }
+        if (e is global::E.A<object>) { }
+        if (e is global::E.A<T>) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_05()
+        {
+            var source =
+@"namespace E
+{
+    public class A<T>
+    {
+        public class B { }
+    }
+}
+
+class Class1
+{
+    void M<T>(object e)
+    {
+        if (e is global::E.A<int>.B) { }
+        if (e is global::E.A<object>.B) { }
+        if (e is global::E.A<T>.B) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
     }

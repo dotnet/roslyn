@@ -116,7 +116,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             Assert.Equal(initialPath, project.GetOutputFileName());
 
             string getCurrentCompilationOutputAssemblyPath()
-                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputInfo.AssemblyPath;
 
             Assert.Equal(initialPath, getCurrentCompilationOutputAssemblyPath());
 
@@ -149,7 +149,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
             string getCurrentCompilationOutputAssemblyPath()
-                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputInfo.AssemblyPath;
 
             Assert.Null(getCurrentCompilationOutputAssemblyPath());
 
@@ -174,18 +174,14 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WpfTheory]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]
         [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion(LanguageVersion? maxSupportedLangVersion)
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            using var environment = new TestEnvironment(exportProviderFactory: factory);
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
             var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
@@ -220,12 +216,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WpfFact]
         public void SetProperty_MaxSupportedLangVersion_NotSet()
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            using var environment = new TestEnvironment(exportProviderFactory: factory);
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
             var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);

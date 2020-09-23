@@ -124,7 +124,6 @@ Module Program
 End Module
 </File>
 
-
             Await VerifyRecommendationsMissingAsync(code, "If")
         End Function
     End Class

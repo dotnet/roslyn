@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.TypeParameter:
                     {
                         // These substitutions are not allowed in C#
-                        if (t2.TypeKind == TypeKind.Pointer || t2.IsVoidType())
+                        if (t2.Type.IsPointerOrFunctionPointer() || t2.IsVoidType())
                         {
                             return false;
                         }

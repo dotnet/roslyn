@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Partial Module ExpressionGenerator
+    Partial Friend Module ExpressionGenerator
         Private Structure StringPiece
             Public ReadOnly Value As String
             Public ReadOnly Kind As StringPieceKind

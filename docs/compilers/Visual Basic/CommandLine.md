@@ -84,7 +84,7 @@
 | `/moduleassemblyname:`*string* | Name of the assembly which this module will be a part of.
 | `/netcf` | Target the .NET Compact Framework.
 | `/nostdlib` | Do not reference standard libraries (`system.dll` and `VBC.RSP` file).
-| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... |  Specify a mapping for source path names output by the compiler.
+| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... |  Specify a mapping for source path names output by the compiler. Two consecutive separator characters are treated as a single character that is part of the key or value (i.e. `==` stands for `=` and `,,` for `,`).
 | `/platform:`*string* | Limit which platforms this code can run on; must be `x86`, `x64`, `Itanium`, `arm`, `AnyCPU32BitPreferred` or `anycpu` (default).
 | `/preferreduilang` | Specify the preferred output language name.
 | `/sdkpath:`*path* | Location of the .NET Framework SDK directory (`mscorlib.dll`).

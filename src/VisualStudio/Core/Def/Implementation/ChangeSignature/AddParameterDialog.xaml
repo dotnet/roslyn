@@ -52,7 +52,7 @@
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusError}" Visibility="{Binding TypeDoesNotParseImage, Mode=OneWay}"/>
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusOK}" Visibility="{Binding TypeBindsImage, Mode=OneWay}"/>
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" Visibility="{Binding TypeDoesNotBindImage, Mode=OneWay}"/>
-                        <TextBlock Padding="5 0 0 0" Grid.Row="2" x:Name="TypeBindsTextBlock"
+                        <vs:LiveTextBlock Padding="5 0 0 0" Grid.Row="2" x:Name="TypeBindsTextBlock"
                        Text="{Binding Path=TypeBindsDynamicStatus, Mode=OneWay}"/>
                     </StackPanel>
                     <Label x:Name="ParameterNameLabelName" Grid.Row="3" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
@@ -84,6 +84,7 @@
                         <TextBox x:Name="DefaultValue" 
                          Grid.Column="1" 
                          Margin="5,0,0,0" 
+                         AutomationProperties.LabeledBy="{Binding ElementName=OptionalParameterRadioButton}"
                          Text="{Binding DefaultValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}"/>
                     </Grid>
@@ -107,6 +108,7 @@
                          Grid.Row="0"
                          Margin="5,0,0,0"
                          IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}"
+                         AutomationProperties.LabeledBy="{Binding ElementName=CallsiteValueRadioButton}"
                          Text="{Binding CallSiteValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                         <CheckBox x:Name="UseNamedArgumentButton" 
                           Grid.Row="1" 
@@ -122,6 +124,11 @@
                          VerticalContentAlignment="Center" 
                          IsChecked="{Binding IsCallsiteTodo, Mode=TwoWay}"
                          Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>
+                    <RadioButton x:Name="InferArgumentRadioButton" 
+                         Margin="5,10,0,0" 
+                         GroupName="CallsiteKind"
+                         IsChecked="{Binding IsCallsiteInferred, Mode=TwoWay}"
+                         Content="{Binding ElementName=dialog, Path=InferFromContext}" />
                     <RadioButton x:Name="OmitArgumentRadioButton" 
                          Margin="5,10,0,0" 
                          GroupName="CallsiteKind" 

@@ -13,6 +13,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
+    internal static class AsyncLazy
+    {
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
+            => new AsyncLazy<T>(asynchronousComputeFunction, cacheResult);
+    }
+
     /// <summary>
     /// Represents a value that can be retrieved synchronously or asynchronously by many clients.
     /// The value will be computed on-demand the moment the first client asks for it. While being
@@ -574,7 +580,13 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    this.TrySetException(task.Exception!);
+                    // TrySetException wraps its argument in an AggregateException, so we pass the inner exceptions from
+                    // the antecedent to avoid wrapping in two layers of AggregateException.
+                    RoslynDebug.AssertNotNull(task.Exception);
+                    if (task.Exception.InnerExceptions.Count > 0)
+                        this.TrySetException(task.Exception.InnerExceptions);
+                    else
+                        this.TrySetException(task.Exception);
                 }
                 else
                 {

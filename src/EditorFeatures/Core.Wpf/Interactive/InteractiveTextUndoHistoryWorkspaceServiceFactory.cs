@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 undoHistory = null;
 
-                if (!(editorWorkspace is InteractiveWorkspace interactiveWorkspace))
+                if (!(editorWorkspace is InteractiveWorkspace))
                 {
                     return false;
                 }

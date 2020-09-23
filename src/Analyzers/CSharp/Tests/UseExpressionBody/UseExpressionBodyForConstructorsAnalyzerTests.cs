@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C()
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     public C() => Bar();
-}", options: UseExpressionBody);
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C()
@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     public C() => a = Bar();
-}", options: UseExpressionBody);
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C()
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     public C() => throw new NotImplementedException();
-}", options: UseExpressionBody);
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C()
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     public C() => throw new NotImplementedException(); // comment
-}", options: UseExpressionBody);
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C() [|=>|] Bar();
@@ -109,13 +109,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         Bar();
     }
-}", options: UseBlockBody);
+}", new TestParameters(options: UseBlockBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C() [|=>|] a = Bar();
@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         a = Bar();
     }
-}", options: UseBlockBody);
+}", new TestParameters(options: UseBlockBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C() [|=>|] throw new NotImplementedException();
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         throw new NotImplementedException();
     }
-}", options: UseBlockBody);
+}", new TestParameters(options: UseBlockBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public C() [|=>|] throw new NotImplementedException(); // comment
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         throw new NotImplementedException(); // comment
     }
-}", options: UseBlockBody);
+}", new TestParameters(options: UseBlockBody));
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]

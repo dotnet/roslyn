@@ -163,6 +163,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return PrimaryModule.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
         End Function
 
+        Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+            Return PrimaryModule.GetForwardedTypes()
+        End Function
+
         Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
             ' Check if it is a forwarded type.
             Dim matchedName As String = Nothing

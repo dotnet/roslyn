@@ -14,10 +14,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Implements IVsAsyncFileChangeEx
 
         Private ReadOnly _lock As New Object
-        Private ReadOnly _watchedFiles As List(Of Tuple(Of UInteger, String, IVsFreeThreadedFileChangeEvents2)) = New List(Of Tuple(Of UInteger, String, IVsFreeThreadedFileChangeEvents2))
+        Private ReadOnly _watchedFiles As New List(Of WatchedEntity)
+        Private ReadOnly _watchedDirectories As New List(Of WatchedEntity)
         Private _nextCookie As UInteger = 0UI
 
         Public Function AdviseDirChange(pszDir As String, fWatchSubDir As Integer, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseDirChange
+            If fWatchSubDir = 0 Then
+                Throw New NotImplementedException("Watching a single directory but not subdirectories is not implemented in this mock.")
+            End If
+
+            pvsCookie = AdviseDirectoryOrFileChange(_watchedDirectories, pszDir, pFCE)
             Return VSConstants.S_OK
         End Function
 
@@ -26,12 +32,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End If
 
+            pvsCookie = AdviseDirectoryOrFileChange(_watchedFiles, pszMkDocument, pFCE)
+            Return VSConstants.S_OK
+        End Function
+
+        Private Function AdviseDirectoryOrFileChange(watchedList As List(Of WatchedEntity),
+                                                     pszMkDocument As String,
+                                                     pFCE As IVsFileChangeEvents) As UInteger
+
             SyncLock _lock
-                pvsCookie = _nextCookie
-                _watchedFiles.Add(Tuple.Create(pvsCookie, pszMkDocument, DirectCast(pFCE, IVsFreeThreadedFileChangeEvents2)))
+                Dim cookie = _nextCookie
+                watchedList.Add(New WatchedEntity(cookie, pszMkDocument, DirectCast(pFCE, IVsFreeThreadedFileChangeEvents2)))
                 _nextCookie += 1UI
 
-                Return VSConstants.S_OK
+                Return cookie
             End SyncLock
         End Function
 
@@ -44,32 +58,70 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function UnadviseDirChange(VSCOOKIE As UInteger) As Integer Implements IVsFileChangeEx.UnadviseDirChange
-            Return VSConstants.S_OK
+            SyncLock _lock
+                _watchedDirectories.RemoveAll(Function(t) t.Cookie = VSCOOKIE)
+
+                Return VSConstants.S_OK
+            End SyncLock
         End Function
 
         Public Function UnadviseFileChange(VSCOOKIE As UInteger) As Integer Implements IVsFileChangeEx.UnadviseFileChange
             SyncLock _lock
-                Dim index = _watchedFiles.FindIndex(Function(t) t.Item1 = VSCOOKIE)
-                _watchedFiles.RemoveAt(index)
+                _watchedFiles.RemoveAll(Function(t) t.Cookie = VSCOOKIE)
 
                 Return VSConstants.S_OK
             End SyncLock
         End Function
 
         Public Sub FireUpdate(filename As String)
-            Dim subscription As Tuple(Of UInteger, String, IVsFreeThreadedFileChangeEvents2) = Nothing
+            Dim actionsToFire As List(Of Action) = New List(Of Action)()
 
             SyncLock _lock
-                subscription = _watchedFiles.First(Function(t) String.Equals(t.Item2, filename, StringComparison.OrdinalIgnoreCase))
+                For Each watchedFile In _watchedFiles
+                    If String.Equals(watchedFile.Path, filename, StringComparison.OrdinalIgnoreCase) Then
+                        actionsToFire.Add(Sub()
+                                              watchedFile.Sink.FilesChanged(1, {watchedFile.Path}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
+                                          End Sub)
+                    End If
+                Next
+
+                For Each watchedDirectory In _watchedDirectories
+                    If FileNameMatchesFilter(filename, watchedDirectory) Then
+                        actionsToFire.Add(Sub()
+                                              watchedDirectory.Sink.DirectoryChangedEx2(watchedDirectory.Path, 1, {filename}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
+                                          End Sub)
+                    End If
+                Next
             End SyncLock
 
-            If subscription IsNot Nothing Then
-
-                subscription.Item3.FilesChanged(1, {subscription.Item2}, {CType(_VSFILECHANGEFLAGS.VSFILECHG_Time, UInteger)})
+            If actionsToFire.Count > 0 Then
+                For Each actionToFire In actionsToFire
+                    actionToFire()
+                Next
             Else
-                Throw New InvalidOperationException("There is no subscription for file " + filename)
+                Throw New InvalidOperationException($"There is no subscription for file {filename}. Is the test authored correctly?")
             End If
         End Sub
+
+        Private Function FileNameMatchesFilter(filename As String, watchedDirectory As WatchedEntity) As Boolean
+            If Not filename.StartsWith(watchedDirectory.Path, StringComparison.OrdinalIgnoreCase) Then
+                Return False
+            End If
+
+            If watchedDirectory.ExtensionFilters Is Nothing Then
+                ' We have no extension filter, so good
+                Return True
+            End If
+
+            For Each extension In watchedDirectory.ExtensionFilters
+                If filename.EndsWith(extension) Then
+                    Return True
+                End If
+            Next
+
+            ' Didn't match the extension
+            Return False
+        End Function
 
         Public Function AdviseFileChangeAsync(filename As String, filter As _VSFILECHANGEFLAGS, sink As IVsFreeThreadedFileChangeEvents2, Optional cancellationToken As CancellationToken = Nothing) As Task(Of UInteger) Implements IVsAsyncFileChangeEx.AdviseFileChangeAsync
             Dim cookie As UInteger
@@ -79,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Public Function UnadviseFileChangeAsync(cookie As UInteger, Optional cancellationToken As CancellationToken = Nothing) As Task(Of String) Implements IVsAsyncFileChangeEx.UnadviseFileChangeAsync
             SyncLock _lock
-                Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Item1 = cookie).Item2
+                Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
 
                 Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
 
@@ -88,11 +140,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function AdviseDirChangeAsync(directory As String, watchSubdirectories As Boolean, sink As IVsFreeThreadedFileChangeEvents2, Optional cancellationToken As CancellationToken = Nothing) As Task(Of UInteger) Implements IVsAsyncFileChangeEx.AdviseDirChangeAsync
-            Throw New NotImplementedException()
+            Dim cookie As UInteger
+            Marshal.ThrowExceptionForHR(AdviseDirChange(directory, If(watchSubdirectories, 1, 0), sink, cookie))
+            Return Task.FromResult(cookie)
         End Function
 
         Public Function UnadviseDirChangeAsync(cookie As UInteger, Optional cancellationToken As CancellationToken = Nothing) As Task(Of String) Implements IVsAsyncFileChangeEx.UnadviseDirChangeAsync
-            Throw New NotImplementedException()
+            SyncLock _lock
+                Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+
+                Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
+
+                Return Task.FromResult(path)
+            End SyncLock
         End Function
 
         Public Function SyncFileAsync(filename As String, Optional cancellationToken As CancellationToken = Nothing) As Tasks.Task Implements IVsAsyncFileChangeEx.SyncFileAsync
@@ -107,6 +167,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Throw New NotImplementedException()
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter - Implements 'IVsAsyncFileChangeEx.FilterDirectoryChangesAsync', but this method is not yet defined in current reference to shell package.
+        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), Optional cancellationToken As CancellationToken = Nothing) As Task
+#Enable Warning IDE0060 ' Remove unused parameter
+            _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).ExtensionFilters = extensions
+            Return Task.CompletedTask
+        End Function
+
         Public ReadOnly Property WatchedFileCount As Integer
             Get
                 SyncLock _lock
@@ -114,5 +181,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 End SyncLock
             End Get
         End Property
+    End Class
+
+    Friend Class WatchedEntity
+        Public ReadOnly Cookie As UInteger
+        Public ReadOnly Path As String
+        Public ReadOnly Sink As IVsFreeThreadedFileChangeEvents2
+        Public ExtensionFilters As String()
+
+        Public Sub New(cookie As UInteger, path As String, sink As IVsFreeThreadedFileChangeEvents2)
+            Me.Cookie = cookie
+            Me.Path = path
+            Me.Sink = sink
+        End Sub
     End Class
 End Namespace

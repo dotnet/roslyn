@@ -59,27 +59,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             End If
         End Sub
 
-        Private Function AlreadyHasEndTag(element As XmlElementSyntax, elementName As String) As Boolean
-            If element.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
-                Dim trivia = DirectCast(element.Parent, DocumentationCommentTriviaSyntax)
-                Dim index = trivia.Content.IndexOf(element)
-
-                While index < trivia.Content.Count
-                    Dim nextItem = trivia.Content(index)
-                    If nextItem.IsKind(SyntaxKind.XmlElementEndTag) Then
-                        Dim name = DirectCast(nextItem, XmlElementEndTagSyntax).Name.LocalName.ValueText
-                        If name = elementName Then
-                            Return True
-                        End If
-                    End If
-
-                    index += 1
-                End While
-            End If
-
-            Return False
-        End Function
-
         Private Function HasUnmatchedIdenticalParentStart(element As XmlElementSyntax, expectedName As String) As Boolean
             If element Is Nothing Then
                 Return False
@@ -99,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             Return False
         End Function
 
-        Private Function HasMatchingEndTag(element As XmlElementSyntax) As Boolean
+        Private Shared Function HasMatchingEndTag(element As XmlElementSyntax) As Boolean
             Dim startTag = element.StartTag
             Dim endTag = element.EndTag
 

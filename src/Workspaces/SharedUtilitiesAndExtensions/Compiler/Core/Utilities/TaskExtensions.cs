@@ -10,6 +10,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 #if DEBUG
 using System.Linq.Expressions;
@@ -514,6 +515,23 @@ namespace Roslyn.Utilities
 
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        public static Task ContinueWithAfterDelayFromAsync(
+            this Task task,
+            Func<Task, Task> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            IExpeditableDelaySource delaySource,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
+            return task.SafeContinueWith(t =>
+                delaySource.Delay(TimeSpan.FromMilliseconds(millisecondsDelay), cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }

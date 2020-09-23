@@ -44,8 +44,6 @@ namespace BuildBoss
             OutputType = FindSingleProperty("OutputType")?.Value.Trim().ToLowerInvariant();
         }
 
-        internal bool IsDeploymentProject => IsTestProject || OutputType switch { "exe" => true, "winexe" => true, _ => false };
-
         internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
 
         internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
@@ -134,7 +132,6 @@ namespace BuildBoss
 
             return list;
         }
-
 
         internal List<PackageReference> GetPackageReferences()
         {

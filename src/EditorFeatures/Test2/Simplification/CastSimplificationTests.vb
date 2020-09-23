@@ -3224,7 +3224,7 @@ static class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
         Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression4() As Task
-            ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
+            ' Note: this cast is not legal (it causes a semantic binding error in the lambda).  So do not remove it.
 
             Dim input =
 <Workspace>
@@ -3255,7 +3255,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>((y) => { string x = y; x.Goo(); })(null);
+        new Action<string>((Action<object>)((y) => { string x = y; x.Goo(); }))(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }

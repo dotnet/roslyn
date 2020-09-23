@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
+        private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
         {
             if (symbol.PartialDefinitionPart != null)
             {
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
             // since they implicitly call those methods.
 
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
@@ -101,17 +103,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
         }
 
-        private bool IsForEachMethod(IMethodSymbol methodSymbol)
+        private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         {
             return
                 methodSymbol.Name == WellKnownMemberNames.GetEnumeratorMethodName ||
                 methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
         }
 
-        private bool IsDeconstructMethod(IMethodSymbol methodSymbol)
+        private static bool IsDeconstructMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.DeconstructMethodName;
 
-        private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
+        private static bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

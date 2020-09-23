@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -726,7 +725,7 @@ class C
         protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
             => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
-            => new BlockCommentEditingCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);
+        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(TestWorkspace workspace)
+            => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
     }
 }

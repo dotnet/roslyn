@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 return braces;
             }
 
-            public BraceMatchingResult? GetMatchingBraces(
+            public static BraceMatchingResult? GetMatchingBraces(
                 string text, int position)
             {
                 if (position < text.Length)
@@ -148,8 +148,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync(
 "<@    @> $$");
         }
-
-
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]

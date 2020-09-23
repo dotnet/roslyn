@@ -44,6 +44,20 @@ function GetBranchPublishData([string]$branchName) {
   }
 }
 
+function GetFeedPublishData() {
+  $data = GetPublishData
+  return $data.feeds
+}
+
+function GetPackagesPublishData([string]$packageFeeds) {
+  $data = GetPublishData
+  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
+    return $data.packages.$packageFeeds
+  } else {
+    return $null
+  }
+}
+
 function GetReleasePublishData([string]$releaseName) {
   $data = GetPublishData
 
@@ -247,7 +261,7 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   return $p
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration, [switch]$skipAnalyzers = $false) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
   # Because we override the C#/VB toolset to build against our LKG package, it is important
   # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
   # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -268,8 +282,8 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     $args += " /m"
   }
 
-  if ($skipAnalyzers) {
-    $args += " /p:UseRoslynAnalyzers=false"
+  if ($runAnalyzers) {
+    $args += " /p:UseRoslynAnalyzers=true"
   }
 
   if ($binaryLog) {
@@ -317,7 +331,7 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:UseRoslynAnalyzers=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -skipAnalyzers
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:UseRoslynAnalyzers=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
   Unzip "$dir\$packageFile" $dir
 

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (switchNode == null)
                 return;
 
-            var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             // https://github.com/dotnet/roslyn/issues/40505
             var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken)!;
 
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

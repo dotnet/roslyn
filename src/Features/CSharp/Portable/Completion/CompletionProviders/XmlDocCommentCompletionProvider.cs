@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
 
                 ISymbol declaredSymbol = null;
                 var memberDeclaration = attachedToken.GetAncestor<MemberDeclarationSyntax>();
@@ -255,10 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (name: nameSyntax?.LocalName.ValueText, attributes);
         }
 
-        private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
+        private static bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
-            XmlAttributeSyntax attributeSyntax = null;
-
+            XmlAttributeSyntax attributeSyntax;
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlName))
             {

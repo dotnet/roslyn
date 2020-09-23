@@ -68,6 +68,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
+        public void TupleType()
+        {
+            var tup = new Tuple<int, int>(1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
+        public void ValueTupleType()
+        {
+            (int, int) tup = (1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
         public void ArrayMethodParameters()
         {
             var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
@@ -432,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             // the implementation differs between .NET Core and .NET FX
             if (str.StartsWith("Enumerable"))
             {
-                Assert.Equal("Enumerable.RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+                Assert.Equal("Enumerable.RangeIterator(Count = 10)", str);
             }
             else
             {
@@ -446,7 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10).Where(i => { if (i == 5) throw new Exception("xxx"); return i < 7; });
+            obj = Enumerable.Range(0, 10).Where(i =>
+            {
+                if (i == 5)
+                    throw new Exception("xxx");
+                return i < 7;
+            });
             str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Enumerable.WhereEnumerableIterator<int> { 0, 1, 2, 3, 4, !<Exception> ... }", str);
         }
@@ -721,39 +740,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
-            var obj = new System.Threading.Tasks.Task(TaskMethod);
+            var obj = new MockDesktopTask(TaskMethod);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal(
-                @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"") { AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=*, Status=Created }",
-                FilterDisplayString(str));
+                "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\") " +
+                "{ AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=1234, Status=Created }",
+                str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(FilterDisplayString(str), @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"")",
+            AssertMembers(str, "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\")",
                 "AsyncState: null",
                 "CancellationPending: false",
                 "CreationOptions: None",
                 "Exception: null",
-                "Id: *",
+                "Id: 1234",
                 "Status: Created"
             );
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_SpinLock()
+        public void DebuggerProxy_FrameworkTypes_SpinLock1()
         {
-            var obj = new SpinLock();
+            var obj = new MockDesktopSpinLock(false);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("SpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=false, OwnerThreadID=0 }", str);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=!<InvalidOperationException>, OwnerThreadID=null }", str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(str, "SpinLock(IsHeld = false)",
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
                 "IsHeld: false",
-                "IsHeldByCurrentThread: false",
+                "IsHeldByCurrentThread: !<InvalidOperationException>",
+                "OwnerThreadID: null"
+            );
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_SpinLock2()
+        {
+            var obj = new MockDesktopSpinLock(true);
+
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=true, OwnerThreadID=0 }", str);
+
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
+                "IsHeld: false",
+                "IsHeldByCurrentThread: true",
                 "OwnerThreadID: 0"
             );
         }

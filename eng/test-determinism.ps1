@@ -249,7 +249,7 @@ try {
   Create-Directory $errorDirLeft
   Create-Directory $errorDirRight
 
-  $skipAnalyzers = $true
+  $runAnalyzers = $false
   $binaryLog = $true
   $officialBuildId = ""
   $ci = $true

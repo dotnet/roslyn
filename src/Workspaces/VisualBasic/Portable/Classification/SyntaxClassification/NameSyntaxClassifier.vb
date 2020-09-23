@@ -35,19 +35,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             Dim modifiedIdentifier = TryCast(syntax, ModifiedIdentifierSyntax)
             If modifiedIdentifier IsNot Nothing Then
-                ClassifyModifiedIdentifier(modifiedIdentifier, semanticModel, result, cancellationToken)
+                ClassifyModifiedIdentifier(modifiedIdentifier, result)
                 Return
             End If
 
             Dim methodStatement = TryCast(syntax, MethodStatementSyntax)
             If methodStatement IsNot Nothing Then
-                ClassifyMethodStatement(methodStatement, semanticModel, result, cancellationToken)
+                ClassifyMethodStatement(methodStatement, semanticModel, result)
                 Return
             End If
 
             Dim labelSyntax = TryCast(syntax, LabelSyntax)
             If labelSyntax IsNot Nothing Then
-                ClassifyLabelSyntax(labelSyntax, semanticModel, result, cancellationToken)
+                ClassifyLabelSyntax(labelSyntax, result)
                 Return
             End If
         End Sub
@@ -76,15 +76,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim symbol = TryGetSymbol(node, symbolInfo, semanticModel)
 
             If symbol Is Nothing Then
-                If TryClassifyIdentifier(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+                If TryClassifyIdentifier(node, semanticModel, cancellationToken, classifiedSpan) Then
                     result.Add(classifiedSpan)
                 End If
                 Return
             End If
 
-            If TryClassifyMyNamespace(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+            If TryClassifyMyNamespace(node, symbol, semanticModel, classifiedSpan) Then
                 result.Add(classifiedSpan)
-            ElseIf TryClassifySymbol(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
+            ElseIf TryClassifySymbol(node, symbol, classifiedSpan) Then
                 result.Add(classifiedSpan)
 
                 ' Additionally classify static symbols
@@ -92,11 +92,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
-        Private Function TryClassifySymbol(
+        Private Shared Function TryClassifySymbol(
             node As NameSyntax,
             symbol As ISymbol,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
 
             Select Case symbol.Kind
@@ -149,11 +147,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return False
         End Function
 
-        Private Function TryClassifyMyNamespace(
+        Private Shared Function TryClassifyMyNamespace(
             node As NameSyntax,
             symbol As ISymbol,
             semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
 
             If symbol.IsMyNamespace(semanticModel.Compilation) Then
@@ -164,9 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return False
         End Function
 
-        Private Function TryClassifyIdentifier(
+        Private Shared Function TryClassifyIdentifier(
             node As NameSyntax,
-            symbol As ISymbol,
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
@@ -196,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return False
         End Function
 
-        Private Function GetClassificationForField(fieldSymbol As IFieldSymbol) As String
+        Private Shared Function GetClassificationForField(fieldSymbol As IFieldSymbol) As String
             If fieldSymbol.IsConst Then
                 Return If(fieldSymbol.ContainingType.IsEnumType(), ClassificationTypeNames.EnumMemberName, ClassificationTypeNames.ConstantName)
             End If
@@ -204,13 +200,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return ClassificationTypeNames.FieldName
         End Function
 
-        Private Function GetClassificationForLocal(localSymbol As ILocalSymbol) As String
+        Private Shared Function GetClassificationForLocal(localSymbol As ILocalSymbol) As String
             Return If(localSymbol.IsConst,
                       ClassificationTypeNames.ConstantName,
                       ClassificationTypeNames.LocalName)
         End Function
 
-        Private Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
+        Private Shared Function GetClassificationForMethod(node As NameSyntax, methodSymbol As IMethodSymbol) As String
             Select Case methodSymbol.MethodKind
                 Case MethodKind.Constructor
                     ' If node is member access or qualified name with explicit New on the right side, we should classify New as a keyword.
@@ -235,11 +231,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                       ClassificationTypeNames.MethodName)
         End Function
 
-        Private Sub ClassifyModifiedIdentifier(
+        Private Shared Sub ClassifyModifiedIdentifier(
                 modifiedIdentifier As ModifiedIdentifierSyntax,
-                semanticModel As SemanticModel,
-                result As ArrayBuilder(Of ClassifiedSpan),
-                cancellationToken As CancellationToken)
+                result As ArrayBuilder(Of ClassifiedSpan))
 
             If modifiedIdentifier.ArrayBounds IsNot Nothing OrElse
                modifiedIdentifier.ArrayRankSpecifiers.Count > 0 OrElse
@@ -266,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
-        Private Function GetNameToken(node As NameSyntax) As SyntaxToken
+        Private Shared Function GetNameToken(node As NameSyntax) As SyntaxToken
             Select Case node.Kind
                 Case SyntaxKind.IdentifierName
                     Return DirectCast(node, IdentifierNameSyntax).Identifier
@@ -279,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End Select
         End Function
 
-        Private Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Private Shared Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan))
             ' Ensure that extension method declarations are classified properly.
             ' Note that the method statement name is likely already classified as a method name
             ' by the syntactic classifier. However, there isn't away to determine whether a VB
@@ -290,11 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
-        Private Sub ClassifyLabelSyntax(
+        Private Shared Sub ClassifyLabelSyntax(
             node As LabelSyntax,
-            semanticModel As SemanticModel,
-            result As ArrayBuilder(Of ClassifiedSpan),
-            cancellationToken As CancellationToken)
+            result As ArrayBuilder(Of ClassifiedSpan))
 
             result.Add(New ClassifiedSpan(node.LabelToken.Span, ClassificationTypeNames.LabelName))
         End Sub

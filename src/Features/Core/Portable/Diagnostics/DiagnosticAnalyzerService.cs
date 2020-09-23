@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -26,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
-
-        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
         // use eventMap and taskQueue to serialize events
         private readonly EventMap _eventMap;
@@ -45,27 +44,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : this(registrationService,
-                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
-        {
-        }
-
-        // protected for testing purposes.
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        protected DiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
-            Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+            Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
             _eventMap = new EventMap();
 
-            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
-            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
+            _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             registrationService.Register(this);
         }
@@ -79,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
@@ -90,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.False;
         }
 
-        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
@@ -98,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics, blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 
-            return SpecializedTasks.EmptyEnumerable<DiagnosticData>();
+            return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId = null, DocumentId? documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
@@ -131,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public async Task ForceAnalyzeAsync(Solution solution, ProjectId? projectId = null, CancellationToken cancellationToken = default)
+        public async Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
@@ -141,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (project != null)
                     {
                         await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                        onProjectAnalyzed(project);
                     }
                 }
                 else
@@ -149,8 +137,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var index = 0;
                     foreach (var project in solution.Projects)
                     {
-                        tasks[index++] = Task.Run(
-                            () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
+                        tasks[index++] = Task.Run(async () =>
+                            {
+                                await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                                onProjectAnalyzed(project);
+                            }, cancellationToken);
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -180,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
             {
-                return analyzer.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation);
+                return await analyzer.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false);
             }
 
             return false;

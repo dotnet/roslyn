@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
-                if (canGenerateMember)
+                if (canGenerateMember && state.CanGeneratePropertyOrField())
                 {
                     // prefer fields over properties (and vice versa) depending on the casing of the member.
                     // lowercase -> fields.  title case -> properties.
@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     }
                     else
                     {
-
                         AddFieldCodeActions(actions, semanticDocument, state);
                         AddPropertyCodeActions(actions, semanticDocument, state);
                     }
@@ -79,17 +78,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // so as to not clutter the list.
                     return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutableAndFree()));
+                        actions.ToImmutable()));
                 }
 
-                return actions.ToImmutableAndFree();
+                return actions.ToImmutable();
             }
         }
 
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => false;
 
-        private void AddPropertyCodeActions(
+        private static void AddPropertyCodeActions(
             ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             if (state.IsInOutContext)
@@ -119,14 +118,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             GenerateWritableProperty(result, document, state);
         }
 
-        private void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: true, isReadonly: false, isConstant: false,
                 refKind: GetRefKindFromContext(state)));
         }
 
-        private void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private static void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
         {
             if (state.CanGenerateParameter())
             {
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private RefKind GetRefKindFromContext(State state)
+        private static RefKind GetRefKindFromContext(State state)
         {
             if (state.IsInRefContext)
             {

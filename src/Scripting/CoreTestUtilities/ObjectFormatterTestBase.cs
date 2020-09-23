@@ -37,14 +37,5 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 
             Assert.Equal(expected.Length, i);
         }
-
-        public string FilterDisplayString(string str)
-        {
-            str = Regex.Replace(str, @"Id = \d+", "Id = *");
-            str = Regex.Replace(str, @"Id=\d+", "Id=*");
-            str = Regex.Replace(str, @"Id: \d+", "Id: *");
-
-            return str;
-        }
     }
 }

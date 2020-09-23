@@ -169,7 +169,7 @@ End Namespace
             End Using
         End Function
 
-        Private Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
+        Private Shared Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>

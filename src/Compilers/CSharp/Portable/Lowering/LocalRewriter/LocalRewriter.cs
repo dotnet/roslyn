@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             Debug.Assert(!node.HasErrors, "nodes with errors should not be lowered");
 
-            return VisitExpressionImpl(node);
+            // https://github.com/dotnet/roslyn/issues/47682
+            return VisitExpressionImpl(node)!;
         }
 
         private BoundStatement? VisitStatement(BoundStatement? node)
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(removed);
         }
 
-        public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
             throw ExceptionUtilities.Unreachable;
@@ -701,6 +702,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsFieldOrPropertyInitializer(BoundStatement initializer)
         {
             var syntax = initializer.Syntax;
+
+            if (syntax.IsKind(SyntaxKind.Parameter))
+            {
+                // This is an initialization of a generated property based on record parameter.
+                return true;
+            }
+
             if (syntax is ExpressionSyntax { Parent: { } parent } && parent.Kind() == SyntaxKind.EqualsValueClause) // Should be the initial value.
             {
                 Debug.Assert(parent.Parent is { });

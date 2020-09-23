@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         private readonly NonReentrantLock _gate = new NonReentrantLock();
 
+#pragma warning disable IDE0052 // Remove unread private members - Can this field be removed?
         private readonly string _featureName;
+#pragma warning restore IDE0052 // Remove unread private members
+
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
         private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
@@ -39,7 +42,15 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            if (expeditedDelayCancellationToken.IsCancellationRequested)
+            {
+                // The operation is already being expedited
+                return false;
+            }
+
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
 
             try

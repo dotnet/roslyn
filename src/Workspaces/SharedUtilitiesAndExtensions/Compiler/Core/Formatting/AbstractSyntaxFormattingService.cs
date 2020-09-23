@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return CreateAggregatedFormattingResult(node, results);
         }
 
-        private bool AllowDisjointSpanMerging(IList<TextSpan> list, bool shouldUseFormattingSpanCollapse)
+        private static bool AllowDisjointSpanMerging(IList<TextSpan> list, bool shouldUseFormattingSpanCollapse)
         {
             // If the user is specific about the formatting specific spans then honor users settings
             if (!shouldUseFormattingSpanCollapse)

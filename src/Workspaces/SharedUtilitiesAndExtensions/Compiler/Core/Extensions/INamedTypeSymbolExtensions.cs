@@ -362,11 +362,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return interfacesOrAbstractClasses.First().TypeKind == TypeKind.Interface
                 ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken)
-                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses);
+                : GetAbstractClassesToImplement(interfacesOrAbstractClasses);
         }
 
         private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
-            INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> abstractClasses)
         {
             return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
@@ -585,10 +584,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var overriddenMember = member.OverriddenMember();
-                if (overriddenMember != null)
+                if (!member.IsImplicitlyDeclared)
                 {
-                    result.Remove(overriddenMember);
+                    var overriddenMember = member.OverriddenMember();
+                    if (overriddenMember != null)
+                        result.Remove(overriddenMember);
                 }
             }
         }

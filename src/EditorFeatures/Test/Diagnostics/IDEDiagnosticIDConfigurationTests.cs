@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
             {
-                var analyzerReference = new AnalyzerFileReference(assembly.Location, FromFileLoader.Instance);
+                var analyzerReference = new AnalyzerFileReference(assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile);
                 foreach (var analyzer in analyzerReference.GetAnalyzers(languageName))
                 {
                     foreach (var descriptor in analyzer.SupportedDiagnostics)
@@ -70,26 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             return diagnosticIdAndOptions.ToImmutableArray();
         }
 
-        public class FromFileLoader : IAnalyzerAssemblyLoader
-        {
-            public static FromFileLoader Instance = new FromFileLoader();
-
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
-        }
-
         private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
         {
             expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.True(expectedLines.Length % 2 == 0);
             var expectedMap = new Dictionary<string, string>();
-            for (int i = 0; i < expectedLines.Length; i += 2)
+            for (var i = 0; i < expectedLines.Length; i += 2)
             {
                 expectedMap.Add(expectedLines[i].Trim(), expectedLines[i + 1].Trim());
             }
@@ -389,6 +376,27 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 # IDE0075
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
+# IDE0076
+dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
+
+# IDE0078
+csharp_style_prefer_pattern_matching = true:silent
+
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
+
+# IDE0080
+dotnet_diagnostic.IDE0080.severity = %value%
+
+# IDE0082
+dotnet_diagnostic.IDE0082.severity = %value%
+
+# IDE0083
+csharp_style_prefer_not_pattern = true:suggestion
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -528,6 +536,24 @@ dotnet_diagnostic.IDE0073.severity = %value%
 
 # IDE0075
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
+
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
+
+# IDE0081
+dotnet_diagnostic.IDE0081.severity = %value%
+
+# IDE0082
+dotnet_diagnostic.IDE0082.severity = %value%
+
+# IDE0084
+visual_basic_style_prefer_isnot_expression = true:suggestion
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -895,6 +921,27 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 # IDE0075, PreferSimplifiedBooleanExpressions
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
+# IDE0076
+No editorconfig based code style option
+
+# IDE0077
+No editorconfig based code style option
+
+# IDE0078, PreferPatternMatching
+csharp_style_prefer_pattern_matching = true:silent
+
+# IDE0079
+No editorconfig based code style option
+
+# IDE0080
+No editorconfig based code style option
+
+# IDE0082
+No editorconfig based code style option
+
+# IDE0083, PreferNotPattern
+csharp_style_prefer_not_pattern = true:suggestion
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -1067,6 +1114,24 @@ file_header_template = unset
 
 # IDE0075, PreferSimplifiedBooleanExpressions
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+No editorconfig based code style option
+
+# IDE0077
+No editorconfig based code style option
+
+# IDE0079
+No editorconfig based code style option
+
+# IDE0081
+No editorconfig based code style option
+
+# IDE0082
+No editorconfig based code style option
+
+# IDE0084, PreferIsNotExpression
+visual_basic_style_prefer_isnot_expression = true:suggestion
 
 # IDE1006
 No editorconfig based code style option

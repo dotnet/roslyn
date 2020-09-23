@@ -230,6 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(positionOpt < 0);
             }
 
+            // Do not leak unspeakable name of a Simple Program entry point through diagnostics,
+            // and, for consistency, with other display options.
+            if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            {
+                return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<top-level-statements-entry-point>"));
+            }
+
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
             var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
             symbol.Accept(visitor);

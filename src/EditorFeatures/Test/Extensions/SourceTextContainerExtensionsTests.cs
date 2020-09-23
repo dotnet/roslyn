@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void GetBufferTextFromNonTextContainerThrows()
         {
-            var containerMock = new Mock<SourceTextContainer>();
+            var containerMock = new Mock<SourceTextContainer>(MockBehavior.Strict);
             Assert.Throws<ArgumentException>(() => Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(containerMock.Object));
         }
 
         [Fact]
         public void GetBufferTextFromTextContainerDoesNotThrow()
         {
-            var textImageMock = new Mock<VisualStudio.Text.ITextImage>();
-            var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot2>();
-            var bufferMock = new Mock<VisualStudio.Text.ITextBuffer>();
+            var textImageMock = new Mock<VisualStudio.Text.ITextImage>(MockBehavior.Strict);
+            var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot2>(MockBehavior.Strict);
+            var bufferMock = new Mock<VisualStudio.Text.ITextBuffer>(MockBehavior.Strict);
 
             textSnapshotMock.SetupGet(s => s.TextImage).Returns(textImageMock.Object);
             textSnapshotMock.SetupGet(s => s.TextBuffer).Returns(bufferMock.Object);

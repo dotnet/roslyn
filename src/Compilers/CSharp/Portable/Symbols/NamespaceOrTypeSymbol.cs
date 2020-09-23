@@ -197,13 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxKind kind,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert(
-                kind == SyntaxKind.ClassDeclaration ||
-                kind == SyntaxKind.StructDeclaration ||
-                kind == SyntaxKind.InterfaceDeclaration ||
-                kind == SyntaxKind.EnumDeclaration ||
-                kind == SyntaxKind.DelegateDeclaration);
-
             TypeKind typeKind = kind.ToDeclarationKind().ToTypeKind();
 
             foreach (var member in GetTypeMembers(name, arity))

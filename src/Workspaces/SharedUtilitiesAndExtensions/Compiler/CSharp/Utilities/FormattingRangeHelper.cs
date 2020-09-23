@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             while (currentToken.Kind() != SyntaxKind.CloseBraceToken && previousToken.Kind() == SyntaxKind.OpenBraceToken)
             {
-                var pair = previousToken.Parent.GetBracePair();
-                if (pair.Item2.Kind() == SyntaxKind.None || !AreTwoTokensOnSameLine(previousToken, pair.Item2))
+                var (_, closeBrace) = previousToken.Parent.GetBracePair();
+                if (closeBrace.Kind() == SyntaxKind.None || !AreTwoTokensOnSameLine(previousToken, closeBrace))
                 {
                     return ValueTuple.Create(currentToken, tokenRange.Value.Item2);
                 }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 // double initializer case such as
                 // { { }
-                if (parentOfParent is InitializerExpressionSyntax doubleInitializer)
+                if (parentOfParent is InitializerExpressionSyntax)
                 {
                     // if parent block has a missing brace, and current block is on same line, then
                     // don't try to indent inner block.

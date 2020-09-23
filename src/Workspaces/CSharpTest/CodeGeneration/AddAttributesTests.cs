@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
     [UseExportProvider]
     public class AddAttributesTests
     {
-        private Document GetDocument(string code)
+        private static Document GetDocument(string code)
         {
             var ws = new AdhocWorkspace();
             var emptyProject = ws.AddProject(
@@ -23,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
+                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
 
             return emptyProject.AddDocument("test.cs", code);
         }
 
-        private async Task TestAsync(string initialText, string attributeAddedText)
+        private static async Task TestAsync(string initialText, string attributeAddedText)
         {
             var doc = GetDocument(initialText);
             var options = await doc.GetOptionsAsync();

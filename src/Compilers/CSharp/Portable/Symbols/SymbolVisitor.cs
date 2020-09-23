@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             DefaultVisit(symbol);
         }
 
+        public virtual void VisitFunctionPointerType(FunctionPointerTypeSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
         public virtual void VisitProperty(PropertySymbol symbol)
         {
             DefaultVisit(symbol);

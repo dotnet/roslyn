@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     }
                     else
                     {
-                        var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly);
+                        var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly, cancellationToken);
                         var item = await Provider.CreateItemAsync(caller.CallingSymbol, callingProject, caller.Locations, cancellationToken).ConfigureAwait(false);
                         callback.AddResult(item);
                         cancellationToken.ThrowIfCancellationRequested();

@@ -33,14 +33,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             TestTreeInvariants(testValues);
         }
 
-        private void TestTreeInvariants(string[] testValues)
+        private static void TestTreeInvariants(string[] testValues)
         {
             var tree = BKTree.Create(testValues);
 
             foreach (var value in testValues)
             {
                 // With a threshold of 0, we should only find exactly the item we're searching for.
-                var items = tree.Find(value, threshold: 0);
                 Assert.Single(tree.Find(value, threshold: 0), value.ToLower());
             }
 
@@ -95,13 +94,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             }
         }
 
-        private string Transpose(string value, int i)
+        private static string Transpose(string value, int i)
             => value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
 
-        private string Insert(string value, int i, char v)
+        private static string Insert(string value, int i, char v)
             => value.Substring(0, i) + v + value.Substring(i);
 
-        private string Delete(string value, int i)
+        private static string Delete(string value, int i)
             => value.Substring(0, i) + value.Substring(i + 1);
 
         [Fact]
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         public void Top1000()
             => TestTreeInvariants(EditDistanceTests.Top1000);
 
-        private IEnumerable<string> Expected(params string[] values)
+        private static IEnumerable<string> Expected(params string[] values)
             => values;
     }
 }

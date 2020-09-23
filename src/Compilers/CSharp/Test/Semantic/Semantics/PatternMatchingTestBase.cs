@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void VerifyModelForDuplicateVariableDeclarationInSameScope(
             SemanticModel model,
             SingleVariableDesignationSyntax designation,
-            LocalDeclarationKind kind)
+            LocalDeclarationKind kind = LocalDeclarationKind.PatternVariable)
         {
             var symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
@@ -417,10 +418,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
         {
-            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
 
-        private const string _iTupleSource = @"
+        protected const string _iTupleSource = @"
 namespace System.Runtime.CompilerServices
 {
     public interface ITuple

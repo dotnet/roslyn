@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 Document = document;
             }
 
-            public async static Task<State> GenerateAsync(
+            public static async Task<State> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 TextSpan textSpan,

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var syntaxTree = context.SyntaxTree;
             return
                 IsExternAliasContext(context) ||
-                context.IsGlobalStatementContext ||
+                (context.IsGlobalStatementContext && syntaxTree.IsScript()) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, s_validGlobalModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken) ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);

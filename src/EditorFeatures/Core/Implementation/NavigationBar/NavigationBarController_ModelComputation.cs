@@ -146,7 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     async t =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                        cancellationToken.ThrowIfCancellationRequested();
 
                         PushSelectedItemsToPresenter(t.Result);
                     },

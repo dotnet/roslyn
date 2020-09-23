@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
-        private bool IsStylePreferred(
+        private static bool IsStylePreferred(
             SyntaxNodeAnalysisContext context,
             string language)
             => IsFrameworkTypePreferred(context, GetOptionForDeclarationContext, language) ||
                IsFrameworkTypePreferred(context, GetOptionForMemberAccessContext, language);
 
-        private bool IsFrameworkTypePreferred(
+        private static bool IsFrameworkTypePreferred(
             SyntaxNodeAnalysisContext context,
             PerLanguageOption2<CodeStyleOption2<bool>> option,
             string language)

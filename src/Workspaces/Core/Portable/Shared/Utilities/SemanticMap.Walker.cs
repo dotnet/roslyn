@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 base.VisitToken(token);
             }
 
-            private bool IsNone(SymbolInfo info)
+            private static bool IsNone(SymbolInfo info)
                 => info.Symbol == null && info.CandidateSymbols.Length == 0;
         }
     }

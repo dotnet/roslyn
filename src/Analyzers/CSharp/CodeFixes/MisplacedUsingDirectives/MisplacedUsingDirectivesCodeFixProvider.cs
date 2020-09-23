@@ -86,6 +86,26 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             }
         }
 
+        internal static async Task<Document> TransformDocumentIfRequiredAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
+
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(syntaxRoot.SyntaxTree, cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options);
+            if (preferPreservation)
+            {
+                return document;
+            }
+
+            return await GetTransformedDocumentAsync(document, compilationUnit, placement, cancellationToken).ConfigureAwait(false);
+        }
+
         private static async Task<Document> GetTransformedDocumentAsync(
             Document document,
             CompilationUnitSyntax compilationUnit,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
@@ -17,21 +19,33 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
                 var isIndexer = reader.ReadBoolean();
-
                 using var refKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
 
-                if (parameterTypes.IsDefault)
+                if (containingTypeFailureReason != null)
                 {
+                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
                     return default;
                 }
 
-                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataNameOpt: null);
+                if (parameterTypesFailureReason != null)
+                {
+                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";
+                    return default;
+                }
+
+                if (parameterTypes.IsDefault)
+                {
+                    failureReason = $"({nameof(PropertySymbolKey)} no parameter types)";
+                    return default;
+                }
+
+                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataName: null);
                 using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
                 foreach (var property in properties)
                 {
@@ -45,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(PropertySymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

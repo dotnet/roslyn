@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// </summary>
         public static async Task<Document> CaseCorrectAsync(Document document, TextSpan span, CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await CaseCorrectAsync(document, ImmutableArray.Create(span), cancellationToken).ConfigureAwait(false);
         }
 

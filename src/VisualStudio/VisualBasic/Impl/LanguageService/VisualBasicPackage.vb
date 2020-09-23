@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell
@@ -19,6 +20,21 @@ Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
+    ' The option page configuration is duplicated in PackageRegistration.pkgdef.
+    '
+    ' VB option pages tree
+    '   Basic
+    '     General (from editor)
+    '     Scroll Bars (from editor)
+    '     Tabs (from editor)
+    '     Advanced
+    '     Code Style (category)
+    '       General
+    <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
+    <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
+    <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
+    <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
+    <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)

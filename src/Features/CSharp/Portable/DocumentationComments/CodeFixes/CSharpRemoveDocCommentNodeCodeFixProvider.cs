@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override bool IsXmlNewLineToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 
-        private bool IsWhitespace(string text)
+        private static bool IsWhitespace(string text)
         {
             foreach (var c in text)
             {

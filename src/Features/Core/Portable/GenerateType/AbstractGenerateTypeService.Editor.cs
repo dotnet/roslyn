@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -223,11 +224,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return namespaceToGenerateInto;
             }
 
-            private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
+            private static string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
                 => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
-            private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
+            private static int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
             {
                 if (namespaceToGenerateInto == rootNamespace)
                 {
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return -1;
             }
 
-            private void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
+            private static void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
             {
                 // Add the folder as part of the namespace if there are not empty
                 if (folders != null && folders.Count != 0)
@@ -381,9 +382,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     enclosingNamespace,
                     namedType,
-                    new CodeGenerationOptions(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span)),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
+                    new CodeGenerationOptions(
+                        afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span),
+                        options: await _semanticDocument.Document.GetOptionsAsync(_cancellationToken).ConfigureAwait(false)),
+                    _cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
             }
@@ -537,7 +539,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
             {
-                var codeGenService = GetCodeGenerationService();
                 var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                     solution,
@@ -563,39 +564,34 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
             }
 
-            private ICodeGenerationService GetCodeGenerationService()
-            {
-                var language = _state.TypeToGenerateInOpt == null
-                    ? _state.SimpleName.Language
-                    : _state.TypeToGenerateInOpt.Language;
-                return _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();
-            }
-
-            private bool TryFindMatchingField(
+            private bool FindExistingOrCreateNewMember(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
-                Dictionary<string, ISymbol> parameterToFieldMap,
-                bool caseSensitive)
+                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
+                ImmutableDictionary<string, string>.Builder parameterToNewFieldMap)
             {
                 // If the base types have an accessible field or property with the same name and
                 // an acceptable type, then we should just defer to that.
                 if (_state.BaseTypeOrInterfaceOpt != null)
                 {
-                    var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                    var query =
-                        _state.BaseTypeOrInterfaceOpt
-                            .GetBaseTypesAndThis()
-                            .SelectMany(t => t.GetMembers())
-                            .Where(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
-                    var symbol = query.FirstOrDefault(IsSymbolAccessible);
+                    var expectedFieldName = parameterName.NameBasedOnArgument;
+                    var members = from t in _state.BaseTypeOrInterfaceOpt.GetBaseTypesAndThis()
+                                  from m in t.GetMembers()
+                                  where m.Name.Equals(expectedFieldName, StringComparison.OrdinalIgnoreCase)
+                                  where IsSymbolAccessible(m)
+                                  where IsViableFieldOrProperty(parameterType, m)
+                                  select m;
 
-                    if (IsViableFieldOrProperty(parameterType, symbol))
+                    var membersArray = members.ToImmutableArray();
+                    var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+                    if (symbol != null)
                     {
                         parameterToFieldMap[parameterName.BestNameForParameter] = symbol;
                         return true;
                     }
                 }
 
+                parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
                 return false;
             }
 

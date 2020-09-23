@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
             else
             {
-                var selectedItem = modelOpt.SelectedItem;
                 var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
 
                 // We want the span to actually only go up to the caret.  So get the expected span

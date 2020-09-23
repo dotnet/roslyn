@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public abstract class AbstractTypingCommandHandlerTest<TCommandArgs> where TCommandArgs : CommandArgs
     {
-        internal abstract ICommandHandler<TCommandArgs> CreateCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService);
+        internal abstract ICommandHandler<TCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
@@ -37,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 var view = testDocument.GetTextView();
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                var commandHandler = CreateCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), workspace.GetService<IEditorOperationsFactoryService>());
+                var commandHandler = GetCommandHandler(workspace);
 
                 var (args, insertionText) = CreateCommandArgs(view, view.TextBuffer);
                 var nextHandler = CreateInsertTextHandler(view, insertionText);
@@ -60,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         protected void VerifyTabs(string initialMarkup, string expectedMarkup)
             => Verify(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
 
-        private string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
+        private static string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {

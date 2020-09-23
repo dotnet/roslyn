@@ -468,6 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     return (bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken);
 
                 case SyntaxKind.ObjectInitializerExpression:
+                case SyntaxKind.WithInitializerExpression:
                     var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
                     return (initializerExpressionSyntax.OpenBraceToken, initializerExpressionSyntax.CloseBraceToken);
 

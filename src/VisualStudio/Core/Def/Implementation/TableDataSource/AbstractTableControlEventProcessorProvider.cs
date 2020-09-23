@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected class EventProcessor : TableControlEventProcessorBase
         {
             protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle)
-                => GetEntriesSnapshot(entryHandle, out var index);
+                => GetEntriesSnapshot(entryHandle, out _);
 
             protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // we might fail to navigate if we don't see the document in our solution anymore.
                 // that can happen if error is staled build error or user used #line pragma in C#
                 // to point to some random file in error or more.
-                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview);
+                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview, e.ShouldActivate);
             }
         }
     }

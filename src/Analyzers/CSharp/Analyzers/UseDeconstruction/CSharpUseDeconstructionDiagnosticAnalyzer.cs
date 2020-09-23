@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (!TryAnalyzeVariableDeclaration(
                     context.SemanticModel, variableDeclaration, out _,
-                    out var memberAccessExpressions, context.CancellationToken))
+                    out _, context.CancellationToken))
             {
                 return;
             }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (!TryAnalyzeForEachStatement(
                     context.SemanticModel, forEachStatement, out _,
-                    out var memberAccessExpressions, context.CancellationToken))
+                    out _, context.CancellationToken))
             {
                 return;
             }
@@ -204,8 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     return false;
                 }
             }
-
-            var variableName = identifier.ValueText;
 
             using var _ = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance(out var references);
 

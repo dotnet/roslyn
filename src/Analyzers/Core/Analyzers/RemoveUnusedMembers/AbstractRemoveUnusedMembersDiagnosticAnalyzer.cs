@@ -382,9 +382,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 ArrayBuilder<string> debuggerDisplayAttributeArguments = null;
                 try
                 {
+                    var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
+
                     var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
                     foreach (var member in namedType.GetMembers())
                     {
+                        if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
+                        {
+                            continue;
+                        }
+
                         // Check if the underlying member is neither read nor a readable reference to the member is taken.
                         // If so, we flag the member as either unused (never written) or unread (written but not read).
                         if (TryRemove(member, out var valueUsageInfo) &&
@@ -501,7 +508,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return false;
             }
 
-            PooledHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments(INamedTypeSymbol namedTypeSymbol, Compilation compilation, CancellationToken cancellationToken)
+            private PooledHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments(INamedTypeSymbol namedTypeSymbol, Compilation compilation, CancellationToken cancellationToken)
             {
                 var builder = PooledHashSet<ISymbol>.GetInstance();
                 foreach (var root in namedTypeSymbol.Locations.Select(l => l.SourceTree.GetRoot(cancellationToken)))
@@ -523,14 +530,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return builder;
             }
 
-            ArrayBuilder<string> GetDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+            private ArrayBuilder<string> GetDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol)
             {
                 var builder = ArrayBuilder<string>.GetInstance();
                 AddDebuggerDisplayAttributeArguments(namedTypeSymbol, builder);
                 return builder;
             }
 
-            void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
+            private void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
             {
                 AddDebuggerDisplayAttributeArgumentsCore(namedTypeSymbol, builder);
 
@@ -542,15 +549,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             AddDebuggerDisplayAttributeArguments(nestedType, builder);
                             break;
 
-                        case IPropertySymbol property:
-                        case IFieldSymbol field:
+                        case IPropertySymbol _:
+                        case IFieldSymbol _:
                             AddDebuggerDisplayAttributeArgumentsCore(member, builder);
                             break;
                     }
                 }
             }
 
-            void AddDebuggerDisplayAttributeArgumentsCore(ISymbol symbol, ArrayBuilder<string> builder)
+            private void AddDebuggerDisplayAttributeArgumentsCore(ISymbol symbol, ArrayBuilder<string> builder)
             {
                 foreach (var attribute in symbol.GetAttributes())
                 {
@@ -689,7 +696,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName &&
+                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
+                                                                                                                          // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
                     methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
@@ -699,7 +707,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
 
-            private bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
+            private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
                 // "bool ShouldSerializeXXX()" and "void ResetXXX()" are ok if there is a matching
                 // property XXX as they are used by the windows designer property grid

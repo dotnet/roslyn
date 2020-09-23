@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return new AnonymousTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);
         }
 
-        private Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
+        private static Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
             IList<INamedTypeSymbol> anonymousTypes)
         {
             var current = 0;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return anonymousTypeToName;
         }
 
-        private string GenerateAnonymousTypeName(int current)
+        private static string GenerateAnonymousTypeName(int current)
         {
             var c = (char)('a' + current);
             if (c >= 'a' && c <= 'z')
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return "'" + current.ToString();
         }
 
-        private IList<INamedTypeSymbol> OrderAnonymousTypes(
+        private static IList<INamedTypeSymbol> OrderAnonymousTypes(
             IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
             ISymbol symbol)
         {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return transitiveReferences;
         }
 
-        protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
+        protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
         {
             for (var i = 0; i < count; i++)
             {
@@ -147,16 +147,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
         }
 
-        protected SymbolDisplayPart PlainText(string text)
+        protected static SymbolDisplayPart PlainText(string text)
             => Part(SymbolDisplayPartKind.Text, text);
 
-        private SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
+        private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
             => Part(kind, null, text);
 
-        private SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+        private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
             => new SymbolDisplayPart(kind, symbol, text);
 
-        protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
+        protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {
             for (var i = 0; i < count; i++)
             {
@@ -164,10 +164,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
         }
 
-        protected SymbolDisplayPart Punctuation(string text)
+        protected static SymbolDisplayPart Punctuation(string text)
             => Part(SymbolDisplayPartKind.Punctuation, text);
 
-        protected SymbolDisplayPart Keyword(string text)
+        protected static SymbolDisplayPart Keyword(string text)
             => Part(SymbolDisplayPartKind.Keyword, text);
     }
 }

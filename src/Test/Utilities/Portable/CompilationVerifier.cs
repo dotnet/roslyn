@@ -276,6 +276,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
+        /// <summary>
+        /// Visualizes the IL for a given method, and ensures that it matches the expected IL.
+        /// </summary>
+        /// <param name="realIL">Controls whether the IL stream contains pseudo-tokens or real tokens.</param>
         private CompilationVerifier VerifyILImpl(
             string qualifiedMethodName,
             string expectedIL,
@@ -350,7 +354,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     throw new InvalidOperationException("IL visualization function is not set");
                 }
-
 
                 return _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed);
             }

@@ -4,6 +4,7 @@
 
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

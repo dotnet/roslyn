@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             Document document, TextSpan span, CancellationToken cancellationToken)
             => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-        private async Task<Document> InvertConditionalAsync(
+        private static async Task<Document> InvertConditionalAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);

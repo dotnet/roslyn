@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
-
         [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitProducesExpressionBodyMethod()

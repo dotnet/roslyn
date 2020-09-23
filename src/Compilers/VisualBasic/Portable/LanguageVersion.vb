@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = LanguageVersion.VisualBasic15_3
                 Case "15.5"
                     result = LanguageVersion.VisualBasic15_5
-                Case "16"
+                Case "16", "16.0"
                     result = LanguageVersion.VisualBasic16
                 Case "default"
                     result = LanguageVersion.Default

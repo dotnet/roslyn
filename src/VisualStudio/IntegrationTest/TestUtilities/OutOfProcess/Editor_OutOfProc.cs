@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using UIAutomationClient;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -64,6 +65,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public ImmutableArray<TextSpan> GetTagSpans(string tagId)
         {
+            if (tagId == _instance.InlineRenameDialog.ValidRenameTag)
+            {
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
+            }
+
             var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
 
             // The spans are returned in an array:
@@ -72,12 +78,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             var builder = ArrayBuilder<TextSpan>.GetInstance();
 
-            for (int i = 0; i < tagInfo.Count; i += 2)
+            for (var i = 0; i < tagInfo.Count; i += 2)
             {
                 builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        public void InvokeNavigateToNextHighlightedReference()
+        {
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_NextHighlightedReference);
         }
 
         public string GetCurrentCompletionItem()
@@ -233,7 +245,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.IsUseSuggestionModeOn();
 
         public void SetUseSuggestionMode(bool value)
-            => _editorInProc.SetUseSuggestionMode(value);
+        {
+            Assert.False(IsCompletionActive());
+            _editorInProc.SetUseSuggestionMode(value);
+        }
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);

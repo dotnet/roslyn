@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> references,
             IReadOnlyDictionary<string, string> features,
             bool isSubmission,
+            SemanticModelProvider? semanticModelProvider,
             AsyncQueue<CompilationEvent>? eventQueue)
         {
             RoslynDebug.Assert(!references.IsDefault);
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
+            this.SemanticModelProvider = semanticModelProvider;
             this.EventQueue = eventQueue;
 
             _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
@@ -120,6 +122,8 @@ namespace Microsoft.CodeAnalysis
         /// Gets the source language ("C#" or "Visual Basic").
         /// </summary>
         public abstract string Language { get; }
+
+        internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
@@ -194,6 +198,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent>? eventQueue);
 
         /// <summary>
+        /// Returns a new compilation with a given semantic model provider.
+        /// </summary>
+        internal abstract Compilation WithSemanticModelProvider(SemanticModelProvider semanticModelProvider);
+
+        /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
         /// <param name="syntaxTree">The specified syntax tree.</param>
@@ -201,17 +210,33 @@ namespace Microsoft.CodeAnalysis
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
-        {
-            return CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
-        }
+            => CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
 
+        /// <summary>
+        /// Gets a <see cref="SemanticModel"/> for the given <paramref name="syntaxTree"/>.
+        /// If <see cref="SemanticModelProvider"/> is non-null, it attempts to use <see cref="SemanticModelProvider.GetSemanticModel(SyntaxTree, Compilation, bool)"/>
+        /// to get a semantic model. Otherwise, it creates a new semantic model using <see cref="CreateSemanticModel(SyntaxTree, bool)"/>.
+        /// </summary>
+        /// <param name="syntaxTree"></param>
+        /// <param name="ignoreAccessibility"></param>
+        /// <returns></returns>
         protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
+
+        /// <summary>
+        /// Creates a new <see cref="SemanticModel"/> for the given <paramref name="syntaxTree"/>.
+        /// Unlike the <see cref="GetSemanticModel(SyntaxTree, bool)"/> and <see cref="CommonGetSemanticModel(SyntaxTree, bool)"/>,
+        /// it does not attempt to use the <see cref="SemanticModelProvider"/> to get a semantic model, but instead always creates a new semantic model.
+        /// </summary>
+        /// <param name="syntaxTree"></param>
+        /// <param name="ignoreAccessibility"></param>
+        /// <returns></returns>
+        internal abstract SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity
         /// in the given optional container.
         /// </summary>
-        public INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        public INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             if (name == null)
             {
@@ -226,7 +251,7 @@ namespace Microsoft.CodeAnalysis
             return CommonCreateErrorTypeSymbol(container, name, arity);
         }
 
-        protected abstract INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity);
+        protected abstract INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity);
 
         /// <summary>
         /// Returns a new INamespaceSymbol representing an error (missing) namespace with the given name.
@@ -500,9 +525,14 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool CommonContainsSyntaxTree(SyntaxTree? syntaxTree);
 
         /// <summary>
+        /// Optional semantic model provider for this compilation.
+        /// </summary>
+        internal SemanticModelProvider? SemanticModelProvider { get; }
+
+        /// <summary>
         /// The event queue that this compilation was created with.
         /// </summary>
-        internal readonly AsyncQueue<CompilationEvent>? EventQueue;
+        internal AsyncQueue<CompilationEvent>? EventQueue { get; }
 
         #endregion
 
@@ -855,6 +885,12 @@ namespace Microsoft.CodeAnalysis
         protected abstract ITypeSymbol CommonDynamicType { get; }
 
         /// <summary>
+        /// A symbol representing the script globals type.
+        /// </summary>
+        internal ITypeSymbol? ScriptGlobalsType => CommonScriptGlobalsType;
+        protected abstract ITypeSymbol? CommonScriptGlobalsType { get; }
+
+        /// <summary>
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
@@ -928,7 +964,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation elementNullableAnnotation);
 
         /// <summary>
-        /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this
+        /// Returns a new IPointerTypeSymbol representing a pointer type tied to a type in this
         /// Compilation.
         /// </summary>
         /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
@@ -938,6 +974,39 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
+
+
+        /// <summary>
+        /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
+        /// Compilation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
+        /// <exception cref="ArgumentException">
+        /// If:
+        ///  * <see cref="RefKind.Out"/> is passed as the returnRefKind.
+        ///  * parameterTypes and parameterRefKinds do not have the same length.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// If returnType is <see langword="null"/>, or if parameterTypes or parameterRefKinds are default,
+        /// or if any of the types in parameterTypes are null.</exception>
+        public IFunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention = SignatureCallingConvention.Default,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes = default)
+        {
+            return CommonCreateFunctionPointerTypeSymbol(returnType, returnRefKind, parameterTypes, parameterRefKinds, callingConvention, callingConventionTypes);
+        }
+
+        protected abstract IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing a native integer.
@@ -956,7 +1025,7 @@ namespace Microsoft.CodeAnalysis
         // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
         // is that there are maybe a couple dozen analyzers in the solution and each one has
         // ~0-2 unique well-known types, and the chance of hash collision is very low.
-        private ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
+        private readonly ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
             new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
 
         /// <summary>
@@ -1295,8 +1364,7 @@ namespace Microsoft.CodeAnalysis
 
             void checkInCompilationReferences(ISymbol s, string parameterName)
             {
-                var containingAssembly = computeContainingAssembly(s);
-                if (!assemblyIsInReferences(containingAssembly))
+                if (!isContainingAssemblyInReferences(s))
                 {
                     throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, parameterName), parameterName);
                 }
@@ -1344,14 +1412,14 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            IAssemblySymbol computeContainingAssembly(ISymbol s)
+            bool isContainingAssemblyInReferences(ISymbol s)
             {
                 while (true)
                 {
                     switch (s.Kind)
                     {
                         case SymbolKind.Assembly:
-                            return (IAssemblySymbol)s;
+                            return assemblyIsInReferences((IAssemblySymbol)s);
                         case SymbolKind.PointerType:
                             s = ((IPointerTypeSymbol)s).PointedAtType;
                             continue;
@@ -1364,15 +1432,31 @@ namespace Microsoft.CodeAnalysis
                         case SymbolKind.Discard:
                             s = ((IDiscardSymbol)s).Type;
                             continue;
+                        case SymbolKind.FunctionPointerType:
+                            var funcPtr = (IFunctionPointerTypeSymbol)s;
+                            if (!isContainingAssemblyInReferences(funcPtr.Signature.ReturnType))
+                            {
+                                return false;
+                            }
+
+                            foreach (var param in funcPtr.Signature.Parameters)
+                            {
+                                if (!isContainingAssemblyInReferences(param.Type))
+                                {
+                                    return false;
+                                }
+                            }
+
+                            return true;
                         case SymbolKind.DynamicType:
                         case SymbolKind.ErrorType:
                         case SymbolKind.Preprocessing:
                         case SymbolKind.Namespace:
                             // these symbols are not restricted in where they can be accessed, so unless they report
                             // a containing assembly, we treat them as in the current assembly for access purposes
-                            return s.ContainingAssembly ?? this.Assembly;
+                            return assemblyIsInReferences(s.ContainingAssembly ?? this.Assembly);
                         default:
-                            return s.ContainingAssembly;
+                            return assemblyIsInReferences(s.ContainingAssembly);
                     }
                 }
             }
@@ -1383,7 +1467,7 @@ namespace Microsoft.CodeAnalysis
             ISymbol within,
             ITypeSymbol? throughType);
 
-        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
+        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out ConstantValue? constantValue);
 
         #endregion
 
@@ -1447,10 +1531,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
-        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming)
+        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(incoming is object);
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
             incoming.Free();
             incoming = null;
             return result;
@@ -1460,7 +1544,7 @@ namespace Microsoft.CodeAnalysis
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
-        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int>? exclude)
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int>? exclude, CancellationToken cancellationToken)
         {
             bool hasError = false;
             bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
@@ -1472,7 +1556,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var filtered = Options.FilterDiagnostic(d);
+                var filtered = Options.FilterDiagnostic(d, cancellationToken);
                 if (filtered == null ||
                     (!reportSuppressedDiagnostics && filtered.IsSuppressed))
                 {
@@ -2477,6 +2561,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
+
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
             Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
@@ -2554,10 +2639,7 @@ namespace Microsoft.CodeAnalysis
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
-                        metadataOnly: options.EmitMetadataOnly,
-                        includePrivateMembers: options.IncludePrivateMembers,
-                        emitTestCoverageData: options.EmitTestCoverageData,
-                        pePdbFilePath: options.PdbFilePath,
+                        emitOptions: options,
                         privateKeyOpt: privateKeyOpt,
                         cancellationToken: cancellationToken);
                 }
@@ -2692,7 +2774,7 @@ namespace Microsoft.CodeAnalysis
             if (IsSubmission && !HasCodeToEmit())
             {
                 // Still report diagnostics since downstream submissions will assume there are no errors.
-                diagnostics.AddRange(this.GetDiagnostics());
+                diagnostics.AddRange(this.GetDiagnostics(cancellationToken));
                 return null;
             }
 
@@ -2718,10 +2800,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider? pdbStreamProvider,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
-            bool metadataOnly,
-            bool includePrivateMembers,
-            bool emitTestCoverageData,
-            string? pePdbFilePath,
+            EmitOptions emitOptions,
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
@@ -2735,6 +2814,8 @@ namespace Microsoft.CodeAnalysis
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+
+            string? pePdbFilePath = emitOptions.PdbFilePath;
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
             {
@@ -2790,10 +2871,10 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
-                        metadataOnly,
-                        includePrivateMembers,
+                        emitOptions.EmitMetadataOnly,
+                        emitOptions.IncludePrivateMembers,
                         deterministic,
-                        emitTestCoverageData,
+                        emitOptions.EmitTestCoverageData,
                         privateKeyOpt,
                         cancellationToken))
                     {
@@ -2831,7 +2912,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // translate metadata errors.
-                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
+                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics, cancellationToken))
                 {
                     return false;
                 }

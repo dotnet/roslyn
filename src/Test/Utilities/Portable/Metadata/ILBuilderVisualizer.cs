@@ -62,7 +62,7 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
-            Cci.IReference reference = _tokenDeferral.GetReferenceFromToken(token);
+            object reference = _tokenDeferral.GetReferenceFromToken(token);
             ISymbol symbol = (reference as ISymbolInternal)?.GetISymbol();
             return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
         }

@@ -13,12 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpErrorListNetCore : CSharpErrorListCommon
     {
-        public CSharpErrorListNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+        public CSharpErrorListNetCore(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.ErrorList();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorLevelWarning()
@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.ErrorLevelWarning();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.ErrorsDuringMethodBodyEditing();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         [WorkItem(39902, "https://github.com/dotnet/roslyn/issues/39902")]

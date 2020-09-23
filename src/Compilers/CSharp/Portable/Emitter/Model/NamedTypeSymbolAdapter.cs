@@ -343,13 +343,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (method.RequiresExplicitOverride())
+                    if (method.RequiresExplicitOverride(out _))
                     {
                         // If C# and the runtime don't agree on the overridden method, then 
                         // we will mark the method as newslot (see MethodSymbolAdapter) and
                         // specify the override explicitly.
-                        // This mostly affects accessors - C# ignores method interactions
+                        // This affects accessors - C# ignores method interactions
                         // between accessors and non-accessors, whereas the runtime does not.
+                        // It also affects covariant returns - C# ignores the return type in
+                        // determining if one method overrides another, while the runtime considers
+                        // the return type part of the signature.
                         yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                     }
                     else if (method.MethodKind == MethodKind.Destructor && this.SpecialType != SpecialType.System_Object)
@@ -392,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
 
-                        Debug.Assert(!method.RequiresExplicitOverride());
+                        Debug.Assert(!method.RequiresExplicitOverride(out _));
                     }
                 }
             }
@@ -669,6 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
+
                 if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.ShouldInclude(context))
                 {
                     yield return method;
@@ -702,22 +706,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)m;
-
-                    if (method.IsPartialDefinition())
+                    if (method.ShouldEmit())
                     {
-                        // Don't emit partial methods without an implementation part.
-                        if ((object)method.PartialImplementationPart == null)
-                        {
-                            continue;
-                        }
+                        yield return method;
                     }
-                    // Don't emit the default value type constructor - the runtime handles that
-                    else if (method.IsDefaultValueTypeConstructor())
-                    {
-                        continue;
-                    }
-
-                    yield return method;
                 }
             }
         }

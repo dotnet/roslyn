@@ -169,7 +169,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        private static readonly string[] s_separators = { Environment.NewLine };
+        // Same separators as those used by Process.OutputDataReceived to maintain consistency between csc and VBCSCompiler
+        private static readonly string[] s_separators = { "\r\n", "\r", "\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolNameWithoutExtension
+        protected override string ToolNameWithoutExtension
         {
             get
             {

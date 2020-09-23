@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
-        private async Task<Solution> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<Solution> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Add missing imports for the pasted text span.
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();

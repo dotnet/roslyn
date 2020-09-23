@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 iCurrentStep: this.ProgressTracker.CompletedItems,
                 iTotalSteps: this.ProgressTracker.TotalItems,
                 fDisableCancel: !_allowCancel,
-                pfCanceled: out var hasCancelled);
+                pfCanceled: out _);
         }
 
         public void Dispose()

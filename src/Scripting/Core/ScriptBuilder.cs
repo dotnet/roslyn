@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private readonly InteractiveAssemblyLoader _assemblyLoader;
 
-        private static EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
+        private static readonly EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
             debugInformationFormat: PdbHelpers.GetPlatformSpecificDebugInformationFormat(),
             pdbChecksumAlgorithm: default(HashAlgorithmName));
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             try
             {
                 // get compilation diagnostics first.
-                diagnostics.AddRange(compilation.GetParseDiagnostics());
+                diagnostics.AddRange(compilation.GetParseDiagnostics(cancellationToken));
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 

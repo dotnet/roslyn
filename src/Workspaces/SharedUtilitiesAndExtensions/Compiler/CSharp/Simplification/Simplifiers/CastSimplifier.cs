@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
 
             // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`
-            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
+            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
             return false;
@@ -117,76 +118,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
+            // If this changes static semantics (i.e. causes a different overload to be called), then we can't remove it.
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
+
             var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
             var castType = castTypeInfo.Type;
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
-                return false;
-
             var expressionToCastType = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(castNode, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
 
-            // Simple case: If the conversion from the inner expression to the cast type is identity,
-            // the cast can be removed.
+            // Clearest case.  We know we haven't changed static semantic, and we have an Identity (i.e. no-impact,
+            // representation-preserving) cast.  This is always safe to remove.
+            //
+            // Note: while these casts are always safe to remove, there is a case where we still keep them.
+            // Specifically, if the compiler would warn that the code is no longer clear, then we will keep the cast
+            // around.  These warning checks should go into CastMustBePreserved above.
             if (expressionToCastType.IsIdentity)
-            {
-                // Simple case: Is this an identity cast to another cast? If so, we're safe to remove it.
-                if (castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.CastExpression))
-                {
-                    return true;
-                }
-
-                // Required explicit cast for reference comparison.
-                // Cast removal causes warning CS0252 (Possible unintended reference comparison).
-                //      object x = string.Intern("Hi!");
-                //      (object)x == "Hi!"
-                if (IsRequiredCastForReferenceEqualityComparison(outerType, castNode, semanticModel, out var other))
-                {
-                    var otherToOuterType = semanticModel.ClassifyConversion(other, outerType);
-                    if (otherToOuterType.IsImplicit && otherToOuterType.IsReference)
-                    {
-                        return false;
-                    }
-                }
-
-                if (SameSizedFloatingPointCastMustBePreserved(
-                        semanticModel, castNode, castedExpressionNode,
-                        expressionType, castType, cancellationToken))
-                {
-                    return false;
-                }
-
                 return true;
-            }
 
-            if (WouldChangeDefaultOrNullInConditional(castNode))
-                return false;
+            // We already bailed out of we had an explicit/none conversions back in CastMustBePreserved 
+            // (except for implicit user defined conversions).
+            Debug.Assert(!expressionToCastType.IsExplicit || expressionToCastType.IsUserDefined);
 
-            Debug.Assert(!expressionToCastType.IsIdentity);
-            if (expressionToCastType.IsExplicit)
-            {
-                // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
-                if (expressionToCastType.IsReference)
-                    return false;
-
-                // Unboxing conversions can cause a null ref exception, hence can never be removed.
-                if (expressionToCastType.IsUnboxing)
-                    return false;
-
-                // Don't remove any explicit numeric casts.
-                // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
-                if (expressionToCastType.IsNumeric)
-                    return false;
-            }
-
-            if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
-            {
-                // Don't remove any non-identity pointer or IntPtr conversions.
-                // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
-                return expressionType != null && expressionType.Equals(outerType);
-            }
+            // At this point, the only type of conversion left are implicit or user-defined conversions.  These may be
+            // conversions we can remove, but need further analysis.
+            Debug.Assert(expressionToCastType.IsImplicit || expressionToCastType.IsUserDefined);
 
             if (expressionToCastType.IsInterpolatedString)
             {
@@ -239,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return !expressionToOuterType.IsExplicit &&
                         (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) ||
                          HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) &&
-                         UserDefinedConversionIsAllowed(castNode, semanticModel);
+                         UserDefinedConversionIsAllowed(castNode);
                 }
                 else if (expressionToOuterType.IsUserDefined)
                 {
@@ -248,16 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 if (expressionToCastType.IsExplicit &&
                     expressionToOuterType.IsExplicit)
-                {
-                    return false;
-                }
-                // Required explicit cast for reference comparison.
-                // Cast removal causes warning CS0252 (Possible unintended reference comparison).
-                //      object x = string.Intern("Hi!");
-                //      x == (object)"Hi!"
-                if (expressionToCastType.IsImplicit && expressionToCastType.IsReference &&
-                    castToOuterType.IsIdentity &&
-                    IsRequiredCastForReferenceEqualityComparison(outerType, castNode, semanticModel, out var other))
                 {
                     return false;
                 }
@@ -368,32 +317,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsEnumToNumericCastThatCanDefinitelyBeRemoved(
             ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
             ITypeSymbol castType,
             ITypeSymbol castedExpressionType,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`.
-
             if (!castedExpressionType.IsEnumType(out var castedEnumType))
                 return false;
 
             if (!Equals(castType, castedEnumType.EnumUnderlyingType))
                 return false;
 
-            if (!castNode.WalkUpParentheses().IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax prefixUnary))
-                return false;
+            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`.
+            castNode = castNode.WalkUpParentheses();
+            if (castNode.IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax prefixUnary))
+            {
+                if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax parentCast))
+                    return false;
 
-            if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax parentCast))
-                return false;
+                // `(int)` in `(E?)~(int)e` is also redundant.
+                var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
+                if (parentCastType.IsNullable(out var underlyingType))
+                    parentCastType = underlyingType;
 
-            // `(int)` in `(E?)~(int)e` is also redundant.
-            var parentCastType = semanticModel.GetTypeInfo(parentCast.Type, cancellationToken).Type;
-            if (parentCastType.IsNullable(out var underlyingType))
-                parentCastType = underlyingType;
+                return castedEnumType.Equals(parentCastType);
+            }
 
-            return castedEnumType.Equals(parentCastType);
+            // if we have `(int)e == 0` then the cast can be removed.  Note: this is only for the exact cast of
+            // comparing to the constant 0.  All other comparisons are not allowed.
+            if (castNode.Parent is BinaryExpressionSyntax binaryExpression)
+            {
+                if (binaryExpression.IsKind(SyntaxKind.EqualsExpression) || binaryExpression.IsKind(SyntaxKind.NotEqualsExpression))
+                {
+                    var otherSide = castNode == binaryExpression.Left ? binaryExpression.Right : binaryExpression.Left;
+                    var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
+                    if (otherSideType.Equals(castedEnumType.EnumUnderlyingType))
+                    {
+                        var constantValue = semanticModel.GetConstantValue(otherSide, cancellationToken);
+                        if (constantValue.HasValue &&
+                            IntegerUtilities.IsIntegral(constantValue.Value) &&
+                            IntegerUtilities.ToInt64(constantValue.Value) == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool CastMustBePreserved(
@@ -408,26 +379,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(Type)...` or `... as Type`
             var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
 
-            // The type in `(...)expr` or `expr as ...`
-            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
-
             // If we don't understand the type, we must keep it.
             if (castType == null)
                 return true;
+
+            // The type in `(...)expr` or `expr as ...`
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
+            var conversion = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
 
             // If we've got an error for some reason, then we don't want to touch this at all.
             if (castType.IsErrorType())
                 return true;
 
+            // Almost all explicit conversions can cause an exception or data loss, hence can never be removed.
+            if (IsExplicitCastThatMustBePreserved(conversion))
+                return true;
+
+            // If this conversion doesn't even exist, then this code is in error, and we don't want to touch it.
+            if (!conversion.Exists)
+                return true;
+
             // `dynamic` changes the semantics of everything and is rarely safe to remove. We could consider removing
             // absolutely safe casts (i.e. `(dynamic)(dynamic)a`), but it's likely not worth the effort, so we just
             // disallow touching them entirely.
-            if (InvolvesDynamic(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
-                return true;
-
-            // If we're changing between numeric and enum types, then we need to preserve the cast as the type is
-            // definitely changing, even if the internal memory representation might be the same.
-            if (IsNumericToEnumConversion(castType, castedExpressionType))
+            if (InvolvesDynamic(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
             // If removing the cast would cause the compiler to issue a specific warning, then we have to preserve it.
@@ -438,12 +414,164 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsDereferenceOfNullPointerCast(castNode, castedExpressionNode))
                 return true;
 
+            if (ParamsArgumentCastMustBePreserved(castNode, castType, semanticModel, cancellationToken))
+                return true;
+
+            // `... ? (int?)1 : default`.  This cast is necessary as the 'null/default' on the other side of the
+            // conditional can change meaning since based on the type on the other side.
+            //
+            // TODO(cyrusn): This should move into SpeculationAnalyzer as it's a static-semantics change.
+            if (CastMustBePreservedInConditionalBranch(castNode, conversion))
+                return true;
+
+            // (object)"" == someObj
+            //
+            // This cast can be removed with no runtime or static-semantics change.  However, the compiler warns here
+            // that this could be confusing (since it's not clear it's calling `==(object,object)` instead of
+            // `==(string,string)`), so we have to preserve this.
+            if (CastIsRequiredToPreventUnintendedComparisonWarning(castNode, castedExpressionNode, castType, semanticModel, cancellationToken))
+                return true;
+
+            // Identity fp-casts can actually change the runtime value of the fp number.  This can happen because the
+            // runtime is allowed to perform the operations with wider precision than the actual specified fp-precision.
+            // i.e. 64-bit doubles can actually be 80 bits at runtime.  Even though the language considers this to be an
+            // identity cast, we don't want to remove these because the user may be depending on that truncation.
+            if (IdentityFloatingPointCastMustBePreserved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, conversion, cancellationToken))
+                return true;
+
+            if (PointerOrIntPtrCastMustBePreserved(conversion))
+                return true;
+
+            // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
+            // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
+            // even bother removing this.
+            if (IsTypeLessExpressionNotInTargetTypedLocation(castNode, castedExpressionType))
+                return true;
+
             return false;
+        }
+
+        private static bool IsTypeLessExpressionNotInTargetTypedLocation(ExpressionSyntax castNode, ITypeSymbol castedExpressionType)
+        {
+            // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
+            // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
+            // even bother removing this.
+
+            // checked if the expression being casted is typeless.
+            if (castedExpressionType != null)
+                return false;
+
+            if (IsInTargetTypingLocation(castNode))
+                return false;
+
+            // we don't have our own type, and we're not in a location where a type can be inferred. don't remove this
+            // cast.
+            return true;
+        }
+
+        private static bool IsInTargetTypingLocation(ExpressionSyntax node)
+        {
+            node = node.WalkUpParentheses();
+            var parent = node.Parent;
+
+            // note: the list below is not intended to be exhaustive.  For example there are places we can target type,
+            // but which we don't want to bother doing all the work to validate.  For example, technically you can
+            // target type `throw (Exception)null`, so we could allow `(Exception)` to be removed.  But it's such a corner
+            // case that we don't care about supporting, versus all the hugely valuable cases users will actually run into.
+
+            // also: the list doesn't have to be firmly accurate:
+            //  1. If we have a false positive and we say something is a target typing location, then that means we
+            //     simply try to remove the cast, but then catch the break later.
+            //  2. If we have a false negative and we say something is not a target typing location, then we simply
+            //     don't try to remove the cast and the user has no impact on their code.
+
+            // `null op e2`.  Either side can target type the other.
+            if (parent is BinaryExpressionSyntax)
+                return true;
+
+            // `Goo(null)`.  The type of the arg is target typed by the Goo method being called.
+            // 
+            // This also helps Tuples fall out as they're built of arguments.  i.e. `(string s, string y) = (null, null)`.
+            if (parent is ArgumentSyntax)
+                return true;
+
+            // same as above
+            if (parent is AttributeArgumentSyntax)
+                return true;
+
+            // `new SomeType[] { null }` or `new [] { null, expr }`.
+            // Type of the element can be target typed by the array type, or the sibling expression types.
+            if (parent is InitializerExpressionSyntax)
+                return true;
+
+            // `return null;`.  target typed by whatever method this is in.
+            if (parent is ReturnStatementSyntax)
+                return true;
+
+            // `yield return null;` same as above.
+            if (parent is YieldStatementSyntax)
+                return true;
+
+            // `x = null`.  target typed by the other side.
+            if (parent is AssignmentExpressionSyntax)
+                return true;
+
+            // ... = null
+            //
+            // handles:  parameters, variable declarations and the like.
+            if (parent is EqualsValueClauseSyntax)
+                return true;
+
+            // `(SomeType)null`.  Definitely can target type this type-less expression.
+            if (parent is CastExpressionSyntax)
+                return true;
+
+            // `... ? null : ...`.  Either side can target type the other.
+            if (parent is ConditionalExpressionSyntax)
+                return true;
+
+            // case null:
+            if (parent is CaseSwitchLabelSyntax)
+                return true;
+
+            return false;
+        }
+
+        private static bool IsExplicitCastThatMustBePreserved(Conversion conversion)
+        {
+            if (conversion.IsExplicit)
+            {
+                // if it's not a user defined conversion, we must preserve it as it has runtime impact that we don't want to change.
+                if (!conversion.IsUserDefined)
+                    return true;
+
+                // Casts that involve implicit conversions are still represented as explicit casts. Because they're
+                // implicit though, we may be able to remove it. i.e. if we have `(C)0 + (C)1` we can remove one of the
+                // casts because it will be inferred from the binary context.
+                var userMethod = conversion.MethodSymbol;
+                if (userMethod?.Name != WellKnownMemberNames.ImplicitConversionName)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool PointerOrIntPtrCastMustBePreserved(Conversion conversion)
+        {
+            if (!conversion.IsIdentity)
+                return false;
+
+            // if we have a non-identity cast to an int* or IntPtr just do not touch this.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
+            //
+            // NOTE(cyrusn): This code should not be necessary.  However there is additional code that deals with
+            // `*(x*)expr` ends up masking that this change should not be safe.  That code is suspect and should be
+            // changed.  Until then though we disable this.
+            return conversion.IsPointer || conversion.IsIntPtr;
         }
 
         private static bool InvolvesDynamic(
             ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
             ITypeSymbol castType,
             ITypeSymbol castedExpressionType,
             SemanticModel semanticModel,
@@ -468,37 +596,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                    castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression);
         }
 
-        private static bool IsNumericToEnumConversion(
-            ITypeSymbol castType, ITypeSymbol castedExpressionType)
+        private static bool CastMustBePreservedInConditionalBranch(
+            ExpressionSyntax expression, Conversion conversion)
         {
-            if (castType.IsNullable(out var underlyingCastType))
-                castType = underlyingCastType;
+            // `... ? (int?)i : default`.  This cast is necessary as the 'null/default' on the other side of the
+            // conditional can change meaning since based on the type on the other side.
 
-            if (castedExpressionType.IsNullable(out var underlyingCastedExpressionType))
-                castedExpressionType = underlyingCastedExpressionType;
-
-            if (!castType.IsEnumType() && !castedExpressionType.IsEnumType())
-                return false;
-
-            return castType.IsNumericType() || castedExpressionType.IsNumericType();
-        }
-
-        private static bool WouldChangeDefaultOrNullInConditional(ExpressionSyntax expression)
-        {
-            expression = expression.WalkUpParentheses();
-            var parent = expression.Parent;
-            if (parent is ConditionalExpressionSyntax conditionalExpression)
+            // It's safe to remove the cast when it's an identity. for example:
+            // `... ? (int)1 : default`.
+            if (!conversion.IsIdentity)
             {
-                if (conditionalExpression.WhenTrue == expression ||
-                    conditionalExpression.WhenFalse == expression)
+                expression = expression.WalkUpParentheses();
+                if (expression.Parent is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    var otherSide = conditionalExpression.WhenTrue == expression
-                        ? conditionalExpression.WhenFalse
-                        : conditionalExpression.WhenTrue;
+                    if (conditionalExpression.WhenTrue == expression ||
+                        conditionalExpression.WhenFalse == expression)
+                    {
+                        var otherSide = conditionalExpression.WhenTrue == expression
+                            ? conditionalExpression.WhenFalse
+                            : conditionalExpression.WhenTrue;
 
-                    otherSide = otherSide.WalkDownParentheses();
-                    return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
-                           otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
+                        otherSide = otherSide.WalkDownParentheses();
+                        return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
+                               otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
+                    }
                 }
             }
 
@@ -596,17 +717,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             // We might have a nullable conversion on top of an integer constant. But only dig out
             // one level.
-
-#if !CODE_STYLE
-
             if (operation is IConversionOperation conversion &&
                 conversion.Conversion.IsImplicit &&
                 conversion.Conversion.IsNullable)
             {
                 operation = conversion.Operand;
             }
-
-#endif
 
             var constantValue = operation.ConstantValue;
             if (!constantValue.HasValue || constantValue.Value == null)
@@ -726,10 +842,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return result;
         }
 
-        private static bool SameSizedFloatingPointCastMustBePreserved(
-            SemanticModel semanticModel, ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
-            ITypeSymbol expressionType, ITypeSymbol castType, CancellationToken cancellationToken)
+        private static bool IdentityFloatingPointCastMustBePreserved(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            ITypeSymbol castType, ITypeSymbol castedExpressionType,
+            SemanticModel semanticModel, Conversion conversion, CancellationToken cancellationToken)
         {
+            if (!conversion.IsIdentity)
+                return false;
+
             // Floating point casts can have subtle runtime behavior, even between the same fp types. For example, a
             // cast from float-to-float can still change behavior because it may take a higher precision computation and
             // truncate it to 32bits.
@@ -737,8 +857,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
             // times are when we're loading or storing into a location we know has the same size as the cast size
             // (i.e. reading/writing into a field).
-            if (expressionType.SpecialType != SpecialType.System_Double &&
-                expressionType.SpecialType != SpecialType.System_Single &&
+            if (castedExpressionType.SpecialType != SpecialType.System_Double &&
+                castedExpressionType.SpecialType != SpecialType.System_Single &&
                 castType.SpecialType != SpecialType.System_Double &&
                 castType.SpecialType != SpecialType.System_Single)
             {
@@ -761,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
             {
                 // Identity fp conversion is safe if this is in an array initializer.
-                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer);
+                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);
                 return typeInfo.Type?.Kind == SymbolKind.ArrayType;
             }
             else if (castNode.Parent is EqualsValueClauseSyntax equalsValue &&
@@ -894,32 +1014,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
         }
 
-        private static bool IsRequiredCastForReferenceEqualityComparison(
-            ITypeSymbol outerType, ExpressionSyntax castNode,
-            SemanticModel semanticModel, out ExpressionSyntax other)
+        private static bool CastIsRequiredToPreventUnintendedComparisonWarning(
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, ITypeSymbol castType,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (outerType.SpecialType == SpecialType.System_Object)
-            {
-                var expression = castNode.WalkUpParentheses();
-                var parentNode = expression.Parent;
-                if (parentNode.IsKind(SyntaxKind.EqualsExpression) || parentNode.IsKind(SyntaxKind.NotEqualsExpression))
-                {
-                    // Reference comparison.
-                    var binaryExpression = (BinaryExpressionSyntax)parentNode;
-                    other = binaryExpression.Left == expression ?
-                        binaryExpression.Right :
-                        binaryExpression.Left;
+            // Based on the check in DiagnosticPass.CheckRelationals.
 
-                    // Explicit cast not required if we are comparing with type parameter with a class constraint.
-                    var otherType = semanticModel.GetTypeInfo(other).Type;
-                    if (otherType != null && otherType.TypeKind != TypeKind.TypeParameter)
-                    {
-                        return !other.WalkDownParentheses().IsKind(SyntaxKind.CastExpression);
-                    }
+            // (object)"" == someObj
+            //
+            // This cast can be removed with no runtime or static-semantics change.  However, the compiler warns here
+            // that this could be confusing (since it's not clear it's calling `==(object,object)` instead of
+            // `==(string,string)`), so we have to preserve this.
+
+            // compiler: if (node.Left.Type.SpecialType == SpecialType.System_Object
+            if (castType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            // compiler: node.OperatorKind == BinaryOperatorKind.ObjectEqual || node.OperatorKind == BinaryOperatorKind.ObjectNotEqual
+            castNode = castNode.WalkUpParentheses();
+            var parent = castNode.Parent;
+            if (!(parent is BinaryExpressionSyntax binaryExpression))
+                return false;
+
+            if (!binaryExpression.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression))
+                return false;
+
+            var binaryMethod = semanticModel.GetSymbolInfo(binaryExpression, cancellationToken).Symbol as IMethodSymbol;
+            if (binaryMethod == null)
+                return false;
+
+            if (binaryMethod.ContainingType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            var operatorName = binaryMethod.Name;
+            if (operatorName != WellKnownMemberNames.EqualityOperatorName && operatorName != WellKnownMemberNames.InequalityOperatorName)
+                return false;
+
+            // compiler: && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
+            var otherSide = castNode == binaryExpression.Left ? binaryExpression.Right : binaryExpression.Left;
+            otherSide = otherSide.WalkDownParentheses();
+
+            return CastIsRequiredToPreventUnintendedComparisonWarning(castedExpressionNode, otherSide, operatorName, semanticModel, cancellationToken) ||
+                   CastIsRequiredToPreventUnintendedComparisonWarning(otherSide, castedExpressionNode, operatorName, semanticModel, cancellationToken);
+        }
+
+        private static bool CastIsRequiredToPreventUnintendedComparisonWarning(
+            ExpressionSyntax left, ExpressionSyntax right, string operatorName,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // compiler: node.Left.Type.SpecialType == SpecialType.System_Object
+            var leftType = semanticModel.GetTypeInfo(left, cancellationToken).Type;
+            if (leftType?.SpecialType != SpecialType.System_Object)
+                return false;
+
+            // compiler: && !IsExplicitCast(node.Left)
+            if (left.IsKind(SyntaxKind.CastExpression, SyntaxKind.AsExpression))
+                return false;
+
+            // compiler: && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull)
+            var constantValue = semanticModel.GetConstantValue(left, cancellationToken);
+            if (constantValue.HasValue && constantValue.Value is null)
+                return false;
+
+            // compiler: && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
+
+            // Code for: ConvertedHasEqual
+
+            // compiler: if (conv.ExplicitCastInCode) return false;
+            if (right.IsKind(SyntaxKind.CastExpression, SyntaxKind.AsExpression))
+                return false;
+
+            // compiler: NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
+            //           if ((object)nt == null || !nt.IsReferenceType || nt.IsInterface)
+            var otherSideType = semanticModel.GetTypeInfo(right, cancellationToken).Type as INamedTypeSymbol;
+            if (otherSideType == null)
+                return false;
+
+            if (!otherSideType.IsReferenceType || otherSideType.TypeKind == TypeKind.Interface)
+                return false;
+
+            // compiler: for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
+            for (var currentType = otherSideType; currentType != null; currentType = currentType.BaseType)
+            {
+                // compiler: foreach (var sym in t.GetMembers(opName))
+                foreach (var opMember in currentType.GetMembers(operatorName))
+                {
+                    // compiler: MethodSymbol op = sym as MethodSymbol;
+                    var opMethod = opMember as IMethodSymbol;
+
+                    // compiler: if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
+                    if (opMethod == null || opMethod.MethodKind != MethodKind.UserDefinedOperator)
+                        continue;
+
+                    // compiler: var parameters = op.GetParameters();
+                    //           if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type, t, TypeCompareKind.ConsiderEverything2))
+                    //               return true
+                    var parameters = opMethod.Parameters;
+                    if (parameters.Length == 2 && Equals(parameters[0].Type, currentType) && Equals(parameters[1].Type, currentType))
+                        return true;
                 }
             }
 
-            other = null;
             return false;
         }
 
@@ -933,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return conversion;
             }
 
-            var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out var discarded) ?? typeInfo.ConvertedType;
+            var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out _) ?? typeInfo.ConvertedType;
             if (speculatedExpressionOuterType == null)
             {
                 return default;
@@ -942,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType);
         }
 
-        private static bool UserDefinedConversionIsAllowed(ExpressionSyntax expression, SemanticModel semanticModel)
+        private static bool UserDefinedConversionIsAllowed(ExpressionSyntax expression)
         {
             expression = expression.WalkUpParentheses();
 
@@ -960,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return true;
         }
 
-        private static bool CastPassedToParamsArrayDefinitelyCantBeRemoved(
+        private static bool ParamsArgumentCastMustBePreserved(
             ExpressionSyntax cast,
             ITypeSymbol castType,
             SemanticModel semanticModel,
@@ -1002,11 +1197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (parent is AttributeArgumentSyntax attributeArgument)
             {
-                if (attributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList)
+                if (attributeArgument.Parent is AttributeArgumentListSyntax)
                 {
                     // We don't check the position of the argument because in attributes it is allowed that 
                     // params parameter are positioned in between if named arguments are used.
-                    // The *single* argument check above is also broken: https://github.com/dotnet/roslyn/issues/20742
                     var parameter = attributeArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                     return ParameterTypeMatchesParamsElementType(parameter, castType, semanticModel);
                 }
@@ -1101,6 +1295,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var parentExpression = (ExpressionSyntax)parentNode;
                 return GetOuterCastType(parentExpression, semanticModel, out parentIsIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
+            }
+
+            if (parentNode is InterpolationSyntax)
+            {
+                // $"{(x)y}"
+                //
+                // Regardless of the cast to 'x', being in an interpolation automatically casts the result to object
+                // since this becomes a call to: FormattableStringFactory.Create(string, params object[]).
+                return semanticModel.Compilation.ObjectType;
             }
 
             return null;

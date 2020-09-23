@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsReducedExtension([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension;
+            => symbol is IMethodSymbol method && method.MethodKind == MethodKind.ReducedExtension;
 
         public static bool IsEnumMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
@@ -654,6 +654,81 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // void GetResult() || T GetResult()
             return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
+        }
+
+        public static bool IsValidGetEnumerator(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetEnumeratorMethodName &&
+               VerifyGetEnumerator(symbol);
+
+        private static bool VerifyGetEnumerator(IMethodSymbol getEnumerator)
+        {
+            var returnType = getEnumerator.ReturnType;
+            if (returnType == null)
+            {
+                return false;
+            }
+
+            var members = returnType.AllInterfaces.Concat(returnType.GetBaseTypesAndThis())
+                .SelectMany(x => x.GetMembers())
+                .Where(x => x.DeclaredAccessibility == Accessibility.Public)
+                .ToList();
+
+            // T Current { get }
+            if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+            {
+                return false;
+            }
+
+            // bool MoveNext()
+            if (!members.OfType<IMethodSymbol>().Any(x =>
+            {
+                return x is
+                {
+                    Name: WellKnownMemberNames.MoveNextMethodName,
+                    ReturnType: { SpecialType: SpecialType.System_Boolean },
+                    Parameters: { Length: 0 },
+                };
+            }))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool IsValidGetAsyncEnumerator(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetAsyncEnumeratorMethodName &&
+                VerifyGetAsyncEnumerator(symbol);
+
+        private static bool VerifyGetAsyncEnumerator(IMethodSymbol getAsyncEnumerator)
+        {
+            var returnType = getAsyncEnumerator.ReturnType;
+            if (returnType == null)
+            {
+                return false;
+            }
+
+            var members = returnType.AllInterfaces.Concat(returnType.GetBaseTypesAndThis())
+                .SelectMany(x => x.GetMembers())
+                .Where(x => x.DeclaredAccessibility == Accessibility.Public)
+                .ToList();
+
+            // T Current { get }
+            if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+            {
+                return false;
+            }
+
+            // Task<bool> MoveNext()
+            // We don't check for the return type, since it can be any awaitable wrapping a boolean, 
+            // which is too complex to be worth checking here.
+            // We don't check number of parameters since MoveNextAsync allows optional parameters/params
+            if (!members.OfType<IMethodSymbol>().Any(x => x.Name == WellKnownMemberNames.MoveNextAsyncMethodName))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static bool IsKind<TSymbol>(this ISymbol symbol, SymbolKind kind, [NotNullWhen(true)] out TSymbol? result) where TSymbol : class, ISymbol

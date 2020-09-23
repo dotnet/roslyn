@@ -96,27 +96,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken)
         {
-            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            Log($"LIB = '{request.LibDirectory}'");
-            for (int i = 0; i < request.Arguments.Length; ++i)
-            {
-                Log($"Argument[{i}] = '{request.Arguments[i]}'");
-            }
+            Log($@"
+Run Compilation
+  CurrentDirectory = '{request.CurrentDirectory}
+  LIB = '{request.LibDirectory}'");
 
             // Compiler server must be provided with a valid temporary directory in order to correctly
             // isolate signing between compilations.
             if (string.IsNullOrEmpty(request.TempDirectory))
             {
-                Log($"Rejecting build due to missing temp directory");
-                return new RejectedBuildResponse();
+                return new RejectedBuildResponse("Missing temp directory");
             }
 
             CommonCompiler compiler;
             if (!TryCreateCompiler(request, out compiler))
             {
-                // We can't do anything with a request we don't know about. 
-                Log($"Got request with id '{request.Language}'");
-                return new RejectedBuildResponse();
+                return new RejectedBuildResponse($"Cannot create compiler for language id {request.Language}");
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;
@@ -125,11 +120,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return new AnalyzerInconsistencyBuildResponse();
             }
 
-            Log($"****Running {request.Language} compiler...");
+            Log($"Begin {request.Language} compiler run");
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             int returnCode = compiler.Run(output, cancellationToken);
-            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString());
+            var outputString = output.ToString();
+            Log(@$"
+End {request.Language} Compilation complete.
+Return code: {returnCode}
+Output:
+{outputString}");
+            return new CompletedBuildResponse(returnCode, utf8output, outputString);
         }
     }
 }

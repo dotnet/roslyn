@@ -3,14 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImports
 {
-    public partial class RemoveUnnecessaryImportsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryImportsCodeFixProvider());
+
         #region "Fix all occurrences tests"
 
         [Fact]

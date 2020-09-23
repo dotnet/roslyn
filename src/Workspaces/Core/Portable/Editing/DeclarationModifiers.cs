@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isWithEvents ? Modifiers.WithEvents : Modifiers.None) |
                   (isPartial ? Modifiers.Partial : Modifiers.None) |
                   (isAsync ? Modifiers.Async : Modifiers.None) |
+                  (isWriteOnly ? Modifiers.WriteOnly : Modifiers.None) |
                   (isRef ? Modifiers.Ref : Modifiers.None) |
                   (isVolatile ? Modifiers.Volatile : Modifiers.None) |
                   (isExtern ? Modifiers.Extern : Modifiers.None))
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var field = symbol as IFieldSymbol;
                 var property = symbol as IPropertySymbol;
+                var method = symbol as IMethodSymbol;
 
                 return new DeclarationModifiers(
                     isStatic: symbol.IsStatic,
@@ -73,10 +75,11 @@ namespace Microsoft.CodeAnalysis.Editing
                     isVirtual: symbol.IsVirtual,
                     isOverride: symbol.IsOverride,
                     isSealed: symbol.IsSealed,
-                    isConst: field != null && field.IsConst,
+                    isConst: field?.IsConst == true,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
-                    isVolatile: field != null && field.IsVolatile,
-                    isExtern: symbol.IsExtern);
+                    isVolatile: field?.IsVolatile == true,
+                    isExtern: symbol.IsExtern,
+                    isAsync: method?.IsAsync == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.

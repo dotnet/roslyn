@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((MetadataReader)null));
             Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create(null, 1));
 
-            var mockSymReader = new Mock<ISymUnmanagedReader5>().Object;
+            var mockSymReader = new Mock<ISymUnmanagedReader5>(MockBehavior.Strict).Object;
             Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, -1));
         }

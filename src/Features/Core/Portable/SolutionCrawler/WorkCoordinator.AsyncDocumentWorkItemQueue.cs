@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private class AsyncDocumentWorkItemQueue : AsyncWorkItemQueue<DocumentId>
             {
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
                 {
                     var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
 
@@ -75,17 +77,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // explicitly iterate so that we can use struct enumerator.
                     // Return the first normal priority work item we find.  If we don't
                     // find any, then just return the first low prio item we saw.
-                    DocumentId lowPriorityDocumentId = null;
-                    foreach (var pair in documentMap)
+                    DocumentId? lowPriorityDocumentId = null;
+                    foreach (var (documentId, workItem) in documentMap)
                     {
-                        var workItem = pair.Value;
                         if (workItem.IsLowPriority)
                         {
-                            lowPriorityDocumentId = pair.Key;
+                            lowPriorityDocumentId = documentId;
                         }
                         else
                         {
-                            return pair.Key;
+                            return documentId;
                         }
                     }
 
@@ -95,10 +96,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)
                 {
+                    Contract.ThrowIfNull(item.DocumentId);
+
                     Cancel_NoLock(item.DocumentId);
 
                     // see whether we need to update
                     var key = item.DocumentId;
+
                     // now document work
                     if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
                         documentMap.TryGetValue(key, out var existingWorkItem))

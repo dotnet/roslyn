@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
         }
 
-        private bool TryAnalyzeBinaryExpressionCondition(
+        private static bool TryAnalyzeBinaryExpressionCondition(
             ISyntaxFacts syntaxFacts, TBinaryExpressionSyntax condition,
             [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
         {

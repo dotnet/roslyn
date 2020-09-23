@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions parseOptions = null)
             => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
-        private Task TestDiagnosticsWithAsync(string initialMarkup, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions, expectedDiagnostics);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
         private Task TestDiagnosticMissingAsync(string initialMarkup, OptionsCollection options, ParseOptions parseOptions = null)
@@ -1369,8 +1367,7 @@ public sealed class C : IDisposable
 }", options);
         }
 
-#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch
-        // an editorconfig string representation for this invalid option fails.
+#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
         [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()
@@ -1532,6 +1529,50 @@ class C
     }
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_PrimaryConstructorParameter()
+        {
+            await TestMissingAsync(
+@"record A(int [|X|]);"
+);
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_NonPrimaryConstructorParameter()
+        {
+            await TestDiagnosticsAsync(
+@"record A
+{
+    public A(int [|X|])
+    {
+    }
+}
+",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_DelegatingPrimaryConstructorParameter()
+        {
+            await TestDiagnosticMissingAsync(
+@"record A(int X);
+record B(int X, int [|Y|]) : A(X);
+");
+        }
+
+        [WorkItem(47174, "https://github.com/dotnet/roslyn/issues/47174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RecordPrimaryConstructorParameter_PublicRecord()
+        {
+            await TestDiagnosticMissingAsync(
+@"public record Base(int I) { }
+public record Derived(string [|S|]) : Base(42) { }
+");
         }
     }
 }

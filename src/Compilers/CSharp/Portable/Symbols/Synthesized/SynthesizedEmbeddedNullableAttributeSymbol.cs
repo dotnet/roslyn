@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GenerateMethodBodyCore(compilationState, diagnostics);
         }
 
-        protected override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
+        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics) => _getConstructorBody(factory, statements, _parameters);
     }
 }
 

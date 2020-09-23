@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal readonly ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
 
         protected CodeGenerationAbstractNamedTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SpecialType specialType,
             NullableAnnotation nullableAnnotation,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
         {
             this.TypeMembers = typeMembers;
 
@@ -111,5 +112,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool IsRefLikeType => Modifiers.IsRef;
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        public INamedTypeSymbol TupleUnderlyingType => null;
+
+        public bool IsSerializable => false;
     }
 }

@@ -77,6 +77,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DismissLightBulbSession()
             => _textViewWindowInProc.DismissLightBulbSession();
 
+        public void DismissCompletionSessions()
+        {
+            WaitForCompletionSet();
+            _textViewWindowInProc.DismissCompletionSessions();
+        }
+
         public string[] GetLightBulbActions()
             => _textViewWindowInProc.GetLightBulbActions();
 

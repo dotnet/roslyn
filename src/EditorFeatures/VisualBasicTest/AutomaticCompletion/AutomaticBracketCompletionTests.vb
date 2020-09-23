@@ -100,12 +100,12 @@ End Class</code>
             End Using
         End Sub
 
-        Friend Overloads Function CreateSession(code As XElement) As Holder
+        Friend Overloads Shared Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSession(code As String) As Holder
-            Return CreateSession(
+        Friend Overloads Shared Function CreateSession(code As String) As Holder
+            Return AbstractAutomaticBraceCompletionTests.CreateSession(
 TestWorkspace.CreateVisualBasic(code),
 BraceCompletionSessionProvider.Bracket.OpenCharacter, BraceCompletionSessionProvider.Bracket.CloseCharacter)
         End Function

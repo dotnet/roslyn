@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline parameter name hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,52 +81,54 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">閉じているファイルの診断結果を表示する;
-正規表現をカラー化する;
-カーソルの下にある関連コンポーネントをハイライトする;
-無効な正規表現を報告する;
-完全ソリューション解析を有効にする;
-外部プロセスでエディター機能解析を実行する;
-逆コンパイルされたソースへのナビゲーションを有効にする;
-ディレクティブを使用する;
-using を並べ替える際に、system ディレクティブを先頭に配置する;
-ディレクティブ グループを使用して分離する;
-参照アセンブリの型に using を提案する;
-NuGet パッケージの型に using を提案する;
-強調表示;
-カーソルの下にあるシンボルへの参照をハイライトする;
-カーソルの下にあるキーワードの関連キーワードをハイライトする;
-アウトライン;
-ファイルを開くときにアウトライン モードに入る;
-プロシージャ行の区切り記号を表示する;
-宣言レベルのコンストラクトのアウトラインを表示する;
-コード レベルのコンストラクトのアウトラインを表示する;
-コメントとプリプロセッサ領域のアウトラインを表示する;
-定義を折りたたむときに regions を折りたたむ;
-フェード;
-未使用の using をフェードアウトする;
-到達できないコードをフェードアウトする;
-ブロック構造のガイド;
-宣言レベルのコンストラクトのガイドを表示する;
-コード レベルのコンストラクトのガイドを表示する;
-エディターのヘルプ;
-/// が入力されたとき、XML ドキュメント コメントを生成する;
-/* */ コメントを記述する際、新しい行の先頭に * を挿入する;
-名前変更追跡のプレビューを表示する;
-Enter で文字列リテラルを分割する;
-string.Format の呼び出しで無効なプレースホルダーをレポートする;
-メソッドを抽出する;
-カスタム構造体に ref または out を設定しない;
-インターフェイスまたは抽象クラスを実装する;
-プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入する;
-同じ種類の他のメンバーと共に;
-末尾;
-プロパティの生成時;
-スロー プロパティを優先する;
-自動プロパティを優先する;
-正規表現;
-正規表現;
-拡張された色を使用する;</target>
+        <target state="new">Display inline parameter name hints;
+Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;
+Editor Color Scheme;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -286,9 +289,10 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
+        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
 文字が入力された後に入力候補一覧を表示する;
 文字が削除された後に入力候補一覧を表示する;
+引数リストに入力候補一覧を自動的に表示する (試験段階);
 入力候補一覧の項目の一致している部分を強調表示する;
 入力候補の項目フィルターを表示する;
 スニペットの動作;
@@ -299,7 +303,8 @@ Enter キー入力時動作;
 Enter キーで新しい行を追加しない;
 単語を完全に入力した後のみ、Enter キーで新しい行を追加する;
 Enter キーで常に新しい行を追加する;
-名前の提案を表示する;</target>
+名前の提案を表示する;
+未インポートの名前空間からの項目を表示する (試験段階);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

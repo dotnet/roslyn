@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract string GetTitle();
 
-        private Task<Document> RemoveUnnecessaryImportsAsync(
+        private static Task<Document> RemoveUnnecessaryImportsAsync(
             Document document, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();

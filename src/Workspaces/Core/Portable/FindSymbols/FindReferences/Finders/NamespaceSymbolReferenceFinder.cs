@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol));
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, GetNamespaceIdentifierName(symbol));
         }
 
         private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
@@ -42,19 +44,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var identifierName = GetNamespaceIdentifierName(symbol);
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
                 document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
-            var nonAliasReferences = FindReferencesInTokens(symbol,
+            var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
                 document,
                 semanticModel,
                 tokens,
-                t => syntaxFactsService.TextMatch(t.ValueText, identifierName),
-                cancellationToken);
+                t => syntaxFacts.TextMatch(t.ValueText, identifierName),
+                cancellationToken).ConfigureAwait(false);
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            return nonAliasReferences.Concat(aliasReferences);
+
+            var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId)
+                ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,
+                    syntaxFacts, docCommentId, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
+
+            return nonAliasReferences.Concat(aliasReferences).Concat(suppressionReferences);
         }
     }
 }

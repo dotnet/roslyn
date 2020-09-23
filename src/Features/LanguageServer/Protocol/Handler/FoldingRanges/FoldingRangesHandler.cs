@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -14,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentFoldingRangeName)]
+    [ExportLspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false)]
     internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
@@ -23,12 +25,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+
+        public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = context.Document;
             if (document == null)
             {
                 return foldingRanges.ToArrayAndFree();

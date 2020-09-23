@@ -461,7 +461,7 @@ Class C
 End Class
 ]]></Text>.Value
 
-            Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c, textTypedSoFar:="")
+            Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

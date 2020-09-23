@@ -559,11 +559,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
         {
+            Debug.Assert(left.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
+            Debug.Assert(right.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
             return Binary(BinaryOperatorKind.LogicalBoolAnd, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
         public BoundBinaryOperator LogicalOr(BoundExpression left, BoundExpression right)
         {
+            Debug.Assert(left.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
+            Debug.Assert(right.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
             return Binary(BinaryOperatorKind.LogicalBoolOr, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
@@ -633,6 +637,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var ctor = WellKnownMethod(wm);
             return new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MakeIsNotANumberTest(BoundExpression input)
+        {
+            switch (input.Type)
+            {
+                case { SpecialType: CodeAnalysis.SpecialType.System_Double }:
+                    // produce double.IsNaN(input)
+                    return StaticCall(CodeAnalysis.SpecialMember.System_Double__IsNaN, input);
+                case { SpecialType: CodeAnalysis.SpecialType.System_Single }:
+                    // produce float.IsNaN(input)
+                    return StaticCall(CodeAnalysis.SpecialMember.System_Single__IsNaN, input);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(input.Type);
+            }
         }
 
         public BoundExpression InstanceCall(BoundExpression? receiver, string name, BoundExpression arg)
@@ -736,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
-            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, constantValueOpt: null, type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
@@ -1056,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(type.CanBeAssignedNull());
             BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
-            return type.IsPointerType()
+            return type.IsPointerOrFunctionPointer()
                 ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }
@@ -1168,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // whether or not to call a method with a value type receiver directly).
             if (!method.ContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(method))
             {
-                method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type);
+                method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type, requireSameReturnType: true);
             }
 
             return new BoundMethodInfo(
@@ -1326,14 +1345,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block)
         {
             var source = Local(local);
-            return new BoundCatchBlock(Syntax, ImmutableArray.Create(local), source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
+            return new BoundCatchBlock(Syntax, ImmutableArray.Create(local), source, source.Type, exceptionFilterPrologueOpt: null, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
         internal BoundCatchBlock Catch(
             BoundExpression source,
             BoundBlock block)
         {
-            return new BoundCatchBlock(Syntax, ImmutableArray<LocalSymbol>.Empty, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
+            return new BoundCatchBlock(Syntax, ImmutableArray<LocalSymbol>.Empty, source, source.Type, exceptionFilterPrologueOpt: null, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
         internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)

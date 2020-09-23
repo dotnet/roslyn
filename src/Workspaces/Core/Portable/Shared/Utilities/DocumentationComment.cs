@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private static void ParseCallback(XmlReader reader, CommentBuilder builder)
                 => builder.ParseCallback(reader);
 
-            private string TrimEachLine(string text)
+            private static string TrimEachLine(string text)
                 => string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
 
             private void ParseCallback(XmlReader reader)

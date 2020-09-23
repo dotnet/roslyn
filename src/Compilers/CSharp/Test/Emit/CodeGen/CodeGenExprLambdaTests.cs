@@ -1413,7 +1413,8 @@ class P
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void GrabBag02()
         {
             var source =
@@ -2006,7 +2007,7 @@ class Test
 
             CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
@@ -3485,7 +3486,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { MscorlibRef, SystemCoreRef },
+                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);

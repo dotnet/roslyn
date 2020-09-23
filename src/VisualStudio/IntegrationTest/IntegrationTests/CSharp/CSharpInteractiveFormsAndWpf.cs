@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -33,7 +35,7 @@ using Wpf = System.Windows.Controls;");
         }
 
         [WpfFact]
-        public void InteractiveWithDisplayFormAndWpfWindow()
+        public async Task InteractiveWithDisplayFormAndWpfWindow()
         {
             // 1) Create and display form and WPF window
             VisualStudio.InteractiveWindow.SubmitText(@"Form form = new Form();
@@ -43,8 +45,9 @@ Window wind = new Window();
 wind.Title = ""wpf window text"";
 wind.Show();");
 
-            var form = AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
-            var wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            var form = await AutomationElementHelper.FindAutomationElementAsync("win form text").WithCancellation(cancellationTokenSource.Token);
+            var wpf = await AutomationElementHelper.FindAutomationElementAsync("wpf window text").WithCancellation(cancellationTokenSource.Token);
 
             // 3) Add UI elements to windows and verify
             VisualStudio.InteractiveWindow.SubmitText(@"// add a label to the form

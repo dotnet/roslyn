@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class DebugInfoInjector
     {
-        private BoundStatement AddSequencePoint(BoundStatement node)
+        private static BoundStatement AddSequencePoint(BoundStatement node)
         {
             return new BoundSequencePoint(node.Syntax, node);
         }

@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly IVsHierarchyItem _parentItem;
         private readonly IContextMenuController _contextMenuController;
 
-
         public AnalyzersFolderItem(
             Workspace workspace,
             ProjectId projectId,

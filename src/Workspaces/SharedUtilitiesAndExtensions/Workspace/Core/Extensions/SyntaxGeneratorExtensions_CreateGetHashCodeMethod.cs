@@ -208,7 +208,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                       method.DeclaredAccessibility == Accessibility.Public &&
                       !method.IsStatic &&
                       method.Parameters.Length == 0 &&
-                      method.ReturnType.SpecialType == SpecialType.System_Int32
+                      method.ReturnType.SpecialType == SpecialType.System_Int32 &&
+                      !method.IsAbstract
                 select method;
 
             return existingMethods.FirstOrDefault();

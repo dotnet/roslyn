@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 {
     internal abstract class AbstractUseInferredMemberNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        abstract protected void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken);
+        protected abstract void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken);
 
         public AbstractUseInferredMemberNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,

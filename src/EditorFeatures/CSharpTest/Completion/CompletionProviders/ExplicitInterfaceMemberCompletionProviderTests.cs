@@ -30,6 +30,9 @@ interface IGoo
     void Goo();
     void Goo(int x);
     int Prop { get; }
+    int Generic<K, V>(K key, V value);
+    string this[int i] { get; }
+    void With_Underscore();
 }
 
 class Bar : IGoo
@@ -37,9 +40,12 @@ class Bar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
+            await VerifyItemExistsAsync(markup, "Generic", displayTextSuffix: "<K, V>(K key, V value)");
+            await VerifyItemExistsAsync(markup, "this", displayTextSuffix: "[int i]");
+            await VerifyItemExistsAsync(markup, "With_Underscore", displayTextSuffix: "()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -58,8 +64,8 @@ interface IBar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -79,8 +85,8 @@ class Bar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -100,8 +106,8 @@ interface IBar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -131,7 +137,7 @@ class Bar : IGoo
      void IGoo.Goo()
 }";
 
-            await VerifyProviderCommitAsync(markup, "Goo()", expected, null, "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
         }
 
         [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
@@ -160,7 +166,7 @@ class Bar : IGoo
      void IGoo.Goo(
 }";
 
-            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -190,7 +196,7 @@ class Bar : I2
             await VerifyItemIsAbsentAsync(markup, "GetType()");
             await VerifyItemIsAbsentAsync(markup, "ToString()");
 
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Goo2", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -216,7 +222,7 @@ class Bar : I1
             await VerifyItemIsAbsentAsync(markup, "TestEvent.add");
             await VerifyItemIsAbsentAsync(markup, "TestEvent.remove");
 
-            await VerifyItemExistsAsync(markup, "Foo()");
+            await VerifyItemExistsAsync(markup, "Foo", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop");
             await VerifyItemExistsAsync(markup, "TestEvent");
         }
@@ -365,9 +371,9 @@ public interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Goo1", displayTextSuffix: "()");
             await VerifyItemIsAbsentAsync(markup, "Prop1");
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Goo2", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
@@ -401,10 +407,178 @@ public interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Goo1", displayTextSuffix: "()");
             await VerifyItemIsAbsentAsync(markup, "Prop1");
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Goo2", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Generic_Tab()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic<K, V>(K key, V value)
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Generic_OpenBrace()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic<
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Method_Tab()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic(K key, V value)
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Method_OpenBrace()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic(
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Indexer_Tab()
+        {
+            var markup = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.this[K key, V value]
+}";
+
+            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Indexer_OpenBrace()
+        {
+            var markup = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.this[
+}";
+
+            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
         }
     }
 }

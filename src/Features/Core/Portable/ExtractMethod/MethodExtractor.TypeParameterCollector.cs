@@ -29,6 +29,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
             }
 
+            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                symbol.Signature.ReturnType.Accept(this);
+                foreach (var param in symbol.Signature.Parameters)
+                {
+                    param.Type.Accept(this);
+                }
+            }
+
             public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
                 => arrayTypeSymbol.ElementType.Accept(this);
 

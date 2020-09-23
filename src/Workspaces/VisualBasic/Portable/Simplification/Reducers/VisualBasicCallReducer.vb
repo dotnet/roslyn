@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             cancellationToken As CancellationToken
         ) As ExecutableStatementSyntax
 
-            If callStatement.CanRemoveCallKeyword(semanticModel) Then
+            If callStatement.CanRemoveCallKeyword() Then
                 Dim leading = callStatement.GetLeadingTrivia()
 
                 Dim resultNode = SyntaxFactory.ExpressionStatement(callStatement.Invocation) _

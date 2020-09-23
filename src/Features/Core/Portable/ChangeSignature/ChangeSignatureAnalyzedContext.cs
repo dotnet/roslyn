@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public readonly Document Document;
         public readonly ISymbol Symbol;
         public readonly ParameterConfiguration ParameterConfiguration;
-        public readonly int InsertPosition;
+        public readonly int PositionForTypeBinding;
 
         public Solution Solution => Document.Project.Solution;
 
         public ChangeSignatureAnalysisSucceededContext(
-            Document document, int insertPosition, ISymbol symbol, ParameterConfiguration parameterConfiguration)
+            Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
             Document = document;
             Symbol = symbol;
             ParameterConfiguration = parameterConfiguration;
-            InsertPosition = insertPosition;
+            PositionForTypeBinding = positionForTypeBinding;
         }
     }
 

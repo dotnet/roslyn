@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void ParseAndRoundTripping(string text, int errorCount = 0, int memberCount = 0)
         {
-            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments, errorCount, memberCount);
+            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), errorCount, memberCount);
         }
 
         internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNegInvalidExternAlias01()
         {
-            ParseAndRoundTripping(Resources.InvalidExternAlias01, -1);
+            ParseAndRoundTripping(Resources.InvalidExternAlias01, errorCount: 1); // Parsed as local with an initializer
         }
 
         [WorkItem(901348, "DevDiv/Personal")]

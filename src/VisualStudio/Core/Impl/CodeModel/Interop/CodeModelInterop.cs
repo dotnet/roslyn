@@ -17,6 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             VarEnum vt);
 
         public static bool CanChangedVariantType(object source, VarEnum variantType)
-            => ErrorHandler.Succeeded(VariantChangeType(out var result, ref source, 0, variantType));
+            => ErrorHandler.Succeeded(VariantChangeType(out _, ref source, 0, variantType));
     }
 }

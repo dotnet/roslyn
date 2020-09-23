@@ -11,6 +11,5 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             Namespace,
             NamedType
         }
-
     }
 }

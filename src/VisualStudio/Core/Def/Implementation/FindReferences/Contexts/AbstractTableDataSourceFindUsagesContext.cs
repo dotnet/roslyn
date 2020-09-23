@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Debug.Assert(_tableDataSink != null);
 
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
-                // VS actually responds to each SetProgess call by enqueueing a UI task to do the
+                // VS actually responds to each SetProgess call by queuing a UI task to do the
                 // progress bar update.  This can made FindReferences feel extremely slow when
                 // thousands of SetProgress calls are made.
                 //
@@ -155,6 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             break;
                     }
                 }
+
+                customColumnsToInclude.Add(StandardTableKeyNames.Repository);
+                customColumnsToInclude.Add(StandardTableKeyNames.ItemOrigin);
 
                 return customColumnsToInclude.ToImmutableAndFree();
             }
@@ -273,14 +276,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #region FindUsagesContext overrides.
 
-            public sealed override Task SetSearchTitleAsync(string title)
+            public sealed override ValueTask SetSearchTitleAsync(string title)
             {
                 // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
-                return Task.CompletedTask;
+                return default;
             }
 
-            public sealed override async Task OnCompletedAsync()
+            public sealed override async ValueTask OnCompletedAsync()
             {
                 await OnCompletedAsyncWorkerAsync().ConfigureAwait(false);
 
@@ -289,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnCompletedAsyncWorkerAsync();
 
-            public sealed override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (Gate)
                 {
@@ -299,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnDefinitionFoundWorkerAsync(definition);
             }
 
-            protected abstract Task OnDefinitionFoundWorkerAsync(DefinitionItem definition);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
             protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
             {
@@ -366,15 +369,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
                 => OnReferenceFoundWorkerAsync(reference);
 
-            protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
-
-            public sealed override Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
-                => OnExternalReferenceFoundWorkerAsync(reference);
-
-            protected abstract Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
             {
@@ -390,13 +388,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override Task ReportMessageAsync(string message)
+            public sealed override ValueTask ReportMessageAsync(string message)
                 => throw new InvalidOperationException("This should never be called in the streaming case.");
 
-            protected sealed override Task ReportProgressAsync(int current, int maximum)
+            protected sealed override ValueTask ReportProgressAsync(int current, int maximum)
             {
                 _progressQueue.AddWork((current, maximum));
-                return Task.CompletedTask;
+                return default;
             }
 
             private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
@@ -404,7 +402,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (!nextBatch.IsEmpty)
                 {
                     var (current, maximum) = nextBatch.Last();
-                    _findReferencesWindow.SetProgress(current, maximum);
+
+                    // Do not update the UI if the current progress is zero.  It will switch us from the indeterminate
+                    // progress bar (which conveys to the user that we're working) to showing effectively nothing (which
+                    // makes it appear as if the search is complete).  So the user sees:
+                    //
+                    //      indeterminate->complete->progress
+                    //
+                    // instead of:
+                    //
+                    //      indeterminate->progress
+
+                    if (current > 0)
+                        _findReferencesWindow.SetProgress(current, maximum);
                 }
 
                 return Task.CompletedTask;

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -118,6 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
+        <SuppressMessage("Style", "VSTHRD200:Use ""Async"" suffix for async methods", Justification:="'Async' refers to the language feature here.")>
         Friend Shared Function RewriteIteratorAndAsync(bodyWithoutLambdas As BoundBlock,
                                                        method As MethodSymbol,
                                                        methodOrdinal As Integer,

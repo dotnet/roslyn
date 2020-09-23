@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static Optional<OperatorPlacementWhenWrappingPreference> Parse(string optionString)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                    optionString, out var value, out var notificationOpt))
+                    optionString, out var value, out _))
             {
                 switch (value)
                 {

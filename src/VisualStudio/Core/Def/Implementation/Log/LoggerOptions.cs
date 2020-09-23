@@ -39,5 +39,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             LoggerOptions.TraceLoggerKey,
             LoggerOptions.OutputWindowLoggerKey);
     }
-
 }

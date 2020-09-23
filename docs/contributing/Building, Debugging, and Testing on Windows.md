@@ -15,15 +15,19 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2019
 
-1. [Visual Studio 2019 16.5](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2019 16.8p2](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.5" or greater
+    - Ensure Visual Studio is on Version "16.8 Preview 2" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet-core/thank-you/sdk-3.1.100-windows-x64-installer)
+1. [.NET Core SDK 5.0 Preview 8](https://dotnet.microsoft.com/download/dotnet-core/5.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-5.0.100-preview.8-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
+
+## Developing with Visual Studio Code
+
+See the [Building, Debugging, and Testing on Unix](Building,%20Debugging,%20and%20Testing%20on%20Unix.md#working-in-visual-studio-code) documentation to get started developing Roslyn using Visual Studio Code.
 
 ## Running Tests
 
@@ -113,7 +117,7 @@ default, a separate instance than the standard "Experimental Instance" used by
 other Visual Studio SDK projects. If you're familiar with the idea of Visual
 Studio hives, we deploy into the RoslynDev root suffix.
 
-### Deploying with VSIX
+### Deploying with VSIX and Nuget package
 
 If you want to try your extension in your day-to-day use of Visual Studio, you
 can find the extensions you built in your Binaries folder with the .vsix
@@ -123,6 +127,20 @@ installed, you'll see it marked as "Experimental" in Tools > Extensions and
 Updates to indicate you're running your experimental version. You can uninstall
 your version and go back to the originally installed version by choosing your
 version and clicking Uninstall.
+
+If you only install the VSIX, then the IDE will behave correctly (ie. new compiler
+and IDE behavior), but the Build operation or building from the command-line won't. 
+To fix that, add a reference to the `Microsoft.Net.Compilers.Toolset` you built into 
+your csproj. As shown below, you'll want to (1) add a nuget source pointing to your local build folder,
+(2) add the package reference, then (3) verify the Build Output of your project with a
+`#error version` included in your program.
+
+![image](https://user-images.githubusercontent.com/12466233/81205885-25252a80-8f80-11ea-9d75-268c7fe6f3ed.png)
+
+![image](https://user-images.githubusercontent.com/12466233/81205974-4128cc00-8f80-11ea-93ec-641d87662b12.png)
+
+![image](https://user-images.githubusercontent.com/12466233/81206129-7fbe8680-8f80-11ea-9438-acc0481a3585.png)
+
 
 ### Deploying with command-line
 

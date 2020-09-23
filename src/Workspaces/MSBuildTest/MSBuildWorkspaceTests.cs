@@ -420,6 +420,46 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformDefault()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform)
+                .WithFile(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First();
+                var tree = await document.GetSyntaxTreeAsync();
+                var expectedFileName = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
+                Assert.Equal(expectedFileName, tree.FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(33047, "https://github.com/dotnet/roslyn/issues/33047")]
+        public async Task TestOpenProject_CSharp_GlobalPropertyShouldUnsetParentConfigurationAndPlatformTrue()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform)
+                .WithFile(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace(("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString)))
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First();
+                var tree = await document.GetSyntaxTreeAsync();
+                var expectedFileName = GetSolutionFileName(@"CSharpProject\ShouldUnsetParentConfigurationAndPlatformConditional.cs");
+                Assert.Equal(expectedFileName, tree.FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public async Task TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {
@@ -705,7 +745,6 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_Respect_ReferenceOutputassembly_Flag()
         {
-            var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"VisualBasicProject_Circular_Top.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Top)
                 .WithFile(@"VisualBasicProject_Circular_Target.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Target));
@@ -1170,7 +1209,7 @@ class C1
             });
         }
 
-        private IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
+        private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -2663,7 +2702,7 @@ class C1
             }
         }
 
-        private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
+        private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
         {
             var result = new List<(string, object)>();
             foreach (var (fileName, fileContent) in files)
@@ -2680,7 +2719,7 @@ class C1
             return new FileSet(result.ToArray());
         }
 
-        private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
+        private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
         {
             var document = XDocument.Parse(projectFileText);
             var projectReferenceItems = document.Descendants(XName.Get("ProjectReference", MSBuildNamespace));
@@ -3584,7 +3623,7 @@ class C { }";
 
             CreateFiles(files);
 
-            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+            var expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
 
             using (var workspace = CreateMSBuildWorkspace())
             {

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -812,6 +813,119 @@ public class A
     public {|Definition:$$A|}()
     {
     }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructor_TargetTypedNew_Local(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}() { }
+}
+        </Document>
+        <Document>
+class C
+{
+    void M()
+    {
+        D d = [|new|]();
+        D d2 = [|new|]();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructor_TargetTypedNew_Local_WithArguments(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}(int i, int j) { }
+}
+        </Document>
+        <Document>
+class C
+{
+    void M()
+    {
+        D d = [|new|](1, 2);
+        D d2 = [|new|](3, 4);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructor_TargetTypedNew_Field(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}() { }
+}
+        </Document>
+        <Document>
+class C
+{
+    D d = [|new|]();
+    D d2 = [|new|]();
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructorReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:D.[|#ctor|]")]
+
+class D
+{
+    public {|Definition:$$D|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStaticConstructorReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:D.[|#cctor|]")]
+
+static class D
+{
+    static {|Definition:$$D|}() { }
 }
         </Document>
     </Project>

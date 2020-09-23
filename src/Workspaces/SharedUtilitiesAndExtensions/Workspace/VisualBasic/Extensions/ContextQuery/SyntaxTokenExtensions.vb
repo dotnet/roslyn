@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         ''' </summary>
         <Extension>
         Friend Function HasNonContinuableEndOfLineBeforePosition(token As SyntaxToken, position As Integer, Optional checkForSecondEol As Boolean = False) As Boolean
-            If token.FollowsBadEndDirective(position) Then
+            If token.FollowsBadEndDirective() Then
                 Return False
             End If
 
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension>
-        Friend Function FollowsBadEndDirective(targetToken As SyntaxToken, position As Integer) As Boolean
+        Friend Function FollowsBadEndDirective(targetToken As SyntaxToken) As Boolean
             If targetToken.IsKind(SyntaxKind.HashToken) AndAlso targetToken.TrailingTrivia.Any(Function(t)
                                                                                                    If t.HasStructure Then
                                                                                                        Dim childTokens = t.GetStructure().ChildTokens()

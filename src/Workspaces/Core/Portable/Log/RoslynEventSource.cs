@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         [NonEvent]
-        private bool FunctionDefinitionRequested(EventCommandEventArgs command)
+        private static bool FunctionDefinitionRequested(EventCommandEventArgs command)
         {
             return command.Arguments != null &&
                    command.Arguments.Keys.FirstOrDefault() == "SendFunctionDefinitions";

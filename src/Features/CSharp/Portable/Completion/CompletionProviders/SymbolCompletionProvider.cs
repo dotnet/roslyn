@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected async override Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
         {
             var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
             if (ShouldTriggerInArgumentLists(sourceText, options))
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        internal async override Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+        internal override async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
         {
             if (trigger.Kind == CompletionTriggerKind.Insertion && caretPosition > 0)
             {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return _shouldTriggerCompletionInArgumentListsExperiment.Value;
         }
 
-        private async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        private static async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (text[characterPosition] != '.')
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>
-        private async Task<bool?> IsTriggerInArgumentListAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        private static async Task<bool?> IsTriggerInArgumentListAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (!CompletionUtilities.IsArgumentListCharacter(text[characterPosition]))
@@ -186,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 

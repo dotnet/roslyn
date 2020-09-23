@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(typeof(UsingDirectiveSyntax));
 
-        private void ClassifyUsingDirectiveSyntax(
+        private static void ClassifyUsingDirectiveSyntax(
             UsingDirectiveSyntax usingDirective,
             SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result,

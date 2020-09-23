@@ -164,8 +164,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:
-                case SymbolKind.PointerType:
                     return type;
+
+                case SymbolKind.FunctionPointerType:
+                    return DecodeFunctionPointerType((FunctionPointerTypeSymbol)type);
+
+                case SymbolKind.PointerType:
+                    return DecodePointerType((PointerTypeSymbol)type);
 
                 case SymbolKind.NamedType:
                     // We may have a tuple type from a substituted type symbol,
@@ -195,6 +200,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+            }
+        }
+
+        private PointerTypeSymbol DecodePointerType(PointerTypeSymbol type)
+        {
+            return type.WithPointedAtType(DecodeTypeInternal(type.PointedAtTypeWithAnnotations));
+        }
+
+        private FunctionPointerTypeSymbol DecodeFunctionPointerType(FunctionPointerTypeSymbol type)
+        {
+            var parameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            var paramsModified = false;
+
+            if (type.Signature.ParameterCount > 0)
+            {
+                var paramsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(type.Signature.ParameterCount);
+
+                for (int i = type.Signature.ParameterCount - 1; i >= 0; i--)
+                {
+                    var param = type.Signature.Parameters[i];
+                    var decodedParam = DecodeTypeInternal(param.TypeWithAnnotations);
+                    paramsModified = paramsModified || !decodedParam.IsSameAs(param.TypeWithAnnotations);
+                    paramsBuilder.Add(decodedParam);
+                }
+
+                if (paramsModified)
+                {
+                    paramsBuilder.ReverseContents();
+                    parameterTypes = paramsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    parameterTypes = type.Signature.ParameterTypesWithAnnotations;
+                    paramsBuilder.Free();
+                }
+            }
+
+            var decodedReturnType = DecodeTypeInternal(type.Signature.ReturnTypeWithAnnotations);
+
+            if (paramsModified || !decodedReturnType.IsSameAs(type.Signature.ReturnTypeWithAnnotations))
+            {
+                return type.SubstituteTypeSymbol(decodedReturnType, parameterTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+            }
+            else
+            {
+                return type;
             }
         }
 

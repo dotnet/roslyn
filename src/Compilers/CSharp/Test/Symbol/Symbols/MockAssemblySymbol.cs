@@ -110,5 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         public override AssemblyMetadata GetMetadata() => null;
+
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

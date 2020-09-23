@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
 
             while (current != null)
             {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<TNode> GetAncestors<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode? GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -823,6 +823,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<SyntaxTrivia> trailingTrivia) where T : SyntaxNode
         {
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
+        }
+
+        /// <summary>
+        /// Creates a new token with the leading trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutLeadingTrivia(this SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(default(SyntaxTriviaList));
         }
 
         // Copy of the same function in SyntaxNode.cs

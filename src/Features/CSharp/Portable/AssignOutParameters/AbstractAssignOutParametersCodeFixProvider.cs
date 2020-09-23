@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             return null;
         }
 
-        private async Task<MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol>)>> GetUnassignedParametersAsync(
+        private static async Task<MultiDictionary<SyntaxNode, (SyntaxNode exprOrStatement, ImmutableArray<IParameterSymbol>)>> GetUnassignedParametersAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

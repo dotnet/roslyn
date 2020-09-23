@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
     Public Class TryBlockHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
-        Friend Overrides Function CreateHighlighter() As IHighlighter
-            Return New TryBlockHighlighter()
+        Friend Overrides Function GetHighlighterType() As Type
+            Return GetType(TryBlockHighlighter)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>

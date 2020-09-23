@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.

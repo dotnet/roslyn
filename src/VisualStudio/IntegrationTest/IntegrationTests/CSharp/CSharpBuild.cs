@@ -18,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild : AbstractIntegrationTest
     {
-        public CSharpBuild(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -62,7 +62,7 @@ class Program
             var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" {VisualStudioInstanceFactory.VsLaunchArgs}";
 
             var process = Process.Start(pathToDevenv, commandLine);
-            process.WaitForExit();
+            Assert.True(process.WaitForExit((int)Helper.HangMitigatingTimeout.TotalMilliseconds));
 
             Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
 

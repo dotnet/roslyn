@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SyntaxEditor editor, SemanticModel semanticModel,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {

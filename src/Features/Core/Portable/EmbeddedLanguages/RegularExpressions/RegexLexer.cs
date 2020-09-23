@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return ImmutableArray<RegexTrivia>.Empty;
             }
 
-            var result = ArrayBuilder<RegexTrivia>.GetInstance();
+            using var _ = ArrayBuilder<RegexTrivia>.GetInstance(out var result);
 
             while (Position < Text.Length)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 break;
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         public RegexTrivia? ScanComment(RegexOptions options)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsBlank(VirtualChar ch)
+        private static bool IsBlank(VirtualChar ch)
         {
             // List taken from the native regex parser.
             switch (ch.Value)
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
-        private bool IsOptionChar(VirtualChar ch)
+        private static bool IsOptionChar(VirtualChar ch)
         {
             switch (ch.Value)
             {

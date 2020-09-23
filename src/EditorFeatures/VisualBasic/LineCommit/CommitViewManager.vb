@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                     ' We're in the same snapshot. Are we on the same line?
                     Dim commitBufferManager = _commitBufferManagerFactory.CreateForBuffer(newBuffer)
-                    If commitBufferManager.IsMovementBetweenStatements(oldSnapshotPoint.Value, newSnapshotPoint.Value, waitContext.CancellationToken) Then
+                    If CommitBufferManager.IsMovementBetweenStatements(oldSnapshotPoint.Value, newSnapshotPoint.Value, waitContext.CancellationToken) Then
                         CommitBufferForCaretMovement(oldBuffer, e, waitContext.CancellationToken)
                     End If
                 End Sub)

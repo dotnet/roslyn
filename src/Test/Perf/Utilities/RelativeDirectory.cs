@@ -13,7 +13,6 @@ namespace Roslyn.Test.Performance.Utilities
     {
         private string _workingDir;
 
-
         public RelativeDirectory()
         {
         }

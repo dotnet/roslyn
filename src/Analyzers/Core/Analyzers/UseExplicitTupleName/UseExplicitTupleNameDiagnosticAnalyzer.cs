@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
         }
 
-        private IFieldSymbol GetNamedField(
+        private static IFieldSymbol GetNamedField(
             INamedTypeSymbol containingType, IFieldSymbol unnamedField, CancellationToken cancellationToken)
         {
             foreach (var member in containingType.GetMembers())

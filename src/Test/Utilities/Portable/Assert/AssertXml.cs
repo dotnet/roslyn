@@ -13,6 +13,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 using Xunit;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Roslyn.Test.Utilities
 {
@@ -171,7 +172,6 @@ namespace Roslyn.Test.Utilities
                 {
                     return false;
                 }
-
 
                 HashSet<XElement> children2Used = new HashSet<XElement>(ReferenceEqualityComparer.Instance);
                 foreach (XElement child1 in children1)

@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return valueText
             End Function
 
-            Private Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
+            Private Shared Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
                 Select Case base
                     Case LiteralBase.Decimal
                         Return CType(value, ULong).ToString(CultureInfo.InvariantCulture)
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End Select
             End Function
 
-            Private Function ConvertToOctalString(value As ULong) As String
+            Private Shared Function ConvertToOctalString(value As ULong) As String
                 Dim exponent As ULong = value
                 Dim builder As New StringBuilder()
 
@@ -327,11 +327,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return builder.ToString()
             End Function
 
-            Private Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
+            Private Shared Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
                 Return diagnostics.Any(Function(diagnostic As Diagnostic) diagnostic.Id = "BC30036")
             End Function
 
-            Private Function ConvertToULong(value As Object) As ULong
+            Private Shared Function ConvertToULong(value As Object) As ULong
                 'Cannot convert directly to ULong from Short or Integer as negative numbers
                 'appear to have all bits above the current bit range set to 1
                 'so short value -32768 or binary 1000000000000000 becomes

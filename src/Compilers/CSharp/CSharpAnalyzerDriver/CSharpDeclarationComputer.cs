@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,20 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<DeclarationInfo> builder,
             CancellationToken cancellationToken)
         {
-            ComputeDeclarations(model, model.SyntaxTree.GetRoot(cancellationToken),
+            ComputeDeclarations(model, associatedSymbol: null, model.SyntaxTree.GetRoot(cancellationToken),
                 (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level),
                 getSymbol, builder, null, cancellationToken);
         }
 
         public static void ComputeDeclarationsInNode(
             SemanticModel model,
+            ISymbol associatedSymbol,
             SyntaxNode node,
             bool getSymbol,
             ArrayBuilder<DeclarationInfo> builder,
             CancellationToken cancellationToken,
             int? levelsToCompute = null)
         {
-            ComputeDeclarations(model, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
+            ComputeDeclarations(model, associatedSymbol, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
         }
 
         private static bool InvalidLevel(int? level)
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ComputeDeclarations(
             SemanticModel model,
+            ISymbol associatedSymbol,
             SyntaxNode node,
             Func<SyntaxNode, int?, bool> shouldSkip,
             bool getSymbol,
@@ -72,7 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NamespaceDeclaration:
                     {
                         var ns = (NamespaceDeclarationSyntax)node;
-                        foreach (var decl in ns.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        foreach (var decl in ns.Members)
+                        {
+                            ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        }
+
                         var declInfo = GetDeclarationInfo(model, node, getSymbol, cancellationToken);
                         builder.Add(declInfo);
 
@@ -89,12 +96,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                case SyntaxKind.RecordDeclaration:
+                    {
+                        if (associatedSymbol is IMethodSymbol ctor)
+                        {
+                            var recordDeclaration = (RecordDeclarationSyntax)node;
+                            Debug.Assert(ctor.MethodKind == MethodKind.Constructor && recordDeclaration.ParameterList is object);
+
+                            var codeBlocks = GetParameterListInitializersAndAttributes(recordDeclaration.ParameterList);
+
+                            if (recordDeclaration.BaseList?.Types.FirstOrDefault() is PrimaryConstructorBaseTypeSyntax initializer)
+                            {
+                                codeBlocks = codeBlocks.Concat(initializer);
+                            }
+
+                            builder.Add(GetDeclarationInfo(node, associatedSymbol, codeBlocks));
+                            return;
+                        }
+
+                        goto case SyntaxKind.ClassDeclaration;
+                    }
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        foreach (var decl in t.Members)
+                        {
+                            ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        }
+
                         var attributes = GetAttributes(t.AttributeLists).Concat(GetTypeParameterListAttributes(t.TypeParameterList));
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
@@ -103,7 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                     {
                         var t = (EnumDeclarationSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        foreach (var decl in t.Members)
+                        {
+                            ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        }
+
                         var attributes = GetAttributes(t.AttributeLists);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
@@ -133,7 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (EventDeclarationSyntax)node;
                         if (t.AccessorList != null)
                         {
-                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                            foreach (var decl in t.AccessorList.Accessors)
+                            {
+                                ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                            }
                         }
                         var attributes = GetAttributes(t.AttributeLists);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
@@ -170,12 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (PropertyDeclarationSyntax)node;
                         if (t.AccessorList != null)
                         {
-                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                            foreach (var decl in t.AccessorList.Accessors)
+                            {
+                                ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                            }
                         }
 
                         if (t.ExpressionBody != null)
                         {
-                            ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
+                            ComputeDeclarations(model, associatedSymbol: null, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
 
                         var attributes = GetAttributes(t.AttributeLists);
@@ -191,13 +232,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var decl in t.AccessorList.Accessors)
                             {
-                                ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                                ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                             }
                         }
 
                         if (t.ExpressionBody != null)
                         {
-                            ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
+                            ComputeDeclarations(model, associatedSymbol: null, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
 
                         var codeBlocks = GetParameterListInitializersAndAttributes(t.ParameterList);
@@ -210,8 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
                         var blocks = ArrayBuilder<SyntaxNode>.GetInstance();
@@ -259,13 +301,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CompilationUnit:
                     {
                         var t = (CompilationUnitSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
 
-                        if (t.AttributeLists.Any())
+                        if (associatedSymbol is IMethodSymbol)
                         {
-                            var attributes = GetAttributes(t.AttributeLists);
-                            builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
+                            builder.Add(GetDeclarationInfo(model, node, getSymbol, new[] { t }, cancellationToken));
                         }
+                        else
+                        {
+                            foreach (var decl in t.Members)
+                            {
+                                ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                            }
+
+                            if (t.AttributeLists.Any())
+                            {
+                                var attributes = GetAttributes(t.AttributeLists);
+                                builder.Add(GetDeclarationInfo(model, node, getSymbol: false, attributes, cancellationToken));
+                            }
+                        }
+
                         return;
                     }
 

@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public static bool TryGetVariableStyle(
             bool bestEffort,
-            bool captured,
             bool dataFlowIn,
             bool dataFlowOut,
             bool alwaysAssigned,

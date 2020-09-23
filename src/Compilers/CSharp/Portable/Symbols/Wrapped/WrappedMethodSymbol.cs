@@ -323,6 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => UnderlyingMethod.FlowAnalysisAnnotations;
 
+        internal sealed override ImmutableArray<string> NotNullMembers => UnderlyingMethod.NotNullMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers => UnderlyingMethod.NotNullWhenTrueMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers => UnderlyingMethod.NotNullWhenFalseMembers;
+
         internal override bool ReturnValueIsMarshalledExplicitly
         {
             get
@@ -348,5 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
+
+        internal override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
     }
 }

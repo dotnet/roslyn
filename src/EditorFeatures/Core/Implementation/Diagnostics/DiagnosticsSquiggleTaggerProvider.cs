@@ -2,17 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSquiggleTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag CreateTag(DiagnosticData diagnostic)
+        protected override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -67,10 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, diagnostic.Message);
+            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
         }
 
-        private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
         }
 
-        private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
         {
             if (diagnostic.Severity == DiagnosticSeverity.Error &&
                 diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return null;
         }
 
-        private static string GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)
         {
             switch (diagnostic.Severity)
             {

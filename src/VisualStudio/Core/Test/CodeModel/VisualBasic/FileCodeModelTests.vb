@@ -61,7 +61,7 @@ Delegate Sub D()
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
@@ -1011,7 +1011,7 @@ End Class
     </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+                Using changedworkspace = TestWorkspace.Create(changedDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
@@ -1253,7 +1253,6 @@ End Class
                     Assert.Equal(1, member2.NodeKey.Ordinal)
                 End Sub)
         End Sub
-
 
         <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new TokenBasedFormattingRule(cachedOptions);
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             ////////////////////////////////////////////////////
             // brace related operations
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // for (int i = 10; i < 10; i++) case
             if (previousToken.IsSemicolonInForStatement())
             {
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             // ; case in the switch case statement and else condition
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private AdjustNewLinesOperation AdjustNewLinesAfterSemicolonToken(
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             //////////////////////////////////////////////////////
             // ";" related operations
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // generic name
-            if (previousToken.Parent.IsKind(SyntaxKind.TypeArgumentList) || previousToken.Parent.IsKind(SyntaxKind.TypeParameterList))
+            if (previousToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList, SyntaxKind.FunctionPointerType))
             {
                 // generic name < * 
                 if (previousToken.Kind() == SyntaxKind.LessThanToken)
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // generic name * < or * >
             if ((currentToken.Kind() == SyntaxKind.LessThanToken || currentToken.Kind() == SyntaxKind.GreaterThanToken) &&
-                (currentToken.Parent.IsKind(SyntaxKind.TypeArgumentList) || currentToken.Parent.IsKind(SyntaxKind.TypeParameterList)))
+                currentToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // pointer case
+            // pointer case for regular pointers
             if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
                 (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))
             {
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private readonly struct CachedOptions : IEquatable<CachedOptions>

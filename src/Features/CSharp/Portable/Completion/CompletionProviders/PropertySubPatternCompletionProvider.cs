@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var pattern = (PatternSyntax)token.Parent.Parent;
             var type = semanticModel.GetTypeInfo(pattern, cancellationToken).ConvertedType;
             if (type == null)

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
@@ -47,15 +48,25 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)
         {
-            if (GacFileResolver.IsAvailable && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
+            var resolver = context.Document.Project.CompilationOptions.MetadataReferenceResolver as RuntimeMetadataReferenceResolver;
+            if (resolver != null && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
             {
-                var gacHelper = new GlobalAssemblyCacheCompletionHelper(s_rules);
-                context.AddItems(await gacHelper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
+                foreach (var (name, path) in resolver.TrustedPlatformAssemblies)
+                {
+                    context.AddItem(CommonCompletionItem.Create(name, displayTextSuffix: "", glyph: Glyph.Assembly, rules: s_rules));
+                    context.AddItem(CommonCompletionItem.Create(PathUtilities.GetFileName(path, includeExtension: true), displayTextSuffix: "", glyph: Glyph.Assembly, rules: s_rules));
+                }
+
+                if (resolver.GacFileResolver is object)
+                {
+                    var gacHelper = new GlobalAssemblyCacheCompletionHelper(s_rules);
+                    context.AddItems(await gacHelper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
+                }
             }
 
             if (pathThroughLastSlash.IndexOf(',') < 0)
             {
-                var helper = GetFileSystemCompletionHelper(context.Document, Glyph.Assembly, ImmutableArray.Create(".dll", ".exe"), s_rules);
+                var helper = GetFileSystemCompletionHelper(context.Document, Glyph.Assembly, RuntimeMetadataReferenceResolver.AssemblyExtensions, s_rules);
                 context.AddItems(await helper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
             }
         }

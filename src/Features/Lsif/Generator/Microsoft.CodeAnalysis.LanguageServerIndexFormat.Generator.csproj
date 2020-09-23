@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFramework>net472</TargetFramework>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <Nullable>enable</Nullable>
+
+    <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
+    <IsPackable>true</IsPackable>
+    <IsTool>true</IsTool>
+    <ContentTargetFolders>tools</ContentTargetFolders>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+
+    <!-- Suppress warning that we don't have anything in lib/ref folders, because since this is a tool there won't be anything there -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <!-- When our Pack runs, it runs ResolveReferences again, but since we're not in a "normal" build the invocation of ResolveAssemblyReferences doesn't
+         look for dependencies. This forces that regardless. -->
+    <_ResolveReferenceDependencies>true</_ResolveReferenceDependencies>
+
+    <PackageId>Microsoft.CodeAnalysis.Lsif.Generator</PackageId>
+    <PackageDescription>A tool to consume projects and compilations and emit an LSIF-compatible output that provides information about definitions, references and more.
+    For more information about LSIF, see https://code.visualstudio.com/blogs/2019/02/19/lsif</PackageDescription>
+
+    <IsShipping>false</IsShipping>
+  </PropertyGroup>
+
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <!-- Include all dependencies; the DestinationSubDierctory is to handle culture-specific resource files that should be placed in
+           subdirectories -->
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
+
+      <!-- Include our app.config with generated binding redirects -->
+      <TfmSpecificPackageFile Include="@(AppConfigWithTargetPath)" PackagePath="tools" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="App.config" />
+    <None Include="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+
+    <!-- Below is the transitive closure of the project references above to placate BuildBoss. If changes are made above this line,
+         please update the stuff here accordingly. -->
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests" />
+  </ItemGroup>
+</Project>

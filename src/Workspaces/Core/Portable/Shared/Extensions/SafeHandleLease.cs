@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     /// Represents a lease of a <see cref="SafeHandle"/>.
     /// </summary>
     /// <seealso cref="SafeHandleExtensions.Lease"/>
+    [NonCopyable]
     internal readonly struct SafeHandleLease : IDisposable
     {
         private readonly SafeHandle? _handle;

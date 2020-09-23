@@ -513,17 +513,18 @@ class Program
 
         #endregion
 
-        private async Task AssertTagsOnBracesOrSemicolonsAsync(string contents, params int[] tokenIndices)
+        private static async Task AssertTagsOnBracesOrSemicolonsAsync(string contents, params int[] tokenIndices)
         {
             await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices);
             await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices, Options.Script);
         }
 
-        private async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions options = null)
+        private static async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions options = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(contents, options);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            var spans = await new CSharpLineSeparatorService().GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);
+            var lineSeparatorService = Assert.IsType<CSharpLineSeparatorService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ILineSeparatorService>());
+            var spans = await lineSeparatorService.GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);
             var tokens = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
 
             Assert.Equal(tokenIndices.Length, spans.Count());
@@ -543,8 +544,5 @@ class Program
                 ++i;
             }
         }
-
-        private static SyntaxToken GetOpenBrace(SyntaxTree syntaxTree, SyntaxToken token)
-            => token.Parent.ChildTokens().Where(n => n.Kind() == SyntaxKind.OpenBraceToken).Single();
     }
 }

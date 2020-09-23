@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 
-        private DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
+        private static DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
             => SyntaxFactory.DeclarationExpression(
                 typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
                     SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(

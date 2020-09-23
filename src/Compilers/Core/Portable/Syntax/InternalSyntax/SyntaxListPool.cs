@@ -91,5 +91,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Free(item);
             return list;
         }
+
+        public SeparatedSyntaxList<TNode> ToListAndFree<TNode>(in SeparatedSyntaxListBuilder<TNode> item)
+            where TNode : GreenNode
+        {
+            var list = item.ToList();
+            Free(item);
+            return list;
+        }
     }
 }

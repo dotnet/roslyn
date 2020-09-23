@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
                     conditional.ConstantValue,
+                    leftType,
+                    wasTargetTyped: true,
                     leftType);
             }
 

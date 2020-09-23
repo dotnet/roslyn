@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public static explicit operator SignatureHelpParameter(SignatureHelpSymbolParameter parameter)
         {
-            return new SignatureHelp.SignatureHelpParameter(
+            return new SignatureHelpParameter(
                 parameter.Name, parameter.IsOptional, parameter.DocumentationFactory,
                 parameter.DisplayParts.ToTaggedText(),
                 parameter.PrefixDisplayParts.ToTaggedText(),

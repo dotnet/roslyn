@@ -94,7 +94,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case 1:')
                 Pattern: 
-                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:') (InputType: Program)
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: Program, NarrowedType: Program)
                     Value: 
                       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsInvalid, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -389,16 +389,16 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
             Value: 
               IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[], IsInvalid) (Syntax: 'args')
             Pattern: 
-              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(var x1, var x2)') (InputType: System.String[], DeclaredSymbol: null, MatchedType: System.String[], DeconstructSymbol: null)
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(var x1, var x2)') (InputType: System.String[], NarrowedType: System.String[], DeclaredSymbol: null, MatchedType: System.String[], DeconstructSymbol: null)
                 DeconstructionSubpatterns (2):
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x1') (InputType: ?, DeclaredSymbol: ?? x1, MatchesNull: True)
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x2') (InputType: ?, DeclaredSymbol: ?? x2, MatchesNull: True)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x1') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x1, MatchesNull: True)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x2') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x2, MatchesNull: True)
                 PropertySubpatterns (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(10,18): error CS0163: Control cannot fall through from one case label ('(string s1, string s2) _') to another
+                // file.cs(10,13): error CS0163: Control cannot fall through from one case label ('case (string s1, string s2) _:') to another
                 //             case (string s1, string s2) _:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string s1, string s2) _").WithArguments("(string s1, string s2) _").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (string s1, string s2) _:").WithArguments("case (string s1, string s2) _:").WithLocation(10, 13),
                 // file.cs(11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
                 //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),

@@ -27,18 +27,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             => base.StartService();
 
         public Task<Solution> GetSolutionAsync(JObject solutionInfo, CancellationToken cancellationToken)
-        {
-            var reader = solutionInfo.CreateReader();
-            var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance } });
-            var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
+            => GetSolutionImplAsync(solutionInfo, cancellationToken);
 
-            return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
-        }
-
+#pragma warning disable IDE0060 // Remove unused parameter - Avoiding breaking change in External access API
         protected Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName] string? callerName = null)
+#pragma warning restore IDE0060 // Remove unused parameter
             => base.RunServiceAsync(callAsync, cancellationToken);
 
+#pragma warning disable IDE0060 // Remove unused parameter - Avoiding breaking change in External access API
         protected Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken, [CallerMemberName] string? callerName = null)
+#pragma warning restore IDE0060 // Remove unused parameter
             => base.RunServiceAsync(callAsync, cancellationToken);
     }
 }

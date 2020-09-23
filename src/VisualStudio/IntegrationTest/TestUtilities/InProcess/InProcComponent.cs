@@ -53,7 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 action(cancellationTokenSource.Token);
             });
@@ -67,7 +66,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 return action(cancellationTokenSource.Token);
             });

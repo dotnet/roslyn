@@ -1188,6 +1188,24 @@ string s = @
             CompareIncToFullParseErrors(incrementalTree, parsedTree);
         }
 
+        [Fact]
+        public void CommentCloseBraceInInitOnlyPropertyDecl()
+        {
+            SourceText oldText = SourceText.From(@"public class MemberClass
+{
+    public MyStruct[] Property_MyStructArr { get; init; }
+    public MyEnum[] Property_MyEnumArr { init; private get; }
+}
+");
+            int locationOfChange = oldText.ToString().IndexOf('}'), widthOfChange = 5;
+
+            // This function will update the first closing brace in property declaration Property_MyStructArr "}" to "/*}*/" in oldText
+            CommentOutText(oldText, locationOfChange, widthOfChange, out SyntaxTree incrementalTree, out SyntaxTree parsedTree);
+
+            // Verify that the errors from the fully parsed tree with the change and the incrementally parsed tree are the same
+            CompareIncToFullParseErrors(incrementalTree, parsedTree);
+        }
+
         [WorkItem(536739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536739")]
         [Fact]
         public void CommentFixedInIllegalArrayDecl()

@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -735,7 +736,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
 

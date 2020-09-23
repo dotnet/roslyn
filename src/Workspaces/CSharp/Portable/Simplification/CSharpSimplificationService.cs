@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
@@ -175,14 +176,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
-            var root = model.SyntaxTree.GetRoot();
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
 
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-
                     if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);

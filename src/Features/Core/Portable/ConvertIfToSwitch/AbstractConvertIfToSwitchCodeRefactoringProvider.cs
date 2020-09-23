@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return;
             }
 
-            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = semanticModel.GetOperation(ifStatement);
             if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation parentBlock }))
             {
@@ -80,30 +81,36 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             context.RegisterRefactoring(
                 new MyCodeAction(GetTitle(forSwitchExpression: false),
-                    c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: false, c)),
+                    c => UpdateDocumentAsync(document, target, ifStatement, sections, analyzer.Features, convertToSwitchExpression: false, c),
+                    "SwitchStatement"),
                 ifStatement.Span);
 
             if (analyzer.Supports(Feature.SwitchExpression) &&
-                CanConvertToSwitchExpression(sections))
+                CanConvertToSwitchExpression(analyzer.Supports(Feature.OrPattern), sections))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(GetTitle(forSwitchExpression: true),
-                        c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: true, c)),
+                        c => UpdateDocumentAsync(document, target, ifStatement, sections, analyzer.Features, convertToSwitchExpression: true, c),
+                        "SwitchExpression"),
                     ifStatement.Span);
             }
         }
 
-        private static bool CanConvertToSwitchExpression(ImmutableArray<AnalyzedSwitchSection> sections)
+        private static bool CanConvertToSwitchExpression(
+            bool supportsOrPattern, ImmutableArray<AnalyzedSwitchSection> sections)
         {
-            return
-                // There must be a default case for an exhaustive switch expression
-                sections.Any(section => section.Labels.IsDefault) &&
-                // All arms must have a single label
-                sections.All(section => section.Labels.IsDefault || section.Labels.Length == 1) &&
-                // There must be at least one return statement
-                sections.Any(section => GetSwitchArmKind(section.Body) == OperationKind.Return) &&
-                // All arms must be convertible to a switch arm
-                sections.All(section => GetSwitchArmKind(section.Body) != default);
+            // There must be a default case for an exhaustive switch expression
+            if (!sections.Any(section => section.Labels.IsDefault))
+                return false;
+
+            // There must be at least one return statement
+            if (!sections.Any(section => GetSwitchArmKind(section.Body) == OperationKind.Return))
+                return false;
+
+            if (!sections.All(section => CanConvertSectionForSwitchExpression(supportsOrPattern, section)))
+                return false;
+
+            return true;
 
             static OperationKind GetSwitchArmKind(IOperation op)
             {
@@ -119,12 +126,37 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 return default;
             }
+
+            static bool CanConvertSectionForSwitchExpression(bool supportsOrPattern, AnalyzedSwitchSection section)
+            {
+                // All arms must be convertible to a switch arm
+                if (GetSwitchArmKind(section.Body) == default)
+                    return false;
+
+                // Default label can trivially be converted to a switch arm.
+                if (section.Labels.IsDefault)
+                    return true;
+
+                // Single label case can trivially be converted to a switch arm.
+                if (section.Labels.Length == 1)
+                    return true;
+
+                if (section.Labels.Length == 0)
+                {
+                    Debug.Fail("How did we not get any labels?");
+                    return false;
+                }
+
+                // If there are two or more labels, we can support this as long as the language supports 'or' patterns
+                // and as long as no label has any guards.
+                return supportsOrPattern && section.Labels.All(label => label.Guards.IsDefaultOrEmpty);
+            }
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

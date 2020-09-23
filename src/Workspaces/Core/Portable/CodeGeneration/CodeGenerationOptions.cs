@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
 
-        private void CheckLocation(Location location, string name)
+        private static void CheckLocation(Location location, string name)
         {
             if (location != null && !location.IsInSource)
             {

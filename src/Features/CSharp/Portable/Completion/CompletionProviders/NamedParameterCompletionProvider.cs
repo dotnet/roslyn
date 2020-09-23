@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(false);
                 var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
                 if (parameterLists == null)
                 {
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
+        private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {
             // A parameter list is valid if it has parameters that match in name all the existing
             // named parameters that have been provided.
             return existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
         }
 
-        private ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
+        private static ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
         {
             var existingArguments = argumentList.Arguments.Where(a => a.Span.End <= position && a.NameColon != null)
                                                           .Select(a => a.NameColon.Name.Identifier.ValueText);
@@ -147,23 +147,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return existingArguments.ToSet();
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
             SemanticModel semanticModel,
             int position,
             SyntaxNode invocableNode,
             CancellationToken cancellationToken)
         {
-            switch (invocableNode)
+            return invocableNode switch
             {
-                case InvocationExpressionSyntax invocationExpression: return GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken);
-                case ConstructorInitializerSyntax constructorInitializer: return GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken);
-                case ElementAccessExpressionSyntax elementAccessExpression: return GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken);
-                case BaseObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
-                default: return null;
-            }
+                InvocationExpressionSyntax invocationExpression => GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken),
+                ConstructorInitializerSyntax constructorInitializer => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
+                ElementAccessExpressionSyntax elementAccessExpression => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
+                BaseObjectCreationExpressionSyntax objectCreationExpression => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken),
+                PrimaryConstructorBaseTypeSyntax recordBaseType => GetRecordBaseTypeParameterLists(semanticModel, position, recordBaseType, cancellationToken),
+                _ => null,
+            };
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetElementAccessExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetElementAccessExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             ElementAccessExpressionSyntax elementAccessExpression,
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetConstructorInitializerParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetConstructorInitializerParameterLists(
             SemanticModel semanticModel,
             int position,
             ConstructorInitializerSyntax constructorInitializer,
@@ -226,7 +227,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetInvocationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetRecordBaseTypeParameterLists(
+            SemanticModel semanticModel,
+            int position,
+            PrimaryConstructorBaseTypeSyntax recordBaseType,
+            CancellationToken cancellationToken)
+        {
+            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+            if (within != null)
+            {
+                var type = semanticModel.GetTypeInfo(recordBaseType.Type, cancellationToken).Type as INamedTypeSymbol;
+
+                return type?.InstanceConstructors
+                    .Where(m => m.IsAccessibleWithin(within))
+                    .Select(m => m.Parameters);
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetInvocationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             InvocationExpressionSyntax invocationExpression,

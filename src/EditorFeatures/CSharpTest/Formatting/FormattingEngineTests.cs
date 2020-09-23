@@ -19,11 +19,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTests : CSharpFormattingEngineTestBase
     {
+        public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
+
         private static Dictionary<OptionKey2, object> SmartIndentButDoNotFormatWhileTyping()
         {
             return new Dictionary<OptionKey2, object>
@@ -1378,11 +1381,6 @@ class C
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-            {
-                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
-
             AssertFormatAfterTypeChar(code, expected);
         }
 
@@ -1407,11 +1405,6 @@ class C
     {
 }
 ";
-
-            var optionSet = new Dictionary<OptionKey2, object>
-            {
-                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
 
             AssertFormatAfterTypeChar(code, expected);
         }
@@ -2055,6 +2048,100 @@ class MyClass
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression()
+        {
+            var code = @"[|
+record C(int Property)
+{
+    void M()
+    {
+        _ = this  with  {  Property  =  1  } ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property)
+{
+    void M()
+    {
+        _ = this with { Property = 1 };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression_MultiLine()
+        {
+            var code = @"[|
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this  with
+{
+Property  =  1,
+Property2  =  2
+} ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this with
+        {
+            Property = 1,
+            Property2 = 2
+        };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression_MultiLine_UserPositionedBraces()
+        {
+            var code = @"[|
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this  with
+            {
+                Property  =  1,
+                Property2  =  2
+            } ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this with
+        {
+            Property = 1,
+            Property2 = 2
+        };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
         [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_KeepMultipleLinesBetweenGroups()
@@ -2145,7 +2232,7 @@ using System.B;
             AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
         }
 
-        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
             if (changedOptionSet != null)

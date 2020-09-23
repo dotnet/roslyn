@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private int PriorityComparison(StateSet state1, StateSet state2)
                     => GetPriority(state1) - GetPriority(state2);
 
-                private int GetPriority(StateSet state)
+                private static int GetPriority(StateSet state)
                 {
                     // compiler gets highest priority
                     if (state.Analyzer.IsCompilerAnalyzer())

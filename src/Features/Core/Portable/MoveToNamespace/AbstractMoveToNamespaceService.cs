@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             int position,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(position);
             var node = token.Parent;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             switch (container)
             {
                 case TNamespaceDeclarationSyntax namespaceNode:
-                    var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container);
+                    var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container, cancellationToken);
                     return containerSymbol.GetMembers().SelectAsArray(m => (ISymbol)m);
 
                 case TCompilationUnitSyntax compilationUnit:
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                     // This is supported if the selected type is the only member declared in the global namespace in this document.
                     // (See `TryAnalyzeNamedTypeAsync`)
                     Debug.Assert(members.Count == 1);
-                    return members.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member));
+                    return members.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(container);

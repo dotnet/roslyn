@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             }
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             if (document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
                 && !string.IsNullOrEmpty(fileHeaderTemplate))
@@ -45,6 +44,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 // If we have a defined file header template, allow the analyzer and code fix to handle it
                 return;
             }
+
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var position = span.Start;
             var firstToken = root.GetFirstToken();
@@ -114,14 +115,14 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return banner;
             }
 
-            var result = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
             foreach (var trivia in banner)
             {
                 var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
                 result.Add(updated);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_banner, createChangedDocument)
+                : base(CodeFixesResources.Add_file_header, createChangedDocument)
             {
             }
         }

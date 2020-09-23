@@ -51,8 +51,10 @@ namespace IOperationGenerator
                     }
                 }
 
-                if (!(abstractNode is Node node)) continue;
-                if (node.SkipChildrenGeneration || node.SkipClassGeneration) continue;
+                if (!(abstractNode is Node node))
+                    continue;
+                if (node.SkipChildrenGeneration || node.SkipClassGeneration)
+                    continue;
 
                 var properties = GetAllGeneratedIOperationProperties(node).Where(p => !p.IsInternal).Select(p => p.Name).ToList();
 
@@ -70,7 +72,6 @@ namespace IOperationGenerator
                     }
                     continue;
                 }
-
 
                 if (node.ChildrenOrder is null)
                 {

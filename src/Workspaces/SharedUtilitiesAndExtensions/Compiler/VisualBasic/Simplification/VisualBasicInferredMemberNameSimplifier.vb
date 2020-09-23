@@ -32,7 +32,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Function
 
         Friend Function CanSimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax) As Boolean
-            If RemovalCausesAmbiguity(DirectCast(node.Parent, ObjectMemberInitializerSyntax).Initializers, node) Then
+            Dim parentMemberInitializer As ObjectMemberInitializerSyntax = DirectCast(node.Parent, ObjectMemberInitializerSyntax)
+
+            ' Spec requires explicit names for object creation expressions (unlike anonymous objects and tuples which can infer them)
+            Dim requiresExplicitNames = parentMemberInitializer.IsParentKind(SyntaxKind.ObjectCreationExpression)
+            If requiresExplicitNames OrElse RemovalCausesAmbiguity(parentMemberInitializer.Initializers, node) Then
                 Return False
             End If
 

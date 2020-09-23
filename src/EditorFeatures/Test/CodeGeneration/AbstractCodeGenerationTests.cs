@@ -32,13 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 .AddProject(projectId, languageName, $"{languageName}.dll", languageName).GetProject(projectId);
 
             var normalizedSyntax = syntaxNode.NormalizeWhitespace().ToFullString();
-            var document = project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                 .AddDocument("Fake Document", SourceText.From(normalizedSyntax));
 
             var annotatedDocument = document.WithSyntaxRoot(
                     document.GetSyntaxRootAsync().Result.WithAdditionalAnnotations(Simplification.Simplifier.Annotation));
-
-            var annotatedRootNode = annotatedDocument.GetSyntaxRootAsync().Result;
 
             var simplifiedDocument = Simplification.Simplifier.ReduceAsync(annotatedDocument).Result;
 
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 );
         }
 
-        internal void Test(
+        internal static void Test(
             Func<SyntaxGenerator, SyntaxNode> nodeCreator,
             string cs, string csSimple,
             string vb, string vbSimple)
@@ -74,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Assert.True(cs != null || csSimple != null || vb != null || vbSimple != null,
                 $"At least one of {nameof(cs)}, {nameof(csSimple)}, {nameof(vb)}, {nameof(vbSimple)} must be provided");
 
-            var hostServices = VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
-            var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
 
             if (cs != null || csSimple != null)
             {

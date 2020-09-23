@@ -9,20 +9,27 @@ using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     internal class DeclarationComputer
     {
-        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode> executableCodeBlocks, CancellationToken cancellationToken)
+        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks, CancellationToken cancellationToken)
         {
             var declaredSymbol = GetDeclaredSymbol(model, node, getSymbol, cancellationToken);
+            return GetDeclarationInfo(node, declaredSymbol, executableCodeBlocks);
+        }
+
+        internal static DeclarationInfo GetDeclarationInfo(SyntaxNode node, ISymbol? declaredSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks)
+        {
             var codeBlocks = executableCodeBlocks?.Where(c => c != null).AsImmutableOrEmpty() ?? ImmutableArray<SyntaxNode>.Empty;
             return new DeclarationInfo(node, codeBlocks, declaredSymbol);
         }
 
         internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
         {
-            return GetDeclarationInfo(model, node, getSymbol, (IEnumerable<SyntaxNode>)null, cancellationToken);
+            return GetDeclarationInfo(model, node, getSymbol, (IEnumerable<SyntaxNode>?)null, cancellationToken);
         }
 
         internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, SyntaxNode executableCodeBlock, CancellationToken cancellationToken)
@@ -35,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             return GetDeclarationInfo(model, node, getSymbol, executableCodeBlocks.AsEnumerable(), cancellationToken);
         }
 
-        private static ISymbol GetDeclaredSymbol(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
+        private static ISymbol? GetDeclaredSymbol(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
         {
             if (!getSymbol)
             {

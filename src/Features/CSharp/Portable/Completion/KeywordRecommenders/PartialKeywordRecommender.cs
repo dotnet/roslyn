@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsTypeDeclarationContext(context, cancellationToken);
         }
 
-        private bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsMemberDeclarationContext(validModifiers: s_validMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsMemberDeclarationContext(validModifiers: s_validMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 var token = context.LeftToken;
                 var decl = token.GetAncestor<TypeDeclarationSyntax>();
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.IsTypeDeclarationContext(
                 validModifiers: SyntaxKindSet.AllTypeModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
         }

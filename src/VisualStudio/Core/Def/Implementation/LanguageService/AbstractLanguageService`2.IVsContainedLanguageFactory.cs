@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using VsServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -30,8 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
-                    var service = IntPtr.Zero;
-                    if (webServiceProvider.QueryService(ref webFileCtxServiceGuid, ref webFileCtxServiceGuid, out service) >= 0)
+                    if (webServiceProvider.QueryService(ref webFileCtxServiceGuid, ref webFileCtxServiceGuid, out var service) >= 0)
                     {
                         try
                         {

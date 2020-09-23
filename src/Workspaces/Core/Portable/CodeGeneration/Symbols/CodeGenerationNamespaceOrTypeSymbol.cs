@@ -10,12 +10,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract class CodeGenerationNamespaceOrTypeSymbol : CodeGenerationSymbol, INamespaceOrTypeSymbol
     {
         protected CodeGenerationNamespaceOrTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
         }
 

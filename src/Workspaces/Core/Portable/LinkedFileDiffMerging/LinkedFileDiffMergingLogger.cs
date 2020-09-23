@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal class LinkedFileDiffMergingLogger
     {
-        private static LogAggregator LogAggregator = new LogAggregator();
+        private static readonly LogAggregator LogAggregator = new LogAggregator();
 
         internal enum MergeInfo
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             InsertedMergeConflictCommentsAtAdjustedLocation
         }
 
-        internal static void LogSession(Workspace workspace, LinkedFileDiffMergingSessionInfo sessionInfo)
+        internal static void LogSession(LinkedFileDiffMergingSessionInfo sessionInfo)
         {
             if (sessionInfo.LinkedFileGroups.Count > 1)
             {

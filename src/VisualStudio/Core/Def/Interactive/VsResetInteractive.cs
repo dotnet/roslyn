@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+extern alias InteractiveHost;
 
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -56,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64bit)
+            out InteractiveHostPlatform? platform)
         {
             var hierarchyPointer = default(IntPtr);
             var selectionContainerPointer = default(IntPtr);
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             sourceSearchPaths = ImmutableArray<string>.Empty;
             projectNamespaces = ImmutableArray<string>.Empty;
             projectDirectory = null;
-            is64bit = null;
+            platform = null;
 
             try
             {
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
                 if (hierarchyPointer != IntPtr.Zero)
                 {
-                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory, out is64bit);
+                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory, out platform);
                     return true;
                 }
             }
@@ -94,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64bit)
+            out InteractiveHostPlatform? platform)
         {
             var hierarchy = (IVsHierarchy)Marshal.GetObjectForIUnknown(hierarchyPointer);
             Marshal.ThrowExceptionForHR(
@@ -112,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var projectDir = (string)dteProject.Properties.Item("FullPath").Value;
             var outputFileName = (string)dteProject.Properties.Item("OutputFileName").Value;
             var defaultNamespace = (string)dteProject.Properties.Item("DefaultNamespace").Value;
+            var targetFrameworkMoniker = (string)dteProject.Properties.Item("TargetFrameworkMoniker").Value;
             var relativeOutputPath = (string)dteProject.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value;
 
             Debug.Assert(!string.IsNullOrEmpty(projectDir));
@@ -150,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             sourceSearchPaths = sourceSearchPathsBuilder.ToImmutableArray();
             projectNamespaces = namespacesToImportBuilder.ToImmutableArray();
 
-            is64bit = (projectOpt != null) ? Is64Bit(projectOpt.CompilationOptions.Platform) : null;
+            platform = (projectOpt != null) ? GetInteractiveHostPlatform(targetFrameworkMoniker, projectOpt.CompilationOptions.Platform) : null;
         }
 
         internal Project GetProjectFromHierarchy(IVsHierarchy hierarchy)
@@ -185,19 +188,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             return false;
         }
 
-        private static bool? Is64Bit(Platform platform)
+        private static InteractiveHostPlatform? GetInteractiveHostPlatform(string targetFrameworkMoniker, Platform platform)
         {
+            if (targetFrameworkMoniker.StartsWith(".NETCoreApp", StringComparison.OrdinalIgnoreCase) ||
+                targetFrameworkMoniker.StartsWith(".NETStandard", StringComparison.OrdinalIgnoreCase))
+            {
+                return InteractiveHostPlatform.Core;
+            }
+
             switch (platform)
             {
                 case Platform.Arm:
                 case Platform.AnyCpu32BitPreferred:
                 case Platform.X86:
-                    return false;
+                    return InteractiveHostPlatform.Desktop32;
 
                 case Platform.Itanium:
                 case Platform.X64:
                 case Platform.Arm64:
-                    return true;
+                    return InteractiveHostPlatform.Desktop64;
 
                 default:
                     return null;
@@ -299,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             var taskSource = new TaskCompletionSource<bool>();
 
-            var updateSolutionEvents = new VsUpdateSolutionEvents(_buildManager, taskSource);
+            _ = new VsUpdateSolutionEvents(_buildManager, taskSource);
 
             // Build the project.  When project build is done, set the task source as being done.
             // (Either succeeded, cancelled, or failed).

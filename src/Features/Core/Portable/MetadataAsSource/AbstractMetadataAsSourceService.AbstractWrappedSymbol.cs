@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 => _symbol.Accept(visitor);
 
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-                => _symbol.Accept<TResult>(visitor);
+                => _symbol.Accept(visitor);
 
             public ImmutableArray<AttributeData> GetAttributes()
                 => _symbol.GetAttributes();

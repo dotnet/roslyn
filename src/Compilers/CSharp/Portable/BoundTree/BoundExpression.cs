@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.UnconvertedObjectCreationExpression:
+                case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.DefaultLiteral:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
@@ -117,6 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => base.TopLevelNullability;
             set => base.TopLevelNullability = value;
         }
+
+        public CodeAnalysis.ITypeSymbol? GetPublicTypeSymbol()
+            => Type?.GetITypeSymbol(TopLevelNullability.FlowState.ToAnnotation());
     }
 
     internal partial class BoundPassByCopy
@@ -491,6 +496,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsTrue dynamic operator is invoked at runtime if the condition is of the type dynamic.
                 // The type of the operator itself is Boolean, so we need to check its kind.
                 return this.Condition.Kind == BoundKind.UnaryOperator && ((BoundUnaryOperator)this.Condition).OperatorKind.IsDynamic();
+            }
+        }
+    }
+
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get
+            {
+                return this.ConstantValueOpt;
             }
         }
     }

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2846,14 +2847,14 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameterToNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void M(string s)
     {
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void M(string? s)
@@ -2872,7 +2873,7 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameterToNonNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void M(string? s)
@@ -2880,7 +2881,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void M(string s)
@@ -2896,7 +2897,6 @@ class C
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "string s", FeaturesResources.parameter));
         }
-
 
         [Fact]
         public void MethodUpdate_RenameMethodName()
@@ -3564,8 +3564,9 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void MethodUpdate_UpdateSwitchExpression()
         {
             var src1 = @"
@@ -5173,7 +5174,7 @@ partial class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var syntaxMap = GetSyntaxMap(src1, src2);
+            _ = GetSyntaxMap(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C(int x)"));
@@ -5936,8 +5937,9 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void FieldInitializerUpdate_SwitchExpressionInConstructor()
         {
             var src1 = "class C { int a = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -5986,8 +5988,9 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor1()
         {
             var src1 = "class C { int a { get; } = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -5999,8 +6002,9 @@ public class C
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor2()
         {
             var src1 = "class C { int a { get; } = 1; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
@@ -6011,8 +6015,9 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor3()
         {
             var src1 = "class C { int a { get; } = 1; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -7281,7 +7286,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var syntaxMap = GetSyntaxMap(src1, src2);
+            _ = GetSyntaxMap(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C(int x)"));

@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly SyntaxGenerator _generator;
         private readonly List<Change> _changes;
         private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
-        private HashSet<SyntaxNode> _lazyTrackedNewNodesOpt;
+        private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
@@ -40,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
-        private SyntaxNode ApplyTrackingToNewNode(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
             {
@@ -60,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             foreach (var node in nodes)
             {
-                yield return ApplyTrackingToNewNode(node);
+                var result = ApplyTrackingToNewNode(node);
+                yield return result;
             }
         }
 
@@ -147,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Editing
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
             _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
         }
-
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
@@ -296,15 +301,16 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private class ReplaceChange : Change
         {
-            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
+            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> _modifier;
             private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier,
+                Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> modifier,
                 SyntaxEditor editor)
                 : base(node)
             {
+                Contract.ThrowIfNull(node, "Passed in node is null.");
                 _modifier = modifier;
                 _editor = editor;
             }
@@ -314,6 +320,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
+
+                Contract.ThrowIfNull(current, $"GetCurrentNode returned null with the following node: {this.Node}");
                 return generator.ReplaceNode(root, current, newNode);
             }
         }
@@ -337,12 +345,12 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNodes = _modifier(current, generator).ToList();
-                for (int i = 0; i < newNodes.Count; i++)
+                for (var i = 0; i < newNodes.Count; i++)
                 {
                     newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
                 }
 
-                return generator.ReplaceNode(root, current, newNodes);
+                return SyntaxGenerator.ReplaceNode(root, current, newNodes);
             }
         }
 

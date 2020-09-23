@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
-            var result = editorConfigStorageLocation.TryGetOption(new Dictionary<string, string>(), typeof(NamingStylePreferences), out var @object);
+            var result = editorConfigStorageLocation.TryGetOption(new Dictionary<string, string>(), typeof(NamingStylePreferences), out _);
             Assert.False(result, "Expected TryParseReadonlyDictionary to return 'false' for empty dictionary");
         }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
             var result = editorConfigStorageLocation.TryGetOption(
                 new Dictionary<string, string>(),
                 typeof(NamingStylePreferences),
-                out var @object);
+                out _);
 
             Assert.False(result, "Expected TryParseReadonlyDictionary to return 'false' for empty dictionary");
         }

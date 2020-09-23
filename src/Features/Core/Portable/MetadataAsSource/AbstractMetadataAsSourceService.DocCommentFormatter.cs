@@ -166,18 +166,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             private static ImmutableArray<string> CreateWrappedTextFromRawText(string rawText)
             {
-                var lines = ArrayBuilder<string>.GetInstance();
+                using var _ = ArrayBuilder<string>.GetInstance(out var lines);
 
                 // First split the string into constituent lines.
                 var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
 
                 // Now split each line into multiple lines.
                 foreach (var item in split)
-                {
                     SplitRawLineIntoFormattedLines(item, lines);
-                }
 
-                return lines.ToImmutableAndFree();
+                return lines.ToImmutable();
             }
 
             private static void SplitRawLineIntoFormattedLines(

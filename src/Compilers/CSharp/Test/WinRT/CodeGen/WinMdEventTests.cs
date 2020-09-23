@@ -619,7 +619,7 @@ namespace EventDeserialization
 
             var comp1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
 
-            var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
+            var serializationRef = TestMetadata.Net451.SystemRuntimeSerialization;
 
             var comp2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: @"A

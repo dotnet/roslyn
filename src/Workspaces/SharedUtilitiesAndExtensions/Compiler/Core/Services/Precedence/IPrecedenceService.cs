@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Precedence
 {
-    interface IPrecedenceService
+    internal interface IPrecedenceService
     {
         /// <summary>
         /// Returns the precedence of the given expression, mapped down to one of the 

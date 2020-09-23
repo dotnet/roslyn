@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken,
-                currentToken As SyntaxToken,
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
                 ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
@@ -177,11 +177,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Return previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) OrElse nextToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
             Dim xmlDeclaration = TryCast(currentToken.Parent, XmlDeclarationSyntax)
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then

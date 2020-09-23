@@ -158,6 +158,42 @@ namespace Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestRecords()
+        {
+            var source = @"
+record [|Record|]
+{
+    int [|field|];
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}";
+            var fixedSource = @"
+internal record Record
+{
+    private int field;
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestReadOnlyStructs()
         {
             await VerifyCS.VerifyCodeFixAsync(@"

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         End Function
 
         Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFacts, options As ParseOptions) As Analyzer
-            Return New VisualBasicAnalyzer(syntaxFacts, Feature.RangePattern Or Feature.RelationalPattern)
+            Return New VisualBasicAnalyzer(syntaxFacts, Feature.RangePattern Or Feature.RelationalPattern Or Feature.InequalityPattern)
         End Function
     End Class
 End Namespace

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
                     return;
-                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKind.SwitchExpressionArm):
+                case SwitchExpressionArmSyntax switchExpressionArm:
                     // The expression in a switch expression arm should be anchored to the beginning of the arm
                     // ```
                     // e switch
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
+        private static void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
             => AddAnchorIndentationOperation(list, node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
     }
 }

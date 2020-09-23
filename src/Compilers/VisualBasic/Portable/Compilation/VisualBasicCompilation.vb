@@ -391,7 +391,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hostObjectType,
                 isSubmission,
                 referenceManager:=Nothing,
-                reuseReferenceManager:=False)
+                reuseReferenceManager:=False,
+                eventQueue:=Nothing,
+                semanticModelProvider:=Nothing)
 
             If syntaxTrees IsNot Nothing Then
                 c = c.AddSyntaxTrees(syntaxTrees)
@@ -417,9 +419,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isSubmission As Boolean,
             referenceManager As ReferenceManager,
             reuseReferenceManager As Boolean,
+            semanticModelProvider As SemanticModelProvider,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, semanticModelProvider, eventQueue)
 
             Debug.Assert(rootNamespaces IsNot Nothing)
             Debug.Assert(declarationTable IsNot Nothing)
@@ -506,6 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
+                Me.SemanticModelProvider,
                 eventQueue:=Nothing) ' no event queue when cloning
         End Function
 
@@ -530,7 +534,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=Not referenceDirectivesChanged)
+                reuseReferenceManager:=Not referenceDirectivesChanged,
+                Me.SemanticModelProvider)
         End Function
 
         ''' <summary>
@@ -555,7 +560,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal))
+                reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal),
+                Me.SemanticModelProvider)
         End Function
 
         Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VisualBasicCompilation
@@ -596,7 +602,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 referenceManager:=Nothing,
-                reuseReferenceManager:=False)
+                reuseReferenceManager:=False,
+                Me.SemanticModelProvider)
             Return c
         End Function
 
@@ -649,7 +656,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions))
+                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions),
+                Me.SemanticModelProvider)
             Return c
         End Function
 
@@ -683,7 +691,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
-                reuseReferenceManager)
+                reuseReferenceManager,
+                Me.SemanticModelProvider)
+        End Function
+
+        ''' <summary>
+        ''' Returns a new compilation with the given semantic model provider.
+        ''' </summary>
+        Friend Overrides Function WithSemanticModelProvider(semanticModelProvider As SemanticModelProvider) As Compilation
+            If Me.SemanticModelProvider Is semanticModelProvider Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilation(
+                Me.AssemblyName,
+                Me.Options,
+                Me.ExternalReferences,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                Me.PreviousSubmission,
+                Me.SubmissionReturnType,
+                Me.HostObjectType,
+                Me.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager:=True,
+                semanticModelProvider)
         End Function
 
         ''' <summary>
@@ -705,9 +740,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
+                Me.SemanticModelProvider,
                 eventQueue:=eventQueue)
         End Function
 
+        Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
+            ' LanguageVersion should already be mapped to an effective version at this point
+            Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
+            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+
+            If Options.CheckOverflow Then
+                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            End If
+
+            If Options.OptionStrict <> OptionStrict.Off Then
+                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            End If
+
+            If Options.ParseOptions IsNot Nothing Then
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
+
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+                WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
+            End If
+        End Sub
+
+        Private Sub WriteValue(builder As BlobBuilder, key As String, value As String)
+            builder.WriteUTF8(key)
+            builder.WriteByte(0)
+            builder.WriteUTF8(value)
+            builder.WriteByte(0)
+        End Sub
 #End Region
 
 #Region "Submission"
@@ -776,6 +843,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ScriptClass.GetScriptInitializer(),
                 Nothing)
         End Function
+
+        Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 
@@ -1770,7 +1843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ClassifyConversion(source, destination).ToCommonConversion()
         End Function
 
-        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As [Optional](Of Object)) As IConvertibleConversion
+        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As ConstantValue) As IConvertibleConversion
             constantValue = Nothing
 
             If destination Is Nothing Then
@@ -1779,9 +1852,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceType As ITypeSymbol = source.Type
 
+            Dim sourceConstantValue As ConstantValue = source.GetConstantValue()
             If sourceType Is Nothing Then
-                If source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing AndAlso destination.IsReferenceType Then
-                    constantValue = source.ConstantValue
+                If sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing AndAlso destination.IsReferenceType Then
+                    constantValue = sourceConstantValue
                     Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
                 End If
 
@@ -1790,8 +1864,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As Conversion = ClassifyConversion(sourceType, destination)
 
-            If result.IsReference AndAlso source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing Then
-                constantValue = source.ConstantValue
+            If result.IsReference AndAlso sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing Then
+                constantValue = sourceConstantValue
             End If
 
             Return result
@@ -1916,6 +1990,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SemanticModel.
         '''</summary> 
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+            Dim model As SemanticModel = Nothing
+            If SemanticModelProvider IsNot Nothing Then
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility)
+                Debug.Assert(model IsNot Nothing)
+            End If
+
+            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility))
+        End Function
+
+        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
 
@@ -2059,7 +2143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Before returning diagnostics, we filter some of them
             ' to honor the compiler options (e.g., /nowarn and /warnaserror)
-            FilterAndAppendAndFreeDiagnostics(diagnostics, builder)
+            FilterAndAppendAndFreeDiagnostics(diagnostics, builder, cancellationToken)
         End Sub
 
         Private Function GetClsComplianceDiagnostics(cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing) As ImmutableArray(Of Diagnostic)
@@ -2132,7 +2216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim result = DiagnosticBag.GetInstance()
-            FilterAndAppendAndFreeDiagnostics(result, builder)
+            FilterAndAppendAndFreeDiagnostics(result, builder, cancellationToken)
             Return result.ToReadOnlyAndFree(Of Diagnostic)()
         End Function
 
@@ -2307,7 +2391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
-            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing)
+            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing, cancellationToken)
 
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 
@@ -2356,7 +2440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
-                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
+                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag, cancellationToken)
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2388,7 +2472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics)
 
-            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics) Then
+            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken) Then
                 Return False
             End If
 
@@ -2400,7 +2484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension:=Nothing)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken)
 
-            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics)
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics, cancellationToken)
         End Function
 
         Private Iterator Function AddedModulesResourceNames(diagnostics As DiagnosticBag) As IEnumerable(Of String)
@@ -2725,6 +2809,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
+                returnType As ITypeSymbol,
+                refKind As RefKind,
+                parameterTypes As ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds As ImmutableArray(Of RefKind),
+                callingConvention As System.Reflection.Metadata.SignatureCallingConvention,
+                callingConventionTypes As ImmutableArray(Of INamedTypeSymbol)) As IFunctionPointerTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
         End Function
 
         Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol

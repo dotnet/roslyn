@@ -237,8 +237,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<ComplexifiedSpan>>();
 
             foreach (var (docId, spans) in _documentToComplexifiedSpansMap)
+            {
                 builder.Add(docId, spans.SelectAsArray(
                     s => new ComplexifiedSpan(s.OriginalSpan, s.NewSpan, s.ModifiedSubSpans.ToImmutableArray())));
+            }
 
             return builder.ToImmutable();
         }

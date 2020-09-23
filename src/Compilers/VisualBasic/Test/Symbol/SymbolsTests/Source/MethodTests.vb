@@ -6,6 +6,7 @@ Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1591,7 +1592,7 @@ Module M2
 
 End Module
 ]]></file>
-</compilation>, references:={SystemCoreRef, SystemRef}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
+</compilation>, references:={TestMetadata.Net40.SystemCore, TestMetadata.Net40.System}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)

@@ -13,12 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpReplClassification : AbstractInteractiveWindowTest
     {
-        public CSharpReplClassification(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpReplClassification(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
+        [WpfFact]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"using System.Console;

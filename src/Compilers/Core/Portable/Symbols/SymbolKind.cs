@@ -110,5 +110,10 @@ namespace Microsoft.CodeAnalysis
         /// Symbol represents a value that is discarded, e.g. in M(out _)
         /// </summary>
         Discard = 19,
+
+        /// <summary>
+        /// Symbol represents a function pointer type
+        /// </summary>
+        FunctionPointerType = 20,
     }
 }

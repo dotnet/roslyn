@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
             }
 
-            private SyntaxToken GetTokenWithLineBreaks(SyntaxToken token)
+            private static SyntaxToken GetTokenWithLineBreaks(SyntaxToken token)
             {
                 var currentToken = token.GetPreviousToken(includeZeroWidth: true);
 

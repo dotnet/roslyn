@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -4049,7 +4050,7 @@ public class MainClass
                 // (10,6): warning CS0684: 'IWorksheet' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'
                 //     [CoClass(typeof(WorksheetClass))]
                 Diagnostic(ErrorCode.WRN_CoClassWithoutComImport, "CoClass(typeof(WorksheetClass))").WithArguments("IWorksheet").WithLocation(10, 6),
-                // (20,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
+                // (20,17): error CS0144: Cannot create an instance of the abstract type or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(20, 17));
         }
@@ -4086,7 +4087,7 @@ public class MainClass
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
             CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
 
@@ -4099,7 +4100,7 @@ public class MainClass
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
             CreateCompilation(source2, references: new[] { assemblyRef }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
         }
@@ -4133,7 +4134,7 @@ public class MainClass
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (22,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (22,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(22, 17));
         }
@@ -4171,13 +4172,13 @@ public class MainClass
 }";
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
             CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
             CreateCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
         }
@@ -4214,7 +4215,7 @@ public class MainClass
                 // (6,25): error CS0122: 'Wrapper.WorksheetClass' is inaccessible due to its protection level
                 // [CoClass(typeof(Wrapper.WorksheetClass))]
                 Diagnostic(ErrorCode.ERR_BadAccess, "WorksheetClass").WithArguments("Wrapper.WorksheetClass").WithLocation(6, 25),
-                // (22,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (22,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(22, 17));
         }
@@ -4313,7 +4314,7 @@ public class MainClass
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
         }
@@ -4429,7 +4430,7 @@ public class MainClass
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,13): error CS0144: Cannot create an instance of the abstract class or interface 'InterfaceType'
+                // (16,13): error CS0144: Cannot create an instance of the abstract type or interface 'InterfaceType'
                 // [AAttribute(new InterfaceType())]
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new InterfaceType()").WithArguments("InterfaceType").WithLocation(16, 13));
         }
@@ -5654,7 +5655,7 @@ class A
                 source,
                 symbolValidator: metadataValidator,
                 expectedOutput: "",
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var compilation = verifier.Compilation;
@@ -5930,7 +5931,7 @@ public static class TestExtension
     public static void ObsoleteExtensionMethod1(this Test t) { }
 }
 ";
-            CreateCompilationWithMscorlib40(source, new[] { ExtensionAssemblyRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics(
                 // (98,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Obsolete] add {}
                 Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(98, 10),
@@ -6818,7 +6819,7 @@ public class Test
         }
 
         [Fact]
-        public void TestOverridenObsoleteSetterOnAttributes()
+        public void TestOverriddenObsoleteSetterOnAttributes()
         {
             var source = @"
 using System;
@@ -8658,6 +8659,108 @@ class C2 : C1
         }
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_05()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            // WithGeneralDiagnosticOption
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden),
+                // (6,9): hidden TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9));
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+
+
+            // WithSpecificDiagnosticOption for id TEST1
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Warn)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Error)),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Hidden)),
+                // (6,9): hidden TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Suppress)));
+
+
+            // WithSpecificDiagnosticOption for id CS0618
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Error)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Suppress)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            void verify(CSharpCompilationOptions options, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                verifyReference(comp1.ToMetadataReference(), options, expectedDiagnostics);
+                verifyReference(comp1.EmitToImageReference(), options, expectedDiagnostics);
+            }
+
+            void verifyReference(MetadataReference reference, CSharpCompilationOptions options, DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference }, options: options);
+                var diags = comp2.GetDiagnostics();
+
+                if (expectedDiagnostics.Any())
+                {
+                    var diag = diags.Single();
+                    Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+                }
+
+                diags.Verify(expectedDiagnostics);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_01()
         {
             var source1 = @"
@@ -10322,6 +10425,72 @@ partial class C
         }
 
         [Fact]
+        public void SkipLocalsInitAttributeOnExtendedPartialMethod_01()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    public partial int M()
+    {
+        int x = 1;
+        x = x + x + x;
+        return x;
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public partial int M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithExtendedPartialMethods, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExtendedPartialMethod_02()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public partial int M()
+    {
+        int x = 1;
+        x = x + x + x;
+        return x;
+    }
+}
+
+partial class C
+{
+    public partial int M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithExtendedPartialMethods, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
         public unsafe void StackallocWithSkipLocalsInit()
         {
             var src = @"
@@ -10668,7 +10837,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
             Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda
@@ -10710,7 +10879,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
@@ -10752,7 +10921,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
             Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
@@ -10794,7 +10963,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
             Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
@@ -10836,7 +11005,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
@@ -10878,7 +11047,7 @@ public class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
             Assert.True(verifier.HasLocalsInit("C.M"));
             Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
             Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda

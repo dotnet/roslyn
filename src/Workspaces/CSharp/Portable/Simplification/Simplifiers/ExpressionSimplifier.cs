@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                         if (containingType != null && !containingType.Equals(leftSymbol))
                         {
-                            if (leftSymbol is INamedTypeSymbol namedType &&
+                            if (leftSymbol is INamedTypeSymbol &&
                                 containingType.TypeArguments.Length != 0)
                             {
                                 return false;

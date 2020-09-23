@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
         {
             switch (node)
             {
-                case QualifiedNameSyntax qualified:
+                case QualifiedNameSyntax _:
                     return true;
                 case SimpleNameSyntax simple:
                     return !simple.IsParentKind(SyntaxKind.QualifiedName);
-                case MemberAccessExpressionSyntax memberAccess:
+                case MemberAccessExpressionSyntax _:
                     return true;
             }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -20,6 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private readonly object _experimentationServiceOpt;
         private readonly MethodInfo _isCachedFlightEnabledInfo;
         private readonly IVsFeatureFlags _featureFlags;
+
+        /// <summary>
+        /// Cache of values we've queried from the underlying VS service.  These values are expected to last for the
+        /// lifetime of the session, so it's fine for us to cache things to avoid the heavy cost of querying for them
+        /// over and over.
+        /// </summary>
+        private readonly Dictionary<string, bool> _experimentEnabledMap = new Dictionary<string, bool>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -53,6 +61,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         }
 
         public bool IsExperimentEnabled(string experimentName)
+        {
+            ThisCanBeCalledOnAnyThread();
+
+            // First look in our cache to see if this has already been computed and cached.
+            lock (_experimentEnabledMap)
+            {
+                if (_experimentEnabledMap.TryGetValue(experimentName, out var result))
+                    return result;
+            }
+
+            // Otherwise, compute and cache this ourselves.  It's fine if multiple callers cause this to happen.  We'll
+            // just let the last one win.
+            var enabled = IsExperimentEnabledWorker(experimentName);
+
+            lock (_experimentEnabledMap)
+            {
+                _experimentEnabledMap[experimentName] = enabled;
+            }
+
+            return enabled;
+        }
+
+        private bool IsExperimentEnabledWorker(string experimentName)
         {
             ThisCanBeCalledOnAnyThread();
             if (_isCachedFlightEnabledInfo != null)

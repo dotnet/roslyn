@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.ReturnsVoid || method.IsIterator || method.IsAsyncReturningTask(compilation))
             {
                 // we don't analyze synthesized void methods.
-                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) ||
+                    Analyze(compilation, method, block, diagnostics))
                 {
                     block = AppendImplicitReturn(block, method, originalBodyNested);
                 }
@@ -116,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(body.WasCompilerGenerated ||
                          syntax.IsKind(SyntaxKind.Block) ||
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
-                         syntax.IsKind(SyntaxKind.ConstructorDeclaration));
+                         syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
+                         syntax.IsKind(SyntaxKind.CompilationUnit));
 
             BoundStatement ret = (method.IsIterator && !method.IsAsync)
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)

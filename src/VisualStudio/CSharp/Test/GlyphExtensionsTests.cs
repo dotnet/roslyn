@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             bool isWithEvents = false,
             TypeKind typeKind = TypeKind.Unknown)
         {
-            var symbolMock = new Mock<ISymbol>();
+            var symbolMock = new Mock<ISymbol>(MockBehavior.Strict);
 
             symbolMock.SetupGet(s => s.Kind).Returns(kind);
             symbolMock.SetupGet(s => s.DeclaredAccessibility).Returns(declaredAccessibility);

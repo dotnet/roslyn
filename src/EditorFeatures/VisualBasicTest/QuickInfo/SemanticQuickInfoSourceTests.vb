@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Protected Shared Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim service = workspace.Services _
                 .GetLanguageServices(LanguageNames.VisualBasic) _
                 .GetService(Of QuickInfoService)
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End If
         End Function
 
-        Private Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Shared Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim info = Await service.GetQuickInfoAsync(
                 workspace.CurrentSolution.Projects.First().Documents.First(),
                 position, cancellationToken:=CancellationToken.None)
@@ -53,13 +53,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End If
         End Function
 
-        Private Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
+        Private Shared Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
             Using workspace = TestWorkspace.Create(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
 
-        Private Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Shared Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
@@ -1897,7 +1897,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= String.Format(FeaturesResources.Awaited_task_returns_0, "Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, $"<{VBFeaturesResources.Awaitable}> Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.is_} Integer"))
         End Function
 

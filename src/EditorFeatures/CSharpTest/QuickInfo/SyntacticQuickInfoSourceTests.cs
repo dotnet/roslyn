@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -260,7 +261,7 @@ if (true)
 {");
         }
 
-        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private static QuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
@@ -268,26 +269,26 @@ if (true)
             Document document,
             int position)
         {
-            var provider = CreateProvider(workspace);
+            var provider = CreateProvider();
             Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
-            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null)
         {
-            var provider = CreateProvider(workspace);
+            var provider = CreateProvider();
             var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
             var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
+            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
-            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, streamingPresenter, CancellationToken.None);
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, document, threadingContext, streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
             var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
@@ -325,7 +326,6 @@ if (true)
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
 
             if (string.IsNullOrEmpty(expectedContent))
             {
@@ -333,7 +333,7 @@ if (true)
             }
             else
             {
-                await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
+                await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
             }
         }
     }

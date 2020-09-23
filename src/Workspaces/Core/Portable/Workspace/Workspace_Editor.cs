@@ -523,7 +523,9 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
@@ -709,23 +711,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newSolution.GetProject(oldProject.Id);
-        }
-
-        /// <summary>
-        /// Update a project as a result of option changes.
-        /// 
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly move current solution forward when such event happened
-        /// </summary>
-        internal void OnProjectOptionsChanged(ProjectId projectId)
-        {
-            using (_serializationLock.DisposableWait())
-            {
-                var oldSolution = CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOptionsChanged(projectId));
-
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
         }
 
         internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)

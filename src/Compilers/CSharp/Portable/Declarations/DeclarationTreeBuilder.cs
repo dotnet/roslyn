@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We look for members that are not allowed in a namespace. 
             // If there are any we create an implicit class to wrap them.
             bool hasGlobalMembers = false;
+            bool acceptSimpleProgram = node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular;
+            bool hasAwaitExpressions = false;
+            bool isIterator = false;
+            bool hasReturnWithExpression = false;
+            GlobalStatementSyntax firstGlobalStatement = null;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
             foreach (var member in members)
@@ -60,10 +65,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     childrenBuilder.Add(namespaceOrType);
                 }
-                else
+                else if (acceptSimpleProgram && member.IsKind(SyntaxKind.GlobalStatement))
                 {
-                    hasGlobalMembers = hasGlobalMembers || member.Kind() != SyntaxKind.IncompleteMember;
+                    var global = (GlobalStatementSyntax)member;
+                    firstGlobalStatement ??= global;
+                    var topLevelStatement = global.Statement;
+
+                    if (!hasAwaitExpressions)
+                    {
+                        hasAwaitExpressions = SyntaxFacts.HasAwaitOperations(topLevelStatement);
+                    }
+
+                    if (!isIterator)
+                    {
+                        isIterator = SyntaxFacts.HasYieldOperations(topLevelStatement);
+                    }
+
+                    if (!hasReturnWithExpression)
+                    {
+                        hasReturnWithExpression = SyntaxFacts.HasReturnWithExpression(topLevelStatement);
+                    }
                 }
+                else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)
+                {
+                    hasGlobalMembers = true;
+                }
+            }
+
+            // wrap all global statements in a compilation unit into a simple program type:
+            if (firstGlobalStatement is object)
+            {
+                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression));
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
@@ -71,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 //The implicit class is not static and has no extensions
                 SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-                var memberNames = GetNonTypeMemberNames(internalMembers, ref declFlags);
+                var memberNames = GetNonTypeMemberNames(internalMembers, ref declFlags, skipGlobalStatements: acceptSimpleProgram);
                 var container = _syntaxTree.GetReference(node);
 
                 childrenBuilder.Add(CreateImplicitClass(memberNames, container, declFlags));
@@ -91,6 +123,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: container,
                 nameLocation: new SourceLocation(container),
                 memberNames: memberNames,
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: ImmutableArray<Diagnostic>.Empty);
+        }
+
+        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression)
+        {
+            return new SingleTypeDeclaration(
+                kind: DeclarationKind.SimpleProgram,
+                name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                arity: 0,
+                modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
+                declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
+                           (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None) |
+                           (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None),
+                syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
+                nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
+                memberNames: ImmutableHashSet<string>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
@@ -328,6 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, DeclarationKind.Interface);
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
+            => VisitTypeDeclaration(node, DeclarationKind.Record);
+
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
@@ -347,6 +399,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
+
+            // A record with parameters at least has a primary constructor
+            if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
+                node is RecordDeclarationSyntax { ParameterList: { } })
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+            }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
@@ -483,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static ImmutableHashSet<string> GetNonTypeMemberNames(
-            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
@@ -493,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
-                AddNonTypeMemberNames(member, memberNameBuilder, ref anyNonTypeMembers);
+                AddNonTypeMemberNames(member, memberNameBuilder, ref anyNonTypeMembers, skipGlobalStatements);
 
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
@@ -565,6 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:
@@ -602,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
         {
             switch (member.Kind)
             {
@@ -693,7 +753,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.GlobalStatement:
-                    anyNonTypeMembers = true;
+                    if (!skipGlobalStatements)
+                    {
+                        anyNonTypeMembers = true;
+                    }
                     break;
             }
         }

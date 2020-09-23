@@ -33,8 +33,19 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
+  # Verify no PROTOTYPE marker left in master
+  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "master") {
+    Write-Host "Checking no PROTOTYPE markers in compiler source"
+    $prototypes = Get-ChildItem -Path src/Compilers/*.cs, src/Compilers/*.vb,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
+    if ($prototypes) {
+      Write-Host "Found PROTOTYPE markers in compiler source:"
+      Write-Host $prototypes
+      throw "PROTOTYPE markers disallowed in compiler source"
+    }
+  }
+
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
 
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
@@ -45,6 +56,7 @@ try {
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
+  Exec-Console dotnet "format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
   Write-Host ""
   
   # Verify the state of creating run settings for OptProf

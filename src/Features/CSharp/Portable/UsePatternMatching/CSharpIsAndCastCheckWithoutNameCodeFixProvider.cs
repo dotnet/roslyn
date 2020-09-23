@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.AnalyzeExpression(
                 semanticModel, isExpression, cancellationToken);
 
-            var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.ReplaceMatches(
+            var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.ReplaceMatches(
                 semanticModel, isExpression, localName, matches, cancellationToken);
 
             var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// A MEF-exported factory which produces <see cref="IDocumentOptionsProvider"/>s for <see cref="Workspace"/>s.
     /// </summary>
-    interface IDocumentOptionsProviderFactory
+    internal interface IDocumentOptionsProviderFactory
     {
         IDocumentOptionsProvider? TryCreate(Workspace workspace);
     }

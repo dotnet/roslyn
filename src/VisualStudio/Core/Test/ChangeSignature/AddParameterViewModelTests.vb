@@ -4,20 +4,17 @@
 
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
-Imports Roslyn.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Public Class AddParameterViewModelTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_SubmittingRequiresTypeAndNameAndCallsiteValue()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -31,20 +28,24 @@ class MyClass
             VerifyOpeningState(viewModel)
 
             viewModel.VerbatimTypeName = "int"
-            Assert.False(viewModel.TrySubmit())
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
 
             viewModel.VerbatimTypeName = ""
             viewModel.ParameterName = "x"
-            Assert.False(viewModel.TrySubmit())
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
 
             viewModel.VerbatimTypeName = "int"
-            Assert.False(viewModel.TrySubmit())
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind, message)
 
             viewModel.CallSiteValue = "7"
             Assert.True(viewModel.TrySubmit())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_TypeNameTextBoxInteractions()
             Dim markup = <Text><![CDATA[
 class MyClass<T>
@@ -128,7 +129,7 @@ class MyClass<T>
             AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeIsEmptyImage), ServicesVSResources.Please_enter_a_type_name)
         End Sub
 
-        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfTheory>
         <InlineData("int")>
         <InlineData("MyClass")>
         <InlineData("NS1.NS2.DifferentClass")>
@@ -175,7 +176,7 @@ class MyClass
             Assert.True(viewModel.TrySubmit())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_CannotBeBothRequiredAndOmit()
             Dim markup = <Text><![CDATA[
 class MyClass<T>
@@ -205,7 +206,7 @@ class MyClass<T>
             Assert.False(viewModel.IsCallsiteOmitted)
         End Sub
 
-        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfTheory>
         <InlineData("int")>
         <InlineData("MyClass")>
         <InlineData("NS1.NS2.DifferentClass")>
@@ -279,7 +280,9 @@ class MyClass
             Assert.False(viewModel.IsCallsiteTodo)
             Assert.False(viewModel.IsCallsiteOmitted)
 
-            Assert.False(viewModel.TrySubmit)
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
         End Sub
 
         Private Function GetViewModelTestStateAsync(
@@ -293,12 +296,7 @@ class MyClass
                 </Project>
             </Workspace>
 
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
-                    .WithParts(GetType(CSharpChangeSignatureViewModelFactoryService), GetType(VisualBasicChangeSignatureViewModelFactoryService))) _
-                .CreateExportProvider()
-
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
@@ -309,5 +307,46 @@ class MyClass
                 Return New AddParameterViewModelTestState(viewModel)
             End Using
         End Function
+
+        <WorkItem(44958, "https://github.com/dotnet/roslyn/issues/44958")>
+        <WpfFact>
+        Public Sub AddParameter_SubmittingTypeWithModifiersIsInvalid()
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public void M($$) { }
+}"]]></Text>
+
+            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+
+            VerifyOpeningState(viewModel)
+
+            viewModel.ParameterName = "x"
+            viewModel.CallSiteValue = "1"
+
+            viewModel.TypeSymbol = Nothing
+            Dim message As String = Nothing
+
+            viewModel.VerbatimTypeName = "ref int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "this int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "this ref int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "out int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "params int[]"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+        End Sub
     End Class
 End Namespace

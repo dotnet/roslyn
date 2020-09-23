@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
@@ -129,11 +129,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// The glyph for the symbol being renamed, for use in displaying information to the user.
         /// </summary>
         FSharpGlyph Glyph { get; }
-
-        /// <summary>
-        /// The locations of the potential rename candidates for the symbol.
-        /// </summary>
-        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
 
         /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text

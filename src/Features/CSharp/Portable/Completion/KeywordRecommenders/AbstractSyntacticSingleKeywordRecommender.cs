@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
-            var syntaxTree = context.SemanticModel.SyntaxTree;
             if (!_isValidInPreprocessorContext &&
                 context.IsPreProcessorDirectiveContext)
             {

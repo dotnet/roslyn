@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             public static FormattedClassification PlusEquals { get; } = New("+=");
             public static FormattedClassification PlusPlus { get; } = New("++");
             public static FormattedClassification QuestionMark { get; } = New("?");
+            public static FormattedClassification QuestionQuestionEquals { get; } = New("??=");
             public static FormattedClassification Slash { get; } = New("/");
             public static FormattedClassification SlashEquals { get; } = New("/=");
             public static FormattedClassification Tilde { get; } = New("~");

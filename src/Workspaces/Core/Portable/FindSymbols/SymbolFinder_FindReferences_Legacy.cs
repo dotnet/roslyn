@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -29,9 +27,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return FindReferencesAsync(symbol, solution, FindReferencesSearchOptions.Default, cancellationToken);
         }
 
@@ -41,8 +36,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
-
             var progressCollector = new StreamingProgressCollector();
             await FindReferencesAsync(
                 symbol, solution, progressCollector,
@@ -63,9 +56,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return FindReferencesAsync(symbol, solution, progress: null, documents: documents, cancellationToken: cancellationToken);
         }
 
@@ -78,22 +68,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
-            return FindReferencesAsync(
+            return await FindReferencesAsync(
                 symbol, solution, progress, documents,
-                FindReferencesSearchOptions.Default, cancellationToken);
+                FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
@@ -101,8 +88,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
-
             progress ??= NoOpFindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
@@ -114,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static class TestAccessor
         {
-            internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            internal static Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
                 ISymbol symbol,
                 Solution solution,
                 IFindReferencesProgress progress,

@@ -939,7 +939,6 @@ Public Class derived
     Overrides $$
 End Class</a>
 
-
             Dim expectedCode = <a>Public Class base
     Public Overridable Property goo As String
 End Class

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return GetMembersInTypes(tree, typesInFile, cancellationToken);
         }
 
-        private IList<NavigationBarItem> GetMembersInTypes(
+        private static IList<NavigationBarItem> GetMembersInTypes(
             SyntaxTree tree, IEnumerable<INamedTypeSymbol> types, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         {
                             memberItems.Add(CreateItemForMember(
                                 method,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey()),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(cancellationToken)),
                                 tree,
                                 cancellationToken));
 
                             memberItems.Add(CreateItemForMember(
                                 method.PartialImplementationPart,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey()),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey(cancellationToken)),
                                 tree,
                                 cancellationToken));
                         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
                             memberItems.Add(CreateItemForMember(
                                 member,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken)),
                                 tree,
                                 cancellationToken));
                         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         return textComparison != 0 ? textComparison : x.Grayed.CompareTo(y.Grayed);
                     });
 
-                    var symbolId = type.GetSymbolKey();
+                    var symbolId = type.GetSymbolKey(cancellationToken);
                     items.Add(new NavigationBarSymbolItem(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
         }
 
-        private async Task<IEnumerable<INamedTypeSymbol>> GetTypesInFileAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<IEnumerable<INamedTypeSymbol>> GetTypesInFileAsync(Document document, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return false;
         }
 
-        private NavigationBarItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
+        private static NavigationBarItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = GetSpansInDocument(member, tree, cancellationToken);
 
@@ -206,12 +206,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,
-                member.GetSymbolKey(),
+                member.GetSymbolKey(cancellationToken),
                 symbolIndex,
                 grayed: spans.Count == 0);
         }
 
-        private IList<TextSpan> GetSpansInDocument(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
+        private static IList<TextSpan> GetSpansInDocument(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = new List<TextSpan>();
             if (!cancellationToken.IsCancellationRequested)
@@ -346,14 +346,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
             return new VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start);
         }
-
-        [Conditional("DEBUG")]
-        private static void ValidateSpanFromBounds(ITextSnapshot snapshot, int start, int end)
-            => Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
-
-        [Conditional("DEBUG")]
-        private static void ValidateSpan(ITextSnapshot snapshot, int start, int length)
-            => ValidateSpanFromBounds(snapshot, start, start + length);
 
         public override void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
             => NavigateToSymbolItem(document, (NavigationBarSymbolItem)item, cancellationToken);

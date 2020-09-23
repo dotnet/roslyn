@@ -140,9 +140,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private bool Any<TIntrospector>(int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
-            using var _ = ArrayBuilder<T>.GetInstance(out var builder);
-            FillWithIntervalsThatMatch(start, length, testInterval, builder, in introspector, stopAfterFirst: true);
-            return builder.Count > 0;
+            var matches = FillWithIntervalsThatMatch(start, length, testInterval, builder: null, in introspector, stopAfterFirst: true);
+            return matches > 0;
         }
 
         private ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(
@@ -154,33 +153,38 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return result.ToImmutableAndFree();
         }
 
-        private void FillWithIntervalsThatMatch<TIntrospector>(
+        /// <returns>The number of matching intervals found by the method.</returns>
+        private int FillWithIntervalsThatMatch<TIntrospector>(
             int start, int length, TestInterval<TIntrospector> testInterval,
-            ArrayBuilder<T> builder, in TIntrospector introspector,
+            ArrayBuilder<T>? builder, in TIntrospector introspector,
             bool stopAfterFirst)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             if (root == null)
             {
-                return;
+                return 0;
             }
 
             var candidates = s_stackPool.Allocate();
 
-            FillWithIntervalsThatMatch(
+            var matches = FillWithIntervalsThatMatch(
                 start, length, testInterval,
                 builder, in introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
+
+            return matches;
         }
 
-        private void FillWithIntervalsThatMatch<TIntrospector>(
+        /// <returns>The number of matching intervals found by the method.</returns>
+        private int FillWithIntervalsThatMatch<TIntrospector>(
             int start, int length, TestInterval<TIntrospector> testInterval,
-            ArrayBuilder<T> builder, in TIntrospector introspector,
+            ArrayBuilder<T>? builder, in TIntrospector introspector,
             bool stopAfterFirst, Stack<(Node? node, bool firstTime)> candidates)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
+            var matches = 0;
             var end = start + length;
 
             candidates.Push((root, firstTime: true));
@@ -199,11 +203,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     // side of it).  Now see if it matches our test, and if so return it out.
                     if (testInterval(currentNode.Value, start, length, in introspector))
                     {
-                        builder.Add(currentNode.Value);
+                        matches++;
+                        builder?.Add(currentNode.Value);
 
                         if (stopAfterFirst)
                         {
-                            return;
+                            return 1;
                         }
                     }
                 }
@@ -237,6 +242,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     }
                 }
             }
+
+            return matches;
         }
 
         public bool IsEmpty() => this.root == null;

@@ -7,14 +7,13 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     public class BasicErrorListCommon : AbstractEditorTest
     {
-        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName)
-            : base(instanceFactor, testOutputHelper, nameof(BasicErrorListCommon), templateName)
+        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactory, string templateName)
+            : base(instanceFactory, nameof(BasicErrorListCommon), templateName)
         {
         }
 
@@ -40,14 +39,14 @@ End Module
                 new ErrorListItem(
                     severity: "Error",
                     description: "Type 'P' is not defined.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 4,
                     column: 24),
                 new ErrorListItem(
                     severity: "Error",
                     description: "'Goo' is not declared. It may be inaccessible due to its protection level.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 9,
                     column: 9)
@@ -56,7 +55,7 @@ End Module
             Assert.Equal(expectedContents, actualContents);
             VisualStudio.ErrorList.NavigateToErrorListItem(0);
             VisualStudio.Editor.Verify.CaretPosition(43);
-            VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+            VisualStudio.SolutionExplorer.BuildSolution();
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
@@ -89,7 +88,7 @@ End Namespace
                 new ErrorListItem(
                     severity: "Error",
                     description: "'FF' is not declared. It may be inaccessible due to its protection level.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 6,
                     column: 13)

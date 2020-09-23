@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private bool ViewIncludesBufferFromWorkspace(IWpfTextView textView, Workspace workspace)
+        private static bool ViewIncludesBufferFromWorkspace(IWpfTextView textView, Workspace workspace)
         {
             return textView.BufferGraph.GetTextBuffers(b => GetWorkspace(b.AsTextContainer()) == workspace)
                                        .Any();

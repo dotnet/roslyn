@@ -262,6 +262,10 @@ namespace Roslyn.Utilities
 
                 WriteArray(instance);
             }
+            else if (value is Encoding encoding)
+            {
+                WriteEncoding(encoding);
+            }
             else
             {
                 WriteObject(instance: value, instanceAsWritable: null);
@@ -787,6 +791,58 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
+        public void WriteEncoding(Encoding? encoding)
+        {
+            var kind = GetEncodingKind(encoding);
+            WriteByte((byte)kind);
+
+            if (kind == EncodingKind.EncodingName)
+            {
+                WriteString(encoding!.WebName);
+            }
+        }
+
+        private static EncodingKind GetEncodingKind(Encoding? encoding)
+        {
+            if (encoding is null)
+            {
+                return EncodingKind.Null;
+            }
+
+            switch (encoding.CodePage)
+            {
+                case 1200:
+                    Debug.Assert(HasPreamble(Encoding.Unicode));
+                    return (encoding.Equals(Encoding.Unicode) || HasPreamble(encoding)) ? EncodingKind.EncodingUnicode_LE_BOM : EncodingKind.EncodingUnicode_LE;
+
+                case 1201:
+                    Debug.Assert(HasPreamble(Encoding.BigEndianUnicode));
+                    return (encoding.Equals(Encoding.BigEndianUnicode) || HasPreamble(encoding)) ? EncodingKind.EncodingUnicode_BE_BOM : EncodingKind.EncodingUnicode_BE;
+
+                case 12000:
+                    Debug.Assert(HasPreamble(Encoding.UTF32));
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_LE_BOM : EncodingKind.EncodingUTF32_LE;
+
+                case 12001:
+                    Debug.Assert(HasPreamble(Encoding.UTF32));
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_BE_BOM : EncodingKind.EncodingUTF32_BE;
+
+                case 65001:
+                    Debug.Assert(HasPreamble(Encoding.UTF8));
+                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF8_BOM : EncodingKind.EncodingUTF8;
+
+                default:
+                    return EncodingKind.EncodingName;
+            }
+
+            static bool HasPreamble(Encoding encoding)
+#if NETCOREAPP
+                => !encoding.Preamble.IsEmpty;
+#else
+                => !encoding.GetPreamble().IsEmpty();
+#endif
+        }
+
         private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
         {
             RoslynDebug.Assert(instance != null);
@@ -1240,8 +1296,24 @@ namespace Roslyn.Utilities
             /// </summary>
             StringType,
 
+            /// <summary>
+            /// Encoding serialized as <see cref="Encoding.WebName"/>.
+            /// </summary>
+            EncodingName,
 
-            Last = StringType + 1,
+            // well-known encodings (parameterized by BOM)
+            EncodingUTF8,
+            EncodingUTF8_BOM,
+            EncodingUTF32_BE,
+            EncodingUTF32_BE_BOM,
+            EncodingUTF32_LE,
+            EncodingUTF32_LE_BOM,
+            EncodingUnicode_BE,
+            EncodingUnicode_BE_BOM,
+            EncodingUnicode_LE,
+            EncodingUnicode_LE_BOM,
+
+            Last,
         }
     }
 }

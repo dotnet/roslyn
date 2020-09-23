@@ -4,7 +4,6 @@
 
 #nullable enable
 
-
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ConversionExtensions

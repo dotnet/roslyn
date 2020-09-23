@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        internal Holder CreateSession(string code)
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

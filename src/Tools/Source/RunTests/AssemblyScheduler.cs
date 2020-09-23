@@ -196,19 +196,13 @@ namespace RunTests
             _methodLimit = methodLimit;
         }
 
-        internal IEnumerable<AssemblyInfo> Schedule(IEnumerable<string> assemblyPaths)
-        {
-            var list = new List<AssemblyInfo>();
-            foreach (var assemblyPath in assemblyPaths)
-            {
-                list.AddRange(Schedule(assemblyPath));
-            }
-
-            return list;
-        }
-
         public IEnumerable<AssemblyInfo> Schedule(string assemblyPath, bool force = false)
         {
+            if (_options.Sequential)
+            {
+                return new[] { CreateAssemblyInfo(assemblyPath) };
+            }
+
             var typeInfoList = GetTypeInfoList(assemblyPath);
             var assemblyInfoList = new List<AssemblyInfo>();
             var partitionList = new List<Partition>();

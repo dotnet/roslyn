@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public sealed override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddSuppressOperationsSlow(list, node, ref nextOperationCopy);
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
+        public sealed override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddAnchorIndentationOperationsSlow(list, node, ref nextOperationCopy);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+        public sealed override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddIndentBlockOperationsSlow(list, node, ref nextOperationCopy);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
+        public sealed override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddAlignTokensOperationsSlow(list, node, ref nextOperationCopy);
@@ -47,18 +47,22 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public sealed override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
+            var previousTokenCopy = previousToken;
+            var currentTokenCopy = currentToken;
             var nextOperationCopy = nextOperation;
-            return GetAdjustNewLinesOperationSlow(previousToken, currentToken, ref nextOperationCopy);
+            return GetAdjustNewLinesOperationSlow(ref previousTokenCopy, ref currentTokenCopy, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public sealed override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
+            var previousTokenCopy = previousToken;
+            var currentTokenCopy = currentToken;
             var nextOperationCopy = nextOperation;
-            return GetAdjustSpacesOperationSlow(previousToken, currentToken, ref nextOperationCopy);
+            return GetAdjustSpacesOperationSlow(ref previousTokenCopy, ref currentTokenCopy, ref nextOperationCopy);
         }
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
 
@@ -90,13 +94,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, ref NextGetAdjustNewLinesOperation nextOperation)
-            => base.GetAdjustNewLinesOperation(previousToken, currentToken, in nextOperation);
+        public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustNewLinesOperation nextOperation)
+            => base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
 
         /// <summary>
         /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustSpacesOperation? GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, ref NextGetAdjustSpacesOperation nextOperation)
-            => base.GetAdjustSpacesOperation(previousToken, currentToken, in nextOperation);
+        public virtual AdjustSpacesOperation? GetAdjustSpacesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustSpacesOperation nextOperation)
+            => base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
     }
 }

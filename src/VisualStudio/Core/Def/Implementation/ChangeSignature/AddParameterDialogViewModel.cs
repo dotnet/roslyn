@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis;
@@ -21,11 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly INotificationService? _notificationService;
 
         public readonly Document Document;
-        public readonly int InsertPosition;
+        public readonly int PositionForTypeBinding;
 
         private readonly SemanticModel _semanticModel;
 
-        public AddParameterDialogViewModel(Document document, int insertPosition)
+        public AddParameterDialogViewModel(Document document, int positionForTypeBinding)
         {
             _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name;
 
             Document = document;
-            InsertPosition = insertPosition;
+            PositionForTypeBinding = positionForTypeBinding;
 
             IsRequired = true;
             IsCallsiteRegularValue = true;
@@ -98,6 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string DefaultValue { get; set; }
         public bool IsCallsiteTodo { get; set; }
         public bool IsCallsiteOmitted { get; set; }
+        public bool IsCallsiteInferred { get; set; }
         public bool IsCallsiteRegularValue { get; set; } = true;
 
         public bool UseNamedArguments { get; set; }
@@ -121,35 +123,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
-        internal bool TrySubmit()
+        internal bool CanSubmit([NotNullWhen(false)] out string? message)
         {
             if (string.IsNullOrEmpty(VerbatimTypeName) || string.IsNullOrEmpty(ParameterName))
             {
-                SendFailureNotification(ServicesVSResources.A_type_and_name_must_be_provided);
+                message = ServicesVSResources.A_type_and_name_must_be_provided;
                 return false;
             }
 
-            if (!IsParameterTypeSyntacticallyValid(VerbatimTypeName))
+            if (TypeSymbol == null || !IsParameterTypeSyntacticallyValid(VerbatimTypeName))
             {
-                SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
+                message = ServicesVSResources.Parameter_type_contains_invalid_characters;
                 return false;
             }
 
             if (!IsParameterNameValid(ParameterName))
             {
-                SendFailureNotification(ServicesVSResources.Parameter_name_contains_invalid_characters);
+                message = ServicesVSResources.Parameter_name_contains_invalid_characters;
                 return false;
             }
 
             if (IsCallsiteRegularValue && CallSiteValue.IsNullOrWhiteSpace())
             {
-                SendFailureNotification(ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind);
+                message = ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind;
                 return false;
             }
 
             if (IsOptional && DefaultValue.IsNullOrWhiteSpace())
             {
-                SendFailureNotification(ServicesVSResources.Optional_parameters_must_provide_a_default_value);
+                message = ServicesVSResources.Optional_parameters_must_provide_a_default_value;
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        internal bool TrySubmit()
+        {
+            if (!CanSubmit(out var message))
+            {
+                SendFailureNotification(message);
                 return false;
             }
 
@@ -180,10 +194,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 TypeIsEmptyImage = Visibility.Collapsed;
 
                 var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-                TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
 
                 var typeParses = IsParameterTypeSyntacticallyValid(typeName);
-                if (!typeParses)
+                if (!typeParses || TypeSymbol == null)
                 {
                     TypeDoesNotParseImage = Visibility.Visible;
                     TypeDoesNotBindImage = Visibility.Collapsed;

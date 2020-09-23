@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public int CompareTo(MatchResult other, string filterText)
             => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
 
-        private readonly static ImmutableArray<Func<MatchResult, string, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<MatchResult, string, IComparable>> s_comparers =
             ImmutableArray.Create<Func<MatchResult, string, IComparable>>(
                 // Prefer the item that matches a longer prefix of the filter text.
                 (f, s) => f.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(s),

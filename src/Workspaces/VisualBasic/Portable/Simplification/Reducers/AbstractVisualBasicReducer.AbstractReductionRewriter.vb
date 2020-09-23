@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Public Sub Initialize(parseOptions As ParseOptions, optionSet As OptionSet, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
                 Me.ParseOptions = DirectCast(parseOptions, VisualBasicParseOptions)
                 _simplificationOptions = optionSet
-                cancellationToken = cancellationToken
+                Me.CancellationToken = cancellationToken
             End Sub
 
             Public Sub Dispose() Implements IDisposable.Dispose

@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, CancellationToken cancellationToken)
+            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             var result = TryLoadOrCreateAsync(
                 project.Solution,
                 checksum,
-                loadOnly: false,
+                loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
                 tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
@@ -114,8 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return CreateSymbolTreeInfo(
                 project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                simpleMethods: null,
-                complexMethods: ImmutableArray<ExtensionMethodInfo>.Empty);
+                simpleMethods: null);
         }
 
         // generate nodes for the global namespace an all descendants

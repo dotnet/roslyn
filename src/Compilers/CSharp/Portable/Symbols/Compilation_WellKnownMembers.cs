@@ -434,6 +434,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
+        internal SynthesizedAttributeData? TrySynthesizeAttribute(
+            SpecialMember constructor,
+            bool isOptionalUse = false)
+        {
+            var ctorSymbol = (MethodSymbol)this.GetSpecialTypeMember(constructor);
+
+            if ((object)ctorSymbol == null)
+            {
+                Debug.Assert(isOptionalUse);
+                return null;
+            }
+
+            return new SynthesizedAttributeData(
+                ctorSymbol,
+                arguments: ImmutableArray<TypedConstant>.Empty,
+                namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+        }
+
         internal SynthesizedAttributeData? SynthesizeDecimalConstantAttribute(decimal value)
         {
             bool isNegative;
@@ -862,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> transformFlagsBuilder, bool isNestedNamedType, bool addCustomModifierFlags)
             {
-                // Encode transforms flag for this type and it's custom modifiers (if any).
+                // Encode transforms flag for this type and its custom modifiers (if any).
                 switch (type.TypeKind)
                 {
                     case TypeKind.Dynamic:
@@ -887,6 +905,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         transformFlagsBuilder.Add(false);
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        Debug.Assert(!isNestedNamedType);
+                        handleFunctionPointerType((FunctionPointerTypeSymbol)type, transformFlagsBuilder, addCustomModifierFlags);
+
+                        // Function pointer types have nested custom modifiers and refkinds in line with types, and visit all their nested types
+                        // as part of this call.
+                        // We need a different way to indicate that we should not recurse for this type, but should continue walking for other
+                        // types. https://github.com/dotnet/roslyn/issues/44160
+                        return true;
+
                     default:
                         // Encode transforms flag for this type.
                         // For nested named types, a single flag (false) is encoded for the entire type name, followed by flags for all of the type arguments.
@@ -906,6 +934,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Continue walking types
                 return false;
+
+                static void handleFunctionPointerType(FunctionPointerTypeSymbol funcPtr, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
+                {
+                    Func<TypeSymbol, (ArrayBuilder<bool>, bool), bool, bool> visitor =
+                        (TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModifierFlags) param, bool isNestedNamedType) => AddFlags(type, param.builder, isNestedNamedType, param.addCustomModifierFlags);
+
+                    // The function pointer type itself gets a false
+                    transformFlagsBuilder.Add(false);
+
+                    var sig = funcPtr.Signature;
+                    handle(sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
+
+                    foreach (var param in sig.Parameters)
+                    {
+                        handle(param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
+                    }
+
+                    void handle(RefKind refKind, ImmutableArray<CustomModifier> customModifiers, TypeWithAnnotations twa)
+                    {
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(customModifiers.Length, transformFlagsBuilder);
+                        }
+
+                        if (refKind != RefKind.None)
+                        {
+                            transformFlagsBuilder.Add(false);
+                        }
+
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(twa.CustomModifiers.Length, transformFlagsBuilder);
+                        }
+
+                        twa.Type.VisitType(visitor, (transformFlagsBuilder, addCustomModifierFlags));
+                    }
+                }
             }
 
             private static void HandleCustomModifiers(int customModifiersCount, ArrayBuilder<bool> transformFlagsBuilder)
@@ -917,44 +982,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static class NativeIntegerTransformsEncoder
         {
-            internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType)
+            internal static void Encode(ArrayBuilder<bool> builder, TypeSymbol type)
             {
-                var builder = ArrayBuilder<bool>.GetInstance();
-                type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested), builder);
-                Debug.Assert(builder.Any());
-                Debug.Assert(builder.Contains(true));
-
-                var result = builder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
-                builder.Free();
-                return result;
+                type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder), builder);
             }
 
-            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> builder, bool isNestedNamedType)
+            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> builder)
             {
-                switch (type.TypeKind)
+                switch (type.SpecialType)
                 {
-                    case TypeKind.Array:
-                    case TypeKind.Pointer:
-                    case TypeKind.TypeParameter:
-                    case TypeKind.Dynamic:
-                        builder.Add(false);
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        builder.Add(type.IsNativeIntegerType);
                         break;
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                    case TypeKind.Interface:
-                    case TypeKind.Delegate:
-                    case TypeKind.Enum:
-                    case TypeKind.Error:
-                        // For nested named types, a single false is encoded for the entire type name, followed by flags for all of the type arguments.
-                        if (!isNestedNamedType)
-                        {
-                            builder.Add(type.IsNativeIntegerType);
-                        }
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
                 }
-
                 // Continue walking types
                 return false;
             }

@@ -39,24 +39,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
         internal static AddedParameterOrExistingIndex CreateAdded(
             string fullTypeName,
             string parameterName,
+            CallSiteKind callSiteKind,
             string callSiteValue = "",
             bool isRequired = true,
             string defaultValue = "",
-            bool useNamedArguments = false,
-            bool isCallsiteOmitted = false,
-            bool isCallsiteTodo = false,
             bool typeBinds = true)
         {
             var parameter = new AddedParameter(
                 type: null!, // Filled in later based on the fullTypeName
                 typeName: null!, // Not needed for engine testing
                 parameterName,
+                callSiteKind,
                 callSiteValue,
                 isRequired,
                 defaultValue,
-                useNamedArguments,
-                isCallsiteOmitted,
-                isCallsiteTodo,
                 typeBinds);
 
             return new AddedParameterOrExistingIndex(parameter, fullTypeName);
@@ -85,12 +81,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 type,
                 _addedParameterWithoutTypeSymbol!.TypeName,
                 _addedParameterWithoutTypeSymbol.Name,
+                _addedParameterWithoutTypeSymbol.CallSiteKind,
                 _addedParameterWithoutTypeSymbol.CallSiteValue,
                 _addedParameterWithoutTypeSymbol.IsRequired,
-                _addedParameterWithoutTypeSymbol.DefaultValue,
-                _addedParameterWithoutTypeSymbol.UseNamedArguments,
-                _addedParameterWithoutTypeSymbol.IsCallsiteOmitted,
-                _addedParameterWithoutTypeSymbol.IsCallsiteTodo);
+                _addedParameterWithoutTypeSymbol.DefaultValue);
         }
     }
 }

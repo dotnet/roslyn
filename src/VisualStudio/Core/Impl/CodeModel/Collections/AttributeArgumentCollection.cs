@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var attributeArgumentNodes = CodeModelService.GetAttributeArgumentNodes(node);
             if (index >= 0 && index < attributeArgumentNodes.Count())
             {
-                var child = attributeArgumentNodes.ElementAt(index);
                 element = (EnvDTE.CodeElement)CodeAttributeArgument.Create(this.State, this.ParentAttribute, index);
                 return true;
             }

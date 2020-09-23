@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, location)
+            : base(containingType, syntaxReference, location, isIterator: false)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             // do not generate attributes for members of compiler-generated types:
-            if (ContainingType.IsImplicitlyDeclared)
+            if (ContainingType.IsImplicitlyDeclared || ContainingType is SimpleProgramNamedTypeSymbol)
             {
                 return;
             }
@@ -243,5 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
             }
         }
+
+        internal override bool IsIterator => BaseMethod.IsIterator;
     }
 }

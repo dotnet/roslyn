@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
             context.RegisterCodeFix(New CorrectNextControlVariableCodeAction(context.Document, nodeToReplace, newNode), context.Diagnostics)
         End Function
 
-        Private Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
+        Private Shared Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
             Debug.Assert(nestingLevel >= 0)
 
             ' If we have code like this:
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
 
             ' A ForBlockSyntax can either be a ForBlock or a ForEachBlock. Get the control variable
             ' from that.
-            Dim controlVariable As SyntaxNode = Nothing
+            Dim controlVariable As SyntaxNode
             Select Case forBlock.Kind()
                 Case SyntaxKind.ForBlock
                     Dim forStatement = DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)

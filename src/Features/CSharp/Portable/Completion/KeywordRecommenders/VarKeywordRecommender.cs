@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsPossibleTupleContext ||
-                context.IsPatternContext)
+                context.IsAtStartOfPattern)
             {
                 return true;
             }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("var")));
             }
 
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return SpecializedTasks.Null<IEnumerable<RecommendedKeyword>>();
         }
     }
 }

@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string UseNamedArgument { get { return ServicesVSResources.Use_named_argument; } }
         public string IntroduceUndefinedTodoVariables { get { return ServicesVSResources.IntroduceUndefinedTodoVariables; } }
         public string OmitOnlyForOptionalParameters { get { return ServicesVSResources.Omit_only_for_optional_parameters; } }
+        public string InferFromContext { get { return ServicesVSResources.Infer_from_context; } }
 
         public AddParameterDialog(AddParameterDialogViewModel viewModel)
         {

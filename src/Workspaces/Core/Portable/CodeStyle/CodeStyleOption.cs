@@ -4,12 +4,18 @@
 
 using System;
 using System.Xml.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <inheritdoc cref="CodeStyleOption2{T}"/>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
+        static CodeStyleOption()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption<T>), ReadFrom);
+        }
+
         private readonly CodeStyleOption2<T> _codeStyleOptionImpl;
         public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
 
@@ -27,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => _codeStyleOptionImpl.Value = value;
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
         object ICodeStyleOption.Value => this.Value;
         NotificationOption2 ICodeStyleOption.Notification => _codeStyleOptionImpl.Notification;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
@@ -47,6 +54,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static CodeStyleOption<T> FromXElement(XElement element)
             => new CodeStyleOption<T>(CodeStyleOption2<T>.FromXElement(element));
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+            => _codeStyleOptionImpl.WriteTo(writer);
+
+        internal static CodeStyleOption<object> ReadFrom(ObjectReader reader)
+            => new CodeStyleOption<object>(CodeStyleOption2<T>.ReadFrom(reader));
 
         public bool Equals(CodeStyleOption<T> other)
             => _codeStyleOptionImpl.Equals(other?._codeStyleOptionImpl);

@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AccessorBody = 1 << 0,
             OperatorBody = 1 << 0,
 
-            NamedTypeBodyOrTypeParameters = 1 << 0,
-            NamedTypeBaseList = 1 << 1,
+            NamedTypeBodyOrTypeParameters = 1 << 1, // Cannot share the value with ConstructorBodyOrInitializer
+            NamedTypeBaseListOrParameterList = 1 << 2, // Cannot share the value with ConstructorBodyOrInitializer
 
             NamespaceBody = 1 << 0,
             NamespaceUsings = 1 << 1,

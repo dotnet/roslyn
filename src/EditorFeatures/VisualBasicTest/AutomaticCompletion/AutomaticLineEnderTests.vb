@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -266,12 +265,12 @@ End Module
             Test(expected.NormalizedValue(), code.NormalizedValue())
         End Sub
 
-        Friend Overrides Function CreateCommandHandler(
-            undoRegistry As ITextUndoHistoryRegistry,
-            editorOperations As IEditorOperationsFactoryService
-        ) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
+        Friend Overrides Function GetCommandHandler(workspace As TestWorkspace) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
-            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations)
+            Return Assert.IsType(Of AutomaticLineEnderCommandHandler)(
+                workspace.GetService(Of ICommandHandler)(
+                    ContentTypeNames.VisualBasicContentType,
+                    PredefinedCommandHandlerNames.AutomaticLineEnder))
         End Function
 
         Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action
@@ -288,8 +287,10 @@ End Module
                    End Sub
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code)
-        End Function
+        Protected Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
     End Class
 End Namespace

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public OptionKey2 OptionKey => _optionKey;
 
-        internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second, string languageName)
+        internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second)
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private NamingStylePreferences FieldNamesAreCamelCaseOption()
+        private static NamingStylePreferences FieldNamesAreCamelCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private NamingStylePreferences FieldNamesAreCamelCaseWithUnderscorePrefixOption()
+        private static NamingStylePreferences FieldNamesAreCamelCaseWithUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
+        private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
+        private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,

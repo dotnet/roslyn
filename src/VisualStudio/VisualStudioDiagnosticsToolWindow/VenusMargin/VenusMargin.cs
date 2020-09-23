@@ -13,7 +13,6 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
     {
         public const string MarginName = "VenusMargin";
 
-        private readonly IWpfTextView _textView;
         private readonly IProjectionBuffer _projectionBuffer;
         private readonly ProjectionBufferViewModel _viewModel = new ProjectionBufferViewModel();
         private readonly ProjectionBufferMargin _control;
@@ -22,7 +21,6 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
         public VenusMargin(IWpfTextView textView, ITextEditorFactoryService textEditorFactory)
         {
-            _textView = textView;
             _projectionBuffer = (IProjectionBuffer)textView.TextBuffer;
 
             _control = new ProjectionBufferMargin

@@ -21,13 +21,6 @@ Friend Module Extensions
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), ModuleSymbol)
     End Function
 
-    ' TODO: Remove this method and fix callsites to directly invoke Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString().
-    '       https://github.com/dotnet/roslyn/issues/11915
-    <Extension>
-    Public Function ToTestDisplayString(symbol As ISymbol) As String
-        Return Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol)
-    End Function
-
     Private Function SplitMemberName(qualifiedName As String) As ImmutableArray(Of String)
         Dim builder = ArrayBuilder(Of String).GetInstance()
         Dim curr = qualifiedName

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 SimpleName = (TSimpleNameSyntax)node;
                 var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out var arity);
+                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out _);
 
                 Name = name;
                 NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(SimpleName.GetFirstToken());
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
                         if (documentToBeGeneratedIn.Project != document.Project ||
-                            service.GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }

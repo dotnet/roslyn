@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                 }
             }
 
-            public async override Task RegisterCodeFixesAsync(CodeFixContext context)
+            public override async Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                 if (root.FindNode(context.Span, getInnermostNodeForTie: true) is SimpleNameSyntax node)

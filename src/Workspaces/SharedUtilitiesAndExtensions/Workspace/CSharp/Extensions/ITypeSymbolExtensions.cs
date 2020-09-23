@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GenerateTypeSyntax(
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
-            if (symbol is ITypeSymbol type && type.ContainsAnonymousType())
+            var type = symbol as ITypeSymbol;
+            if (type != null && type.ContainsAnonymousType())
             {
                 // something with an anonymous type can only be represented with 'var', regardless
                 // of what the user's preferences might be.
@@ -54,6 +56,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!allowVar)
             {
                 syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
+            }
+
+            if (type != null && type.IsReferenceType)
+            {
+                var additionalAnnotation = type.NullableAnnotation switch
+                {
+                    NullableAnnotation.None => NullableSyntaxAnnotationEx.Oblivious,
+                    NullableAnnotation.Annotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                    NullableAnnotation.NotAnnotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                    _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
+                };
+
+                if (additionalAnnotation is object)
+                {
+                    syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
+                }
             }
 
             return syntax;

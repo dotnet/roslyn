@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -5776,7 +5777,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, {ExtensionAssemblyRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7530,7 +7531,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
+</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7756,7 +7757,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
+</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of GenericNameSyntax)(compilation, "a.vb")
 

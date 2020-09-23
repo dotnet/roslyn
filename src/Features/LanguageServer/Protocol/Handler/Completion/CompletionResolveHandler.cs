@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Handle a completion resolve request to add description.
     /// </summary>
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false)]
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         [ImportingConstructor]
@@ -29,30 +31,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
+            => GetCompletionResolveData(request).TextDocument;
+
+        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem completionItem)
+            => completionItem.Data as CompletionResolveData ?? ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+
+        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            CompletionResolveData data;
-            if (completionItem.Data is CompletionResolveData)
-            {
-                data = (CompletionResolveData)completionItem.Data;
-            }
-            else
-            {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
-            }
-
-            var request = data.CompletionParams;
-
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = context.Document;
             if (document == null)
             {
                 return completionItem;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var data = GetCompletionResolveData(completionItem);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
+            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
@@ -67,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
-            var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
+            var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
             LSP.CompletionItem resolvedCompletionItem;
             if (lspVSClientCapability)
             {
@@ -86,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return resolvedCompletionItem;
         }
 
-        private LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
+        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
         {
             return new LSP.VSCompletionItem
             {
@@ -102,7 +98,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Kind = completionItem.Kind,
                 Label = completionItem.Label,
                 SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
+                TextEdit = completionItem.TextEdit,
+                Preselect = completionItem.Preselect
             };
         }
     }

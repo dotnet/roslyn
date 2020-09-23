@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// This is passed to <see cref="IOptionService.RegisterDocumentOptionsProvider(IDocumentOptionsProvider)"/> to activate it
     /// for a workspace. This instance then lives around for the lifetime of the workspace.
     /// </remarks>
-    interface IDocumentOptionsProvider
+    internal interface IDocumentOptionsProvider
     {
         /// <summary>
         /// Fetches a <see cref="IDocumentOptions"/> for the given document. Any asynchronous work (looking for config files, etc.)

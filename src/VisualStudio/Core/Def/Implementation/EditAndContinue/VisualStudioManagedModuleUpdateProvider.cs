@@ -9,8 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
 
@@ -21,51 +25,54 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
         private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly Workspace _workspace;
+        private readonly IActiveStatementTrackingService _activeStatementTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
-            => _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        {
+            _workspace = workspace;
+            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+        }
 
-        public Task<ManagedModuleUpdateStatus> GetStatusAsync(CancellationToken cancellationToken)
-            => GetStatusAsync(null, cancellationToken);
+        private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
+            => new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
+                _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
 
         /// <summary>
-        /// Returns the state of the changes made to the source. 
-        /// The EnC manager calls this to determine whether there are any changes to the source 
-        /// and if so whether there are any rude edits.
-        /// 
-        /// TODO: Future work in the debugger https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1051385 will replace this with bool HasChangesAsync.
-        /// The debugger currently uses <see cref="SolutionUpdateStatus.Ready"/> as a signal to trigger emit of updates 
-        /// (i.e. to call <see cref="GetManagedModuleUpdatesAsync(CancellationToken)"/>). 
-        /// When <see cref="SolutionUpdateStatus.Blocked"/> is returned updates are not emitted.
-        /// Since <see cref="GetManagedModuleUpdatesAsync(CancellationToken)"/> already handles all validation and error reporting 
-        /// we either return <see cref="SolutionUpdateStatus.None"/> if there are no changes or <see cref="SolutionUpdateStatus.Ready"/> if there are any changes.
+        /// Returns true if any changes have been made to the source since the last changes had been applied.
         /// </summary>
-        public async Task<ManagedModuleUpdateStatus> GetStatusAsync(string sourceFilePath, CancellationToken cancellationToken)
+        public async Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
+            var solution = _workspace.CurrentSolution;
+
             try
             {
-                return (await _encService.HasChangesAsync(sourceFilePath, cancellationToken).ConfigureAwait(false)) ?
-                    ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None;
+                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+                return await _encService.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return ManagedModuleUpdateStatus.Blocked;
+                return true;
             }
         }
 
         public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
         {
+            var solution = _workspace.CurrentSolution;
+
             try
             {
-                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
-                return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate));
+                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                _encService.ReportApplyChangesException(e.Message);
-                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                _encService.ReportApplyChangesException(solution, e.Message);
+                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
             }
         }
 

@@ -67,10 +67,18 @@ The Roslyn team regularly uses the [.NET code formatter tool](https://github.com
 - `/nounicode`: In general we follow this rule of not having unicode characters embedded in string literals. However there are a few cases where this is needed to verify compiler behavior hence this option is disabled for now. 
 - `/copyright`: The default copyright is MIT.  Roslyn is released under Apache2 hence we need to override this option. 
 
-### Visual Basic Conventions
+### Visual Basic Conventions and Rules
 
 For all of the C# guidelines which have analogs in Visual Basic, the team applies the spirit of the guideline to Visual Basic. Guidelines surrounding spacing, indentation, parameter names, and the use of named parameters are all generally applicable to Visual Basic. ‘Dim’ statements should also follow the guidelines for the use of ‘var’ in C#. Specific to Visual Basic, field names should begin with ‘m_’ or ‘_’. And the team prefers that all field declarations be placed at the beginning of a type definition. The Visual Studio members dropdown does not show fields in VB. Having them at the beginning of the type aids in navigation.
+
+IDE features should generally be made for both C# and VB.  The exceptions are:
+1. If the feature has no appropriate VB analog. For example 'patterns' are C#-only, so specific features around patterns do not generally need equivalent VB work.
+2. The feature is prohibitively expensive to also do for VB.  In this case, ask the team if it's acceptable to not do a VB version and a decision can be made.  In general though, writing features to work for both C# and VB is usually only a little more expensive than just writing it to work on a single language (especially if the multi-language case is considered up front), so it should normally be done.
+
+When creating IDE features that work for both C# and VB attempt to share as much code as is reasonable.  There are numerous examples and existing components to make that possible.  If help is needed, reach out to the team for advice.
 
 ### Tips 'n' Tricks
 
 Our team finds using [this enhanced source view](http://sourceroslyn.io/) of Roslyn helpful when developing.
+
+Many team members can be reached at gitter.im/dotnet/roslyn, gitter.im/dotnet/csharplang, and discord.gg/csharp (#roslyn).

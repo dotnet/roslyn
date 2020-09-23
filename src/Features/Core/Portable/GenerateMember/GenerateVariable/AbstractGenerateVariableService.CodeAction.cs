@@ -44,16 +44,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _equivalenceKey = Title;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var solution = _semanticDocument.Project.Solution;
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var otions = new CodeGenerationOptions(
+                var options = new CodeGenerationOptions(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation());
+                    contextLocation: _state.IdentifierToken.GetLocation(),
+                    options: await _semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
                 if (_generateProperty)
                 {
@@ -75,8 +76,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         getMethod: getAccessor,
                         setMethod: setAccessor);
 
-                    return CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, otions, cancellationToken);
+                    return await CodeGenerator.AddPropertyDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, propertySymbol, options, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -89,8 +90,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         type: _state.TypeMemberType,
                         name: _state.IdentifierToken.ValueText);
 
-                    return CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, otions, cancellationToken);
+                    return await CodeGenerator.AddFieldDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, fieldSymbol, options, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     : default;
             }
 
-            private Accessibility DetermineMaximalAccessibility(State state)
+            private static Accessibility DetermineMaximalAccessibility(State state)
             {
                 if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
                 {
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private bool DerivesFrom(State state, INamedTypeSymbol containingType)
+            private static bool DerivesFrom(State state, INamedTypeSymbol containingType)
             {
                 return containingType.GetBaseTypes().Select(t => t.OriginalDefinition)
                                                     .Contains(state.TypeToGenerateIn);

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+#if NET472
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+\u0023 Visual Studio 2010
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloProj"", ""HelloProj.csproj"", ""{7F4CCBA2-1184-468A-BF3D-30792E4E8003}""
 EndProject
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
@@ -428,7 +429,7 @@ End Class
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+\u0023 Visual Studio 2010
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
 EndProject
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""VBLib"", ""VBLib.vbproj"", ""{F21C894B-28E5-4212-8AF7-C8E0E5455737}""
@@ -620,7 +621,7 @@ End Class
             var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2005
+\u0023 Visual Studio 2005
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(goo)'^(Application1"", ""Console;!@(goo)'^(Application1\Cons.ole;!@(goo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
 EndProject
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(goo)'^(Library1"", ""Class;!@(goo)'^(Library1\Class;!@(goo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""
@@ -786,3 +787,4 @@ namespace Class____goo____Library1
         }
     }
 }
+#endif

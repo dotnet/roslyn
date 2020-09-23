@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
         {
-            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             var title = AddActionsAndGetTitle(state, actions, cancellationToken);
 
-            return (title, actions.ToImmutableAndFree());
+            return (title, actions.ToImmutable());
         }
 
         private string AddActionsAndGetTitle(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)

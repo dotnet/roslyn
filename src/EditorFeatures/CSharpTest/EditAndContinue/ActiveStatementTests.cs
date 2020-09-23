@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Roslyn.Test.Utilities;
@@ -341,7 +343,7 @@ class C : IDisposable
 
         for (int i = 0; i < 10; <AS:10>i++</AS:10>) { }
 
-        <AS:11>foreach</AS:11> (var i in new[] { 1, 2 }) { }
+        foreach (var i <AS:11>in</AS:11> new[] { 1, 2 }) { }
 
         using (<AS:12>var z = new C()</AS:12>) { }
 
@@ -370,7 +372,7 @@ class C : IDisposable
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "while (true)"),
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "do"),
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "for (int i = 0; i < 10;        i++        )"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "foreach         (var i in new[] { 1, 2 })"),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "foreach (var i        in         new[] { 1, 2 })"),
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "using (       var z = new C()        )"),
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "fixed (       char* p = \"s\"        )"),
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "label"));
@@ -4087,7 +4089,7 @@ class C
         [Fact]
         public void ForEach_Update_Nullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -4100,7 +4102,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -4110,6 +4112,60 @@ class C
         {
             <AS:0>Console.WriteLine(1);</AS:0>
         }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ForEach_DeleteBody()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        foreach (var s in new[] { 1 }) <AS:0>G();</AS:0>
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        foreach (var s in new[] { 1 }) <AS:0>;</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ForEachVariable_DeleteBody()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        foreach ((var a1, var a2) in new[] { (1,1) }) <AS:0>G();</AS:0>
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        foreach ((var a1, var a2) in new[] { (1,1) }) <AS:0>;</AS:0>
     }
 }
 ";
@@ -5386,6 +5442,33 @@ class C
         }
 
         [Fact]
+        public void DoWhileBody_Delete()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        do <AS:0>G();</AS:0> while (true);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        do <AS:0>;</AS:0> while (true);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
         public void SwitchCase_Update1()
         {
             var src1 = @"
@@ -5461,7 +5544,7 @@ class C
 
         #endregion
 
-        #region Switch When Clauses, Patterns
+        #region Switch Statement When Clauses, Patterns
 
         [Fact]
         public void SwitchWhenClause_PatternUpdate1()
@@ -5977,6 +6060,238 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
+        #region Switch Expression
+
+        [Fact]
+        public void SwitchExpression()
+        {
+            var src = @"
+class C
+{
+	public static int Main()
+	{
+		return F() <AS:4>switch
+        {
+            int a <AS:0>when F1()</AS:0> => <AS:1>F2()</AS:1>,
+            bool b => <AS:2>F3()</AS:2>,
+            _ => <AS:3>F4()</AS:3>
+        }</AS:4>;
+    }
+}";
+
+            var edits = GetTopEdits(src, src);
+            var active = GetActiveStatements(src, src);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_MemberExpressionBody()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main() => <AS:0>F() switch { 0 => 1, _ => 2}</AS:0>;
+}";
+            var src2 = @"
+class C
+{
+	public static int Main() => <AS:0>G() switch { 0 => 10, _ => 20}</AS:0>;
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_LambdaBody()
+        {
+            var src1 = @"
+class C
+{
+	public static Func<int> M() => () => <AS:0>F() switch { 0 => 1, _ => 2}</AS:0>;
+}";
+            var src2 = @"
+class C
+{
+	public static Func<int> M() => () => <AS:0>G() switch { 0 => 10, _ => 20}</AS:0>;
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_QueryLambdaBody()
+        {
+            var src1 = @"
+class C
+{
+	public static IEnumerable<int> M()
+    {
+        return 
+           from a in new[] { 1 }
+           where <AS:0>F() <AS:1>switch { 0 => true, _ => false}</AS:0,1>
+           select a;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static IEnumerable<int> M()
+    {
+        return 
+           from a in new[] { 1 }
+           where <AS:0>F() <AS:1>switch { 0 => true, _ => false}</AS:0,1>
+           select a;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_NestedInGoverningExpression()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main() => <AS:3>(F() <AS:1>switch { 0 => 1, _ => 2 }</AS:1>) <AS:2>switch { 1 => <AS:0>10</AS:0>, _ => 20 }</AS:2,3>;
+}";
+            var src2 = @"
+class C
+{
+	public static int Main() => <AS:3>(G() <AS:1>switch { 0 => 10, _ => 20 }</AS:1>) <AS:2>switch { 10 => <AS:0>100</AS:0>, _ => 200 }</AS:2,3>;
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch { 0 => 10, _ => 20 }"),
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method),
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_NestedInArm()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main() => F1() switch
+    {
+        1 when F2() <AS:0>switch { 0 => true, _ => false }</AS:0> => F3() <AS:1>switch { 0 => 1, _ => 2 }</AS:1>, 
+        _ => 20
+    };
+}";
+            var src2 = @"
+class C
+{
+	public static int Main() => F1() switch
+    {
+        1 when F2() <AS:0>switch { 0 => true, _ => false }</AS:0> => F3() <AS:1>switch { 0 => 1, _ => 2 }</AS:1>,
+        _ => 20
+    };
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_Delete1()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+    {
+        return Method() switch { true => G(), _ => F2() switch { 1 => <AS:0>0</AS:0>, _ => 2 } };
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+    {
+        return Method() switch { true => G(), _ => <AS:0>1</AS:0> };
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_Delete2()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+    {
+        return F1() switch { 1 => 0, _ => F2() switch { 1 => <AS:0>0</AS:0>, _ => 2 } };
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+    {
+        return F1() switch { 1 => <AS:0>0</AS:0>, _ => 1 };
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+        }
+
+        [Fact]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
+        public void SwitchExpression_Delete3()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+    {
+        return F1() switch { 1 when F2() switch { 1 => <AS:0>true</AS:0>, _ => false } => 0, _ => 2 };
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+    {
+        return F1() switch { 1 <AS:0>when F3()</AS:0> => 0, _ => 1 };
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
         }
 
         #endregion
@@ -9453,7 +9768,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+            _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics();
         }
@@ -9488,7 +9803,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+            _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics();
         }
@@ -9527,7 +9842,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+            _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp30 });
         }
@@ -10124,7 +10439,7 @@ class C
         [Fact]
         public void ChangeLocalNullableToNonNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -10133,7 +10448,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -10151,7 +10466,7 @@ class C
         [Fact]
         public void ChangeLocalNonNullableToNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -10160,7 +10475,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -10297,6 +10612,94 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
+        }
+
+        [Fact]
+        public void Block_Delete()
+        {
+            var src1 = @"
+class C
+{
+    public static void F()
+    {
+        G(1);
+        <AS:0>{</AS:0> G(2); }
+        G(3);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    public static void F()
+    {
+        G(1);
+        <AS:0>G(3);</AS:0>
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Theory, CombinatorialData]
+        public void MemberBodyInternalError(bool outOfMemory)
+        {
+            var src1 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:1>G();</AS:1>
+    }
+
+    public static void G()
+    {
+        <AS:0>H(1);</AS:0>
+    }
+
+    public static void H(int x)
+    {
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:1>G();</AS:1>
+    }
+
+    public static void G()
+    {
+        <AS:0>H(2);</AS:0>
+    }
+
+    public static void H(int x)
+    {
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+            var validator = CSharpEditAndContinueTestHelpers.CreateInstance(node =>
+            {
+                if (node.Parent is MethodDeclarationSyntax methodDecl && methodDecl.Identifier.Text == "G")
+                {
+                    throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
+                }
+            });
+
+            var expectedDiagnostic = outOfMemory ?
+                Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method) :
+                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method);
+
+            validator.VerifyRudeDiagnostics(edits, active, new[] { expectedDiagnostic });
         }
 
         #endregion

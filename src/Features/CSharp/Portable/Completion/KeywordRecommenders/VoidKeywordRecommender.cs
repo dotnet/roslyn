@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class VoidKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validClassInterfaceRecordModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.NewKeyword,
             SyntaxKind.PublicKeyword,
@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.AsyncKeyword
         };
 
+        private static readonly ISet<SyntaxKind> s_validStructModifiers = new HashSet<SyntaxKind>(s_validClassInterfaceRecordModifiers, SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.ReadOnlyKeyword,
+        };
+
         public VoidKeywordRecommender()
             : base(SyntaxKind.VoidKeyword)
         {
@@ -43,22 +48,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsTypeOfExpressionContext ||
                 syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
                 context.IsDelegateReturnTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||
                 IsUnsafeDefaultExpressionContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
+                context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
 
-        private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken);
         }
 
-        private bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -79,14 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.IsParameterTypeContext;
         }
 
-        private bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -98,16 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
-            return
-                syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-                context.IsMemberDeclarationContext(
-                    validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
-                    canBePartial: true,
-                    cancellationToken: cancellationToken);
-        }
+        private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+            => context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                context.IsMemberDeclarationContext(validModifiers: s_validClassInterfaceRecordModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
+                context.IsMemberDeclarationContext(validModifiers: s_validStructModifiers, validTypeDeclarations: SyntaxKindSet.StructOnlyTypeDeclarations, canBePartial: false, cancellationToken);
     }
 }

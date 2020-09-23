@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -31,23 +30,18 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
+                var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     solution,
-                    new object[]
-                    {
-                        document.Id,
-                        position,
-                        documentsToSearch.Select(d => d.Id).ToArray()
-                    },
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
+                if (!result.HasValue)
                 {
-                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
+                    return ImmutableArray<DocumentHighlights>.Empty;
                 }
+
+                return result.Value.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -64,19 +58,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return result;
             }
 
-            // use speculative semantic model to see whether we are on a symbol we can do HR
-            var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
                 return ImmutableArray<DocumentHighlights>.Empty;
@@ -87,7 +73,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
@@ -112,19 +98,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return default;
         }
 
-        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // see whether we can use the symbol as it is
-            var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (currentSemanticModel == semanticModel)
-            {
-                return symbol;
-            }
-
-            // get symbols from current document again
-            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             ISymbol symbol,
             Document document,
@@ -136,7 +109,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
                     symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
@@ -174,22 +147,21 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Document startingDocument,
+            ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindSymbols.FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
-
             references = references.FilterToItemsToShow(options);
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
             if (symbol.IsConstructor())
             {
-                references = references.Where(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+                references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
             }
 
-            var additionalReferences = new List<Location>();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
             foreach (var currentDocument in documentsToSearch)
             {
@@ -218,7 +190,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
-            IEnumerable<Location> additionalReferences,
+            ArrayBuilder<Location> additionalReferences,
             IImmutableSet<Document> documentToSearch,
             CancellationToken cancellationToken)
         {
@@ -307,16 +279,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 case SymbolKind.NamedType:
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
-
-                case SymbolKind.Parameter:
-                    // If it's an indexer parameter, we will have also cascaded to the accessor
-                    // one that actually receives the references
-                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
-                    {
-                        return false;
-                    }
-
-                    break;
             }
 
             return true;

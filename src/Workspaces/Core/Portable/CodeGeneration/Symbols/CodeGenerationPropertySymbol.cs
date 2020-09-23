@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
-        private RefKind _refKind;
+        private readonly RefKind _refKind;
         public ITypeSymbol Type { get; }
         public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
         public bool IsIndexer { get; }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
             this._refKind = refKind;

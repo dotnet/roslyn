@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new NewLineUserSettingFormattingRule(cachedOptions);
         }
 
-        private bool IsControlBlock(SyntaxNode node)
+        private static bool IsControlBlock(SyntaxNode node)
         {
             RoslynDebug.Assert(node != null);
 
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
 
             // } else in the if else context
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken)
@@ -188,6 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             // * { - in the control statement context
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
@@ -200,11 +209,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return operation;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
 
             // else condition is actually handled in the GetAdjustSpacesOperation()
 
@@ -394,6 +403,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (_options.NewLinesForBracesInLambdaExpressionBody)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
                 else
                 {

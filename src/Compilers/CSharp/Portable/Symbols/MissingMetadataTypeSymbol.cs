@@ -332,11 +332,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                var other = asNativeInt == _isNativeInt ?
-                    this :
-                    new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, isNativeInt: asNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId, TupleData);
+                if (asNativeInt == _isNativeInt)
+                {
+                    return this;
+                }
 
-                Debug.Assert(other.Equals(this));
+                var other = new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, isNativeInt: asNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId, TupleData);
+
+                NativeIntegerTypeSymbol.VerifyEquality(this, other);
                 Debug.Assert(other.SpecialType == this.SpecialType);
 
                 return other;
@@ -363,9 +366,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = t2 as TopLevel;
+                if (other is null)
+                {
+                    return false;
+                }
 
-                return (object?)other != null &&
-                    string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
+                if ((comparison & TypeCompareKind.IgnoreNativeIntegers) == 0 &&
+                    _isNativeInt != other._isNativeInt)
+                {
+                    return false;
+                }
+
+                return string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
                     arity == other.arity &&
                     string.Equals(_namespaceName, other.NamespaceName, StringComparison.Ordinal) &&
                     _containingModule.Equals(other._containingModule);

@@ -769,12 +769,6 @@ namespace ConsoleApp1
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        private async Task VerifyNoType(string markup)
-        {
-            var result = await GetResultsAsync(markup);
-            Assert.Null(result.Type);
-        }
-
         private async Task VerifyTypeName(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);

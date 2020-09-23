@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestAddExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestSubtractExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestMultiplyExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestDivideExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestModuloExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestBitwiseAndExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestExclusiveOrExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestBitwiseOrExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestLeftShiftExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestRightShiftExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestCoalesceExpressionCSharp8OrGreater()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int? a)
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     {
         a ??= 10;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+}", new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
@@ -273,7 +273,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -297,7 +297,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestFieldWithThis()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -321,7 +321,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTriviaInsensitive()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -345,7 +345,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestStaticFieldThroughType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     static int a;
@@ -369,7 +369,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestStaticFieldThroughNamespaceAndType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace NS
 {
     public class C
@@ -399,7 +399,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestParenthesized()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -423,7 +423,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestThroughBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     public int a;
@@ -453,7 +453,7 @@ public class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestMultiAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     public int a;
@@ -681,7 +681,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -703,7 +703,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTrivia2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -723,7 +723,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestFixAll()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a, int b)
@@ -745,7 +745,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestNestedAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a, int b)
@@ -786,7 +786,7 @@ struct InsertionPoint
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestParenthesizedExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)

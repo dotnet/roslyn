@@ -56,13 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             };
 
-        private OptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic
-            => new OptionsCollection(GetLanguage())
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.None },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
-            };
-
         private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties
             => new OptionsCollection(GetLanguage())
             {

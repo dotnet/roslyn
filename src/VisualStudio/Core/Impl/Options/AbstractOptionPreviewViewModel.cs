@@ -70,7 +70,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var key = new OptionKey(option, option.IsPerLanguage ? Language : null);
             if (option.DefaultValue is ICodeStyleOption codeStyleOption)
             {
-                OptionStore.SetOption(key, codeStyleOption.WithValue(value));
+                // The value provided is either an ICodeStyleOption OR the underlying ICodeStyleOption.Value
+                if (value is ICodeStyleOption newCodeStyleOption)
+                {
+                    OptionStore.SetOption(key, codeStyleOption.WithValue(newCodeStyleOption.Value).WithNotification(newCodeStyleOption.Notification));
+                }
+                else
+                {
+                    OptionStore.SetOption(key, codeStyleOption.WithValue(value));
+                }
             }
             else
             {

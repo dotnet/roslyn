@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -104,6 +105,18 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public string? RuntimeMetadataVersion { get; private set; }
 
+        /// <summary>
+        /// The encoding used to parse source files that do not have a Byte Order Mark. If specified,
+        /// is stored in the emitted PDB in order to allow recreating the original compilation.
+        /// </summary>
+        public Encoding? DefaultSourceFileEncoding { get; private set; }
+
+        /// <summary>
+        /// If <see cref="DefaultSourceFileEncoding"/> is not specified, the encoding used to parse source files
+        /// that do not declare their encoding via Byte Order Mark and are not UTF8-encoded.
+        /// </summary>
+        public Encoding? FallbackSourceFileEncoding { get; private set; }
+
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
             bool metadataOnly,
@@ -164,6 +177,40 @@ namespace Microsoft.CodeAnalysis.Emit
         {
         }
 
+        // 3.7 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public EmitOptions(
+           bool metadataOnly,
+           DebugInformationFormat debugInformationFormat,
+           string? pdbFilePath,
+           string? outputNameOverride,
+           int fileAlignment,
+           ulong baseAddress,
+           bool highEntropyVirtualAddressSpace,
+           SubsystemVersion subsystemVersion,
+           string? runtimeMetadataVersion,
+           bool tolerateErrors,
+           bool includePrivateMembers,
+           ImmutableArray<InstrumentationKind> instrumentationKinds,
+           HashAlgorithmName? pdbChecksumAlgorithm)
+            : this(
+                  metadataOnly,
+                  debugInformationFormat,
+                  pdbFilePath,
+                  outputNameOverride,
+                  fileAlignment,
+                  baseAddress,
+                  highEntropyVirtualAddressSpace,
+                  subsystemVersion,
+                  runtimeMetadataVersion,
+                  tolerateErrors,
+                  includePrivateMembers,
+                  instrumentationKinds,
+                  pdbChecksumAlgorithm,
+                  defaultSourceFileEncoding: null,
+                  fallbackSourceFileEncoding: null)
+        {
+        }
+
         public EmitOptions(
             bool metadataOnly = false,
             DebugInformationFormat debugInformationFormat = 0,
@@ -177,7 +224,9 @@ namespace Microsoft.CodeAnalysis.Emit
             bool tolerateErrors = false,
             bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default,
-            HashAlgorithmName? pdbChecksumAlgorithm = null)
+            HashAlgorithmName? pdbChecksumAlgorithm = null,
+            Encoding? defaultSourceFileEncoding = null,
+            Encoding? fallbackSourceFileEncoding = null)
         {
             EmitMetadataOnly = metadataOnly;
             DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
@@ -192,6 +241,8 @@ namespace Microsoft.CodeAnalysis.Emit
             IncludePrivateMembers = includePrivateMembers;
             InstrumentationKinds = instrumentationKinds.NullToEmpty();
             PdbChecksumAlgorithm = pdbChecksumAlgorithm ?? HashAlgorithmName.SHA256;
+            DefaultSourceFileEncoding = defaultSourceFileEncoding;
+            FallbackSourceFileEncoding = fallbackSourceFileEncoding;
         }
 
         private EmitOptions(EmitOptions other) : this(
@@ -207,7 +258,9 @@ namespace Microsoft.CodeAnalysis.Emit
             other.TolerateErrors,
             other.IncludePrivateMembers,
             other.InstrumentationKinds,
-            other.PdbChecksumAlgorithm)
+            other.PdbChecksumAlgorithm,
+            other.DefaultSourceFileEncoding,
+            other.FallbackSourceFileEncoding)
         {
         }
 
@@ -236,7 +289,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                 TolerateErrors == other.TolerateErrors &&
                 IncludePrivateMembers == other.IncludePrivateMembers &&
-                InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b);
+                InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b) &&
+                DefaultSourceFileEncoding == other.DefaultSourceFileEncoding &&
+                FallbackSourceFileEncoding == other.FallbackSourceFileEncoding;
         }
 
         public override int GetHashCode()
@@ -253,7 +308,9 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(RuntimeMetadataVersion,
                    Hash.Combine(TolerateErrors,
                    Hash.Combine(IncludePrivateMembers,
-                   Hash.Combine(Hash.CombineValues(InstrumentationKinds), 0)))))))))))));
+                   Hash.Combine(Hash.CombineValues(InstrumentationKinds),
+                   Hash.Combine(DefaultSourceFileEncoding,
+                   Hash.Combine(FallbackSourceFileEncoding, 0)))))))))))))));
         }
 
         public static bool operator ==(EmitOptions? left, EmitOptions? right)
@@ -468,6 +525,26 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EmitOptions(this) { InstrumentationKinds = instrumentationKinds };
+        }
+
+        public EmitOptions WithDefaultSourceFileEncoding(Encoding? defaultSourceFileEncoding)
+        {
+            if (DefaultSourceFileEncoding == defaultSourceFileEncoding)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { DefaultSourceFileEncoding = defaultSourceFileEncoding };
+        }
+
+        public EmitOptions WithFallbackSourceFileEncoding(Encoding? fallbackSourceFileEncoding)
+        {
+            if (FallbackSourceFileEncoding == fallbackSourceFileEncoding)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { FallbackSourceFileEncoding = fallbackSourceFileEncoding };
         }
     }
 }

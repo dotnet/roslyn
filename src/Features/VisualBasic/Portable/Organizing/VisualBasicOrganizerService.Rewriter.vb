@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Organizing.Organizers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
-    Friend Partial Class VisualBasicOrganizingService
+    Partial Friend Class VisualBasicOrganizingService
         Public Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 

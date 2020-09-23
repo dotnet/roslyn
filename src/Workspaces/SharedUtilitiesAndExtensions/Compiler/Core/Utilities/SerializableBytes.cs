@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             return stream;
         }
 
-        internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
+        internal static async Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
             var length = stream.Length;
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
 
                     var trimIndex = chunkIndex + 1;
-                    for (int i = trimIndex; i < chunks.Count; i++)
+                    for (var i = trimIndex; i < chunks.Count; i++)
                     {
                         SharedPools.ByteArray.Free(chunks[i]);
                     }

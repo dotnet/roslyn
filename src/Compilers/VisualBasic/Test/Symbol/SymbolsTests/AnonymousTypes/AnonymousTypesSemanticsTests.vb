@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -1968,7 +1969,7 @@ End Module
             Dim spans As New List(Of TextSpan)
             ExtractTextIntervals(text, spans)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(text, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(text, {TestMetadata.Net40.System, TestMetadata.Net40.SystemCore, TestMetadata.Net40.MicrosoftVisualBasic})
             If errors Is Nothing Then
                 CompilationUtils.AssertNoErrors(compilation)
             Else

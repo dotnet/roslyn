@@ -420,16 +420,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return comparisonResult = 0
         End Function
-
-        Private Shared Function EqualTypeParameterCount(x As TypeParameterListSyntax, y As TypeParameterListSyntax, ByRef comparisonResult As Integer) As Boolean
-            If NeitherNull(x, y, comparisonResult) Then
-                Dim xParameterCount = x.Parameters.Count
-                Dim yParameterCount = y.Parameters.Count
-
-                comparisonResult = If(xParameterCount = yParameterCount, 0, If(x.Parameters.Count < y.Parameters.Count, -1, 1))
-            End If
-
-            Return comparisonResult = 0
-        End Function
     End Class
 End Namespace

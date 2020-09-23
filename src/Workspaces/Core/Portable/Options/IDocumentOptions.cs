@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// Returned from a <see cref="IDocumentOptionsProvider"/>
     /// </summary>
-    interface IDocumentOptions
+    internal interface IDocumentOptions
     {
         /// <summary>
         /// Attempts to fetch the value for the given option.

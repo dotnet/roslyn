@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -20,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 ImmutableArray<ReferenceLocation> implicitLocations,
                 ImmutableArray<ISymbol> referencedSymbols)
             {
+                Contract.ThrowIfNull(locations);
                 this.Locations = locations;
                 this.ImplicitLocations = implicitLocations;
                 this.ReferencedSymbols = referencedSymbols;

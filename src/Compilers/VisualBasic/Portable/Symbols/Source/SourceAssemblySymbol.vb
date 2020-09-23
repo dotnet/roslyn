@@ -435,6 +435,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(lazyNetModuleAttributesBag.IsSealed)
         End Sub
 
+        Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+            Return Emit.PEModuleBuilder.GetForwardedTypes(Me, builderOpt:=Nothing)
+        End Function
+
         Private Sub EnsureNetModuleAttributesAreBound()
             If _lazyNetModuleAttributesBag Is Nothing Then
                 LoadAndValidateNetModuleAttributes(_lazyNetModuleAttributesBag)

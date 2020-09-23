@@ -23,7 +23,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         }
 
         private static async Task<LSP.InitializeResult> RunInitializeAsync(Solution solution, LSP.InitializeParams request)
-            => await GetLanguageServer(solution).InitializeAsync(solution, request, new LSP.ClientCapabilities(), CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(queue, LSP.Methods.InitializeName,
+                           request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static void AssertServerCapabilities(LSP.ServerCapabilities actual)
         {
@@ -31,8 +35,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
             Assert.True(actual.ImplementationProvider);
             Assert.True(actual.DocumentSymbolProvider);
             Assert.True(actual.WorkspaceSymbolProvider);
-            Assert.True(actual.DocumentFormattingProvider);
-            Assert.True(actual.DocumentRangeFormattingProvider);
+            Assert.True((bool)actual.DocumentFormattingProvider.Value);
+            Assert.True((bool)actual.DocumentRangeFormattingProvider.Value);
             Assert.True(actual.DocumentHighlightProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);

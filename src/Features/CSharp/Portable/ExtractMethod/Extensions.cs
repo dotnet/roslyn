@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            for (SyntaxNode? current = node; current is object; current = current.Parent)
+            for (var current = node; current is object; current = current.Parent)
             {
                 if (current.Parent != null &&
                     current.Parent.IsStatementContainerNode())

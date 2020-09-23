@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     public class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
+                references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
@@ -34,21 +34,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator Generator
             => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-        public Compilation Compile(string code)
+        public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
-                .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib)
+                .AddReferences(TestMetadata.Net451.mscorlib)
                 .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code));
         }
 
-        private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.NormalizeWhitespace().ToFullString();
             Assert.Equal(expectedText, normalized);
         }
 
-        private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.ToFullString();
@@ -223,7 +223,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             Assert.True(attributes.Count == 1);
         }
 
-        private AttributeData GetAttributeData(string decl, string use)
+        private static AttributeData GetAttributeData(string decl, string use)
         {
             var compilation = Compile(decl + "\r\n" + use + "\r\nclass C { }");
             var typeC = compilation.GlobalNamespace.GetMembers("C").First() as INamedTypeSymbol;
@@ -2328,7 +2328,22 @@ public class C
             Assert.Equal("x", Generator.GetExpression(Generator.ValueReturningLambdaExpression("p", Generator.IdentifierName("x"))).ToString());
             Assert.Equal("x", Generator.GetExpression(Generator.VoidReturningLambdaExpression("p", Generator.IdentifierName("x"))).ToString());
 
+            // identifier
             Assert.Null(Generator.GetExpression(Generator.IdentifierName("e")));
+
+            // expression bodied methods
+            var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("p");
+            method = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            method = method.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("x", Generator.GetExpression(method).ToString());
+
+            // expression bodied local functions
+            var local = SyntaxFactory.LocalFunctionStatement(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), "p");
+            local = local.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            local = local.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("x", Generator.GetExpression(local).ToString());
         }
 
         [Fact]
@@ -2349,7 +2364,22 @@ public class C
             Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(Generator.ValueReturningLambdaExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y"))).ToString());
             Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(Generator.VoidReturningLambdaExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y"))).ToString());
 
+            // identifier
             Assert.Null(Generator.GetExpression(Generator.WithExpression(Generator.IdentifierName("e"), Generator.IdentifierName("x"))));
+
+            // expression bodied methods
+            var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("p");
+            method = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            method = method.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(method, Generator.IdentifierName("y"))).ToString());
+
+            // expression bodied local functions
+            var local = SyntaxFactory.LocalFunctionStatement(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), "p");
+            local = local.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            local = local.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(local, Generator.IdentifierName("y"))).ToString());
         }
 
         [Fact]
@@ -2415,7 +2445,6 @@ public class C
                     Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
                     Generator.GetAccessorDeclaration(Accessibility.NotApplicable, new[] { Generator.ReturnStatement() })),
                 "x p\r\n{\r\n    get\r\n    {\r\n        return;\r\n    }\r\n}");
-
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(
@@ -3434,6 +3463,19 @@ class C
 }");
         }
 
+        [Fact]
+        public void TestAsyncMethodModifier()
+        {
+            TestModifiersAsync(DeclarationModifiers.Async,
+                @"
+using System.Threading.Tasks;
+class C
+{
+    [|public async Task DoAsync() { await Task.CompletedTask; }|]
+}
+");
+        }
+
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestPropertyModifiers1()
         {
@@ -3467,7 +3509,7 @@ class C
 }");
         }
 
-        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
         {
             MarkupTestFile.GetSpan(markup, out var code, out var span);
 

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
 {
-    interface IRemoteProjectInfoProvider
+    internal interface IRemoteProjectInfoProvider
     {
         Task<ImmutableArray<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken);
     }

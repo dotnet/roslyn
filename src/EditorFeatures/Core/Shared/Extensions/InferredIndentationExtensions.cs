@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             if (snapshot != null)
             {
-                indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out bool convertTabsToSpaces, out int tabSize, out int indentSize);
+                indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, !convertTabsToSpaces)
                                  .WithChangedOption(FormattingOptions.IndentationSize, indentSize)

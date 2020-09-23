@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -127,6 +128,12 @@ namespace Roslyn.Utilities
             }
         }
 
+        public Task WaitUntilCurrentBatchCompletesAsync()
+        {
+            lock (_gate)
+                return _updateTask;
+        }
+
         private void AddItemsToBatch(IEnumerable<TItem> items)
         {
             // no equality comparer.  We want to process all items.
@@ -146,19 +153,34 @@ namespace Roslyn.Utilities
 
         private void TryKickOffNextBatchTask()
         {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
             if (!_taskInFlight)
             {
                 // No in-flight task.  Kick one off to process these messages a second from now.
                 // We always attach the task to the previous one so that notifications to the ui
                 // follow the same order as the notification the OOP server sent to us.
-                var token = _asyncListener?.BeginAsyncOperation(nameof(TryKickOffNextBatchTask));
+                if (_asyncListener is object)
+                {
+                    var token = _asyncListener.BeginAsyncOperation(nameof(TryKickOffNextBatchTask));
 
-                _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
-                    _ => ProcessNextBatchAsync(_cancellationToken),
-                    _cancellationToken,
-                    (int)_delay.TotalMilliseconds,
-                    TaskContinuationOptions.RunContinuationsAsynchronously,
-                    TaskScheduler.Default).CompletesAsyncOperation(token);
+                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
+                        _ => ProcessNextBatchAsync(_cancellationToken),
+                        _cancellationToken,
+                        (int)_delay.TotalMilliseconds,
+                        _asyncListener,
+                        TaskContinuationOptions.RunContinuationsAsynchronously,
+                        TaskScheduler.Default).CompletesAsyncOperation(token);
+                }
+                else
+                {
+                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
+                        _ => ProcessNextBatchAsync(_cancellationToken),
+                        _cancellationToken,
+                        (int)_delay.TotalMilliseconds,
+                        TaskContinuationOptions.RunContinuationsAsynchronously,
+                        TaskScheduler.Default);
+                }
 
                 _taskInFlight = true;
             }

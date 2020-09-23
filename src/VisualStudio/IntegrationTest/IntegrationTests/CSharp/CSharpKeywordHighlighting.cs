@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpKeywordHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpKeywordHighlighting))
+        public CSharpKeywordHighlighting(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpKeywordHighlighting))
         {
         }
 
@@ -70,7 +70,6 @@ class PurchaseTransaction
                 input,
                 out var text,
                 out IDictionary<string, ImmutableArray<TextSpan>> spans);
-
 
             VisualStudio.Editor.SetText(text);
 

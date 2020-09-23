@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
                 // set up some items, and the F# project system doesn't guarantee that the F# package has been loaded itself
                 // so we're caught in the middle doing this.
-                shell.LoadPackage(Guids.FSharpPackageId, out var unused);
+                shell.LoadPackage(Guids.FSharpPackageId, out _);
             }
 
             return visualStudioProject;

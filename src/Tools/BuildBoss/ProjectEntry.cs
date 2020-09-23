@@ -60,6 +60,5 @@ namespace BuildBoss
                     return ProjectFileType.Unknown;
             }
         }
-
     }
 }

@@ -16,46 +16,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly struct ExtensionMethodInfo
         {
             // We divide extension methods into two categories, simple and complex, for filtering purpose.
-            // Whether a method is simple is determined based on if we can determine it's target type easily
+            // Whether a method is simple is determined based on if we can determine it's receiver type easily
             // with a pure text matching. For complex methods, we will need to rely on symbol to decide if it's 
             // feasible.
             //
             // Complex methods include:
             // - Method declared in the document which includes using alias directive
-            // - Generic method where the target type is a type-paramter (e.g. List<T> would be considered simple, not complex)
-            // - If the target type name is one of the following (i.e. name of the type for the first parameter) 
-            //      1. Array type
-            //      2. ValueTuple type
-            //      3. Pointer type
+            // - Generic method where the receiver type is a type-paramter (e.g. List<T> would be considered simple, not complex)
+            // - If the receiver type name is Pointer type (i.e. name of the type for the first parameter) 
             //
             // The rest of methods are considered simple.
 
             /// <summary>
-            /// Name of the simple method's target type name to the index of its DeclaredSymbolInfo in `_declarationInfo`.
-            /// All predefined types are converted to its metadata form. e.g. int => Int32. For generic types, type parameters are ignored.
+            /// Name of the extension method's receiver type to the index of its DeclaredSymbolInfo in `_declarationInfo`.
+            /// 
+            /// For simple types, the receiver type name is it's metadata name. All predefined types are converted to its metadata form.
+            /// e.g. int => Int32. For generic types, type parameters are ignored.
+            /// 
+            /// For complex types, the receiver type name is "".
+            /// 
+            /// For any kind of array types, it's "{element's receiver type name}[]".
+            /// e.g. 
+            /// int[][,] => "Int32[]"
+            /// T (where T is a type parameter) => ""
+            /// T[,] (where T is a type parameter) => "T[]"
             /// </summary>
-            public readonly ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo { get; }
+            public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; }
 
-            /// <summary>
-            /// Indices of to all complex methods' DeclaredSymbolInfo in `_declarationInfo`.
-            /// </summary>
-            public readonly ImmutableArray<int> ComplexExtensionMethodInfo { get; }
+            public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
-            public bool ContainsExtensionMethod => SimpleExtensionMethodInfo.Count > 0 || ComplexExtensionMethodInfo.Length > 0;
-
-            public ExtensionMethodInfo(
-                ImmutableDictionary<string, ImmutableArray<int>> simpleExtensionMethodInfo,
-                ImmutableArray<int> complexExtensionMethodInfo)
+            public ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
             {
-                SimpleExtensionMethodInfo = simpleExtensionMethodInfo;
-                ComplexExtensionMethodInfo = complexExtensionMethodInfo;
+                ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
             }
 
             public void WriteTo(ObjectWriter writer)
             {
-                writer.WriteInt32(SimpleExtensionMethodInfo.Count);
+                writer.WriteInt32(ReceiverTypeNameToExtensionMethodMap.Count);
 
-                foreach (var kvp in SimpleExtensionMethodInfo)
+                foreach (var kvp in ReceiverTypeNameToExtensionMethodMap)
                 {
                     writer.WriteString(kvp.Key);
                     writer.WriteInt32(kvp.Value.Length);
@@ -65,19 +64,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         writer.WriteInt32(declaredSymbolInfoIndex);
                     }
                 }
-
-                writer.WriteInt32(ComplexExtensionMethodInfo.Length);
-                foreach (var declaredSymbolInfoIndex in ComplexExtensionMethodInfo)
-                {
-                    writer.WriteInt32(declaredSymbolInfoIndex);
-                }
             }
 
             public static ExtensionMethodInfo? TryReadFrom(ObjectReader reader)
             {
                 try
                 {
-                    var simpleExtensionMethodInfo = ImmutableDictionary.CreateBuilder<string, ImmutableArray<int>>();
+                    var receiverTypeNameToExtensionMethodMapBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<int>>();
                     var count = reader.ReadInt32();
 
                     for (var i = 0; i < count; ++i)
@@ -92,18 +85,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             arrayBuilder.Add(declaredSymbolInfoIndex);
                         }
 
-                        simpleExtensionMethodInfo[typeName] = arrayBuilder.ToImmutableAndFree();
+                        receiverTypeNameToExtensionMethodMapBuilder[typeName] = arrayBuilder.ToImmutableAndFree();
                     }
 
-                    count = reader.ReadInt32();
-                    var complexExtensionMethodInfo = ArrayBuilder<int>.GetInstance(count);
-                    for (var i = 0; i < count; ++i)
-                    {
-                        var declaredSymbolInfoIndex = reader.ReadInt32();
-                        complexExtensionMethodInfo.Add(declaredSymbolInfoIndex);
-                    }
-
-                    return new ExtensionMethodInfo(simpleExtensionMethodInfo.ToImmutable(), complexExtensionMethodInfo.ToImmutableAndFree());
+                    return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
                 }
                 catch (Exception)
                 {

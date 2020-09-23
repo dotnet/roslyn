@@ -448,5 +448,27 @@ $$");
 @"static class Extensions {
     static void Extension(this int i, this $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeNoExistingModifiers()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("in")]
+        [InlineData("out")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public async Task TestNotInFunctionPointerTypeExistingModifiers(string modifier)
+        {
+            await VerifyAbsenceAsync($@"
+class C
+{{
+    delegate*<{modifier} $$");
+        }
     }
 }

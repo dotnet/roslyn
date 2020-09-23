@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _boundNode As BoundNode
 
-        Public Sub New(operationFactory As VisualBasicOperationFactory, boundNode As BoundNode, semanticModel As SemanticModel, node As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, node, constantValue, isImplicit)
+        Public Sub New(operationFactory As VisualBasicOperationFactory, boundNode As BoundNode, semanticModel As SemanticModel, node As SyntaxNode, constantValue As ConstantValue, isImplicit As Boolean)
+            MyBase.New(semanticModel, node, constantValue, isImplicit, type:=Nothing)
             _operationFactory = operationFactory
             _boundNode = boundNode
         End Sub
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _argument As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, argument As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, argument As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _argument = argument
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _exception As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, exception As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, exception As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _exception = exception
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _arrayCreation As BoundArrayCreation
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayCreation As BoundArrayCreation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayCreation As BoundArrayCreation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _arrayCreation = arrayCreation
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _arrayAccess As BoundArrayAccess
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayAccess As BoundArrayAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayAccess As BoundArrayAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _arrayAccess = arrayAccess
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _arrayInitialization As BoundArrayInitialization
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayInitialization As BoundArrayInitialization, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, arrayInitialization As BoundArrayInitialization, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type:=Nothing, constantValue, isImplicit)
             _operationFactory = operationFactory
             _arrayInitialization = arrayInitialization
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _assignment As BoundAssignmentOperator
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(isRef, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _assignment = assignment
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operation As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operation = operation
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operator As BoundExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, isCompareText As Boolean, operatorMethod As IMethodSymbol, unaryOperatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, isCompareText As Boolean, operatorMethod As IMethodSymbol, unaryOperatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operator = [operator]
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _block As BoundBlock
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, block As BoundBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, block As BoundBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _block = block
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _boundCatchBlock As BoundCatchBlock
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundCatchBlock As BoundCatchBlock, exceptionType As ITypeSymbol, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundCatchBlock As BoundCatchBlock, exceptionType As ITypeSymbol, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundCatchBlock = boundCatchBlock
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _assignment As BoundAssignmentOperator
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, inConversionConvertible As IConvertibleConversion, outConversionConvertible As IConvertibleConversion, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, assignment As BoundAssignmentOperator, inConversionConvertible As IConvertibleConversion, outConversionConvertible As IConvertibleConversion, operatorKind As BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _assignment = assignment
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _conditionalAccess As BoundConditionalAccess
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalAccess As BoundConditionalAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalAccess As BoundConditionalAccess, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _conditionalAccess = conditionalAccess
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _conditional As IBoundConditional
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditional As IBoundConditional, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditional As IBoundConditional, isRef As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(isRef, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _conditional = conditional
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _addRemoveHandlerStatement As BoundAddRemoveHandlerStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, addRemoveHandlerStatement As BoundAddRemoveHandlerStatement, adds As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, addRemoveHandlerStatement As BoundAddRemoveHandlerStatement, adds As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(adds, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _addRemoveHandlerStatement = addRemoveHandlerStatement
@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _instance As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, [event] As IEventSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, [event] As IEventSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New([event], semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _instance = instance
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operation As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operation = operation
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _value As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(locals:=ImmutableArray(Of ILocalSymbol).Empty, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _value As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedFields As ImmutableArray(Of IFieldSymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedFields As ImmutableArray(Of IFieldSymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(initializedFields, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _instance As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, field As IFieldSymbol, isDeclaration As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, field As IFieldSymbol, isDeclaration As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _instance = instance
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _forEachLoop As BoundForEachStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(isAsynchronous:=False, LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _forEachLoop = forEachLoop
@@ -447,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _boundForToLoop As BoundForToStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundForToLoop As BoundForToStatement, locals As ImmutableArray(Of ILocalSymbol), isChecked As Boolean, info As (LoopObject As ILocalSymbol, UserDefinedInfo As ForToLoopOperationUserDefinedInfo), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundForToLoop As BoundForToStatement, locals As ImmutableArray(Of ILocalSymbol), isChecked As Boolean, info As (LoopObject As ILocalSymbol, UserDefinedInfo As ForToLoopOperationUserDefinedInfo), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(isChecked, info, LoopKind.ForTo, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundForToLoop = boundForToLoop
@@ -486,7 +486,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _interpolatedStringExpression As BoundInterpolatedStringExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolatedStringExpression As BoundInterpolatedStringExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolatedStringExpression As BoundInterpolatedStringExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _interpolatedStringExpression = interpolatedStringExpression
@@ -503,7 +503,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _text As BoundLiteral
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, text As BoundLiteral, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, text As BoundLiteral, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _text = text
@@ -520,7 +520,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _interpolation As BoundInterpolation
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolation As BoundInterpolation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, interpolation As BoundInterpolation, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _interpolation = interpolation
@@ -545,7 +545,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _originalNode As IBoundInvalidNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, originalNode As IBoundInvalidNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, originalNode As IBoundInvalidNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _originalNode = originalNode
@@ -562,15 +562,15 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _invocable As BoundExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundCall, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundCall, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         End Sub
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundNullableIsTrueOperator, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundNullableIsTrueOperator, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             Me.New(operationFactory, DirectCast(invocable, BoundExpression), targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         End Sub
 
-        Private Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundExpression, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Private Sub New(operationFactory As VisualBasicOperationFactory, invocable As BoundExpression, targetMethod As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _invocable = invocable
@@ -604,7 +604,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _raiseEventStatement As BoundRaiseEventStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, raiseEventStatement As BoundRaiseEventStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, raiseEventStatement As BoundRaiseEventStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _raiseEventStatement = raiseEventStatement
@@ -625,7 +625,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _valueOperand As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, valueOperand As BoundNode, isType As ITypeSymbol, isNotTypeExpression As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, valueOperand As BoundNode, isType As ITypeSymbol, isNotTypeExpression As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _valueOperand = valueOperand
@@ -642,7 +642,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operation As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(label, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operation = operation
@@ -659,7 +659,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _body As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, symbol As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, body As BoundNode, symbol As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(symbol, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _body = body
@@ -676,7 +676,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _delegateCreation As BoundDelegateCreationExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, delegateCreation As BoundDelegateCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, delegateCreation As BoundDelegateCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _delegateCreation = delegateCreation
@@ -693,7 +693,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _instance As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, memberName As String, typeArguments As ImmutableArray(Of ITypeSymbol), containingType As ITypeSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, memberName As String, typeArguments As ImmutableArray(Of ITypeSymbol), containingType As ITypeSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _instance = instance
@@ -710,7 +710,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _lockStatement As BoundSyncLockStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, lockStatement As BoundSyncLockStatement, lockTakenSymbol As ILocalSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, lockStatement As BoundSyncLockStatement, lockTakenSymbol As ILocalSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _lockStatement = lockStatement
@@ -731,7 +731,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _instance As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, method As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, instance As BoundNode, method As IMethodSymbol, isVirtual As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _instance = instance
@@ -748,7 +748,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _conditionalExpression As BoundBinaryConditionalExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalExpression As BoundBinaryConditionalExpression, convertibleValueConversion As IConvertibleConversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalExpression As BoundBinaryConditionalExpression, convertibleValueConversion As IConvertibleConversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _conditionalExpression = conditionalExpression
@@ -769,7 +769,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _objectCreation As BoundObjectCreationExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectCreation As BoundObjectCreationExpression, constructor As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectCreation As BoundObjectCreationExpression, constructor As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(constructor, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _objectCreation = objectCreation
@@ -790,7 +790,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _anonymousTypeCreation As BoundAnonymousTypeCreationExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, anonymousTypeCreation As BoundAnonymousTypeCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, anonymousTypeCreation As BoundAnonymousTypeCreationExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _anonymousTypeCreation = anonymousTypeCreation
@@ -807,7 +807,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _value As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), parameter As IParameterSymbol, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), parameter As IParameterSymbol, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(parameter, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
@@ -824,7 +824,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operand As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, operand As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operand = operand
@@ -841,7 +841,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _value As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedProperties As ImmutableArray(Of IPropertySymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, locals As ImmutableArray(Of ILocalSymbol), initializedProperties As ImmutableArray(Of IPropertySymbol), kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(initializedProperties, locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
@@ -858,7 +858,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _boundProperty As BoundPropertyAccess
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundProperty As BoundPropertyAccess, [property] As IPropertySymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundProperty As BoundPropertyAccess, [property] As IPropertySymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New([property], semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundProperty = boundProperty
@@ -881,7 +881,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _rangeCaseClause As BoundRangeCaseClause
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, rangeCaseClause As BoundRangeCaseClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, rangeCaseClause As BoundRangeCaseClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(CaseKind.Range, label:=Nothing, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _rangeCaseClause = rangeCaseClause
@@ -902,7 +902,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _value As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, relation As BinaryOperatorKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, relation As BinaryOperatorKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(relation, CaseKind.Relational, label:=Nothing, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
@@ -919,7 +919,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _returnedValue As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(kind, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _returnedValue = returnedValue
@@ -936,7 +936,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _value As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, value As BoundNode, label As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(CaseKind.SingleValue, label, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _value = value
@@ -953,7 +953,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _caseBlock As BoundCaseBlock
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, caseBlock As BoundCaseBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, caseBlock As BoundCaseBlock, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _caseBlock = caseBlock
@@ -978,7 +978,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _selectStatement As BoundSelectStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, selectStatement As BoundSelectStatement, locals As ImmutableArray(Of ILocalSymbol), exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, selectStatement As BoundSelectStatement, locals As ImmutableArray(Of ILocalSymbol), exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _selectStatement = selectStatement
@@ -999,7 +999,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _tryStatement As BoundTryStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, tryStatement As BoundTryStatement, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, tryStatement As BoundTryStatement, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _tryStatement = tryStatement
@@ -1024,7 +1024,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _tupleExpression As BoundTupleExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, tupleExpression As BoundTupleExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, tupleExpression As BoundTupleExpression, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, naturalType As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(naturalType, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _tupleExpression = tupleExpression
@@ -1041,7 +1041,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _initializer As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _initializer = initializer
@@ -1058,7 +1058,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _lateInvocation As BoundLateInvocation
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, lateInvocation As BoundLateInvocation, argumentNames As ImmutableArray(Of String), argumentRefKinds As ImmutableArray(Of RefKind), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, lateInvocation As BoundLateInvocation, argumentNames As ImmutableArray(Of String), argumentRefKinds As ImmutableArray(Of RefKind), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _lateInvocation = lateInvocation
@@ -1079,7 +1079,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operator As BoundExpression
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, unaryOperationKind As UnaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, [operator] As BoundExpression, unaryOperationKind As UnaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operator = [operator]
@@ -1096,7 +1096,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _boundUsingStatement As BoundUsingStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundUsingStatement As BoundUsingStatement, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, boundUsingStatement As BoundUsingStatement, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(locals, isAsynchronous:=False, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundUsingStatement = boundUsingStatement
@@ -1117,7 +1117,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _localDeclarations As IBoundLocalDeclarations
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, localDeclarations As IBoundLocalDeclarations, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, localDeclarations As IBoundLocalDeclarations, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _localDeclarations = localDeclarations
@@ -1134,7 +1134,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _conditionalLoop As IBoundConditionalLoop
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalLoop As IBoundConditionalLoop, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, conditionIsTop As Boolean, conditionIsUntil As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, conditionalLoop As IBoundConditionalLoop, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, conditionIsTop As Boolean, conditionIsUntil As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(conditionIsTop, conditionIsUntil, LoopKind.While, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _conditionalLoop = conditionalLoop
@@ -1153,13 +1153,13 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyWithOperation
-        Inherits LazyWithOperation
+    Friend NotInheritable Class VisualBasicLazyWithStatementOperation
+        Inherits LazyWithStatementOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _withStatement As BoundWithStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, withStatement As BoundWithStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, withStatement As BoundWithStatement, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _withStatement = withStatement
@@ -1180,7 +1180,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _objectOrCollectionInitializer As BoundObjectInitializerExpressionBase
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectOrCollectionInitializer As BoundObjectInitializerExpressionBase, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, objectOrCollectionInitializer As BoundObjectInitializerExpressionBase, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _objectOrCollectionInitializer = objectOrCollectionInitializer
@@ -1197,7 +1197,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _operation As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, operation As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _operation = operation
@@ -1214,7 +1214,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _aggregateClause As BoundAggregateClause
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, aggregateClause As BoundAggregateClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, aggregateClause As BoundAggregateClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _aggregateClause = aggregateClause
@@ -1235,7 +1235,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _initializer As BoundNode
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, initializer As BoundNode, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _initializer = initializer
@@ -1252,7 +1252,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _redimStatement As BoundRedimStatement
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimStatement As BoundRedimStatement, preserve As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimStatement As BoundRedimStatement, preserve As Boolean, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(preserve, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _redimStatement = redimStatement
@@ -1269,7 +1269,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _redimClause As BoundRedimClause
 
-        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimClause As BoundRedimClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Friend Sub New(operationFactory As VisualBasicOperationFactory, redimClause As BoundRedimClause, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As ConstantValue, isImplicit As Boolean)
             MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _redimClause = redimClause

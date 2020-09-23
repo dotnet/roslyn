@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
@@ -18,8 +19,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// 2. Name Style
     /// 3. Naming Rule (points to Symbol Specification IDs)
     /// </summary>
-    internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>
+    internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>, IObjectWritable
     {
+        static NamingStylePreferences()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(NamingStylePreferences), ReadFrom);
+        }
+
         private const int s_serializationVersion = 5;
 
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
@@ -75,6 +81,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                        .Select(NamingStyle.FromXElement).ToImmutableArray(),
                 element.Element(nameof(NamingRules)).Elements(nameof(SerializableNamingRule))
                        .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
+        }
+
+        public bool ShouldReuseInSerialization => false;
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteArray(SymbolSpecifications, (w, v) => v.WriteTo(w));
+            writer.WriteArray(NamingStyles, (w, v) => v.WriteTo(w));
+            writer.WriteArray(NamingRules, (w, v) => v.WriteTo(w));
+        }
+
+        public static NamingStylePreferences ReadFrom(ObjectReader reader)
+        {
+            return new NamingStylePreferences(
+                reader.ReadArray(r => SymbolSpecification.ReadFrom(r)),
+                reader.ReadArray(r => NamingStyle.ReadFrom(r)),
+                reader.ReadArray(r => SerializableNamingRule.ReadFrom(r)));
         }
 
         public override bool Equals(object obj)

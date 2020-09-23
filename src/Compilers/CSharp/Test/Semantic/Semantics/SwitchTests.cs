@@ -997,11 +997,11 @@ class Conv
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator object(Conv C)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator object(Conv C)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
         }
@@ -1036,9 +1036,9 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0150: A constant value is expected
+                // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
@@ -1047,9 +1047,9 @@ class C
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
                 );
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),

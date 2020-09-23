@@ -220,7 +220,7 @@ class Bad : Bad
             // All declaration errors are reported regardless of what member do we emit.
 
             diff.EmitResult.Diagnostics.Verify(
-                // (10,7): error CS0146: Circular base class dependency involving 'Bad' and 'Bad'
+                // (10,7): error CS0146: Circular base type dependency involving 'Bad' and 'Bad'
                 // class Bad : Bad
                 Diagnostic(ErrorCode.ERR_CircularBase, "Bad").WithArguments("Bad", "Bad").WithLocation(10, 7));
         }
@@ -10355,28 +10355,35 @@ public class Program
 
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("Program.G(int)", @"
-{
-  // Code size       25 (0x19)
-  .maxstack  1
-  .locals init (int V_0,
-                object V_1)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  brfalse.s  IL_0006
-  IL_0004:  br.s       IL_000a
-  IL_0006:  ldc.i4.0
-  IL_0007:  stloc.0
-  IL_0008:  br.s       IL_000e
-  IL_000a:  ldc.i4.1
-  IL_000b:  stloc.0
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.0
-  IL_000f:  box        ""int""
-  IL_0014:  stloc.1
-  IL_0015:  br.s       IL_0017
-  IL_0017:  ldloc.1
-  IL_0018:  ret
-}");
+    {
+      // Code size       33 (0x21)
+      .maxstack  1
+      .locals init (int V_0,
+                    object V_1)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.1
+      IL_0002:  brtrue.s   IL_0005
+      IL_0004:  nop
+      IL_0005:  ldarg.0
+      IL_0006:  brfalse.s  IL_000a
+      IL_0008:  br.s       IL_000e
+      IL_000a:  ldc.i4.0
+      IL_000b:  stloc.0
+      IL_000c:  br.s       IL_0012
+      IL_000e:  ldc.i4.1
+      IL_000f:  stloc.0
+      IL_0010:  br.s       IL_0012
+      IL_0012:  ldc.i4.1
+      IL_0013:  brtrue.s   IL_0016
+      IL_0015:  nop
+      IL_0016:  ldloc.0
+      IL_0017:  box        ""int""
+      IL_001c:  stloc.1
+      IL_001d:  br.s       IL_001f
+      IL_001f:  ldloc.1
+      IL_0020:  ret
+    }
+");
             v0.VerifyIL("Program.N(out int)", @"
 {
   // Code size       10 (0xa)
@@ -10405,40 +10412,47 @@ public class Program
             diff1.VerifySynthesizedMembers();
 
             diff1.VerifyIL("Program.G(int)", @"
-{
-  // Code size       44 (0x2c)
-  .maxstack  2
-  .locals init ([int] V_0,
-                [object] V_1,
-                int V_2, //x
-                int V_3,
-                int V_4,
-                int V_5,
-                object V_6)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.3
-  IL_0003:  ldloca.s   V_2
-  IL_0005:  call       ""int Program.N(out int)""
-  IL_000a:  stloc.s    V_5
-  IL_000c:  ldloc.s    V_5
-  IL_000e:  brfalse.s  IL_0012
-  IL_0010:  br.s       IL_0017
-  IL_0012:  ldc.i4.0
-  IL_0013:  stloc.s    V_4
-  IL_0015:  br.s       IL_001c
-  IL_0017:  ldc.i4.1
-  IL_0018:  stloc.s    V_4
-  IL_001a:  br.s       IL_001c
-  IL_001c:  ldloc.3
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  add
-  IL_0020:  box        ""int""
-  IL_0025:  stloc.s    V_6
-  IL_0027:  br.s       IL_0029
-  IL_0029:  ldloc.s    V_6
-  IL_002b:  ret
-}");
+    {
+      // Code size       52 (0x34)
+      .maxstack  2
+      .locals init ([int] V_0,
+                    [object] V_1,
+                    int V_2, //x
+                    int V_3,
+                    int V_4,
+                    int V_5,
+                    object V_6)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  stloc.3
+      IL_0003:  ldloca.s   V_2
+      IL_0005:  call       ""int Program.N(out int)""
+      IL_000a:  stloc.s    V_5
+      IL_000c:  ldc.i4.1
+      IL_000d:  brtrue.s   IL_0010
+      IL_000f:  nop
+      IL_0010:  ldloc.s    V_5
+      IL_0012:  brfalse.s  IL_0016
+      IL_0014:  br.s       IL_001b
+      IL_0016:  ldc.i4.0
+      IL_0017:  stloc.s    V_4
+      IL_0019:  br.s       IL_0020
+      IL_001b:  ldc.i4.1
+      IL_001c:  stloc.s    V_4
+      IL_001e:  br.s       IL_0020
+      IL_0020:  ldc.i4.1
+      IL_0021:  brtrue.s   IL_0024
+      IL_0023:  nop
+      IL_0024:  ldloc.3
+      IL_0025:  ldloc.s    V_4
+      IL_0027:  add
+      IL_0028:  box        ""int""
+      IL_002d:  stloc.s    V_6
+      IL_002f:  br.s       IL_0031
+      IL_0031:  ldloc.s    V_6
+      IL_0033:  ret
+    }
+");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -10448,35 +10462,42 @@ public class Program
             diff2.VerifySynthesizedMembers();
 
             diff2.VerifyIL("Program.G(int)", @"
-{
-  // Code size       30 (0x1e)
-  .maxstack  1
-  .locals init ([int] V_0,
-                [object] V_1,
-                [int] V_2,
-                [int] V_3,
-                [int] V_4,
-                [int] V_5,
-                [object] V_6,
-                int V_7,
-                object V_8)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  brfalse.s  IL_0006
-  IL_0004:  br.s       IL_000b
-  IL_0006:  ldc.i4.0
-  IL_0007:  stloc.s    V_7
-  IL_0009:  br.s       IL_0010
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.s    V_7
-  IL_000e:  br.s       IL_0010
-  IL_0010:  ldloc.s    V_7
-  IL_0012:  box        ""int""
-  IL_0017:  stloc.s    V_8
-  IL_0019:  br.s       IL_001b
-  IL_001b:  ldloc.s    V_8
-  IL_001d:  ret
-}");
+    {
+      // Code size       38 (0x26)
+      .maxstack  1
+      .locals init ([int] V_0,
+                    [object] V_1,
+                    [int] V_2,
+                    [int] V_3,
+                    [int] V_4,
+                    [int] V_5,
+                    [object] V_6,
+                    int V_7,
+                    object V_8)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.1
+      IL_0002:  brtrue.s   IL_0005
+      IL_0004:  nop
+      IL_0005:  ldarg.0
+      IL_0006:  brfalse.s  IL_000a
+      IL_0008:  br.s       IL_000f
+      IL_000a:  ldc.i4.0
+      IL_000b:  stloc.s    V_7
+      IL_000d:  br.s       IL_0014
+      IL_000f:  ldc.i4.1
+      IL_0010:  stloc.s    V_7
+      IL_0012:  br.s       IL_0014
+      IL_0014:  ldc.i4.1
+      IL_0015:  brtrue.s   IL_0018
+      IL_0017:  nop
+      IL_0018:  ldloc.s    V_7
+      IL_001a:  box        ""int""
+      IL_001f:  stloc.s    V_8
+      IL_0021:  br.s       IL_0023
+      IL_0023:  ldloc.s    V_8
+      IL_0025:  ret
+    }
+");
         }
     }
 }

@@ -98,9 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
                 isInImportsDirective:=isInImportsDirective,
-                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
+                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken),
                 isPossibleTupleContext:=isPossibleTupleContext,
-                isPatternContext:=False,
+                isAtStartOfPattern:=False,
+                isAtEndOfPattern:=False,
                 isRightSideOfNumericType:=False,
                 isOnArgumentListBracketOrComma:=isInArgumentList,
                 cancellationToken:=cancellationToken)
@@ -129,10 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
 
-            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
+            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
@@ -169,10 +170,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken:=cancellationToken)
         End Function
 
-        Public Shared Function CreateContextAsync_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
-            Return CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
-        End Function
-
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
@@ -191,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
@@ -202,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean
@@ -284,6 +281,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
             Return New VisualBasicTypeInferenceService()
         End Function
+
+        Friend Structure TestAccessor
+            Public Shared Function CreateContextAsync(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+                Return VisualBasicSyntaxContext.CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
+            End Function
+        End Structure
     End Class
 End Namespace
 

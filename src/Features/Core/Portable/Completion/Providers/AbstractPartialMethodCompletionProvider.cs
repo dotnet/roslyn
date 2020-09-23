@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
+        protected abstract bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken);
         protected abstract bool IsPartialMethodCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token);
         protected abstract string GetDisplayText(IMethodSymbol method, SemanticModel semanticModel, int position);
         protected abstract bool IsPartial(IMethodSymbol method);
@@ -67,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var method = (IMethodSymbol)member;
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: ImmutableArray<AttributeData>.Empty,
-                accessibility: Accessibility.NotApplicable,
+                accessibility: IncludeAccessibility(method, cancellationToken) ? method.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
-                returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                returnType: method.ReturnType,
                 refKind: method.RefKind,
                 explicitInterfaceImplementations: default,
                 name: member.Name,
@@ -84,10 +85,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only inside classes and structs
-            if (!(semanticModel.GetEnclosingSymbol(position, cancellationToken) is INamedTypeSymbol enclosingSymbol) || !(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
-            {
+            if (semanticModel.GetEnclosingSymbol(position, cancellationToken) is not INamedTypeSymbol enclosingSymbol)
                 return null;
-            }
+
+            if (!(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
+                return null;
 
             var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)
                                         .OfType<IMethodSymbol>()
@@ -96,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var line = text.Lines.IndexOf(position);
             var lineSpan = text.Lines.GetLineFromPosition(position).Span;
-            return symbols.Select(s => CreateItem(s, line, lineSpan, span, semanticModel, modifiers, document, token));
+            return symbols.Select(s => CreateItem(s, line, span, semanticModel, modifiers, token));
         }
 
-        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan lineSpan, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, Document document, SyntaxToken token)
+        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, SyntaxToken token)
         {
             modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifier(), isPartial: true, isAsync: modifiers.IsAsync);
             var displayText = GetDisplayText(method, semanticModel, span.Start);

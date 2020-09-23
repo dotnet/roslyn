@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             if (!(id is LiveDiagnosticUpdateArgsId argsId))
             {
-                return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
             }
 
             var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
@@ -73,28 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected ImmutableArray<DiagnosticData> GetDiagnosticData()
                 => (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
 
-            protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken);
             protected abstract Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
-
-            public async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(DiagnosticAnalyzer analyzer, AnalysisKind analysisKind, CancellationToken cancellationToken)
-            {
-                var project = Solution.GetProject(ProjectId);
-                if (project == null)
-                {
-                    // when we return cached result, make sure we at least return something that exist in current solution
-                    return ImmutableArray<DiagnosticData>.Empty;
-                }
-
-                var stateSet = StateManager.GetOrCreateStateSet(project, analyzer);
-                if (stateSet == null)
-                {
-                    return ImmutableArray<DiagnosticData>.Empty;
-                }
-
-                var diagnostics = await GetDiagnosticsAsync(stateSet, project, DocumentId, analysisKind, cancellationToken).ConfigureAwait(false);
-
-                return IncludeSuppressedDiagnostics ? diagnostics : diagnostics.WhereAsArray(d => !d.IsSuppressed);
-            }
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
@@ -182,7 +161,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken)
+            public async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(DiagnosticAnalyzer analyzer, AnalysisKind analysisKind, CancellationToken cancellationToken)
+            {
+                var project = Solution.GetProject(ProjectId);
+                if (project == null)
+                {
+                    // when we return cached result, make sure we at least return something that exist in current solution
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
+
+                var stateSet = StateManager.GetOrCreateStateSet(project, analyzer);
+                if (stateSet == null)
+                {
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
+
+                var diagnostics = await GetDiagnosticsAsync(stateSet, project, DocumentId, analysisKind, cancellationToken).ConfigureAwait(false);
+
+                return IncludeSuppressedDiagnostics ? diagnostics : diagnostics.WhereAsArray(d => !d.IsSuppressed);
+            }
+
+            private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -296,42 +295,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return true;
-            }
-
-            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var stateSets = SpecializedCollections.SingletonCollection(stateSet);
-
-                // Here, we don't care what kind of analyzer (StateSet) is given. 
-                var forceAnalyzerRun = true;
-                var compilation = await CreateCompilationWithAnalyzersAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-
-                if (documentId != null)
-                {
-                    var document = project.Solution.GetDocument(documentId);
-                    Contract.ThrowIfNull(document);
-
-                    switch (kind)
-                    {
-                        case AnalysisKind.Syntax:
-                        case AnalysisKind.Semantic:
-                            return (await Owner.GetDocumentAnalysisDataAsync(compilation, document, stateSet, kind, cancellationToken).ConfigureAwait(false)).Items;
-
-                        case AnalysisKind.NonLocal:
-                            var nonLocalDocumentResult = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                            var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
-                            return analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal);
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(kind);
-                    }
-                }
-
-                Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var projectResult = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                return projectResult.GetResult(stateSet.Analyzer).GetOtherDiagnostics();
             }
         }
     }

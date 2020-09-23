@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class TargetTypedObjectCreationParsingTests : ParsingTests
     {
-        private static readonly CSharpParseOptions DefaultParseOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular9;
 
         public TargetTypedObjectCreationParsingTests(ITestOutputHelper output) : base(output) { }
 
@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNoRegressionOnNew()
         {
             UsingExpression("new", DefaultParseOptions,
-                // (1,4): error CS1526: A new expression requires (), [], or {} after type
+                // (1,4): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 // new
-                Diagnostic(ErrorCode.ERR_BadNewExpr, "").WithLocation(1, 4)
-                );
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "").WithLocation(1, 4));
 
             N(SyntaxKind.ObjectCreationExpression);
             {
@@ -401,9 +400,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmptyArgList_LangVersion()
         {
             UsingExpression("new()", options: TestOptions.Regular8,
-                // (1,1): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // new()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
@@ -443,9 +442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmptyObjectInitializer_LangVersion()
         {
             UsingExpression("new(){}", options: TestOptions.Regular8,
-                // (1,1): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // new(){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
@@ -517,9 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestObjectInitializer_LangVersion()
         {
             UsingExpression("new(a,b){x=y}", options: TestOptions.Regular8,
-                // (1,1): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // new(1,2){x=y}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(1, 1)
+                // (1,1): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // new(a,b){x=y}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.ImplicitObjectCreationExpression);

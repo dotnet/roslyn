@@ -805,8 +805,6 @@ class Class2
     </Project>
 </Workspace>";
 
-
-
                 await TestInRegularAndScriptAsync(input, expected);
             }
 
@@ -1060,8 +1058,6 @@ class Class2
     @"</Document>
     </Project>
 </Workspace>";
-
-
 
                 await TestInRegularAndScriptAsync(input, expected);
             }

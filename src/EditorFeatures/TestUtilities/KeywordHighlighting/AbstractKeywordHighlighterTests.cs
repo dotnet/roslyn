@@ -7,24 +7,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 {
     [UseExportProvider]
     public abstract class AbstractKeywordHighlighterTests
     {
-        internal abstract IHighlighter CreateHighlighter();
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IHighlighter));
+        private TestComposition _lazyComposition;
+
+        protected TestComposition Composition
+            => _lazyComposition ??= s_baseComposition.AddParts(GetHighlighterType());
+
+        internal abstract Type GetHighlighterType();
+
         protected abstract IEnumerable<ParseOptions> GetOptions();
         protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
 
-        protected async Task TestAsync(
-            string code)
+        protected async Task TestAsync(string code)
         {
             foreach (var option in GetOptions())
             {
@@ -43,11 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
             var textSnapshot = testDocument.GetTextBuffer().CurrentSnapshot;
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var highlighter = CreateHighlighter();
-            var service = new HighlightingService(new List<Lazy<IHighlighter, LanguageMetadata>>
-            {
-                new Lazy<IHighlighter, LanguageMetadata>(() => highlighter, new LanguageMetadata(document.Project.Language)),
-            });
+            var service = Assert.IsType<HighlightingService>(workspace.ExportProvider.GetExportedValue<IHighlightingService>());
 
             var root = await document.GetSyntaxRootAsync();
 

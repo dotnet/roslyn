@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             }
         }
 
-        private SyntaxNode FixMethod(
+        private static SyntaxNode FixMethod(
             bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
             KnownTypes knownTypes)
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private SyntaxNode FixLocalFunction(
+        private static SyntaxNode FixLocalFunction(
             bool keepVoid, IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction,
             KnownTypes knownTypes)
         {
@@ -165,19 +165,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return result;
         }
 
-        private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
+        private static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
         {
             return lambda.WithoutLeadingTrivia()
                          .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(lambda.GetLeadingTrivia()));
         }
 
-        private SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
+        private static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
         {
             return lambda.WithoutLeadingTrivia()
                          .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(lambda.GetLeadingTrivia()));
         }
 
-        private SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
+        private static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
         {
             return method.WithoutLeadingTrivia()
                          .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(method.GetLeadingTrivia()));

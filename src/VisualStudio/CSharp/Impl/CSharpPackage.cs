@@ -22,6 +22,36 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
+    // The option page configuration is duplicated in PackageRegistration.pkgdef.
+    //
+    // C# option pages tree:
+    //   CSharp
+    //     General (from editor)
+    //     Scroll Bars (from editor)
+    //     Tabs (from editor)
+    //     Advanced
+    //     Code Style (category)
+    //       General
+    //       Formatting (category)
+    //         General
+    //         Indentation
+    //         New Lines
+    //         Spacing
+    //         Wrapping
+    //       Naming
+    //     IntelliSense
+
+    [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
+    [ProvideLanguageEditorToolsOptionCategory("CSharp", "Code Style", "#114")]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.CodeStylePage), "CSharp", @"Code Style", "General", pageNameResourceId: "#108", keywordListResourceId: 313)]
+    [ProvideLanguageEditorToolsOptionCategory("CSharp", @"Code Style\Formatting", "#107")]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingOptionPage), "CSharp", @"Code Style\Formatting", "General", pageNameResourceId: "#108", keywordListResourceId: 307)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingIndentationOptionPage), "CSharp", @"Code Style\Formatting", "Indentation", pageNameResourceId: "#109", keywordListResourceId: 308)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingWrappingPage), "CSharp", @"Code Style\Formatting", "Wrapping", pageNameResourceId: "#110", keywordListResourceId: 311)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingNewLinesPage), "CSharp", @"Code Style\Formatting", "NewLines", pageNameResourceId: "#111", keywordListResourceId: 309)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingSpacingPage), "CSharp", @"Code Style\Formatting", "Spacing", pageNameResourceId: "#112", keywordListResourceId: 310)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
     [Guid(Guids.CSharpPackageIdString)]
     internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {

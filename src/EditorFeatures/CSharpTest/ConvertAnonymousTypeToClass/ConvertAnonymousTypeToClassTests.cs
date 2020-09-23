@@ -1427,5 +1427,125 @@ internal class NewClass
 }";
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
+
+        [WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertOmittingTrailingComma()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new
+        {
+            a = 1,
+            b = 2,
+        };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(
+1,
+2
+        );
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewClass other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+        }
+
+        [WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertOmittingTrailingCommaButPreservingTrivia()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new
+        {
+            a = 1,
+            b = 2 // and
+                  // more
+            ,
+        };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewClass|}(
+1,
+2 // and
+  // more
+
+        );
+    }
+}
+
+internal class NewClass
+{
+    public int A { get; }
+    public int B { get; }
+
+    public NewClass(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewClass other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+        }
     }
 }

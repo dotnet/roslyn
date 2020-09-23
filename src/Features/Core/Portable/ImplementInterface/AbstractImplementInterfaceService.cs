@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,10 +54,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
         }
 
-        public IEnumerable<CodeAction> GetCodeActions(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        public ImmutableArray<CodeAction> GetCodeActions(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             var state = State.Generate(this, document, model, node, cancellationToken);
-            return GetActions(document, state);
+            return GetActions(document, state).ToImmutableArray();
         }
 
         private IEnumerable<CodeAction> GetActions(Document document, State state)
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return false;
         }
 
-        private IList<ISymbol> GetDelegatableMembers(State state)
+        private static IList<ISymbol> GetDelegatableMembers(State state)
         {
             var fields =
                 state.ClassOrStructType.GetMembers()

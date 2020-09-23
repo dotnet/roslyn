@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// </summary>
         private static class PragmaHelpers
         {
-            internal async static Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
+            internal static async Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
                 Document document,
                 TextSpan diagnosticSpan,
                 SuppressionTargetInfo suppressionTargetInfo,
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 else
                 {
                     return endToken.WithTrailingTrivia(trivia.InsertRange(index, pragmaTrivia));
-                };
+                }
             }
 
             internal static void NormalizeTriviaOnTokens(AbstractSuppressionCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)

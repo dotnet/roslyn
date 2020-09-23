@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -221,9 +222,9 @@ class MyEnumerator : System.Collections.IEnumerator
 }
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is either static or not public.
+                // (6,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (var q in c) { }
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "c").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "c").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()").WithLocation(6, 27)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "12");
@@ -266,7 +267,7 @@ class MyEnumerator
                 // (26,24): error CS0111: Type 'MyEnumerator' already defines a member called 'MoveNext' with the same parameter types
                 //     public static bool MoveNext() => throw null;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "MoveNext").WithArguments("MoveNext", "MyEnumerator").WithLocation(26, 24),
-                // (6,27): error CS0202: foreach requires that the return type 'MyEnumerator' of 'MyCollection.GetEnumerator()' must have a suitable public MoveNext method and public Current property
+                // (6,27): error CS0202: foreach requires that the return type 'MyEnumerator' of 'MyCollection.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
                 //         foreach (var q in c) { }
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "c").WithArguments("MyEnumerator", "MyCollection.GetEnumerator()").WithLocation(6, 27)
                 );

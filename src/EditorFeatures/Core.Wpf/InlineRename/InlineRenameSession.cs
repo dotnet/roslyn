@@ -192,8 +192,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
         private class NullTextBufferException : Exception
         {
+#pragma warning disable IDE0052 // Remove unread private members
             private readonly Document _document;
             private readonly SourceText _text;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public NullTextBufferException(Document document, SourceText text)
                 : base("Cannot retrieve textbuffer from document.")
@@ -309,7 +311,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // follow the originally-intended design.
                 // https://github.com/dotnet/roslyn/issues/40890
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
-                _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
 
@@ -583,7 +584,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     async t =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _conflictResolutionTaskCancellationSource.Token);
-                        _conflictResolutionTaskCancellationSource.Token.ThrowIfCancellationRequested();
 
                         ApplyReplacements(t.Result.replacementInfo, t.Result.mergeResult, _conflictResolutionTaskCancellationSource.Token);
                     },

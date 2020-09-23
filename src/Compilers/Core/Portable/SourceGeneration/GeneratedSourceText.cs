@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A source text created by an <see cref="ISourceGenerator"/>
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
-    public readonly struct GeneratedSourceText
+    internal readonly struct GeneratedSourceText
     {
         public SourceText Text { get; }
 

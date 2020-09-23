@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -64,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.StructKeyword;
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxKind.InterfaceKeyword;
+                case SyntaxKind.RecordDeclaration:
+                    return SyntaxKind.RecordKeyword;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -91,7 +92,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.TypeDeclaration(kind, SyntaxFactory.Identifier(identifier));
         }
 
-        public static TypeDeclarationSyntax TypeDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public static TypeDeclarationSyntax TypeDeclaration(
+            SyntaxKind kind,
+            SyntaxList<AttributeListSyntax> attributes,
+            SyntaxTokenList modifiers,
+            SyntaxToken keyword,
+            SyntaxToken identifier,
+            TypeParameterListSyntax? typeParameterList,
+            BaseListSyntax? baseList,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            SyntaxToken openBraceToken,
+            SyntaxList<MemberDeclarationSyntax> members,
+            SyntaxToken closeBraceToken,
+            SyntaxToken semicolonToken)
         {
             switch (kind)
             {
@@ -101,6 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxFactory.StructDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                case SyntaxKind.RecordDeclaration:
+                    return SyntaxFactory.RecordDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
                     throw new ArgumentException("kind");
             }

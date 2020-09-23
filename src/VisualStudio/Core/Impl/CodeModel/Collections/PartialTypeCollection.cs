@@ -19,16 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
     {
         internal static EnvDTE.CodeElements Create(
             CodeModelState state,
-            FileCodeModel fileCodeModel,
             AbstractCodeType parent)
         {
-            var collection = new PartialTypeCollection(state, fileCodeModel, parent);
+            var collection = new PartialTypeCollection(state, parent);
             return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
         }
 
         private PartialTypeCollection(
             CodeModelState state,
-            FileCodeModel fileCodeModel,
             AbstractCodeType parent)
             : base(state, parent)
         {

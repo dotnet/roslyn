@@ -31,14 +31,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             End If
         End Function
 
-        Protected Overrides Sub VerifyTriggerCharacters(expectedTriggerCharacters() As Char, unexpectedTriggerCharacters() As Char, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing)
-            If (sourceCodeKind.HasValue) Then
-                MyBase.VerifyTriggerCharacters(expectedTriggerCharacters, unexpectedTriggerCharacters, sourceCodeKind)
-            Else
-                MyBase.VerifyTriggerCharacters(expectedTriggerCharacters, unexpectedTriggerCharacters, Microsoft.CodeAnalysis.SourceCodeKind.Regular)
-            End If
-        End Sub
-
         Protected Overrides Function CreateExperimentalParseOptions() As ParseOptions
             ' There are no experimental features at this time.
             Return New VisualBasicParseOptions()

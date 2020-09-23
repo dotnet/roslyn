@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     internal static partial class CSharpCodeStyleOptions
     {
         private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Silent);
 
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
@@ -57,6 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_switch_expression"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSwitchExpression)}")});
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatching = CreateOption(
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatching),
+            defaultValue: s_trueWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_pattern_matching"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatching)}")});
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatchingOverAsWithNullCheck = CreateOption(
             CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverAsWithNullCheck),
             defaultValue: s_trueWithSuggestionEnforcement,
@@ -70,6 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             storageLocations: new OptionStorageLocation2[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
+
+        public static readonly Option2<CodeStyleOption2<bool>> PreferNotPattern = CreateOption(
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferNotPattern),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_not_pattern"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNotPattern)}")});
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
@@ -307,6 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return VarElsewhere;
             yield return PreferConditionalDelegateCall;
             yield return PreferSwitchExpression;
+            yield return PreferPatternMatching;
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferSimpleDefaultExpression;

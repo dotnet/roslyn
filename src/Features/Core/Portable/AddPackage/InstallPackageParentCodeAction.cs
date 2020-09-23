@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// </summary>
     internal class InstallPackageParentCodeAction : CodeAction.CodeActionWithNestedActions
     {
-        private readonly IPackageInstallerService _installerService;
-        private readonly string _source;
-        private readonly string _packageName;
-
         public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
 
         /// <summary>
@@ -40,9 +36,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
                    CreateNestedActions(installerService, source, packageName, includePrerelease, document),
                    isInlinable: false)
         {
-            _installerService = installerService;
-            _source = source;
-            _packageName = packageName;
         }
 
         private static ImmutableArray<CodeAction> CreateNestedActions(

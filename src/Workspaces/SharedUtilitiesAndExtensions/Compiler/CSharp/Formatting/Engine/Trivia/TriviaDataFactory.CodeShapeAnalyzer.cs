@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 get { return _lastLineBreakIndex >= 0; }
             }
 
-            private bool OnElastic(SyntaxTrivia trivia)
+            private static bool OnElastic(SyntaxTrivia trivia)
             {
                 // if it contains elastic trivia, always format
                 return trivia.IsElastic();
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            private bool OnSkippedTokensOrText(SyntaxTrivia trivia)
+            private static bool OnSkippedTokensOrText(SyntaxTrivia trivia)
             {
                 if (trivia.Kind() != SyntaxKind.SkippedTokensTrivia &&
                     trivia.Kind() != SyntaxKind.PreprocessingMessageTrivia)
