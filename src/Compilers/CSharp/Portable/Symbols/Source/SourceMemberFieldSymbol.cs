@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
             }
 
+            type.CheckRecordLangVersion(diagnostics, TypeSyntax, TypeSyntax?.Location);
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
             {

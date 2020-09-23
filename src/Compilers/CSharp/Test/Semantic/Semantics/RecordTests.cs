@@ -42,16 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 verify: Verification.Skipped);
 
         [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
-        public void RecordLanguageVersion()
+        public void RecordLanguageVersion_01()
         {
             var src1 = @"
 class Point(int x, int y);
-";
-            var src2 = @"
-record Point { }
-";
-            var src3 = @"
-record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -85,35 +79,6 @@ record Point(int x, int y);
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
-            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // record Point { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // record Point { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
-                // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
-                // record Point { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
-            );
-            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
-                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
-                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // record Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS8112: Local function 'Point(int, int)' must declare a body because it is not marked 'static extern'.
-                // record Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Point").WithArguments("Point(int, int)").WithLocation(2, 8),
-                // (2,8): warning CS8321: The local function 'Point' is declared but never used
-                // record Point(int x, int y);
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Point").WithArguments("Point").WithLocation(2, 8)
-            );
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
@@ -144,32 +109,156 @@ record Point(int x, int y);
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
-            comp = CreateCompilation(src2);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(src3);
-            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
-        public void RecordLanguageVersion_Nested()
+        public void RecordLanguageVersion_02()
+        {
+            var src2 = @"
+record Point { }
+";
+
+            var comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,1): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record").WithArguments("records", "9.0").WithLocation(2, 1),
+                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
+            );
+
+            comp = CreateCompilation(new[] { src2, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
+            );
+
+            comp = CreateCompilation(src2);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_03()
+        {
+            var src3 = @"
+record Point(int x, int y);
+";
+            var comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,1): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record").WithArguments("records", "9.0").WithLocation(2, 1),
+                // (2,8): error CS8112: Local function 'Point(int, int)' must declare a body because it is not marked 'static extern'.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Point").WithArguments("Point(int, int)").WithLocation(2, 8),
+                // (2,8): warning CS8321: The local function 'Point' is declared but never used
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Point").WithArguments("Point").WithLocation(2, 8)
+            );
+
+            comp = CreateCompilation(src3);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src3, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,8): error CS8112: Local function 'Point(int, int)' must declare a body because it is not marked 'static extern'.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Point").WithArguments("Point(int, int)").WithLocation(2, 8),
+                // (2,8): warning CS8321: The local function 'Point' is declared but never used
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Point").WithArguments("Point").WithLocation(2, 8)
+            );
+
+            comp = CreateCompilation(new[] { src3, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_04()
+        {
+            var src4 = @"
+record Point;
+";
+            var comp = CreateCompilation(src4, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,1): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record").WithArguments("records", "9.0").WithLocation(2, 1),
+                // (2,8): warning CS0168: The variable 'Point' is declared but never used
+                // record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Point").WithArguments("Point").WithLocation(2, 8)
+            );
+
+            comp = CreateCompilation(src4);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src4, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record Point;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
+                // (2,8): warning CS0168: The variable 'Point' is declared but never used
+                // record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Point").WithArguments("Point").WithLocation(2, 8)
+            );
+
+            comp = CreateCompilation(new[] { src4, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_Nested_01()
         {
             var src1 = @"
 class C
 {
     class Point(int x, int y);
-}
-";
-            var src2 = @"
-class D
-{
-    record Point { }
-}
-";
-            var src3 = @"
-class E
-{
-    record Point(int x, int y);
 }
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
@@ -188,26 +277,6 @@ class E
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30)
                 );
 
-            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                //     record Point { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
-                // (4,12): error CS0548: 'D.Point': property or indexer must have at least one accessor
-                //     record Point { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("D.Point").WithLocation(4, 12)
-                );
-
-            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                //     record Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
-                // (4,12): error CS0501: 'E.Point(int, int)' must declare a body because it is not marked abstract, extern, or partial
-                //     record Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Point").WithArguments("E.Point(int, int)").WithLocation(4, 12)
-                );
-
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
                 // (4,16): error CS1514: { expected
@@ -223,12 +292,121 @@ class E
                 //     class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30)
                 );
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_Nested_02()
+        {
+            var src2 = @"
+class D
+{
+    record Point { }
+}
+";
+            var comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                //     record Point { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
+                // (4,5): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     record Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record").WithArguments("records", "9.0").WithLocation(4, 5),
+                // (4,12): error CS0548: 'D.Point': property or indexer must have at least one accessor
+                //     record Point { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("D.Point").WithLocation(4, 12)
+                );
 
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
 
+            comp = CreateCompilation(new[] { src2, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0548: 'D.Point': property or indexer must have at least one accessor
+                //     record Point { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("D.Point").WithLocation(4, 12));
+
+            comp = CreateCompilation(new[] { src2, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_Nested_03()
+        {
+            var src3 = @"
+class E
+{
+    record Point(int x, int y);
+}
+";
+            var comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                //     record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
+                // (4,5): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record").WithArguments("records", "9.0").WithLocation(4, 5),
+                // (4,12): error CS0501: 'E.Point(int, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Point").WithArguments("E.Point(int, int)").WithLocation(4, 12)
+                );
+
             comp = CreateCompilation(src3);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src3, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0501: 'E.Point(int, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Point").WithArguments("E.Point(int, int)").WithLocation(4, 12));
+
+            comp = CreateCompilation(new[] { src3, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_Nested_04()
+        {
+            var src4 = @"
+class E
+{
+    record Point;
+}
+";
+            var comp = CreateCompilation(src4, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     record Point;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record").WithArguments("records", "9.0").WithLocation(4, 5),
+                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                //     record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
+                // (4,12): warning CS0169: The field 'E.Point' is never used
+                //     record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Point").WithArguments("E.Point").WithLocation(4, 12)
+                );
+
+            comp = CreateCompilation(src4);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src4, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS0169: The field 'E.Point' is never used
+                //     record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Point").WithArguments("E.Point").WithLocation(4, 12)
+                );
+
+            comp = CreateCompilation(new[] { src4, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
         }
 
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]

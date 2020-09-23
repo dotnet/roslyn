@@ -1964,5 +1964,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default: return -1;
             }
         }
+
+        internal static void CheckRecordLangVersion(this TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax, Location location)
+        {
+            if (type.IsErrorType() && type.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            {
+                MessageID.IDS_FeatureRecords.CheckFeatureAvailability(diagnostics, syntax, location);
+            }
+        }
     }
 }

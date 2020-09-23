@@ -267,6 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
+            returnType.Type.CheckRecordLangVersion(diagnostics, returnTypeSyntax, returnTypeSyntax.Location);
+
             Debug.Assert(_refKind == RefKind.None
                 || !returnType.IsVoidType()
                 || returnTypeSyntax.HasErrors);

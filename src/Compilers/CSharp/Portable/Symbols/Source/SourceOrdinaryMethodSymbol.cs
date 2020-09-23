@@ -145,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            returnType.Type.CheckRecordLangVersion(diagnostics, returnTypeSyntax, returnTypeSyntax.Location);
+
             Debug.Assert(this.RefKind == RefKind.None || !returnType.IsVoidType() || returnTypeSyntax.HasErrors);
 
             ImmutableArray<TypeParameterConstraintClause> declaredConstraints = default;

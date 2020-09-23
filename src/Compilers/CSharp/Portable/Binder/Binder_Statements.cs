@@ -830,6 +830,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Keep processing it as a non-const local.
                     isConst = false;
                 }
+
+                declType.Type.CheckRecordLangVersion(diagnostics, typeSyntax, typeSyntax.Location);
             }
 
             return declType;

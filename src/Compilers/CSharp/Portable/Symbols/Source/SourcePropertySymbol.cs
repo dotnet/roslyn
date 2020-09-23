@@ -391,6 +391,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(errorCode, Location, this);
             }
 
+            type.Type.CheckRecordLangVersion(diagnostics, typeSyntax, typeSyntax.Location);
+
             return type;
         }
 
