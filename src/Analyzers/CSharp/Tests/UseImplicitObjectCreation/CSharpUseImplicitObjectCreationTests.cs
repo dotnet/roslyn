@@ -3,15 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
-using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreationTests
@@ -25,6 +19,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreati
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
         public async Task TestMissingBeforeCSharp9()
         {
+            var source = @"
+class C
+{
+    C c = new C();
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+                TestCode = source,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestAfterCSharp9()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    C c = new [|C|]();
+}",
+                FixedCode = @"
+class C
+{
+    C c = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
         }
     }
 }
