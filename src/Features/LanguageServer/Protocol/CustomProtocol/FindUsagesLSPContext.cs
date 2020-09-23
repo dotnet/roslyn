@@ -176,10 +176,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             // https://github.com/dotnet/roslyn/issues/42847
             var result = new LSP.VSReferenceItem
             {
-                ContainingMember = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : "",
-                ContainingType = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : "",
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DisplayPath = location.Uri.LocalPath,
@@ -191,6 +187,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
+                result.ContainingMember = referenceContainingMember;
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
+                result.ContainingType = referenceContainingType;
 
             return result;
 
