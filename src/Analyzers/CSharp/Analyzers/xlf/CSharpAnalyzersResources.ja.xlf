@@ -267,6 +267,11 @@
         <target state="translated">'if' ステートメントは簡素化できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="new">'new' expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
         <target state="new">'typeof' can be converted  to 'nameof'</target>
