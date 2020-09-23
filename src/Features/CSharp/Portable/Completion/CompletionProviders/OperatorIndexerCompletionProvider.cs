@@ -112,16 +112,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
                                              properties: CreateCompletionHandlerProperty(CompletionHandlerConversion, (MinimalTypeNamePropertyName, typeName)));
-            var indexers = from p in allMembers.OfType<IPropertySymbol>()
-                           where p.IsIndexer
-                           select SymbolCompletionItem.CreateWithSymbolId(
-                               displayText: $"[{string.Join(", ", p.Parameters.Select(p => p.Type.ToMinimalDisplayString(semanticModel, position)))}]",
-                               symbols: ImmutableList.Create(p),
+            context.AddItems(allExplicitConversions);
+
+            var indexers = allMembers.OfType<IPropertySymbol>().Where(p => p.IsIndexer).ToImmutableList();
+            if (!indexers.IsEmpty)
+            {
+                var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
+                               displayText: $"this[]",
+                               filterText: "[",
+                               sortText: $"{SortingPrefix}",
+                               symbols: indexers,
                                rules: CompletionItemRules.Default,
                                contextPosition: position,
                                properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
-            context.AddItems(allExplicitConversions);
-            context.AddItems(indexers);
+                context.AddItem(indexerCompletion);
+            }
         }
 
         private static ExpressionSyntax? GetParentExpressionOfInvocation(SyntaxToken token)
