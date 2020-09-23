@@ -1119,7 +1119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
