@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis
         internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
         {
             var type = generator.GetType();
-            return Path.Combine(type.Assembly.FullName ?? string.Empty, type.FullName!);
+            return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }

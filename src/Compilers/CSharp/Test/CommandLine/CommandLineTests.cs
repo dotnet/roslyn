@@ -2478,7 +2478,7 @@ print Goodbye, World";
 
         private static void ValidateWrittenSources(Dictionary<string, Dictionary<string, string>> expectedFilesMap, Encoding encoding = null)
         {
-            foreach ((var dirPath, var fileMap) in expectedFilesMap)
+            foreach ((var dirPath, var fileMap) in expectedFilesMap.ToArray())
             {
                 foreach (var file in Directory.GetFiles(dirPath))
                 {
@@ -12505,6 +12505,55 @@ class C
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
+        }
+
+        [ConditionalFact(typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
+        [WorkItem(47990, "https://github.com/dotnet/roslyn/issues/47990")]
+        public void SourceGenerators_SxS_AssemblyLoading()
+        {
+            // compile the generators
+            var dir = Temp.CreateDirectory();
+            var snk = Temp.CreateFile("TestKeyPair_", ".snk", dir.Path).WriteAllBytes(TestResources.General.snKey);
+            var src = dir.CreateFile("generator.cs");
+            var virtualSnProvider = new DesktopStrongNameProvider(ImmutableArray.Create(dir.Path));
+
+            string createGenerator(string version)
+            {
+                var generatorSource = $@"
+using Microsoft.CodeAnalysis;
+[assembly:System.Reflection.AssemblyVersion(""{version}"")]
+
+[Generator]
+public class TestGenerator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ context.AddSource(""generatedSource.cs"", ""//from version {version}""); }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var path = Path.Combine(dir.Path, Guid.NewGuid().ToString() + ".dll");
+
+                var comp = CreateEmptyCompilation(source: generatorSource,
+                                             references: TargetFrameworkUtil.NetStandard20References.Add(MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly)),
+                                             options: TestOptions.DebugDll.WithCryptoKeyFile(Path.GetFileName(snk.Path)).WithStrongNameProvider(virtualSnProvider),
+                                             assemblyName: "generator");
+                comp.VerifyDiagnostics();
+                comp.Emit(path);
+                return path;
+            }
+
+            var gen1 = createGenerator("1.0.0.0");
+            var gen2 = createGenerator("2.0.0.0");
+
+            var generatedDir = dir.CreateDirectory("generated");
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/analyzer:" + gen1, "/analyzer:" + gen2 }.ToArray());
+
+            // This is wrong! Both generators are writing the same file out, over the top of each other
+            // See https://github.com/dotnet/roslyn/issues/47990
+            ValidateWrittenSources(new()
+            {
+                //  { Path.Combine(generatedDir.Path,  "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 1.0.0.0" } } },
+                { Path.Combine(generatedDir.Path, "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 2.0.0.0" } } }
+            });
         }
 
         [Fact]
