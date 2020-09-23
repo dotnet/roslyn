@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public UseImplicitObjectCreationDiagnosticAnalyzer()
+        public CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
                    CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
                    LanguageNames.CSharp,
@@ -38,6 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             var syntaxTree = context.Node.SyntaxTree;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
+
+            // Not available prior to C# 9.
+            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+                return;
 
             var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var styleOption = options.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, syntaxTree, cancellationToken);
@@ -82,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     MethodDeclarationSyntax method => method.ReturnType,
                     ConversionOperatorDeclarationSyntax conversion => conversion.Type,
                     OperatorDeclarationSyntax op => op.ReturnType,
-                    PropertyDeclarationSyntax property => property.Type,
-                    IndexerDeclarationSyntax indexer => indexer.Type,
+                    BasePropertyDeclarationSyntax property => property.Type,
                     AccessorDeclarationSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } accessor when accessor.IsKind(SyntaxKind.GetAccessorDeclaration) => baseProperty.Type,
                     _ => null,
                 };
