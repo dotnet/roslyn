@@ -409,6 +409,58 @@ class E
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14));
         }
 
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_Qualified_01()
+        {
+            var src4 = @"
+class E
+{
+    X.record Point;
+}
+";
+            var comp = CreateCompilation(src4, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //     X.record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(4, 5),
+                // (4,14): warning CS0169: The field 'E.Point' is never used
+                //     X.record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Point").WithArguments("E.Point").WithLocation(4, 14)
+                );
+
+            comp = CreateCompilation(src4);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //     X.record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(4, 5),
+                // (4,14): warning CS0169: The field 'E.Point' is never used
+                //     X.record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Point").WithArguments("E.Point").WithLocation(4, 14)
+                );
+
+            comp = CreateCompilation(new[] { src4, "public class record { }" }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //     X.record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(4, 5),
+                // (4,14): warning CS0169: The field 'E.Point' is never used
+                //     X.record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Point").WithArguments("E.Point").WithLocation(4, 14)
+                );
+
+            comp = CreateCompilation(new[] { src4, "public class record { }" });
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS8860: Types and aliases should not be named 'record'.
+                // public class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(1, 14),
+                // (4,5): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //     X.record Point;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(4, 5),
+                // (4,14): warning CS0169: The field 'E.Point' is never used
+                //     X.record Point;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Point").WithArguments("E.Point").WithLocation(4, 14));
+        }
+
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord()
         {

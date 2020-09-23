@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1965,9 +1966,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckRecordLangVersion(this TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax, Location location)
+        internal static void CheckRecordLangVersion(this TypeSymbol type, DiagnosticBag diagnostics, TypeSyntax syntax, Location location)
         {
-            if (type.IsErrorType() && type.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            if (type.IsErrorType() && syntax is IdentifierNameSyntax name && name.Identifier.Text == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
             {
                 MessageID.IDS_FeatureRecords.CheckFeatureAvailability(diagnostics, syntax, location);
             }
