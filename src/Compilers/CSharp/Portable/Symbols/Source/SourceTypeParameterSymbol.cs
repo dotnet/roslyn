@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds), currentBounds))
                 {
-                    if (_lazyBounds?.IgnoresNullableContext != true)
+                    if (_lazyBounds.HasValue(canIgnoreNullableContext: false))
                     {
                         this.CheckConstraintTypeConstraints(diagnostics);
                         this.CheckUnmanagedConstraint(diagnostics);

@@ -442,7 +442,7 @@ next:;
                     }
 
                     builder[i] = TypeParameterConstraintClause.Create(mergedKind,
-                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes, isEarly: constraint.IsEarly);
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes, ignoresNullableContext: constraint.IgnoresNullableContext);
                 }
             }
 
