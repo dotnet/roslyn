@@ -557,16 +557,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (member.IsSealed)
                 return false;
 
-            if (!member.CanBeReferencedByName)
-                return false;
-
             if (!member.IsAccessibleWithin(containingType))
                 return false;
 
             return member switch
             {
                 IEventSymbol => true,
-                IMethodSymbol { MethodKind: MethodKind.Ordinary } => true,
+                IMethodSymbol { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: true } => true,
                 IPropertySymbol { IsWithEvents: false } => true,
                 _ => false,
             };
