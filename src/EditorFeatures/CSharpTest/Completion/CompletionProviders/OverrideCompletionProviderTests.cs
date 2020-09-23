@@ -3042,5 +3042,25 @@ namespace NS3
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Bar(NS2.Baz baz)", expectedCodeAfterCommit);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OverrideInRecordWithoutExplicitOverriddenMember()
+        {
+            await VerifyItemExistsAsync(@"record Program
+{
+    override $$
+}", "ToString()");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OverrideInRecordWithExplicitOverriddenMember()
+        {
+            await VerifyItemIsAbsentAsync(@"record Program
+{
+    public override string ToString() => "";
+
+    override $$
+}", "ToString()");
+        }
     }
 }
