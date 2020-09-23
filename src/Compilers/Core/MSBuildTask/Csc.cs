@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
-            commandLine.AppendSwitchIfNotNull("/generatedFilesOut:", GeneratedFilesOutputPath);
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);

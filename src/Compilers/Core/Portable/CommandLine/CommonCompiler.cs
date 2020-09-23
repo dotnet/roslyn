@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis
                     compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
-                    bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesDirectory);
+                    bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
 
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
 
@@ -989,7 +989,11 @@ namespace Microsoft.CodeAnalysis
                             // write out the file if we have an output path
                             if (hasGeneratedOutputPath)
                             {
-                                var path = Path.Combine(Arguments.GeneratedFilesDirectory, tree.FilePath);
+                                var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory, tree.FilePath);
+                                if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+                                {
+                                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                                }
 
                                 var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is object)

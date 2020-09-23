@@ -37,8 +37,7 @@
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
-                  @(EditorConfigFiles);
-                  $(GeneratedFilesOutputPath)"
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);

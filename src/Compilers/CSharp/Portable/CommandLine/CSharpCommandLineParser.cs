@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputFileName = null;
             string? outputRefFilePath = null;
             bool refOnly = false;
-            string? generatedFilesDirectory = null;
+            string? generatedFilesOutputDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                generatedFilesDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
                             }
                             continue;
 
@@ -1501,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
-                GeneratedFilesDirectory = generatedFilesDirectory,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),

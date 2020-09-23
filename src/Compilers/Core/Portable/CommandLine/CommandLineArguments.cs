@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Absolute path of the directory to place generated files in, or <c>null</c> to not emit any generated files.
         /// </summary>
-        public string? GeneratedFilesDirectory { get; internal set; }
+        public string? GeneratedFilesOutputDirectory { get; internal set; }
 
         /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or
