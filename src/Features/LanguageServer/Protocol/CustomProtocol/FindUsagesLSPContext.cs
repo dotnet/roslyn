@@ -179,14 +179,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DisplayPath = location.Uri.LocalPath,
-                DocumentName = documentSpan.Document?.Name ?? "",
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
                 Location = location,
-                ProjectName = documentSpan.Document?.Project.Name ?? "",
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
+
+            if (documentSpan.Document != null)
+            {
+                result.DocumentName = documentSpan.Document.Name;
+                result.ProjectName = documentSpan.Document.Project.Name;
+            }
 
             if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
                 result.ContainingMember = referenceContainingMember;
