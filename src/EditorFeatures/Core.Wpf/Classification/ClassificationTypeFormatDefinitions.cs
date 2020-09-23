@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public UserTypeClassesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Classes;
+                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
@@ -198,7 +199,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public UserTypeRecordsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Records;
-                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
