@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -553,6 +552,34 @@ public class Program
     }}
 }}
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerOverloadsAreEncodedInSymbolsProperty()
+        {
+            var completionItems = await GetCompletionItemsAsync(@"
+public class C
+{
+    public int this[int i] => i;
+    public int this[string s] => 1;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", SourceCodeKind.Regular);
+            Assert.Equal(1, completionItems.Length);
+            var indexerCompletionItem = completionItems.Single();
+            Assert.Equal("this[]", indexerCompletionItem.DisplayText);
+            Assert.True(indexerCompletionItem.Properties.TryGetValue("Symbols", out var symbols));
+            var symbolSplitted = symbols.Split('|');
+            Assert.Equal(2, symbolSplitted.Length);
         }
     }
 }
