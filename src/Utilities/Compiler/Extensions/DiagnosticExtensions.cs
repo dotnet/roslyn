@@ -82,6 +82,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static Diagnostic CreateDiagnostic(
+            this ISymbol symbol,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return symbol.Locations.CreateDiagnostic(rule, properties, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
             params object[] args)
@@ -151,6 +160,14 @@ namespace Analyzer.Utilities.Extensions
             CancellationToken cancellationToken,
             params object[] args)
             => syntaxReference.GetSyntax(cancellationToken).CreateDiagnostic(rule, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this SyntaxReference syntaxReference,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            CancellationToken cancellationToken,
+            params object[] args)
+            => syntaxReference.GetSyntax(cancellationToken).CreateDiagnostic(rule, properties, args);
 
         public static Diagnostic CreateDiagnostic(
             this IEnumerable<SyntaxReference> syntaxReferences,

@@ -106,7 +106,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
                         context.ReportDiagnostic(
                             exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(
-                                Rule, context.CancellationToken, ScenarioProperties.ImplicitConstructor, namedType.Name));
+                                Rule, ScenarioProperties.ImplicitConstructor, context.CancellationToken, namedType.Name));
                     }
 
                     continue;
@@ -126,7 +126,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
                     context.ReportDiagnostic(
                         appliedImportingConstructorAttribute.ApplicationSyntaxReference.CreateDiagnostic(
-                            Rule, context.CancellationToken, ScenarioProperties.NonPublicConstructor, namedType.Name));
+                            Rule, ScenarioProperties.NonPublicConstructor, context.CancellationToken, namedType.Name));
                     continue;
                 }
             }
