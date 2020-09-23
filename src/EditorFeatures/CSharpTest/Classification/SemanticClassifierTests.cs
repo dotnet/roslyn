@@ -4432,7 +4432,12 @@ class X
         public async Task ParameterizedRecordClassification(TestHost testHost)
         {
             await TestAsync(
-@"record R(int X, int Y);",
+@"record R(int X, int Y);
+
+class C
+{
+    R r;
+}",
                 testHost,
                 Record("R"));
         }
