@@ -561,10 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (symbol.TypeKind)
             {
-                case TypeKind.Submission:
-                case TypeKind.Module:
                 case TypeKind.Class when symbol.IsRecord:
                     return SymbolDisplayPartKind.RecordName;
+                case TypeKind.Submission:
+                case TypeKind.Module:
                 case TypeKind.Class:
                     return SymbolDisplayPartKind.ClassName;
                 case TypeKind.Delegate:
