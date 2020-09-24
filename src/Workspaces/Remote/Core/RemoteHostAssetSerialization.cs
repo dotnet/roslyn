@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Use local pipe to avoid blocking the current thread on networking IO.
             var localPipe = new Pipe(PipeOptionsWithUnlimitedWriterBuffer);
 
-            Exception? unexpectedException = null;
+            Exception? exception = null;
 
             // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
             Task.Run(async () =>
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    unexpectedException = e;
+                    exception = e;
                 }
                 finally
                 {
-                    await localPipe.Writer.CompleteAsync(unexpectedException).ConfigureAwait(false);
-                    await pipeReader.CompleteAsync(unexpectedException).ConfigureAwait(false);
+                    await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
+                    await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }, cancellationToken).Forget();
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                throw unexpectedException ?? ExceptionUtilities.Unreachable;
+                throw exception ?? ExceptionUtilities.Unreachable;
             }
         }
 

@@ -75,19 +75,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task CopyPipeData()
             {
-                Exception? unexpectedException = null;
+                Exception? exception = null;
                 try
                 {
                     await localPipe.Reader.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken))
+                catch (Exception e)
                 {
-                    unexpectedException = e;
+                    FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken);
+                    exception = e;
                 }
                 finally
                 {
-                    await localPipe.Reader.CompleteAsync(unexpectedException).ConfigureAwait(false);
-                    await pipeWriter.CompleteAsync(unexpectedException).ConfigureAwait(false);
+                    await localPipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
+                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }
 
