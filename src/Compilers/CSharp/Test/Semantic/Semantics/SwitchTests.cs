@@ -3005,7 +3005,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileAndVerify(text, expectedOutput: "1").VerifyIL("C.Main", @"
 {
   // Code size      110 (0x6e)
   .maxstack  9
@@ -3068,7 +3068,7 @@ public class C
         }
 
         [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
-        public void VerifyIL_GreatherThan8ElementsTuple()
+        public void VerifyIL_GreaterThan8ElementsTuple_01()
         {
             var text = @"
 using System;
@@ -3086,7 +3086,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileAndVerify(text, expectedOutput: "1").VerifyIL("C.Main", @"
 {
   // Code size      204 (0xcc)
   .maxstack  14
@@ -3176,6 +3176,254 @@ public class C
   IL_00cb:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void VerifyIL_GreaterThan8ElementsTuple_02()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        int x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20) switch
+        {
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20) => 1,
+            _ => -1,
+        };
+
+        Console.WriteLine(x);
+    }
+}
+";
+            CompileAndVerify(text).VerifyIL("C.Main", @"
+{
+  // Code size      388 (0x184)
+  .maxstack  21
+  .locals init (int V_0,
+                System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>> V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.5
+  IL_0007:  ldc.i4.6
+  IL_0008:  ldc.i4.7
+  IL_0009:  ldc.i4.8
+  IL_000a:  ldc.i4.s   9
+  IL_000c:  ldc.i4.s   10
+  IL_000e:  ldc.i4.s   11
+  IL_0010:  ldc.i4.s   12
+  IL_0012:  ldc.i4.s   13
+  IL_0014:  ldc.i4.s   14
+  IL_0016:  ldc.i4.s   15
+  IL_0018:  ldc.i4.s   16
+  IL_001a:  ldc.i4.s   17
+  IL_001c:  ldc.i4.s   18
+  IL_001e:  ldc.i4.s   19
+  IL_0020:  ldc.i4.s   20
+  IL_0022:  newobj     ""System.ValueTuple<int, int, int, int, int, int>..ctor(int, int, int, int, int, int)""
+  IL_0027:  newobj     ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>)""
+  IL_002c:  call       ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>)""
+  IL_0031:  ldloc.1
+  IL_0032:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item1""
+  IL_0037:  ldc.i4.1
+  IL_0038:  bne.un     IL_017b
+  IL_003d:  ldloc.1
+  IL_003e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item2""
+  IL_0043:  ldc.i4.2
+  IL_0044:  bne.un     IL_017b
+  IL_0049:  ldloc.1
+  IL_004a:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item3""
+  IL_004f:  ldc.i4.3
+  IL_0050:  bne.un     IL_017b
+  IL_0055:  ldloc.1
+  IL_0056:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item4""
+  IL_005b:  ldc.i4.4
+  IL_005c:  bne.un     IL_017b
+  IL_0061:  ldloc.1
+  IL_0062:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item5""
+  IL_0067:  ldc.i4.5
+  IL_0068:  bne.un     IL_017b
+  IL_006d:  ldloc.1
+  IL_006e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item6""
+  IL_0073:  ldc.i4.6
+  IL_0074:  bne.un     IL_017b
+  IL_0079:  ldloc.1
+  IL_007a:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Item7""
+  IL_007f:  ldc.i4.7
+  IL_0080:  bne.un     IL_017b
+  IL_0085:  ldloc.1
+  IL_0086:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_008b:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item1""
+  IL_0090:  ldc.i4.8
+  IL_0091:  bne.un     IL_017b
+  IL_0096:  ldloc.1
+  IL_0097:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_009c:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item2""
+  IL_00a1:  ldc.i4.s   9
+  IL_00a3:  bne.un     IL_017b
+  IL_00a8:  ldloc.1
+  IL_00a9:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_00ae:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item3""
+  IL_00b3:  ldc.i4.s   10
+  IL_00b5:  bne.un     IL_017b
+  IL_00ba:  ldloc.1
+  IL_00bb:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_00c0:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item4""
+  IL_00c5:  ldc.i4.s   11
+  IL_00c7:  bne.un     IL_017b
+  IL_00cc:  ldloc.1
+  IL_00cd:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_00d2:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item5""
+  IL_00d7:  ldc.i4.s   12
+  IL_00d9:  bne.un     IL_017b
+  IL_00de:  ldloc.1
+  IL_00df:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_00e4:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item6""
+  IL_00e9:  ldc.i4.s   13
+  IL_00eb:  bne.un     IL_017b
+  IL_00f0:  ldloc.1
+  IL_00f1:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_00f6:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item7""
+  IL_00fb:  ldc.i4.s   14
+  IL_00fd:  bne.un.s   IL_017b
+  IL_00ff:  ldloc.1
+  IL_0100:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_0105:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_010a:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item1""
+  IL_010f:  ldc.i4.s   15
+  IL_0111:  bne.un.s   IL_017b
+  IL_0113:  ldloc.1
+  IL_0114:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_0119:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_011e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item2""
+  IL_0123:  ldc.i4.s   16
+  IL_0125:  bne.un.s   IL_017b
+  IL_0127:  ldloc.1
+  IL_0128:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_012d:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_0132:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item3""
+  IL_0137:  ldc.i4.s   17
+  IL_0139:  bne.un.s   IL_017b
+  IL_013b:  ldloc.1
+  IL_013c:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_0141:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_0146:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item4""
+  IL_014b:  ldc.i4.s   18
+  IL_014d:  bne.un.s   IL_017b
+  IL_014f:  ldloc.1
+  IL_0150:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_0155:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_015a:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item5""
+  IL_015f:  ldc.i4.s   19
+  IL_0161:  bne.un.s   IL_017b
+  IL_0163:  ldloc.1
+  IL_0164:  ldfld      ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>>.Rest""
+  IL_0169:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_016e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item6""
+  IL_0173:  ldc.i4.s   20
+  IL_0175:  bne.un.s   IL_017b
+  IL_0177:  ldc.i4.1
+  IL_0178:  stloc.0
+  IL_0179:  br.s       IL_017d
+  IL_017b:  ldc.i4.m1
+  IL_017c:  stloc.0
+  IL_017d:  ldloc.0
+  IL_017e:  call       ""void System.Console.WriteLine(int)""
+  IL_0183:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void VerifyIL_8ElementsTuple_SideEffects_DefaultLabel()
+        {
+            var text = @"
+using System;
+using System.Runtime.CompilerServices;
+public class C
+{
+    public static void Main()
+    {
+        try
+        {
+            int x = (M(1), M(2), M(3), M(4), M(5), M(6), M(7), M(8)) switch
+            {
+                (1, 2, 3, 4, 5, 6, 7, 7) => 1,
+            };
+
+            Console.WriteLine(x);
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.Write(""💥"");
+        }
+    }
+
+    static int M(int x)
+    {
+        Console.Write(x);
+        return x;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "12345678💥");
+        }
+
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void VerifyIL_9ElementsTuple_SideEffects_DefaultLabel()
+        {
+            var text = @"
+using System;
+using System.Runtime.CompilerServices;
+public class C
+{
+    public static void Main()
+    {
+        try
+        {
+            int x = (M(1), M(2), M(3), M(4), M(5), M(6), M(7), M(8), M(9)) switch
+            {
+                (1, 2, 3, 4, 5, 6, 7, 8, 8) => 1,
+            };
+
+            Console.WriteLine(x);
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.Write(""💥"");
+        }
+    }
+
+    static int M(int x)
+    {
+        Console.Write(x);
+        return x;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "123456789💥");
         }
         #endregion
     }
