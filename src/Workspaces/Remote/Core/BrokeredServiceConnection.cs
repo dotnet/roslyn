@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Func<TService, Stream, CancellationToken, ValueTask> invocation,
-            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
             try
@@ -121,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Solution solution,
-            Func<TService, PinnedSolutionInfo, Stream, CancellationToken, ValueTask> invocation,
-            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
             try
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 return await InvokeStreamingServiceAsync(
                     _service,
-                    (service, stream, cancellationToken) => invocation(service, scope.SolutionInfo, stream, cancellationToken),
+                    (service, pipeWriter, cancellationToken) => invocation(service, scope.SolutionInfo, pipeWriter, cancellationToken),
                     reader,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -143,19 +144,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
             TService service,
-            Func<TService, Stream, CancellationToken, ValueTask> invocation,
-            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
-            // The reader should close the client stream, the writer will close the server stream.
-            // See https://github.com/microsoft/vs-streamjsonrpc/blob/master/doc/oob_streams.md
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+            var pipe = new Pipe();
 
-            // Create new tasks that both start executing, rather than invoking the delegates directly.
-            // If the reader started synchronously reading before the writer task started it would be blocking, and vice versa
-            // if the writer synchronously filled the buffer before the reader task started it would also be blocking.
-            var writerTask = Task.Run(async () => await invocation(service, serverStream, cancellationToken).ConfigureAwait(false), cancellationToken);
-            var readerTask = Task.Run(async () => await reader(clientStream, cancellationToken).ConfigureAwait(false), cancellationToken);
+            var writerTask = invocation(service, pipe.Writer, cancellationToken).AsTask();
+            var readerTask = reader(pipe.Reader, cancellationToken).AsTask();
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
             return readerTask.Result;

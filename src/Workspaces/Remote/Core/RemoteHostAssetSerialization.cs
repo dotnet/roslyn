@@ -12,12 +12,42 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
+using System;
+using System.IO.Pipelines;
+using Microsoft.VisualStudio.Threading;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
+        internal static readonly PipeOptions PipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
+
         public static async Task WriteDataAsync(ObjectWriter writer, SolutionAssetStorage assetStorage, ISerializerService serializer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            SolutionAsset? singleAsset = null;
+            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
+
+            if (checksums.Length == 1)
+            {
+                singleAsset = (await assetStorage.GetAssetAsync(scopeId, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
+            }
+            else
+            {
+                assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
+            }
+
+            WriteData(writer, singleAsset, assetMap, assetStorage, serializer, scopeId, checksums, cancellationToken);
+        }
+
+        public static void WriteData(
+            ObjectWriter writer,
+            SolutionAsset? singleAsset,
+            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            ISerializerService serializer,
+            int scopeId,
+            Checksum[] checksums,
+            CancellationToken cancellationToken)
         {
             writer.WriteInt32(scopeId);
 
@@ -28,21 +58,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            if (checksums.Length == 1)
+            if (singleAsset != null)
             {
-                var checksum = checksums[0];
-
-                var asset = (await assetStorage.GetAssetAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
                 writer.WriteInt32(1);
-
-                WriteAsset(writer, serializer, checksum, asset, cancellationToken);
+                WriteAsset(writer, serializer, checksums[0], singleAsset, cancellationToken);
                 return;
             }
 
-            var assets = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            writer.WriteInt32(assets.Count);
+            Debug.Assert(assetMap != null);
+            writer.WriteInt32(assetMap.Count);
 
-            foreach (var (checksum, asset) in assets)
+            foreach (var (checksum, asset) in assetMap)
             {
                 WriteAsset(writer, serializer, checksum, asset, cancellationToken);
             }
@@ -60,7 +86,52 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        {
+            // Workaround for ObjectReader not supporting async reading.
+            // Unless we read from the RPC stream asynchronously and with cancallation support we might hang when the server cancels.
+            // https://github.com/dotnet/roslyn/issues/47861
+
+            // Use local pipe to avoid blocking the current thread on networking IO.
+            var localPipe = new Pipe(PipeOptionsWithUnlimitedWriterBuffer);
+
+            var unexpectedException = ExceptionUtilities.Unreachable;
+
+            // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await pipeReader.CopyToAsync(localPipe.Writer, cancellationToken).ConfigureAwait(false);
+                    await localPipe.Writer.CompleteAsync().ConfigureAwait(false);
+                    await pipeReader.CompleteAsync().ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    unexpectedException = e;
+
+                    // cause the synchronous BinaryReader to throw EndOfStreamException if it is still reading:
+                    await localPipe.Writer.CompleteAsync(e).ConfigureAwait(false);
+
+                    await pipeReader.CompleteAsync(e).ConfigureAwait(false);
+                }
+            }, cancellationToken).Forget();
+
+            // blocking read from the local pipe on the current thread:
+            try
+            {
+                using var stream = localPipe.Reader.AsStream(leaveOpen: false);
+                return new(ReadData(stream, scopeId, checksums, serializerService, cancellationToken));
+            }
+            catch (EndOfStreamException)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                throw unexpectedException;
+            }
+        }
+
+        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
@@ -89,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 results.Add((responseChecksum, result));
             }
 
-            return new(results.ToImmutable());
+            return results.ToImmutable();
         }
     }
 }

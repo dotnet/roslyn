@@ -4,15 +4,21 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -29,20 +35,62 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            // Complete RPC right away so the client can start reading from the stream.
-            // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
-            _ = Task.Run(async () =>
+            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            var serializer = _services.GetRequiredService<ISerializerService>();
+
+            SolutionAsset? singleAsset = null;
+            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
+
+            if (checksums.Length == 1)
             {
-                using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
+                singleAsset = (await assetStorage.GetAssetAsync(scopeId, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
+            }
+            else
+            {
+                assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
+            }
 
-                var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-                var serializer = _services.GetRequiredService<ISerializerService>();
-                await RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC pipe.
+            // Run two tasks - the first synchronously writes to a local pipe and the second asynchronosly transfers the data to the RPC pipe.
+            //
+            // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but might result in more
+            // (non-contiguous) memory allocated for the underlying buffers. The amount of memory is bounded by the total size of the serialized assets.
+            var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
 
-            return default;
+            Task.Run(() =>
+            {
+                try
+                {
+                    using var stream = localPipe.Writer.AsStream(leaveOpen: false);
+                    using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
+                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken))
+                {
+                    // no-op
+                }
+            }, cancellationToken).Forget();
+
+            async Task CopyPipeData()
+            {
+                try
+                {
+                    await localPipe.Reader.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
+                    await localPipe.Reader.CompleteAsync().ConfigureAwait(false);
+                    await pipeWriter.CompleteAsync().ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken))
+                {
+                    await localPipe.Reader.CompleteAsync(e).ConfigureAwait(false);
+                    await pipeWriter.CompleteAsync(e).ConfigureAwait(false);
+                }
+            }
+
+            // Complete RPC one we send the initial piece of data and start waiting for the writer to send more,
+            // so the client can start reading from the stream.
+            CopyPipeData().Forget();
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
