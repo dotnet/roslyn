@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
@@ -131,11 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
                         hideAdvancedMembers: false,
                         _editorBrowsableInfo.Compilation,
-                        _editorBrowsableInfo.EditorBrowsableAttributeConstructor,
-                        _editorBrowsableInfo.TypeLibTypeAttributeConstructors,
-                        _editorBrowsableInfo.TypeLibFuncAttributeConstructors,
-                        _editorBrowsableInfo.TypeLibVarAttributeConstructors,
-                        _editorBrowsableInfo.HideModuleNameAttribute);
+                        _editorBrowsableInfo);
 
                     if (!isBrowsable)
                     {

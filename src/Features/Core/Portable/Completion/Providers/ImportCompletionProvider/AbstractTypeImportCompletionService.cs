@@ -16,8 +16,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var editorBrowsableInfo = new EditorBrowsableInfo(currentCompilation);
+            var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(currentCompilation));
 
             var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, editorBrowsableInfo, cancellationToken).ConfigureAwait(false);
 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 if (HasGlobalAlias(peReference) &&
                     currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly &&
-                    TryGetCacheForPEReference(solution, editorBrowsableInfo, peReference, syntaxContext, forceCacheCreation, cancellationToken, out cacheResult))
+                    TryGetCacheForPEReference(solution, assembly, editorBrowsableInfo, peReference, syntaxContext, forceCacheCreation, cancellationToken, out cacheResult))
                 {
                     if (cacheResult.HasValue)
                     {
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
-            EditorBrowsableInfo? editorBrowsableInfo,
+            Lazy<EditorBrowsableInfo>? editorBrowsableInfo,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 syntaxContext,
                 forceCacheCreation,
                 CacheService.ProjectItemsCache,
-                editorBrowsableInfo ?? new EditorBrowsableInfo(compilation),
+                editorBrowsableInfo ?? new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(compilation)),
                 cancellationToken);
         }
 
@@ -178,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// </summary>
         private bool TryGetCacheForPEReference(
             Solution solution,
-            EditorBrowsableInfo editorBrowsableInfo,
+            IAssemblySymbol assemblySymbol,
+            Lazy<EditorBrowsableInfo> editorBrowsableInfo,
             PortableExecutableReference peReference,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
@@ -192,12 +194,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 // making those items repeatedly, so simply not returning anything from this assembly, until 
                 // we have a better understanding on this scenario.
                 // TODO: Add telemetry
-                result = null;
-                return false;
-            }
-
-            if (!(editorBrowsableInfo.Compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
-            {
                 result = null;
                 return false;
             }
@@ -216,6 +212,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         }
 
         // Returns null if cache miss and forceCacheCreation == false
+        //
+        // PERF:
+        // Based on profiling results, initializing EditorBrowsableInfo upfront for each referenced
+        // project every time a completion is triggered is expensive. Making them lazy would
+        // eliminate this overhead when we have a cache hit while keeping it easy to share 
+        // between original projects and PE references when trying to get completion items.
         private GetCacheResult? GetCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
@@ -223,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
-            EditorBrowsableInfo editorBrowsableInfo,
+            Lazy<EditorBrowsableInfo> editorBrowsableInfo,
             CancellationToken cancellationToken)
             where TKey : notnull
         {
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             // Cache miss, create all items only when asked.
             if (forceCacheCreation)
             {
-                using var builder = new CacheEntry.Builder(checksum, language, GenericTypeSuffix, editorBrowsableInfo);
+                using var builder = new CacheEntry.Builder(checksum, language, GenericTypeSuffix, editorBrowsableInfo.Value);
                 GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
                 cacheEntry = builder.ToReferenceCacheEntry();
                 cache[key] = cacheEntry;
@@ -396,44 +398,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 IsGeneric = 0x2,
                 IsAttribute = 0x4,
                 IsEditorBrowsableStateAdvanced = 0x8,
-            }
-        }
-
-        // Things needed for determining whether a symbol is EditorBrowsable.
-        // Grouped together and reused within each compilation.
-        //
-        // Based on profiling results, initializing these symbols upfront for each referenced
-        // project every time a completion is triggered is expensive. Making them lazy would
-        // eliminate this overhead when we have a cache hit while keeping it easy to share 
-        // between original projects and PE references when trying to get completion items.
-        private class EditorBrowsableInfo
-        {
-            private Optional<INamedTypeSymbol?>? _hideModuleNameAttribute;
-            private Optional<IMethodSymbol?>? _editorBrowsableAttributeConstructor;
-            private ImmutableArray<IMethodSymbol>? _typeLibTypeAttributeConstructors;
-            private ImmutableArray<IMethodSymbol>? _typeLibFuncAttributeConstructors;
-            private ImmutableArray<IMethodSymbol>? _typeLibVarAttributeConstructors;
-
-            public Compilation Compilation { get; }
-
-            public Optional<INamedTypeSymbol?> HideModuleNameAttribute
-                => _hideModuleNameAttribute ??= new(Compilation.HideModuleNameAttribute());
-
-            public Optional<IMethodSymbol?> EditorBrowsableAttributeConstructor
-                => _editorBrowsableAttributeConstructor ??= new(EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(Compilation));
-
-            public ImmutableArray<IMethodSymbol> TypeLibTypeAttributeConstructors
-                => _typeLibTypeAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(Compilation);
-
-            public ImmutableArray<IMethodSymbol> TypeLibFuncAttributeConstructors
-                => _typeLibFuncAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(Compilation);
-
-            public ImmutableArray<IMethodSymbol> TypeLibVarAttributeConstructors
-                => _typeLibVarAttributeConstructors ??= EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(Compilation);
-
-            public EditorBrowsableInfo(Compilation compilation)
-            {
-                Compilation = compilation;
             }
         }
     }
