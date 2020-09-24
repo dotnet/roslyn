@@ -248,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
             var token = root.FindTokenOnLeftOfPosition(position);
+            token = token.GetPreviousTokenIfTouchingWord(position);
             if (token.IsKind(SyntaxKind.DotToken))
             {
                 var newPosition = token.Span.End;
