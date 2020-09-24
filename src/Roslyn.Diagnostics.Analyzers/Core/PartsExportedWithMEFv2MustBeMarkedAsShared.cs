@@ -56,14 +56,13 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     var exportAttributeApplication = exportAttributes.FirstOrDefault();
 
-                    if (exportAttributeApplication != null)
+                    if (exportAttributeApplication != null &&
+                        exportAttributeApplication.ApplicationSyntaxReference != null &&
+                        !namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
+                                                       ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
                     {
-                        if (!namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
-                                                           ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
-                        {
-                            // '{0}' is exported with MEFv2 and hence must be marked as Shared
-                            symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax(symbolContext.CancellationToken).GetLocation(), namedType.Name));
-                        }
+                        // '{0}' is exported with MEFv2 and hence must be marked as Shared
+                        symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax(symbolContext.CancellationToken).GetLocation(), namedType.Name));
                     }
                 }, SymbolKind.NamedType);
             });

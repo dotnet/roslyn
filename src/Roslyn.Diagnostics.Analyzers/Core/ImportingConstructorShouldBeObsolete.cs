@@ -108,7 +108,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 var foundObsoleteAttribute = false;
                 foreach (var attributeData in constructorAttributes)
                 {
-                    if (!attributeData.AttributeClass.Equals(obsoleteAttribute))
+                    if (!attributeData.AttributeClass.Equals(obsoleteAttribute) ||
+                        attributeData.ApplicationSyntaxReference == null)
                     {
                         continue;
                     }
@@ -153,7 +154,8 @@ namespace Roslyn.Diagnostics.Analyzers
                     break;
                 }
 
-                if (!foundObsoleteAttribute)
+                if (!foundObsoleteAttribute &&
+                    importingConstructorAttributeData.ApplicationSyntaxReference != null)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
                     context.ReportDiagnostic(Diagnostic.Create(Rule, importingConstructorAttributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingAttribute, namedType.Name));

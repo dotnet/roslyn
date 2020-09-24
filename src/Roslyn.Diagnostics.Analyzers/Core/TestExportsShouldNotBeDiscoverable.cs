@@ -75,7 +75,8 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttribute));
-            if (exportAttributeApplication is null)
+            if (exportAttributeApplication is null ||
+                exportAttributeApplication.ApplicationSyntaxReference is null)
             {
                 return;
             }

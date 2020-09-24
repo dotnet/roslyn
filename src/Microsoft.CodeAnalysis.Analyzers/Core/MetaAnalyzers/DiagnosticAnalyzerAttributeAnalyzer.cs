@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             }
                         }
 
-                        attributeSyntax = attribute.ApplicationSyntaxReference.GetSyntax(symbolContext.CancellationToken);
+                        attributeSyntax = attribute.ApplicationSyntaxReference?.GetSyntax(symbolContext.CancellationToken);
                     }
                 }
 
