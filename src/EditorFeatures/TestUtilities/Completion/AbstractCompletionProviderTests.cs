@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     {
         private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(CompletionProvider));
 
-        private readonly object _workspaceFixtureGate = new();
-        private ReferenceCountedDisposable<TWorkspaceFixture>.WeakReference _weakWorkspaceFixture;
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
 
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         private ExportProvider _lazyExportProvider;
@@ -56,17 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             => s_baseComposition.AddParts(GetCompletionProviderType());
 
         private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
-        {
-            lock (_workspaceFixtureGate)
-            {
-                if (_weakWorkspaceFixture.TryAddReference() is { } workspaceFixture)
-                    return workspaceFixture;
-
-                var result = new ReferenceCountedDisposable<TWorkspaceFixture>(new TWorkspaceFixture());
-                _weakWorkspaceFixture = new ReferenceCountedDisposable<TWorkspaceFixture>.WeakReference(result);
-                return result;
-            }
-        }
+            => _fixtureHelper.GetOrCreateFixture();
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {

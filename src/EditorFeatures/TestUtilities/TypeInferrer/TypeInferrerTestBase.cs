@@ -17,21 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
     public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        private readonly object _workspaceFixtureGate = new();
-        private ReferenceCountedDisposable<TWorkspaceFixture>.WeakReference _weakWorkspaceFixture;
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
 
         private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
-        {
-            lock (_workspaceFixtureGate)
-            {
-                if (_weakWorkspaceFixture.TryAddReference() is { } workspaceFixture)
-                    return workspaceFixture;
-
-                var result = new ReferenceCountedDisposable<TWorkspaceFixture>(new TWorkspaceFixture());
-                _weakWorkspaceFixture = new ReferenceCountedDisposable<TWorkspaceFixture>.WeakReference(result);
-                return result;
-            }
-        }
+            => _fixtureHelper.GetOrCreateFixture();
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
