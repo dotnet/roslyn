@@ -249,7 +249,7 @@ class C{i}
             var result = await testState.ChangeSignature().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
-            Assert.Null(result.CannotChangeSignatureReason);
+            Assert.Null(result.ChangeSignatureFailureKind);
 
             foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {
@@ -331,7 +331,7 @@ class C{i}
             var result = await testState.ChangeSignature().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
-            Assert.Null(result.CannotChangeSignatureReason);
+            Assert.Null(result.ChangeSignatureFailureKind);
 
             foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {

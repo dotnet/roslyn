@@ -25,7 +25,7 @@ class MyClass$$
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.IncorrectKind);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -42,7 +42,7 @@ class MyClass
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.IncorrectKind);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -64,7 +64,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.IncorrectKind);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
     }
 }

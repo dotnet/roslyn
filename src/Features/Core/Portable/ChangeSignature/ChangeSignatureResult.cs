@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public Solution? UpdatedSolution { get; }
         public Glyph? Glyph { get; }
         public bool PreviewChanges { get; }
-        public CannotChangeSignatureReason? CannotChangeSignatureReason { get; }
+        public ChangeSignatureFailureKind? ChangeSignatureFailureKind { get; }
         public string? ConfirmationMessage { get; }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             string? name = null,
             Glyph? glyph = null,
             bool previewChanges = false,
-            CannotChangeSignatureReason? cannotChangeSignatureReason = null,
+            ChangeSignatureFailureKind? changeSignatureFailureKind = null,
             string? confirmationMessage = null)
         {
             Succeeded = succeeded;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             Name = name;
             Glyph = glyph;
             PreviewChanges = previewChanges;
-            CannotChangeSignatureReason = cannotChangeSignatureReason;
+            ChangeSignatureFailureKind = changeSignatureFailureKind;
             ConfirmationMessage = confirmationMessage;
         }
     }

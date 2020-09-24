@@ -125,7 +125,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.DefinedInMetadata);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -140,7 +140,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.DefinedInMetadata);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -155,7 +155,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.DefinedInMetadata);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -167,7 +167,7 @@ class C
     string s = ((System.IFormattable)null).ToString(""test"", null)$$;
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: CannotChangeSignatureReason.IncorrectKind);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

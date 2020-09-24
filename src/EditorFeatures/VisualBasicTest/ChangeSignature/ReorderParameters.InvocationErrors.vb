@@ -15,7 +15,7 @@ Class C$$
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.IncorrectKind)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.IncorrectKind)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -28,7 +28,7 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.IncorrectKind)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.IncorrectKind)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -40,7 +40,7 @@ Class C
     End Operator
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.IncorrectKind)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.IncorrectKind)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

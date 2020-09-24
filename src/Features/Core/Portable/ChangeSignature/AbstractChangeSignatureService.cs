@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal abstract class AbstractChangeSignatureService : ILanguageService
     {
+        private static readonly ChangeSignatureResult s_ChangeSignatureResultFailure = new ChangeSignatureResult(succeeded: false);
+
         protected SyntaxAnnotation changeSignatureFormattingAnnotation = new SyntaxAnnotation("ChangeSignatureFormatting");
 
         /// <summary>
@@ -97,8 +99,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return context switch
             {
                 ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).ConfigureAwait(false),
-                CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, cannotChangeSignatureReason: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
-                _ => new ChangeSignatureResult(succeeded: false),
+                CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
+                _ => s_ChangeSignatureResultFailure,
             };
         }
 
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (symbol == null)
             {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+                return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
             }
 
             if (symbol is IMethodSymbol method)
@@ -144,19 +146,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
             {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+                return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
             }
 
             if (symbol.Locations.Any(loc => loc.IsInMetadata))
             {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
+                return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.DefinedInMetadata);
             }
 
             // This should be called after the metadata check above to avoid looking for nodes in metadata.
             var declarationLocation = symbol.Locations.FirstOrDefault();
             if (declarationLocation == null)
             {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
+                return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.DefinedInMetadata);
             }
 
             var solution = document.Project.Solution;

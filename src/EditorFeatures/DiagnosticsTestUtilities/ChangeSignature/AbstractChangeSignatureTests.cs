@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool expectedSuccess = true,
             int[] updatedSignature = null,
             string expectedUpdatedInvocationDocumentCode = null,
-            CannotChangeSignatureReason? expectedFailureReason = null,
+            ChangeSignatureFailureKind? expectedFailureReason = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             AddedParameterOrExistingIndex[] updatedSignature,
             bool expectedSuccess = true,
             string expectedUpdatedInvocationDocumentCode = null,
-            CannotChangeSignatureReason? expectedFailureReason = null,
+            ChangeSignatureFailureKind? expectedFailureReason = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 if (expectedSuccess)
                 {
                     Assert.True(result.Succeeded);
-                    Assert.Null(result.CannotChangeSignatureReason);
+                    Assert.Null(result.ChangeSignatureFailureKind);
                 }
                 else
                 {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
                     if (expectedFailureReason != null)
                     {
-                        Assert.Equal(expectedFailureReason, result.CannotChangeSignatureReason);
+                        Assert.Equal(expectedFailureReason, result.ChangeSignatureFailureKind);
                     }
                 }
 

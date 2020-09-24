@@ -86,7 +86,7 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.DefinedInMetadata)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.DefinedInMetadata)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -98,7 +98,7 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.DefinedInMetadata)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.DefinedInMetadata)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -110,7 +110,7 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.DefinedInMetadata)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.DefinedInMetadata)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -122,7 +122,7 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=CannotChangeSignatureReason.DefinedInMetadata)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedFailureReason:=ChangeSignatureFailureKind.DefinedInMetadata)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
