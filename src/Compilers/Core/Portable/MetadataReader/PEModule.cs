@@ -1155,7 +1155,6 @@ namespace Microsoft.CodeAnalysis
                     var numNamed = sigReader.ReadUInt16();
                     for (int i = 0; i < numNamed; i++)
                     {
-                        // typeCode of the value is checked by the decoder itself
                         var ((name, value), isProperty, typeCode, elementTypeCode) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
                         if (typeCode != SerializationTypeCode.SZArray || elementTypeCode != SerializationTypeCode.Type)
                         {
