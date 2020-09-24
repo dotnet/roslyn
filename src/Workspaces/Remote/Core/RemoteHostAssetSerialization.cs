@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
 
-            WriteData(writer, singleAsset, assetMap, assetStorage, serializer, scopeId, checksums, cancellationToken);
+            WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
         }
 
         public static void WriteData(
