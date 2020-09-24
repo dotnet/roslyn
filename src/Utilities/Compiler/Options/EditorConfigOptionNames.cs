@@ -200,7 +200,8 @@ namespace Analyzer.Utilities
         public const string ExcludeStructs = "exclude_structs";
 
         /// <summary>
-        /// Boolean option to configure whether to exclude 'OrDefault' methods.
+        /// Boolean option to configure whether to exclude 'FirstOrDefault' and 'LastOrDefault' methods for
+        /// CA1826 (Do not use Enumerable methods on indexable collections. Instead use the collection directly).
         /// </summary>
         public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
     }
