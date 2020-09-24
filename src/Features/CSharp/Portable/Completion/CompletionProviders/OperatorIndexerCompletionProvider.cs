@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                          where
                                              m.IsConversion() && // MethodKind.Conversion
                                              m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
+                                             m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
                                              container.Equals(m.Parameters[0].Type) // Convert from container type to other type
                                          let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
                                          select SymbolCompletionItem.CreateWithSymbolId(

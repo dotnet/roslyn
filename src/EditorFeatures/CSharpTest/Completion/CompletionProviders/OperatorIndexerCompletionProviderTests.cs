@@ -254,6 +254,28 @@ public class Program
 ");
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionIgnoreMalformedOpertors()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static explicit operator int() => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionFromOtherTypeToTargetIsNotSuggested()
