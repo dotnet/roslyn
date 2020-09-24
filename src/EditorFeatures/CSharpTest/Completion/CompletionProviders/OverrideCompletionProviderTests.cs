@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -3044,6 +3045,7 @@ namespace NS3
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
         public async Task OverrideInRecordWithoutExplicitOverriddenMember()
         {
             await VerifyItemExistsAsync(@"record Program
@@ -3053,6 +3055,7 @@ namespace NS3
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
         public async Task OverrideInRecordWithExplicitOverriddenMember()
         {
             await VerifyItemIsAbsentAsync(@"record Program
@@ -3061,6 +3064,26 @@ namespace NS3
 
     override $$
 }", "ToString()");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47973, "https://github.com/dotnet/roslyn/issues/47973")]
+        public async Task NoCloneInOverriddenRecord()
+        {
+            // Currently WellKnownMemberNames.CloneMethodName is not public, so we can't reference it directly.  We
+            // could hardcode in the value "<Clone>$", however if the compiler ever changed the name and we somehow
+            // started showing it in completion, this test would continue to pass.  So this allows us to at least go
+            // back and explicitly validate this scenario even in that event.
+            var cloneMemberName = (string)typeof(WellKnownMemberNames).GetField("CloneMethodName", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            Assert.Equal("<Clone>$", cloneMemberName);
+
+            await VerifyItemIsAbsentAsync(@"
+record Base();
+
+record Program : Base
+{
+    override $$
+}", cloneMemberName);
         }
     }
 }
