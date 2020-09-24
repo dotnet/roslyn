@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static ProjectId CreateNewId(string? debugName = null)
-            => new ProjectId(Guid.NewGuid(), debugName);
+            => new(Guid.NewGuid(), debugName);
 
         public static ProjectId CreateFromSerialized(Guid id, string? debugName = null)
         {

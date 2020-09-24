@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private const int HashSize = 20;
 
-        public static readonly Checksum Null = new Checksum(default);
+        public static readonly Checksum Null = new(default);
 
         [DataMember(Order = 0)]
         private readonly HashData _checksum;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
             => _checksum.WriteTo(writer);
 
         public static Checksum ReadFrom(ObjectReader reader)
-            => new Checksum(HashData.ReadFrom(reader));
+            => new(HashData.ReadFrom(reader));
 
         public static string GetChecksumLogInfo(Checksum checksum)
             => checksum.ToString();

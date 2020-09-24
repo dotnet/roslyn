@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string LongLength = "LongLength";
 
         private static readonly Dictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
-            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>
-        {
+            new()
+            {
             { BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals },
             { BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals },
             { BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual },

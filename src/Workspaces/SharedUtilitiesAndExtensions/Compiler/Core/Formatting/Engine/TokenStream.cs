@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {
-            public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
+            public static readonly TokenOrderComparer Instance = new();
 
             private TokenOrderComparer() { }
 

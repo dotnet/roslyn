@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public NamingStyleRules Rules => _lazyRules.Value;
 
         public NamingStyleRules CreateRules()
-            => new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
+            => new(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
 
         internal XElement CreateXElement()
         {

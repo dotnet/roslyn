@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         private class Service : IWorkspaceEventListenerService
         {
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private bool _initialized = false;
 
             private readonly Workspace _workspace;

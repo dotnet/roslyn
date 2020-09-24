@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class OptionGroup
     {
-        public static readonly OptionGroup Default = new OptionGroup(string.Empty, int.MaxValue);
+        public static readonly OptionGroup Default = new(string.Empty, int.MaxValue);
 
         public OptionGroup(string description, int priority)
         {

@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
         public IAsynchronousOperationListener Listener { get; }
         public TaskScheduler Scheduler { get; }
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private Task _latestTask;
 
         public TaskQueue(IAsynchronousOperationListener operationListener, TaskScheduler taskScheduler)

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private readonly CodeStyleOption2<T> _codeStyleOptionImpl;
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
+        public static CodeStyleOption<T> Default => new(default, NotificationOption.Silent);
 
         internal CodeStyleOption(CodeStyleOption2<T> codeStyleOptionImpl)
             => _codeStyleOptionImpl = codeStyleOptionImpl;
@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public XElement ToXElement() => _codeStyleOptionImpl.ToXElement();
 
         public static CodeStyleOption<T> FromXElement(XElement element)
-            => new CodeStyleOption<T>(CodeStyleOption2<T>.FromXElement(element));
+            => new(CodeStyleOption2<T>.FromXElement(element));
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
             => _codeStyleOptionImpl.WriteTo(writer);
 
         internal static CodeStyleOption<object> ReadFrom(ObjectReader reader)
-            => new CodeStyleOption<object>(CodeStyleOption2<T>.ReadFrom(reader));
+            => new(CodeStyleOption2<T>.ReadFrom(reader));
 
         public bool Equals(CodeStyleOption<T> other)
             => _codeStyleOptionImpl.Equals(other?._codeStyleOptionImpl);

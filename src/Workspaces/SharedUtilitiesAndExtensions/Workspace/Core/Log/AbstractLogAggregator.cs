@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private static int s_globalId;
 
-        private readonly ConcurrentDictionary<object, T> _map = new ConcurrentDictionary<object, T>(concurrencyLevel: 2, capacity: 2);
+        private readonly ConcurrentDictionary<object, T> _map = new(concurrencyLevel: 2, capacity: 2);
 
         protected abstract T CreateCounter();
 

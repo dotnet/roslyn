@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
-        public static readonly ConstructorSymbolReferenceFinder Instance = new ConstructorSymbolReferenceFinder();
+        public static readonly ConstructorSymbolReferenceFinder Instance = new();
 
         private ConstructorSymbolReferenceFinder()
         {
