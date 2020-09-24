@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// that project.
         /// </summary>
         private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
-            = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>();
+            = new();
 
         /// <summary>
         /// Cached designer service for notifying legacy projects about designer attributes.

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         // hierarchy we're getting them for.  To do this, we attach them to the hierarchy with a
         // conditional weak table.
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>> s_hierarchyToItemIdToImageHandle =
-            new ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>();
+            new();
 
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>.CreateValueCallback s_createValue =
             _ => new Dictionary<uint, IImageHandle>();

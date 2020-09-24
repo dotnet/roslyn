@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// </summary>
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
-        private readonly List<string> _registeredLanguageNames = new List<string>();
+        private readonly List<string> _registeredLanguageNames = new();
 
         protected readonly Workspace Workspace;
 

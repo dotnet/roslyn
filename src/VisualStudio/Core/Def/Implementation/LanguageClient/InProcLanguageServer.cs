@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
         /// </summary>
         private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
-            new Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>>();
+            new();
 
         /// <summary>
         /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.
@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// While it's not necessary to publish a document's mapped file diagnostics in a particular order,
         /// it does make it much easier to write tests and debug issues if we have a consistent ordering.
         /// </summary>
-        private readonly Dictionary<DocumentId, ImmutableSortedSet<Uri>> _documentsToPublishedUris = new Dictionary<DocumentId, ImmutableSortedSet<Uri>>();
+        private readonly Dictionary<DocumentId, ImmutableSortedSet<Uri>> _documentsToPublishedUris = new();
 
         /// <summary>
         /// Basic comparer for Uris used by <see cref="_documentsToPublishedUris"/> when publishing notifications.
@@ -483,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
 
-        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
         {

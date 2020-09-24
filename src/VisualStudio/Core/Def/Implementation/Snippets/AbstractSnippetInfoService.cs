@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         // Guard the snippets and snippetShortcut fields so that returned result sets are always
         // complete.
-        protected object cacheGuard = new object();
+        protected object cacheGuard = new();
 
         private readonly IAsynchronousOperationListener _waiter;
         private readonly IThreadingContext _threadingContext;
