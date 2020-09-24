@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis
                                 if (fileStream is object)
                                 {
                                     using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                                    using var writer = new StreamWriter(fileStream);
+                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
 
                                     sourceText.Write(writer, cancellationToken);
                                     touchedFilesLogger?.AddWritten(path);
