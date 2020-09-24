@@ -1218,6 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetExplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
         }
 
+#nullable enable
         private static bool HasImplicitEnumerationConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -1239,9 +1240,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceConstantValue = source.ConstantValue;
             return sourceConstantValue != null &&
-                IsNumericType(source.Type.GetSpecialTypeSafe()) &&
+                source.Type is object &&
+                IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
+#nullable restore
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -1785,6 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -1827,7 +1831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return s_explicitNumericConversions[sourceIndex, destinationIndex];
         }
 
-        public static bool IsConstantNumericZero(ConstantValue value)
+        private static bool IsConstantNumericZero(ConstantValue value)
         {
             switch (value.Discriminator)
             {
@@ -1841,12 +1845,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return value.Int32Value == 0;
                 case ConstantValueTypeDiscriminator.Int64:
                     return value.Int64Value == 0;
+                case ConstantValueTypeDiscriminator.NInt:
+                    return value.Int32Value == 0;
                 case ConstantValueTypeDiscriminator.UInt16:
                     return value.UInt16Value == 0;
                 case ConstantValueTypeDiscriminator.UInt32:
                     return value.UInt32Value == 0;
                 case ConstantValueTypeDiscriminator.UInt64:
                     return value.UInt64Value == 0;
+                case ConstantValueTypeDiscriminator.NUInt:
+                    return value.UInt32Value == 0;
                 case ConstantValueTypeDiscriminator.Single:
                 case ConstantValueTypeDiscriminator.Double:
                     return value.DoubleValue == 0;
@@ -1856,9 +1864,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static bool IsNumericType(SpecialType specialType)
+        private static bool IsNumericType(TypeSymbol type)
         {
-            switch (specialType)
+            switch (type.SpecialType)
             {
                 case SpecialType.System_Char:
                 case SpecialType.System_SByte:
@@ -1872,11 +1880,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
                 case SpecialType.System_Decimal:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     return true;
                 default:
                     return false;
             }
         }
+#nullable restore
 
         private static bool HasSpecialIntPtrConversion(TypeSymbol source, TypeSymbol target)
         {
@@ -1964,6 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerType;
         }
 
+#nullable enable
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -1974,12 +1986,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: From any enum-type to sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal.
             // SPEC: From any enum-type to any other enum-type.
 
-            if (IsNumericType(source.SpecialType) && destination.IsEnumType())
+            if (IsNumericType(source) && destination.IsEnumType())
             {
                 return true;
             }
 
-            if (IsNumericType(destination.SpecialType) && source.IsEnumType())
+            if (IsNumericType(destination) && source.IsEnumType())
             {
                 return true;
             }
@@ -1991,6 +2003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+#nullable restore
 
         private Conversion ClassifyImplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
