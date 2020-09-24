@@ -6,8 +6,17 @@ namespace Microsoft.CodeAnalysis
 {
     public enum GeneratedKind
     {
+        /// <summary>
+        /// Whether the <see cref="SyntaxTree"/> is automatically generated is unknown.
+        /// </summary>
         Unknown,
+        /// <summary>
+        /// The <see cref="SyntaxTree"/> is not automatically generated.
+        /// </summary>
         NotGenerated,
-        Generated
+        /// <summary>
+        /// The <see cref="SyntaxTree"/> is marked as automatically generated.
+        /// </summary>
+        MarkedGenerated
     }
 }

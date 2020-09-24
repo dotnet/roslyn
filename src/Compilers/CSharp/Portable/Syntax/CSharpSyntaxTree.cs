@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return provider?.IsGenerated(this, cancellationToken) switch
             {
                 null or GeneratedKind.Unknown => isGeneratedHeuristic(),
-                GeneratedKind kind => kind == GeneratedKind.Generated
+                GeneratedKind kind => kind == GeneratedKind.MarkedGenerated
             };
 
             bool isGeneratedHeuristic()
@@ -737,10 +737,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             this,
                             isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
                             cancellationToken: default);
-                    _lazyIsGeneratedCode = isGenerated ? GeneratedKind.Generated : GeneratedKind.NotGenerated;
+                    _lazyIsGeneratedCode = isGenerated ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
                 }
 
-                return _lazyIsGeneratedCode == GeneratedKind.Generated;
+                return _lazyIsGeneratedCode == GeneratedKind.MarkedGenerated;
             }
         }
 

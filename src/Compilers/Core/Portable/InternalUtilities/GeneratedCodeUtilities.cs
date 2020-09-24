@@ -154,7 +154,7 @@ namespace Roslyn.Utilities
             if (options.TryGetValue("generated_code", out string? optionValue) &&
                 bool.TryParse(optionValue, out var boolValue))
             {
-                return boolValue ? GeneratedKind.Generated : GeneratedKind.NotGenerated;
+                return boolValue ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
             }
 
             // Either no explicit user configuration or we don't recognize the option value.

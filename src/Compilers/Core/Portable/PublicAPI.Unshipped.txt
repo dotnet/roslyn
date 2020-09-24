@@ -16,7 +16,7 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsy
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.set -> void
 Microsoft.CodeAnalysis.GeneratedKind
-Microsoft.CodeAnalysis.GeneratedKind.Generated = 2 -> Microsoft.CodeAnalysis.GeneratedKind
+Microsoft.CodeAnalysis.GeneratedKind.MarkedGenerated = 2 -> Microsoft.CodeAnalysis.GeneratedKind
 Microsoft.CodeAnalysis.GeneratedKind.NotGenerated = 1 -> Microsoft.CodeAnalysis.GeneratedKind
 Microsoft.CodeAnalysis.GeneratedKind.Unknown = 0 -> Microsoft.CodeAnalysis.GeneratedKind
 Microsoft.CodeAnalysis.GeneratorDriver.RemoveAdditionalTexts(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalTexts) -> Microsoft.CodeAnalysis.GeneratorDriver
