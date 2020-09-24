@@ -288,7 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             SourceText sourceText, IdentifierNameSyntax identifier,
             TypeSyntax newType, VariableDeclaratorSyntax declaratorOpt)
         {
-            newType = newType.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
             var designation = SyntaxFactory.SingleVariableDesignation(identifier.Identifier);
 
             if (declaratorOpt != null)
@@ -308,6 +307,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 {
                     designation = designation.WithAppendedTrailingTrivia(MassageTrivia(declaratorOpt.GetTrailingTrivia()));
                 }
+            }
+
+            newType = newType.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
+            // We need trivia between the type declaration and designation or this will generate
+            // "out inti", but we might have trivia in the form of comments etc from the original
+            // designation and in those cases adding elastic trivia will break formatting.
+            if (!designation.HasLeadingTrivia)
+            {
+                newType = newType.WithAppendedTrailingTrivia(SyntaxFactory.ElasticSpace);
             }
 
             return SyntaxFactory.DeclarationExpression(newType, designation);
