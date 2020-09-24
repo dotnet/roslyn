@@ -36,6 +36,5 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
-        public const string SQLiteInMemoryWriteCache = "Roslyn.SQLiteInMemoryWriteCache";
     }
 }
