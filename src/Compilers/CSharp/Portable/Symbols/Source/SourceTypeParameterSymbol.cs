@@ -571,11 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constraintTypes = constraintClause.ConstraintTypes;
-            if (canIgnoreNullableContext)
-            {
-                return TypeParameterBounds.ConstraintTypesOnlyNoNullableContext(constraintTypes);
-            }
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, ignoresNullableContext: constraintClause.IgnoresNullableContext, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints(bool canIgnoreNullableContext)
@@ -697,11 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constraintTypes = constraintClause.ConstraintTypes;
-            if (canIgnoreNullableContext)
-            {
-                return TypeParameterBounds.ConstraintTypesOnlyNoNullableContext(constraintTypes);
-            }
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, ignoresNullableContext: constraintClause.IgnoresNullableContext, this.DeclaringCompilation, diagnostics);
         }
 
         internal TypeParameterConstraintKind GetDeclaredConstraints()
@@ -932,11 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(map != null);
 
             var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
-            if (canIgnoreNullableContext)
-            {
-                return TypeParameterBounds.ConstraintTypesOnlyNoNullableContext(constraintTypes);
-            }
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, this.DeclaringCompilation, diagnostics);
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, ignoresNullableContext: false, this.DeclaringCompilation, diagnostics);
         }
 
         /// <summary>

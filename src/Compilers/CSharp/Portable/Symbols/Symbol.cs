@@ -1018,11 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
-            if (type.IsAnnotatedOrUnannotatedTypeParameter)
-            {
-                return false;
-            }
-            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
+            return (!type.IsAnnotatedOrUnannotatedTypeParameter && DeriveUseSiteDiagnosticFromType(ref result, type.Type)) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 

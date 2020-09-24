@@ -19,29 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
-        /// <summary>
-        /// Creates an instance that has constraint types set but no other fields.
-        /// Used specifically when binding constraints ignoring #nullable context.
-        /// </summary>
-        public static TypeParameterBounds ConstraintTypesOnlyNoNullableContext(ImmutableArray<TypeWithAnnotations> constraintTypes)
-        {
-            return new TypeParameterBounds(constraintTypes);
-        }
-
-        private TypeParameterBounds(ImmutableArray<TypeWithAnnotations> constraintTypes)
-        {
-            Debug.Assert(!constraintTypes.IsDefault);
-            this.ConstraintTypes = constraintTypes;
-        }
-
-        /// <summary>
-        /// Creates a fully bound instance with all fields set.
-        /// </summary>
         public TypeParameterBounds(
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
-            TypeSymbol deducedBaseType)
+            TypeSymbol deducedBaseType,
+            bool ignoresNullableContext)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             Debug.Assert(!interfaces.IsDefault);
@@ -52,13 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.Interfaces = interfaces;
             this.EffectiveBaseClass = effectiveBaseClass;
             this.DeducedBaseType = deducedBaseType;
+            this.IgnoresNullableContext = ignoresNullableContext;
         }
 
         private TypeParameterBounds()
         {
         }
 
-        public bool IgnoresNullableContext => EffectiveBaseClass is null;
+        public readonly bool IgnoresNullableContext;
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
