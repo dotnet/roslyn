@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 foreach (TClassDeclarationSyntax classDecl in classDecls)
                 {
                     IEnumerable<TSyntaxNodeOfInterest> syntaxNodes =
-                        classDecl.DescendantNodes(n => n is not TClassDeclarationSyntax && n is not TStructDeclarationSyntax ||
+                        classDecl.DescendantNodes(n => n is not (TClassDeclarationSyntax or TStructDeclarationSyntax) ||
                                                        ReferenceEquals(n, classDecl))
                                  .OfType<TSyntaxNodeOfInterest>();
                     if (syntaxNodes.Any())
