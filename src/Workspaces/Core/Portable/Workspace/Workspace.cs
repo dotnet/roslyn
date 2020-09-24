@@ -1220,6 +1220,9 @@ namespace Microsoft.CodeAnalysis
                     progressTracker.ItemCompleted();
                 }
 
+                // changes in mapped files outside the workspace (may span multiple projects)
+                this.ApplyMappedFileChanges(solutionChanges);
+
                 // removed projects
                 foreach (var proj in solutionChanges.GetRemovedProjects())
                 {
@@ -1246,6 +1249,11 @@ namespace Microsoft.CodeAnalysis
 
                 return true;
             }
+        }
+
+        internal virtual void ApplyMappedFileChanges(SolutionChanges solutionChanges)
+        {
+            return;
         }
 
         private void CheckAllowedSolutionChanges(SolutionChanges solutionChanges)
