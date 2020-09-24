@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             => callingConventionTypes switch
             {
                 null or { IsEmpty: true } => PlatformDefault,
-                _ => new UnmanagedCallersOnlyAttributeData(callingConventionTypes ?? ImmutableHashSet<INamedTypeSymbolInternal>.Empty)
+                _ => new UnmanagedCallersOnlyAttributeData(callingConventionTypes)
             };
 
         public readonly ImmutableHashSet<INamedTypeSymbolInternal> CallingConventionTypes;

@@ -1140,6 +1140,9 @@ namespace Microsoft.CodeAnalysis
             IAttributeNamedArgumentDecoder attributeArgumentDecoder,
             Func<string, TypedConstant, bool, (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs)> unmanagedCallersOnlyDecoder)
         {
+            // We don't want to load all attributes and their public data just to answer whether a PEMethodSymbol has an UnmanagedCallersOnly
+            // attached. It would create unnecessary memory pressure that isn't going to be needed 99% of the time, so we just crack this 1
+            // attribute.
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.UnmanagedCallersOnlyAttribute);
             if (!info.HasValue || info.SignatureIndex != 0 || !TryGetAttributeReader(info.Handle, out BlobReader sigReader))
             {
