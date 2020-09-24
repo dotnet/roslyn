@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     internal static class ModifierFlagsExtensions
     {
-        private static readonly SortedList<ModifierFlags, SyntaxKind> s_modifierDefinitions = new SortedList<ModifierFlags, SyntaxKind>
+        private static readonly SortedList<ModifierFlags, SyntaxKind> s_modifierDefinitions = new()
         {
             { ModifierFlags.Public, SyntaxKind.PublicKeyword },
             { ModifierFlags.Protected, SyntaxKind.ProtectedKeyword },
