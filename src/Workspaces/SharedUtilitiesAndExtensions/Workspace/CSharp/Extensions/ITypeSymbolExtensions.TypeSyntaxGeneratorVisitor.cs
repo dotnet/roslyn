@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return AddInformationTo(
                     SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
             }
-#nullable restore
+#nullable disable
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {

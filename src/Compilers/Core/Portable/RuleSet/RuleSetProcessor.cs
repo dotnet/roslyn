@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
             return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), includes.ToImmutable());
         }
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Load the rules from the XML node

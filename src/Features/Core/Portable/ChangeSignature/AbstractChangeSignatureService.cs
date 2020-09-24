@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return true;
         }
 
-#nullable restore
+#nullable disable
 
         private static void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {

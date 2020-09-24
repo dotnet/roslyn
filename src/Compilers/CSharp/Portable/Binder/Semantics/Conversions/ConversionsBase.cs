@@ -3037,7 +3037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-#nullable restore
+#nullable disable
 
         private bool HasIdentityOrReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

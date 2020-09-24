@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 supportDiagnostics ?? true);
         }
 
-#nullable restore
+#nullable disable
 
         private static string GetFilePath(
             TestWorkspace workspace,

@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioProject? VisualStudioProject { get; internal set; }
 
-#nullable restore
+#nullable disable
 
         internal void UpdateVisualStudioProjectProperties()
         {

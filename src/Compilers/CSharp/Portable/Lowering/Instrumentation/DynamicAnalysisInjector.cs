@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         public override BoundStatement? CreateBlockPrologue(BoundBlock original, out LocalSymbol? synthesizedLocal)
-#nullable restore
+#nullable disable
         {
             BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (_methodBody == original)

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
 
-#nullable restore
+#nullable disable
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {

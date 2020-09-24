@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return originalSymbol;
         }
-#nullable restore
+#nullable disable
 
         private static LocalFunctionSymbol GetDeclaredLocalFunction(Binder enclosingBinder, SyntaxToken declaredIdentifier)
         {
@@ -2049,7 +2049,7 @@ done:
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
 #endif
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.

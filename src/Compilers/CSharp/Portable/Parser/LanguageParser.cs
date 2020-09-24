@@ -1647,7 +1647,7 @@ tryAgain:
             }
         }
 
-#nullable restore
+#nullable disable
 
         private void SkipBadMemberListTokens(ref SyntaxToken openBrace, SyntaxListBuilder members)
         {
@@ -6531,7 +6531,7 @@ done:
                                                      expected: SyntaxKind.CommaToken, trailingTrivia: out _);
             }
         }
-#nullable restore
+#nullable disable
 
         private static bool IsPredefinedType(SyntaxKind keyword)
         {
@@ -7111,7 +7111,7 @@ done:;
             // We consider both ( and < to be possible starts, in order to make error recovery more graceful
             // in the scenario where a user accidentally surrounds their function pointer type list with parens.
             => token.Kind == SyntaxKind.LessThanToken || token.Kind == SyntaxKind.OpenParenToken;
-#nullable restore
+#nullable disable
 
         private TypeSyntax ParsePointerTypeMods(TypeSyntax type)
         {
@@ -11729,7 +11729,7 @@ tryAgain:
             return result;
         }
 
-#nullable restore
+#nullable disable
 
         private InitializerExpressionSyntax ParseObjectOrCollectionInitializer()
         {

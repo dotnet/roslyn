@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             return _lazyUnmanagedAttributeData;
         }
-#nullable restore
+#nullable disable
 
         public override AssemblySymbol ContainingAssembly
         {

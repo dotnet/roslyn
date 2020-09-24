@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations makeNullableT()
                 => Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
         }
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// If this is a lazy nullable type pending resolution, forces this to be resolved.

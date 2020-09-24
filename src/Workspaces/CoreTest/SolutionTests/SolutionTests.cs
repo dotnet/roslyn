@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(new TestAnalyzerReference()));
         }
 
-#nullable restore
+#nullable disable
         [Fact]
         public void TestAddProject()
         {

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 public ClosureEnvironment? DeclaredEnvironment = null;
 
-#nullable restore
+#nullable disable
 
                 public Scope(Scope parent, BoundNode boundNode, NestedFunction containingFunction)
                 {
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentFunction = oldFunction;
                     return result;
                 }
-#nullable restore
+#nullable disable
 
                 private void AddIfCaptured(Symbol symbol, SyntaxNode syntax)
                 {

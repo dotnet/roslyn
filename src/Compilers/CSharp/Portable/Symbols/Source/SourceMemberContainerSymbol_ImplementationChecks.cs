@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal Location? GetImplementsLocation(NamedTypeSymbol implementedInterface)
-#nullable restore
+#nullable disable
         {
             // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that

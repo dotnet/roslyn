@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RemappedSymbols = remappedSymbols;
             }
         }
-#nullable restore
+#nullable disable
 
         private MethodBodySemanticModel(
             Symbol owner,

@@ -1341,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
         }
-#nullable restore
+#nullable disable
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
         {

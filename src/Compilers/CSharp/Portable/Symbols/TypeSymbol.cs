@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetManagedKind(ref useSiteDiagnostics);
             }
         }
-#nullable restore
+#nullable disable
 
         internal bool NeedsNullableAttribute()
         {

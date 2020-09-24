@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis
 
             return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
         }
-#nullable restore
+#nullable disable
 
         internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
@@ -1466,7 +1466,7 @@ namespace Microsoft.CodeAnalysis
             blobReader = default;
             return false;
         }
-#nullable restore
+#nullable disable
 
         private ObsoleteAttributeData TryExtractDeprecatedDataFromAttribute(AttributeInfo attributeInfo)
         {
@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis
 
             return (diagnosticId, urlFormat);
         }
-#nullable restore
+#nullable disable
 
         private static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {

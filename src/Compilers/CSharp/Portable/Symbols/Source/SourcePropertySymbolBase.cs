@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics);
 
-#nullable restore
+#nullable disable
 
         internal sealed override ImmutableArray<string> NotNullMembers =>
             GetDecodedWellKnownAttributeData()?.NotNullMembers ?? ImmutableArray<string>.Empty;
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics);
-#nullable restore
+#nullable disable
 
         private void CheckAccessibilityMoreRestrictive(SourcePropertyAccessorSymbol accessor, DiagnosticBag diagnostics)
         {
@@ -1438,6 +1438,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected static ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => (syntax as BasePropertyDeclarationSyntax)?.ExplicitInterfaceSpecifier;
-#nullable restore
+#nullable disable
     }
 }

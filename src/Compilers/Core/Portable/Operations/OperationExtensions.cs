@@ -382,6 +382,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return ((Operation)operation).OperationConstantValue;
         }
-#nullable restore
+#nullable disable
     }
 }

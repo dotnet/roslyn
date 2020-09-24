@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return null;
         }
-#nullable restore
+#nullable disable
 
         private TypeWithAnnotations BindArrayType(
             ArrayTypeSyntax node,
