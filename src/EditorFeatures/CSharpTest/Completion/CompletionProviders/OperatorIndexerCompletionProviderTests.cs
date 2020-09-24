@@ -642,6 +642,7 @@ namespace N
         [InlineData("/* Leading */c.fl$$", "/* Leading */((float)c).$$")]
         [InlineData("c.  $$", "((float)c).  $$")]
         [InlineData("(true ? /* Inline */ c : c).$$", "((float)(true ? /* Inline */ c : c)).$$")]
+        [InlineData("c.fl$$ /* Trailing */", "((float)c).$$ /* Trailing */")]
         public async Task ExplicitUserDefinedConversionTriviaHandling(string invocation, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
