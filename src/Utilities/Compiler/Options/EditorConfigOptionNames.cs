@@ -198,5 +198,10 @@ namespace Analyzer.Utilities
         /// Boolean option to configure whether to exclude structs when considering public fields.
         /// </summary>
         public const string ExcludeStructs = "exclude_structs";
+
+        /// <summary>
+        /// Boolean option to configure whether to exclude 'OrDefault' methods.
+        /// </summary>
+        public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
     }
 }
