@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
-            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context?.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionResult?.Completions == null)
             {
                 return Array.Empty<CompletionItem>();
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 CommitCharacters = xamlCompletion.CommitCharacters,
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
-                Preselect = xamlCompletion.Preselect,
+                Preselect = xamlCompletion.Preselect.GetValueOrDefault(),
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
                 Kind = GetItemKind(xamlCompletion.Kind),

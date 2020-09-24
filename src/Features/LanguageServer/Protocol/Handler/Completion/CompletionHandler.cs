@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return new LSP.VSCompletionList
             {
                 Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray(),
-                SuggesstionMode = list.SuggestionModeItem != null,
+                SuggestionMode = list.SuggestionModeItem != null,
             };
 
             // local functions
