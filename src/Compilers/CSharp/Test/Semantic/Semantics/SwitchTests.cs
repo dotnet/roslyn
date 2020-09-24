@@ -3187,6 +3187,118 @@ public class C
 {
     public static void Main()
     {
+        int x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13) switch
+        {
+            (1, 2, 3, 4, 5, 6, not 7, 8, 9, 10, 11, 12, 13) => 1,
+            _ => -1,
+        };
+
+        Console.WriteLine(x);
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "-1").VerifyIL("C.Main", @"
+
+{
+  // Code size      204 (0xcc)
+  .maxstack  14
+  .locals init (int V_0,
+                System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>> V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  ldc.i4.4
+  IL_0006:  ldc.i4.5
+  IL_0007:  ldc.i4.6
+  IL_0008:  ldc.i4.7
+  IL_0009:  ldc.i4.8
+  IL_000a:  ldc.i4.s   9
+  IL_000c:  ldc.i4.s   10
+  IL_000e:  ldc.i4.s   11
+  IL_0010:  ldc.i4.s   12
+  IL_0012:  ldc.i4.s   13
+  IL_0014:  newobj     ""System.ValueTuple<int, int, int, int, int, int>..ctor(int, int, int, int, int, int)""
+  IL_0019:  call       ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>)""
+  IL_001e:  ldloc.1
+  IL_001f:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item1""
+  IL_0024:  ldc.i4.1
+  IL_0025:  bne.un     IL_00c3
+  IL_002a:  ldloc.1
+  IL_002b:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item2""
+  IL_0030:  ldc.i4.2
+  IL_0031:  bne.un     IL_00c3
+  IL_0036:  ldloc.1
+  IL_0037:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item3""
+  IL_003c:  ldc.i4.3
+  IL_003d:  bne.un     IL_00c3
+  IL_0042:  ldloc.1
+  IL_0043:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item4""
+  IL_0048:  ldc.i4.4
+  IL_0049:  bne.un.s   IL_00c3
+  IL_004b:  ldloc.1
+  IL_004c:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item5""
+  IL_0051:  ldc.i4.5
+  IL_0052:  bne.un.s   IL_00c3
+  IL_0054:  ldloc.1
+  IL_0055:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item6""
+  IL_005a:  ldc.i4.6
+  IL_005b:  bne.un.s   IL_00c3
+  IL_005d:  ldloc.1
+  IL_005e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Item7""
+  IL_0063:  ldc.i4.7
+  IL_0064:  beq.s      IL_00c3
+  IL_0066:  ldloc.1
+  IL_0067:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_006c:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item1""
+  IL_0071:  ldc.i4.8
+  IL_0072:  bne.un.s   IL_00c3
+  IL_0074:  ldloc.1
+  IL_0075:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_007a:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item2""
+  IL_007f:  ldc.i4.s   9
+  IL_0081:  bne.un.s   IL_00c3
+  IL_0083:  ldloc.1
+  IL_0084:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_0089:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item3""
+  IL_008e:  ldc.i4.s   10
+  IL_0090:  bne.un.s   IL_00c3
+  IL_0092:  ldloc.1
+  IL_0093:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_0098:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item4""
+  IL_009d:  ldc.i4.s   11
+  IL_009f:  bne.un.s   IL_00c3
+  IL_00a1:  ldloc.1
+  IL_00a2:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_00a7:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item5""
+  IL_00ac:  ldc.i4.s   12
+  IL_00ae:  bne.un.s   IL_00c3
+  IL_00b0:  ldloc.1
+  IL_00b1:  ldfld      ""System.ValueTuple<int, int, int, int, int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int, int, int, int, int>>.Rest""
+  IL_00b6:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int>.Item6""
+  IL_00bb:  ldc.i4.s   13
+  IL_00bd:  bne.un.s   IL_00c3
+  IL_00bf:  ldc.i4.1
+  IL_00c0:  stloc.0
+  IL_00c1:  br.s       IL_00c5
+  IL_00c3:  ldc.i4.m1
+  IL_00c4:  stloc.0
+  IL_00c5:  ldloc.0
+  IL_00c6:  call       ""void System.Console.WriteLine(int)""
+  IL_00cb:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
+        public void VerifyIL_GreaterThan8ElementsTuple_03()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
         int x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20) switch
         {
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20) => 1,
@@ -3379,7 +3491,87 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "12345678💥");
+            CompileAndVerify(text, expectedOutput: "12345678💥").VerifyIL("C.Main", @"
+{
+  // Code size      174 (0xae)
+  .maxstack  8
+  .locals init (int V_0,
+                System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>> V_1)
+  .try
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  call       ""int C.M(int)""
+    IL_0006:  ldc.i4.2
+    IL_0007:  call       ""int C.M(int)""
+    IL_000c:  ldc.i4.3
+    IL_000d:  call       ""int C.M(int)""
+    IL_0012:  ldc.i4.4
+    IL_0013:  call       ""int C.M(int)""
+    IL_0018:  ldc.i4.5
+    IL_0019:  call       ""int C.M(int)""
+    IL_001e:  ldc.i4.6
+    IL_001f:  call       ""int C.M(int)""
+    IL_0024:  ldc.i4.7
+    IL_0025:  call       ""int C.M(int)""
+    IL_002a:  ldc.i4.8
+    IL_002b:  call       ""int C.M(int)""
+    IL_0030:  newobj     ""System.ValueTuple<int>..ctor(int)""
+    IL_0035:  newobj     ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int>)""
+    IL_003a:  stloc.1
+    IL_003b:  ldloc.1
+    IL_003c:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item1""
+    IL_0041:  ldc.i4.1
+    IL_0042:  bne.un.s   IL_008c
+    IL_0044:  ldloc.1
+    IL_0045:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item2""
+    IL_004a:  ldc.i4.2
+    IL_004b:  bne.un.s   IL_008c
+    IL_004d:  ldloc.1
+    IL_004e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item3""
+    IL_0053:  ldc.i4.3
+    IL_0054:  bne.un.s   IL_008c
+    IL_0056:  ldloc.1
+    IL_0057:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item4""
+    IL_005c:  ldc.i4.4
+    IL_005d:  bne.un.s   IL_008c
+    IL_005f:  ldloc.1
+    IL_0060:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item5""
+    IL_0065:  ldc.i4.5
+    IL_0066:  bne.un.s   IL_008c
+    IL_0068:  ldloc.1
+    IL_0069:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item6""
+    IL_006e:  ldc.i4.6
+    IL_006f:  bne.un.s   IL_008c
+    IL_0071:  ldloc.1
+    IL_0072:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item7""
+    IL_0077:  ldc.i4.7
+    IL_0078:  bne.un.s   IL_008c
+    IL_007a:  ldloc.1
+    IL_007b:  ldfld      ""System.ValueTuple<int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Rest""
+    IL_0080:  ldfld      ""int System.ValueTuple<int>.Item1""
+    IL_0085:  ldc.i4.7
+    IL_0086:  bne.un.s   IL_008c
+    IL_0088:  ldc.i4.1
+    IL_0089:  stloc.0
+    IL_008a:  br.s       IL_0098
+    IL_008c:  ldloc.1
+    IL_008d:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>""
+    IL_0092:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
+    IL_0097:  throw
+    IL_0098:  ldloc.0
+    IL_0099:  call       ""void System.Console.WriteLine(int)""
+    IL_009e:  leave.s    IL_00ad
+  }
+  catch System.Runtime.CompilerServices.SwitchExpressionException
+  {
+    IL_00a0:  pop
+    IL_00a1:  ldstr      ""💥""
+    IL_00a6:  call       ""void System.Console.Write(string)""
+    IL_00ab:  leave.s    IL_00ad
+  }
+  IL_00ad:  ret
+}
+");
         }
 
         [Fact, WorkItem(47878, "https://github.com/dotnet/roslyn/issues/47878")]
@@ -3423,7 +3615,94 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "123456789💥");
+            CompileAndVerify(text, expectedOutput: "123456789💥").VerifyIL("C.Main", @"
+{
+  // Code size      195 (0xc3)
+  .maxstack  9
+  .locals init (int V_0,
+                System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>> V_1)
+  .try
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  call       ""int C.M(int)""
+    IL_0006:  ldc.i4.2
+    IL_0007:  call       ""int C.M(int)""
+    IL_000c:  ldc.i4.3
+    IL_000d:  call       ""int C.M(int)""
+    IL_0012:  ldc.i4.4
+    IL_0013:  call       ""int C.M(int)""
+    IL_0018:  ldc.i4.5
+    IL_0019:  call       ""int C.M(int)""
+    IL_001e:  ldc.i4.6
+    IL_001f:  call       ""int C.M(int)""
+    IL_0024:  ldc.i4.7
+    IL_0025:  call       ""int C.M(int)""
+    IL_002a:  ldc.i4.8
+    IL_002b:  call       ""int C.M(int)""
+    IL_0030:  ldc.i4.s   9
+    IL_0032:  call       ""int C.M(int)""
+    IL_0037:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+    IL_003c:  newobj     ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>..ctor(int, int, int, int, int, int, int, System.ValueTuple<int, int>)""
+    IL_0041:  stloc.1
+    IL_0042:  ldloc.1
+    IL_0043:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item1""
+    IL_0048:  ldc.i4.1
+    IL_0049:  bne.un.s   IL_00a1
+    IL_004b:  ldloc.1
+    IL_004c:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item2""
+    IL_0051:  ldc.i4.2
+    IL_0052:  bne.un.s   IL_00a1
+    IL_0054:  ldloc.1
+    IL_0055:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item3""
+    IL_005a:  ldc.i4.3
+    IL_005b:  bne.un.s   IL_00a1
+    IL_005d:  ldloc.1
+    IL_005e:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item4""
+    IL_0063:  ldc.i4.4
+    IL_0064:  bne.un.s   IL_00a1
+    IL_0066:  ldloc.1
+    IL_0067:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item5""
+    IL_006c:  ldc.i4.5
+    IL_006d:  bne.un.s   IL_00a1
+    IL_006f:  ldloc.1
+    IL_0070:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item6""
+    IL_0075:  ldc.i4.6
+    IL_0076:  bne.un.s   IL_00a1
+    IL_0078:  ldloc.1
+    IL_0079:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Item7""
+    IL_007e:  ldc.i4.7
+    IL_007f:  bne.un.s   IL_00a1
+    IL_0081:  ldloc.1
+    IL_0082:  ldfld      ""System.ValueTuple<int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Rest""
+    IL_0087:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_008c:  ldc.i4.8
+    IL_008d:  bne.un.s   IL_00a1
+    IL_008f:  ldloc.1
+    IL_0090:  ldfld      ""System.ValueTuple<int, int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>.Rest""
+    IL_0095:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_009a:  ldc.i4.8
+    IL_009b:  bne.un.s   IL_00a1
+    IL_009d:  ldc.i4.1
+    IL_009e:  stloc.0
+    IL_009f:  br.s       IL_00ad
+    IL_00a1:  ldloc.1
+    IL_00a2:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>""
+    IL_00a7:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
+    IL_00ac:  throw
+    IL_00ad:  ldloc.0
+    IL_00ae:  call       ""void System.Console.WriteLine(int)""
+    IL_00b3:  leave.s    IL_00c2
+  }
+  catch System.Runtime.CompilerServices.SwitchExpressionException
+  {
+    IL_00b5:  pop
+    IL_00b6:  ldstr      ""💥""
+    IL_00bb:  call       ""void System.Console.Write(string)""
+    IL_00c0:  leave.s    IL_00c2
+  }
+  IL_00c2:  ret
+}
+");
         }
         #endregion
     }
