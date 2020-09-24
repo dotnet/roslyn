@@ -223,7 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var nodeOrTokenToRemove = FindNodeOrTokenToRemoveAtCursorPosition(tokenAtPosition);
             if (rootExpression is null || parentExpression is null)
             {
-                return null;
+                // ProvideCompletionsAsync only adds CompletionItems, if GetParentExpressionOfToken returns an expression.
+                // if GetParentExpressionOfToken returns an Expression, then should GetRootExpressionOfToken return an Expression too.
+                throw ExceptionUtilities.Unreachable;
             }
 
             var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, nodeOrTokenToRemove.HasValue ? nodeOrTokenToRemove.Value.Span.End : rootExpression.Span.End);
