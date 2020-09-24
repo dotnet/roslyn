@@ -135,11 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
-
-            // We only get a reader for data transmitted between live processes.
-            // This data should always be correct as we're never persisting the data between sessions.
-            Contract.ThrowIfNull(reader);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
             var responseScopeId = reader.ReadInt32();
             Contract.ThrowIfFalse(scopeId == responseScopeId);

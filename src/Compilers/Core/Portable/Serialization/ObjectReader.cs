@@ -106,6 +106,30 @@ namespace Roslyn.Utilities
             return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
 
+        public static ObjectReader GetReader(
+            Stream stream,
+            bool leaveOpen,
+            CancellationToken cancellationToken)
+        {
+            var b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            Contract.ThrowIfFalse(b == VersionByte1);
+
+            b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            Contract.ThrowIfFalse(b == VersionByte2);
+
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
+        }
+
         public void Dispose()
         {
             _objectReferenceMap.Dispose();
