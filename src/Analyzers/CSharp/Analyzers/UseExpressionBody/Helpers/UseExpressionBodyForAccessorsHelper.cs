@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForAccessorsHelper :
         UseExpressionBodyHelper<AccessorDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForAccessorsHelper Instance = new UseExpressionBodyForAccessorsHelper();
+        public static readonly UseExpressionBodyForAccessorsHelper Instance = new();
 
         private UseExpressionBodyForAccessorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
