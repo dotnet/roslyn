@@ -2342,17 +2342,17 @@ class C
             var m1 = (IMethodSymbol)c.GetMember("M1");
             Assert.NotNull(m1);
             Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
-            Assert.Empty(m1.CallingConventionTypes);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
 
             var m2 = (IMethodSymbol)c.GetMember("M2");
             Assert.NotNull(m2);
             Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
-            Assert.Empty(m2.CallingConventionTypes);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
 
             var m3 = (IMethodSymbol)c.GetMember("M3");
             Assert.NotNull(m3);
             Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
-            Assert.Empty(m3.CallingConventionTypes);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
 
         [Fact]
@@ -2390,17 +2390,17 @@ class C
             var m1 = (IMethodSymbol)c.GetMember("M1");
             Assert.NotNull(m1);
             Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
-            Assert.Empty(m1.CallingConventionTypes);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
 
             var m2 = (IMethodSymbol)c.GetMember("M2");
             Assert.NotNull(m2);
             Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
-            Assert.Empty(m2.CallingConventionTypes);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
 
             var m3 = (IMethodSymbol)c.GetMember("M3");
             Assert.NotNull(m3);
             Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
-            Assert.Empty(m3.CallingConventionTypes);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
     }
 }

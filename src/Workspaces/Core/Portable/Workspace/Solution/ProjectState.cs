@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis
             public WorkspaceSyntaxTreeOptionsProvider(ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
-            public override bool? IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
+            public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
             {
                 var options = _lazyAnalyzerConfigSet
                     .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
