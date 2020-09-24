@@ -10121,18 +10121,14 @@ namespace System.Runtime.InteropServices
         [Fact]
         public void UnmanagedCallersOnlyCallConvsWithADifferentType()
         {
-            var comp = CreateCompilation(@"
+            var definition = @"
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 public class C
 {
-    [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     public static void M1() {}
-
-    [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
-    public void M2() {}
 }
-
-#nullable enable
 namespace System.Runtime.InteropServices
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
@@ -10142,16 +10138,91 @@ namespace System.Runtime.InteropServices
         {
         }
 
-        public string? EntryPoint;
-        public int[]? CallConvs;
+        public string EntryPoint;
+        public object CallConvs;
     }
 }
-");
+";
 
-            comp.VerifyDiagnostics(
-                // (8,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
-                //     [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 6)
+            var usage = @"
+class D
+{
+    unsafe void M2()
+    {
+        delegate* unmanaged[Stdcall]<void> ptr = &C.M1;
+    }
+}
+";
+
+            var allInOne = CreateCompilationWithFunctionPointers(definition + usage);
+
+            allInOne.VerifyDiagnostics(
+                // (27,51): error CS8786: Calling convention of 'C.M1()' is not compatible with 'Standard'.
+                //         delegate* unmanaged[Stdcall]<void> ptr = &C.M1;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M1").WithArguments("C.M1()", "Standard").WithLocation(27, 51)
+            );
+
+            var definitionComp = CreateCompilation(definition);
+
+            var usageComp = CreateCompilationWithFunctionPointers(usage, new[] { definitionComp.EmitToImageReference() });
+            usageComp.VerifyDiagnostics(
+                // (6,51): error CS8786: Calling convention of 'C.M1()' is not compatible with 'Standard'.
+                //         delegate* unmanaged[Stdcall]<void> ptr = &C.M1;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M1").WithArguments("C.M1()", "Standard").WithLocation(6, 51)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsWithADifferentType_2()
+        {
+            var definition = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+    public static void M1() {}
+}
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public string EntryPoint;
+        public object[] CallConvs;
+    }
+}
+";
+
+            var usage = @"
+class D
+{
+    unsafe void M2()
+    {
+        delegate* unmanaged[Stdcall]<void> ptr = &C.M1;
+    }
+}
+";
+
+            var allInOne = CreateCompilationWithFunctionPointers(definition + usage);
+
+            allInOne.VerifyDiagnostics(
+                // (27,51): error CS8786: Calling convention of 'C.M1()' is not compatible with 'Standard'.
+                //         delegate* unmanaged[Stdcall]<void> ptr = &C.M1;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M1").WithArguments("C.M1()", "Standard").WithLocation(27, 51)
+            );
+
+            var definitionComp = CreateCompilation(definition);
+
+            var usageComp = CreateCompilationWithFunctionPointers(usage, new[] { definitionComp.EmitToImageReference() });
+            usageComp.VerifyDiagnostics(
+                // (6,51): error CS8786: Calling convention of 'C.M1()' is not compatible with 'Standard'.
+                //         delegate* unmanaged[Stdcall]<void> ptr = &C.M1;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M1").WithArguments("C.M1()", "Standard").WithLocation(6, 51)
             );
         }
 

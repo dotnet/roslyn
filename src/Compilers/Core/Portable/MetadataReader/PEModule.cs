@@ -1156,7 +1156,12 @@ namespace Microsoft.CodeAnalysis
                     for (int i = 0; i < numNamed; i++)
                     {
                         // typeCode of the value is checked by the decoder itself
-                        var ((name, value), isProperty, /* typeCode */ _) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+                        var ((name, value), isProperty, typeCode, elementTypeCode) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+                        if (typeCode != SerializationTypeCode.SZArray || elementTypeCode != SerializationTypeCode.Type)
+                        {
+                            continue;
+                        }
+
                         var namedArgumentDecoded = unmanagedCallersOnlyDecoder(name, value, !isProperty);
                         if (namedArgumentDecoded.IsCallConvs)
                         {
@@ -1764,7 +1769,7 @@ namespace Microsoft.CodeAnalysis
                 var numNamed = sig.ReadUInt16();
                 for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
                 {
-                    var ((name, value), isProperty, typeCode) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                    var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
                     if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
                     {
                         if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName)

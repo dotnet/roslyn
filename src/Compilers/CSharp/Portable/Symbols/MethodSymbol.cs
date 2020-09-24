@@ -959,31 +959,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location location, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(attribute.AttributeClass is not null);
-            ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
-            if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
-            {
-                foreach (var (key, value) in attribute.CommonNamedArguments)
-                {
-                    // Technically, CIL can define a field and a property with the same name. However, such a
-                    // member results in an Ambiguous Member error, and we never get to piece of code at all.
-                    // See UnmanagedCallersOnly_PropertyAndFieldNamedCallConvs for an example
-                    bool isField = attribute.AttributeClass.GetMembers(key).Any(m => m is FieldSymbol);
-
-                    var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsField(key, value, isField, location, diagnostics);
-
-                    if (namedArgumentDecoded.IsCallConvs)
-                    {
-                        callingConventionTypes = namedArgumentDecoded.CallConvs;
-                    }
-                }
-            }
-
-            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
-        }
-
         internal static (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs) TryDecodeUnmanagedCallersOnlyCallConvsField(
             string key,
             TypedConstant value,

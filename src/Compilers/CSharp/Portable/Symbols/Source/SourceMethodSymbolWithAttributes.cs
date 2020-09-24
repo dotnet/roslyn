@@ -886,13 +886,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
 
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
-                DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
+                DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
 
             bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, arguments.Diagnostics);
 
             var returnTypeSyntax = this.ExtractReturnTypeSyntax();
 
-            if (returnTypeSyntax is CompilationUnitSyntax && this is not SynthesizedSimpleProgramEntryPointSymbol)
+            // If there is no return type (such as a property definition), Dummy.GetRoot() is returned.
+            if (ReferenceEquals(returnTypeSyntax, CSharpSyntaxTree.Dummy.GetRoot()))
             {
                 // If there's no syntax for the return type, then we already errored because this isn't a valid
                 // unmanagedcallersonly target (it's a property getter/setter or some other non-regular-method).
@@ -928,6 +929,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         throw ExceptionUtilities.UnexpectedValue(type.ManagedKindNoUseSiteDiagnostics);
                 }
+            }
+
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, DiagnosticBag diagnostics)
+            {
+                Debug.Assert(attribute.AttributeClass is not null);
+                ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
+                if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+                {
+                    var systemType = @this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
+
+                    foreach (var (key, value) in attribute.CommonNamedArguments)
+                    {
+                        // Technically, CIL can define a field and a property with the same name. However, such a
+                        // member results in an Ambiguous Member error, and we never get to piece of code at all.
+                        // See UnmanagedCallersOnly_PropertyAndFieldNamedCallConvs for an example
+                        bool isField = attribute.AttributeClass.GetMembers(key).Any(
+                            static (m, systemType) => m is FieldSymbol { Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol elementType } } && elementType.Equals(systemType, TypeCompareKind.ConsiderEverything),
+                            systemType);
+
+                        var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsField(key, value, isField, location, diagnostics);
+
+                        if (namedArgumentDecoded.IsCallConvs)
+                        {
+                            callingConventionTypes = namedArgumentDecoded.CallConvs;
+                        }
+                    }
+                }
+
+                return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
             }
         }
 #nullable restore
