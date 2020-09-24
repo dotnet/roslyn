@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         ICommandHandler<ToggleLineCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
-            new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
+            new(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

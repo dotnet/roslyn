@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal partial class CodeFixService : ForegroundThreadAffinitizedObject, ICodeFixService
     {
         private static readonly Comparison<DiagnosticData> s_diagnosticDataComparisonById =
-            new Comparison<DiagnosticData>((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
+            new((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
 
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 

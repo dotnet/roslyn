@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal class GoToSymbolContext
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly MultiDictionary<string, DefinitionItem> _items = new MultiDictionary<string, DefinitionItem>();
+        private readonly MultiDictionary<string, DefinitionItem> _items = new();
 
         public GoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
         {

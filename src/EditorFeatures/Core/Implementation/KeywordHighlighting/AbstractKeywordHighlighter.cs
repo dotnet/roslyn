@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
     internal abstract class AbstractKeywordHighlighter : IHighlighter
     {
-        private static readonly ObjectPool<List<TextSpan>> s_textSpanListPool = new ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
-        private static readonly ObjectPool<List<SyntaxToken>> s_tokenListPool = new ObjectPool<List<SyntaxToken>>(() => new List<SyntaxToken>());
+        private static readonly ObjectPool<List<TextSpan>> s_textSpanListPool = new(() => new List<TextSpan>());
+        private static readonly ObjectPool<List<SyntaxToken>> s_tokenListPool = new(() => new List<SyntaxToken>());
 
         protected abstract bool IsHighlightableNode(SyntaxNode node);
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected abstract void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken);
 
         protected static TextSpan EmptySpan(int position)
-            => new TextSpan(position, 0);
+            => new(position, 0);
 
         internal static void AddTouchingTokens(SyntaxNode root, int position, List<SyntaxToken> tokens)
         {
