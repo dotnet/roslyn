@@ -150,8 +150,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var pipe = new Pipe();
 
-            var writerTask = invocation(service, pipe.Writer, cancellationToken).AsTask();
-            var readerTask = reader(pipe.Reader, cancellationToken).AsTask();
+            // Create new tasks that both start executing, rather than invoking the delegates directly.
+            // If any of the operation blocked before awaiting we would end up in a deadlock.
+            var writerTask = Task.Run(async () => await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false), cancellationToken);
+            var readerTask = Task.Run(async () => await reader(pipe.Reader, cancellationToken).ConfigureAwait(false), cancellationToken);
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
             return readerTask.Result;

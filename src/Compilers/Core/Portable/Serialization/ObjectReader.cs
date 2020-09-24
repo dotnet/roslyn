@@ -106,6 +106,12 @@ namespace Roslyn.Utilities
             return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
 
+        /// <summary>
+        /// Creates <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/> requires the version
+        /// of the data in the stream to exactly match the current format version.
+        /// Should only be used to read data written by the same version of Roslyn.
+        /// </summary>
         public static ObjectReader GetReader(
             Stream stream,
             bool leaveOpen,

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    using var stream = localPipe.Writer.AsStream(leaveOpen: false);
+                    var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
                     RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
                 }
@@ -73,7 +73,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }, cancellationToken).Forget();
 
-            async Task CopyPipeData()
+            // Complete RPC once we send the initial piece of data and start waiting for the writer to send more,
+            // so the client can start reading from the stream. Once CopyPipeDataAsync completes the pipeWriter
+            // the corresponding client-side pipeReader will complete and the data transfer will be finished.
+            CopyPipeDataAsync().Forget();
+
+            async Task CopyPipeDataAsync()
             {
                 Exception? exception = null;
                 try
@@ -91,10 +96,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }
-
-            // Complete RPC one we send the initial piece of data and start waiting for the writer to send more,
-            // so the client can start reading from the stream.
-            CopyPipeData().Forget();
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
