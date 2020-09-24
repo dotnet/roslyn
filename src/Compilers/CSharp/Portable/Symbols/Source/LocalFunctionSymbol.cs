@@ -476,9 +476,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
-                    if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext: constraints.IgnoresNullableContext()))
+                    canIgnoreNullableContext = constraints.IgnoresNullableContext();
+                    if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
                     {
-                        _declarationDiagnostics.AddRange(diagnostics);
+                        if (!canIgnoreNullableContext)
+                        {
+                            _declarationDiagnostics.AddRange(diagnostics);
+                        }
                         _lazyTypeParameterConstraints = constraints;
                     }
                 }
