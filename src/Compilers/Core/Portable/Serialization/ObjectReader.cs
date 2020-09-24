@@ -117,7 +117,10 @@ namespace Roslyn.Utilities
                 throw new EndOfStreamException();
             }
 
-            Contract.ThrowIfFalse(b == VersionByte1);
+            if (b != VersionByte1)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
 
             b = stream.ReadByte();
             if (b == -1)
@@ -125,7 +128,10 @@ namespace Roslyn.Utilities
                 throw new EndOfStreamException();
             }
 
-            Contract.ThrowIfFalse(b == VersionByte2);
+            if (b != VersionByte2)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
 
             return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
