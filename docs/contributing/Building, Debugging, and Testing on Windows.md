@@ -167,6 +167,13 @@ You can also attach a debugger to Visual Studio and check the loaded modules, lo
 where the various `CodeAnalysis` modules were loaded from (the `RoslynDev` should load them somewhere 
 under `AppData`, not from `Program File`).
 
+### Testing on the `runtime` repo
+
+1. make sure that you can build the `runtime` repo as baseline (install some pre-requisites then `build.cmd`)
+2. `build.cmd -pack` on your `roslyn` repo
+3. in `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset` delete the version of the toolset that you just packed so that the new one will get put into the cache
+4. modify your local enlistment of `runtime` as illustrated in [this commit](https://github.com/RikkiGibson/runtime/commit/da3c6d96c3764e571269b07650a374678b476384) using the local path to your `roslyn` repo and with the package version you just packed, then build again
+
 ## Contributing
 
 Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md) for details on contributing changes back to the code.
