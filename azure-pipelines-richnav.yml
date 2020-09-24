@@ -28,7 +28,6 @@ jobs:
       inputs:
         languages: 'csharp'
         environment: production
-        githubServiceConnection: dotnet
         richNavLogOutputDirectory: $(Build.SourcesDirectory)/artifacts/bin
       continueOnError: true
       env:
