@@ -475,7 +475,7 @@ namespace Analyzer.Utilities
                     return false;
                 }
 
-                var names = optionValue.Split('|').ToImmutableArray();
+                var names = optionValue.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
                 option = SymbolNamesWithValueOption<TValue>.Create(names, compilation, namePrefix, getTypeAndSuffixFunc);
                 return true;
             }
