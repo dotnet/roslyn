@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static SyntaxNode? FindSyntaxNodeToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
+        private static SyntaxNodeOrToken? FindNodeOrTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
         {
-            return tokenAtCursor.Parent switch
+            return tokenAtCursor switch
             {
-                IdentifierNameSyntax identifierName => identifierName,
-                PredefinedTypeSyntax predefinedType => predefinedType,
+                { Parent: IdentifierNameSyntax identifierName } => identifierName,
+                var token when token.IsKeyword() => token,
                 _ => null,
             };
         }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position);
+            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
             var normalizedToken = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
             // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
             //                      ↓               | cursor position
@@ -220,19 +220,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //                             ↑        | cursor after the manipulation is placed after the dot
             var rootExpression = GetRootExpressionOfToken(normalizedToken);
             var parentExpression = GetParentExpressionOfToken(normalizedToken);
-            var identifier = FindSyntaxNodeToRemoveAtCursorPosition(tokenAtPosition);
+            var nodeOrTokenToRemove = FindNodeOrTokenToRemoveAtCursorPosition(tokenAtPosition);
             if (rootExpression is null || parentExpression is null)
             {
                 return null;
             }
 
-            var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, identifier is null ? rootExpression.Span.End : identifier.Span.End);
+            var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, nodeOrTokenToRemove.HasValue ? nodeOrTokenToRemove.Value.Span.End : rootExpression.Span.End);
             var cursorPositionOffset = spanToReplace.End - position;
             var fromRootToParent = rootExpression.ToString();
-            if (identifier is { })
+            if (nodeOrTokenToRemove is SyntaxNodeOrToken nodeOrToken)
             {
                 // Cut off the identifier
-                var length = identifier.Span.Start - rootExpression.SpanStart;
+                var length = nodeOrToken.Span.Start - rootExpression.SpanStart;
                 fromRootToParent = fromRootToParent.Substring(0, length);
                 // place cursor right behind ).
                 cursorPositionOffset = 0;

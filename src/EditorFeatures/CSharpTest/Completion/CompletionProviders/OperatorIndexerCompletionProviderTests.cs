@@ -482,6 +482,162 @@ namespace N
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // List derived from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/
+        // Includes all keywords and contextual keywords
+        [InlineData("abstract")]
+        [InlineData("as")]
+        [InlineData("base")]
+        [InlineData("bool")]
+        [InlineData("break")]
+        [InlineData("byte")]
+        [InlineData("case")]
+        [InlineData("catch")]
+        [InlineData("char")]
+        [InlineData("checked")]
+        [InlineData("class")]
+        [InlineData("const")]
+        [InlineData("continue")]
+        [InlineData("decimal")]
+        [InlineData("default")]
+        [InlineData("delegate")]
+        [InlineData("do")]
+        [InlineData("double")]
+        [InlineData("else")]
+        [InlineData("enum")]
+        [InlineData("event")]
+        [InlineData("explicit")]
+        [InlineData("extern")]
+        [InlineData("false")]
+        [InlineData("finally")]
+        [InlineData("fixed")]
+        [InlineData("float")]
+        [InlineData("for")]
+        [InlineData("foreach")]
+        [InlineData("goto")]
+        [InlineData("if")]
+        [InlineData("implicit")]
+        [InlineData("in")]
+        [InlineData("int")]
+        [InlineData("interface")]
+        [InlineData("internal")]
+        [InlineData("is")]
+        [InlineData("lock")]
+        [InlineData("long")]
+        [InlineData("namespace")]
+        [InlineData("new")]
+        [InlineData("null")]
+        [InlineData("object")]
+        [InlineData("operator")]
+        [InlineData("out")]
+        [InlineData("override")]
+        [InlineData("params")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("public")]
+        [InlineData("readonly")]
+        [InlineData("ref")]
+        [InlineData("return")]
+        [InlineData("sbyte")]
+        [InlineData("sealed")]
+        [InlineData("short")]
+        [InlineData("sizeof")]
+        [InlineData("stackalloc")]
+        [InlineData("static")]
+        [InlineData("string")]
+        [InlineData("struct")]
+        [InlineData("switch")]
+        [InlineData("this")]
+        [InlineData("throw")]
+        [InlineData("true")]
+        [InlineData("try")]
+        [InlineData("typeof")]
+        [InlineData("uint")]
+        [InlineData("ulong")]
+        [InlineData("unchecked")]
+        [InlineData("unsafe")]
+        [InlineData("ushort")]
+        [InlineData("using")]
+        [InlineData("virtual")]
+        [InlineData("void")]
+        [InlineData("volatile")]
+        [InlineData("while")]
+        [InlineData("add")]
+        [InlineData("alias")]
+        [InlineData("ascending")]
+        [InlineData("async")]
+        [InlineData("await")]
+        [InlineData("by")]
+        [InlineData("descending")]
+        [InlineData("dynamic")]
+        [InlineData("equals")]
+        [InlineData("from")]
+        [InlineData("get")]
+        [InlineData("global")]
+        [InlineData("group")]
+        [InlineData("into")]
+        [InlineData("join")]
+        [InlineData("let")]
+        [InlineData("nameof")]
+        [InlineData("notnull")]
+        [InlineData("on")]
+        [InlineData("orderby")]
+        [InlineData("partial")]
+        [InlineData("remove")]
+        [InlineData("select")]
+        [InlineData("set")]
+        [InlineData("unmanaged")]
+        [InlineData("value")]
+        [InlineData("var")]
+        [InlineData("when")]
+        [InlineData("where")]
+        [InlineData("yield")]
+        public async Task ExplicitUserDefinedConversionIsAppliedForOtherKeywords(string keyword)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+namespace N
+{{
+    public class {keyword}Class
+    {{
+    }}
+    public class C
+    {{
+        public static explicit operator {keyword}Class(C _) => new {keyword}Class;
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var c = new C();
+            c.{keyword}$$
+        }}
+    }}
+}}
+", $"({keyword}Class)", @$"
+namespace N
+{{
+    public class {keyword}Class
+    {{
+    }}
+    public class C
+    {{
+        public static explicit operator {keyword}Class(C _) => new {keyword}Class;
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var c = new C();
+            (({keyword}Class)c).$$
+        }}
+    }}
+}}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("/* Leading */c.$$", "/* Leading */((float)c).$$")]
         [InlineData("/* Leading */c.fl$$", "/* Leading */((float)c).$$")]
         [InlineData("c.  $$", "((float)c).  $$")]
