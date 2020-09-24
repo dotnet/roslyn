@@ -43,13 +43,85 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
-            // Look for simple patterns that are known to be absolutely safe to always remove.
-            if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
+            // Now perform basic checks looking for a few things:
+            //
+            // 1. casts that must stay because removal will produce actually illegal code.
+            // 2. casts that must stay because they have runtime impact (i.e. could cause exceptions to be thrown).
+            // 3. casts that *seem* unnecessary because they don't violate the above, and the cast seems like it has no
+            //    effect at runtime (i.e. casting a `string` to `object`).  Note: just because the cast seems like it
+            //    will have not runtime impact doesn't mean we can remove it.  It still may be necessary to preserve the
+            //    meaning of the code (for example for overload resolution).  That check will occur after this.
+            //
+            // This is the fundamental separation between CastHasNoRuntimeImpact and
+            // speculationAnalyzer.ReplacementChangesSemantics.  The former is simple and is only asking if the cast
+            // seems like it would have no impact *at runtime*.  The latter ensures that the static meaning of the code
+            // is preserved.
+            //
+            // When adding/updating checks keep the above in mind to determine where the check should go.
+            var castHasRuntimeImpact = CastHasRuntimeImpact(
+                speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+            if (castHasRuntimeImpact)
+                return false;
+
+            // Cast has no runtime effect.  But it may change static semantics.  Only allow removal if static semantics
+            // don't change.
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
+
+            return true;
+        }
+
+        private static bool CastHasRuntimeImpact(
+            SpeculationAnalyzer speculationAnalyzer,
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Look for simple patterns we know will never cause any runtime changes.  
+            if (CastDefinitelyHasNoRuntimeImpact(castNode, castedExpressionNode, semanticModel, cancellationToken))
+                return false;
+
+            // Call into our legacy codepath that tries to make the same determination. 
+            return !CastHasNoRuntimeImpact_Legacy(speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+        }
+
+        private static bool CastDefinitelyHasNoRuntimeImpact(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // NOTE: Keep this method simple.  Each type of runtime impact check should just be a new check added
+            // independently from the rest.  We want to make it very clear exactly which cases each check is covering.
+
+            // castNode is:             `(Type)expr` or `expr as Type`.
+            // castedExpressionnode is: `expr`
+
+            // The type in `(Type)...` or `... as Type`
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+
+            // The type in `(...)expr` or `expr as ...`
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
+            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast as this cast happens automatically.
+            if (IsObjectCastInInterpolation(castNode, castType))
                 return true;
 
-            // Then look for patterns for cases where we never want to remove casts.  Note: we want these checks to be
-            // very fast, and to eliminate as many cases as necessary.  Importantly, we want to be able to do these
-            // checks before calling into the speculation analyzer.
+            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`
+            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
+                return true;
+
+            return false;
+        }
+
+        private static bool CastHasNoRuntimeImpact_Legacy(
+            SpeculationAnalyzer speculationAnalyzer,
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Note: Legacy codepaths for determining if a cast is removable.  As much as possible we should attempt to 
+            // extract simple and clearly defined checks from here and move to CastDefinitelyHasNoRuntimeImpact.
+
+            // Then look for patterns for cases where we never want to remove casts.
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
@@ -238,31 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return true;
                 }
             }
-
-            return false;
-        }
-
-        private static bool CastCanDefinitelyBeRemoved(
-            ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // castNode is:             `(Type)expr` or `expr as Type`.
-            // castedExpressionnode is: `expr`
-
-            // The type in `(Type)...` or `... as Type`
-            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
-
-            // The type in `(...)expr` or `expr as ...`
-            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
-
-            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast.
-            if (IsObjectCastInInterpolation(castNode, castType))
-                return true;
-
-            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
-                return true;
 
             return false;
         }

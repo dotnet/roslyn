@@ -15,13 +15,13 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : AbstractGoToDefinitionHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    [ExportLspMethod(LSP.Methods.TextDocumentDefinitionName, mutatesSolutionState: false)]
+    internal class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider)
-            : base(metadataAsSourceFileService, solutionProvider)
+        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
+            : base(metadataAsSourceFileService)
         {
         }
 

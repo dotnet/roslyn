@@ -169,6 +169,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 }
 
                 var excerpter = document.Services.GetService<IDocumentExcerptService>();
+                if (excerpter == null)
+                {
+                    continue;
+                }
+
                 var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                 var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, cancellationToken).ConfigureAwait(false);
 

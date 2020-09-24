@@ -163,6 +163,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
+                // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+                await TaskScheduler.Default;
+
 #pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
                 var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
 #pragma warning restore

@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
-    [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName), Shared]
-    internal class CodeActionResolveHandler : AbstractRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
+    [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName, mutatesSolutionState: false), Shared]
+    internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -42,21 +42,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public CodeActionResolveHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider)
-            : base(solutionProvider)
+            ICodeRefactoringService codeRefactoringService)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
+            => ((JToken)request.Data).ToObject<CodeActionResolveData>().TextDocument;
+
+        public async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
-            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
-            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
+            var document = context.Document;
             Contract.ThrowIfNull(document);
 
+            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,
                 document,
