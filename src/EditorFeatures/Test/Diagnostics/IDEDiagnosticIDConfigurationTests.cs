@@ -397,6 +397,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0083
 csharp_style_prefer_not_pattern = true:suggestion
 
+# IDE0090
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -941,6 +944,9 @@ No editorconfig based code style option
 
 # IDE0083, PreferNotPattern
 csharp_style_prefer_not_pattern = true:suggestion
+
+# IDE0090, ImplicitObjectCreationWhenTypeIsApparent
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion

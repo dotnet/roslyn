@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             return node switch
             {
-                VariableDeclarationSyntax variableDeclaration => ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken)
+                VariableDeclarationSyntax variableDeclaration => ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken)
                     ? variableDeclaration.Type
                     : null,
                 ForEachStatementSyntax forEachStatement => ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             };
         }
 
-        protected virtual bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public virtual bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             // implicit type is applicable only for local variables and
             // such declarations cannot have multiple declarators and

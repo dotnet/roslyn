@@ -82,6 +82,11 @@
         <target state="translated">서식을 지정하는 동안 추가 코드 정리 수행</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>

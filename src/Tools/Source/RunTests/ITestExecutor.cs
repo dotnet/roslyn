@@ -15,18 +15,18 @@ namespace RunTests
         internal string OutputDirectory { get; }
         internal string Trait { get; }
         internal string NoTrait { get; }
-        internal bool UseHtml { get; }
+        internal bool IncludeHtml { get; }
         internal bool Test64 { get; }
         internal bool TestVsi { get; }
 
-        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
+        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool includeHtml, bool test64, bool testVsi)
         {
             XunitPath = xunitPath;
             ProcDumpInfo = procDumpInfo;
             OutputDirectory = outputDirectory;
             Trait = trait;
             NoTrait = noTrait;
-            UseHtml = useHtml;
+            IncludeHtml = includeHtml;
             Test64 = test64;
             TestVsi = testVsi;
         }

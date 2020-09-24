@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            return GetSyntacticClassificationsAsync(document, span);
+            return await GetSyntacticClassificationsAsync(document, span);
         }
 
         [Theory]
