@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
-        <target state="translated">{0}' を逆参照できません。ポインターが無効です。</target>
+        <target state="translated">'{0}' を逆参照できません。ポインターが無効です。</target>
         <note>Invalid pointer dereference</note>
       </trans-unit>
       <trans-unit id="NativeView">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ResultsViewNotEnumerable">
         <source>Only Enumerable types can have Results View</source>
-        <target state="translated">結果ビューを含むことができるのは、列挙可能な型だけです。</target>
+        <target state="translated">結果ビューを含むことができるのは、列挙可能な型だけです</target>
         <note>Cannot use "results" format specifier on non-enumerable type</note>
       </trans-unit>
       <trans-unit id="ResultsViewValueWarning">
         <source>Expanding the Results View will enumerate the IEnumerable</source>
-        <target state="translated">結果ビューを展開すると、IEnumerable が列挙されます。</target>
+        <target state="translated">結果ビューを展開すると、IEnumerable が列挙されます</target>
         <note>Warning reported in Results View value</note>
       </trans-unit>
       <trans-unit id="SharedMembers">

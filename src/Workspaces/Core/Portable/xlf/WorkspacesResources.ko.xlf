@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{1}'(으)로 '{0}' 이름 바꾸기</target>
+        <target state="translated">'{1}'(으)로 '{0}' 이름 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
         <source>Duplicate source file '{0}' in project '{1}'</source>
-        <target state="translated">{1}' 프로젝트에서 중복된 '{0}' 소스 파일입니다.</target>
+        <target state="translated">'{1}' 프로젝트에서 중복된 '{0}' 소스 파일입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_projects_is_not_supported">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
         <source>Adding project reference from '{0}' to '{1}' will cause a circular reference.</source>
-        <target state="translated">{0}'에서 '{1}'(으)로 프로젝트 참조를 추가하면 순환 참조가 됩니다.</target>
+        <target state="translated">'{0}'에서 '{1}'(으)로 프로젝트 참조를 추가하면 순환 참조가 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Metadata_is_not_referenced">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="The_language_0_is_not_supported">
         <source>The language '{0}' is not supported.</source>
-        <target state="translated">{0}' 언어는 지원되지 않습니다.</target>
+        <target state="translated">'{0}' 언어는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_project">
@@ -449,12 +449,12 @@
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
-        <target state="translated">{1}' 파일 확장명이 언어에 연결되어 있지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
+        <target state="translated">'{1}' 파일 확장명이 언어에 연결되어 있지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
         <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">{1}' 언어를 지원하지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
+        <target state="translated">'{1}' 언어를 지원하지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
@@ -469,17 +469,17 @@
       </trans-unit>
       <trans-unit id="Project_file_not_found_colon_0">
         <source>Project file not found: '{0}'</source>
-        <target state="translated">{0}' 프로젝트 파일을 찾을 수 없습니다.</target>
+        <target state="translated">'{0}' 프로젝트 파일을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_file_not_found_colon_0">
         <source>Solution file not found: '{0}'</source>
-        <target state="translated">{0}' 솔루션 파일을 찾을 수 없습니다.</target>
+        <target state="translated">'{0}' 솔루션 파일을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unmerged_change_from_project_0">
         <source>Unmerged change from project '{0}'</source>
-        <target state="translated">{0}' 프로젝트에서 병합되지 않은 변경 내용</target>
+        <target state="translated">'{0}' 프로젝트에서 병합되지 않은 변경 내용</target>
         <note />
       </trans-unit>
       <trans-unit id="Added_colon">
@@ -574,7 +574,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">{0}' 유형의 서비스가 작업을 수행하는 데 필요하지만 작업 영역에서 사용할 수 없습니다.</target>
+        <target state="translated">'{0}' 유형의 서비스가 작업을 수행하는 데 필요하지만 작업 영역에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -589,12 +589,12 @@
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
         <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 역직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 역직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
@@ -604,7 +604,7 @@
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
         <source>Label for node '{0}' is invalid, it must be within [0, {1}).</source>
-        <target state="translated">{0}' 노드의 레이블이 잘못되었습니다. [0, {1}) 내에 있어야 합니다.</target>
+        <target state="translated">'{0}' 노드의 레이블이 잘못되었습니다. [0, {1}) 내에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Matching_nodes_0_and_1_must_have_the_same_label">
@@ -614,17 +614,17 @@
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
         <source>Node '{0}' must be contained in the new tree.</source>
-        <target state="translated">{0}' 노드가 새 트리에 포함되어야 합니다.</target>
+        <target state="translated">'{0}' 노드가 새 트리에 포함되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">{0}' 노드가 이전 트리에 포함되어야 합니다.</target>
+        <target state="translated">'{0}' 노드가 이전 트리에 포함되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
         <source>The member '{0}' is not declared within the declaration of the symbol.</source>
-        <target state="translated">{0}' 멤버가 기호의 선언 내에서 선언되지 않았습니다.</target>
+        <target state="translated">'{0}' 멤버가 기호의 선언 내에서 선언되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_position_is_not_within_the_symbol_s_declaration">
@@ -704,7 +704,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
+        <target state="translated">'{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">
