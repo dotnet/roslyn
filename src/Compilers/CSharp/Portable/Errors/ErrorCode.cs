@@ -1834,7 +1834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
-        WRN_PartialMethodTypeDifference = 8824,
+        WRN_ParameterNotNullIfNotNull = 8824,
+        WRN_ReturnNotNullIfNotNull = 8825,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1845,7 +1846,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsWithExpression = 8849,
 
         // Available = 8850,
-        // Available = 8851,
+
+        // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
+        // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
+        WRN_RecordEqualsWithoutGetHashCode = 8851,
 
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,
@@ -1913,6 +1917,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InitCannotBeReadonly = 8903,
 
         #endregion diagnostics introduced for C# 9.0
+
+        ERR_UnexpectedVarianceStaticMember = 9100,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

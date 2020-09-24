@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
-    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName), Shared]
-    internal class DocumentPullDiagnosticHandler : AbstractRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]?>
+    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
+    internal class DocumentPullDiagnosticHandler : IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]?>
     {
         private static readonly DiagnosticTag[] s_unnecessaryTags = new[] { DiagnosticTag.Unnecessary };
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentPullDiagnosticHandler(
             ILspSolutionProvider solutionProvider,
-            IDiagnosticService diagnosticService) : base(solutionProvider)
+            IDiagnosticService diagnosticService)
         {
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
@@ -65,12 +65,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
         }
 
-        public override async Task<DiagnosticReport[]?> HandleRequestAsync(
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams request)
+            => request.TextDocument;
+
+        public async Task<DiagnosticReport[]?> HandleRequestAsync(
             DocumentDiagnosticsParams request, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument, $"Got a DocumentPullDiagnostic request that did not specify a {nameof(request.TextDocument)}");
 
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the

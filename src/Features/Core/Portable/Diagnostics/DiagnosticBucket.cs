@@ -9,22 +9,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal readonly struct DiagnosticBucket
     {
         /// <summary>
-        /// The identity of update group. 
+        /// The identity of bucket group. 
         /// </summary>
         public readonly object Id;
 
         /// <summary>
-        /// <see cref="Workspace"/> this update is associated with.
+        /// <see cref="Workspace"/> this bucket is associated with.
         /// </summary>
         public readonly Workspace Workspace;
 
         /// <summary>
-        /// <see cref="ProjectId"/> this update is associated with, or <see langword="null"/>.
+        /// <see cref="ProjectId"/> this bucket is associated with, or <see langword="null"/>.
         /// </summary>
         public readonly ProjectId? ProjectId;
 
         /// <summary>
-        /// <see cref="DocumentId"/> this update is associated with, or <see langword="null"/>.
+        /// <see cref="DocumentId"/> this bucket is associated with, or <see langword="null"/>.
         /// </summary>
         public readonly DocumentId? DocumentId;
 

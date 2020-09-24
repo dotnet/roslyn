@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 #pragma warning restore
 
             Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, assetStorage, errorReportingService: null);
+            return new BrokeredServiceConnection<T>(proxy, assetStorage, _workspaceServices.GetRequiredService<IErrorReportingService>(), shutdownCancellationService: null);
         }
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
@@ -234,15 +235,26 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceBroker = new InProcServiceBroker(this);
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
-                RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p, o) => new CodeAnalysisService(s, p));
-                RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p, o) => new RemoteSymbolSearchUpdateEngine(s, p));
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
-                RegisterRemoteBrokeredService(new RemoteDesignerAttributeService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTodoCommentsService.Factory());
+                RegisterRemoteBrokeredService(new RemoteTodoCommentsDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSemanticClassificationCacheService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
+                RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
+                RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
+                RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
+                RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
+                RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
             }
 
@@ -280,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     // Currently don't support callback creation as we don't have in-proc service with callbacks yet.
                     Contract.ThrowIfFalse(descriptor.ClientInterface == null);
 
-                    var serviceConnection = descriptor.ConstructRpcConnection(pipe);
+                    var serviceConnection = descriptor.WithTraceSource(_serviceProvider.TraceSource).ConstructRpcConnection(pipe);
                     var service = inProcFactory();
 
                     serviceConnection.AddLocalRpcTarget(service);

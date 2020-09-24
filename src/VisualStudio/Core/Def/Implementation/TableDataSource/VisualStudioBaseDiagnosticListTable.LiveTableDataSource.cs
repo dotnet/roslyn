@@ -163,6 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 foreach (var bucket in diagnosticService.GetDiagnosticBuckets(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
                 {
+                    // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
+                    // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
+                    // this doesn't actually change any data.  All that will happen now is that VS will call back into
+                    // us for these IDs and we'll fetch the diagnostics at that point.
                     OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                         bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
                 }

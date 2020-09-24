@@ -232,14 +232,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using var pool = SharedPools.Default<List<Data>>().GetPooledObject();
-
                     AppendMatchingData(source, workspace, projectId, documentId, id, buffer);
                     Debug.Assert(buffer.Count == 0 || buffer.Count == 1);
 
                     if (buffer.Count == 1)
                     {
-                        var diagnostics = pool.Object[0].Diagnostics;
+                        var diagnostics = buffer[0].Diagnostics;
                         return includeSuppressedDiagnostics
                             ? diagnostics
                             : diagnostics.NullToEmpty().WhereAsArray(d => !d.IsSuppressed);
@@ -296,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
                 foreach (var data in buffer)
-                    result.AddRange(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
+                    result.Add(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
             }
 
             return result.ToImmutable();

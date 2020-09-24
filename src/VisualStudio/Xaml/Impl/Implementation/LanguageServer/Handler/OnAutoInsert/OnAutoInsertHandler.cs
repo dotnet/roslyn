@@ -15,25 +15,28 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName, StringConstants.XamlLanguageName)]
-    internal class OnAutoInsertHandler : AbstractRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
+    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class OnAutoInsertHandler : IRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OnAutoInsertHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public OnAutoInsertHandler()
         {
         }
 
-        public override async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+
+        public async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
-            var document = SolutionProvider.GetTextDocument(autoInsertParams.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return response.ToArray();
@@ -53,7 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return response.ToArray();
             }
 
-            var insertText = result.TextChange.NewText ?? "";
+            Contract.ThrowIfNull(result.TextChange.NewText);
+            var insertText = result.TextChange.NewText;
             var insertFormat = LSP.InsertTextFormat.Plaintext;
             if (result.CaretOffset.HasValue)
             {

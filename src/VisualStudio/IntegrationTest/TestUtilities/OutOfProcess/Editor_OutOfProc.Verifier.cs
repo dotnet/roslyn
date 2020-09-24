@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -206,7 +207,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles);
                 var actualTags = _textViewWindow.GetErrorTags();
-                Assert.Equal(expectedTags, actualTags);
+                AssertEx.EqualOrDiff(
+                    string.Join(Environment.NewLine, expectedTags),
+                    string.Join(Environment.NewLine, actualTags));
             }
 
             public void IsProjectItemDirty(bool expectedValue)

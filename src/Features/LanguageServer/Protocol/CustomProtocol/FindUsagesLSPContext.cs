@@ -75,9 +75,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override Task OnCompletedAsync() => _workQueue.WaitUntilCurrentBatchCompletesAsync();
+        public override async ValueTask OnCompletedAsync()
+            => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
         {
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
         {
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
@@ -175,21 +176,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             // https://github.com/dotnet/roslyn/issues/42847
             var result = new LSP.VSReferenceItem
             {
-                ContainingMember = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : "",
-                ContainingType = properties.TryGetValue(
-                    AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : "",
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DisplayPath = location.Uri.LocalPath,
-                DocumentName = documentSpan == default ? "" : documentSpan.Document.Name,
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
                 Location = location,
-                ProjectName = documentSpan == default ? "" : documentSpan.Document.Project.Name,
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };
+
+            if (documentSpan.Document != null)
+            {
+                result.DocumentName = documentSpan.Document.Name;
+                result.ProjectName = documentSpan.Document.Project.Name;
+            }
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
+                result.ContainingMember = referenceContainingMember;
+
+            if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
+                result.ContainingType = referenceContainingType;
 
             return result;
 
