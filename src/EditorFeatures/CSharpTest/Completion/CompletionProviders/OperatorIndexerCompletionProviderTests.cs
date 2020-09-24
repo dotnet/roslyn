@@ -216,6 +216,7 @@ public class C
     public static explicit operator C(float f) => new C();
     public static implicit operator C(string s) => new C();
     public static implicit operator string(C c) => "";
+    public static bool op_Explicit(C c) => false;
 }
 
 public class Program
@@ -230,6 +231,27 @@ public class Program
             Assert.Collection(items,
                 i => Assert.Equal("(float)", i.DisplayText),
                 i => Assert.Equal("(int)", i.DisplayText));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionIgnoresConversionLikeMethods()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static bool op_Explicit(C c) => false;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
