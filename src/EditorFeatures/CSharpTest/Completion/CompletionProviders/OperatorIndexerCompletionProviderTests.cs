@@ -635,6 +635,92 @@ namespace N
 ");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionToGenericType()
+        {
+            await VerifyCustomCommitProviderAsync(
+@"
+public class C<T>
+{
+    public static explicit operator D<T>(C<T> _) => default;
+}
+public class D<T>
+{
+}
+public class Program
+{
+    public void Main()
+    {
+        {
+            var c = new C<int>();
+            c.$$
+        }
+    }
+}
+", "(D<int>)",
+@"
+public class C<T>
+{
+    public static explicit operator D<T>(C<T> _) => default;
+}
+public class D<T>
+{
+}
+public class Program
+{
+    public void Main()
+    {
+        {
+            var c = new C<int>();
+            ((D<int>)c).$$
+        }
+    }
+}
+"
+            );
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionToArray()
+        {
+            await VerifyCustomCommitProviderAsync(
+@"
+public class C
+{
+    public static explicit operator int[](C _) => default;
+}
+public class Program
+{
+    public void Main()
+    {
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}
+", "(int[])",
+@"
+public class C
+{
+    public static explicit operator int[](C _) => default;
+}
+public class Program
+{
+    public void Main()
+    {
+        {
+            var c = new C();
+            ((int[])c).$$
+        }
+    }
+}
+"
+            );
+        }
+
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("/* Leading */c.$$", "/* Leading */((float)c).$$")]
