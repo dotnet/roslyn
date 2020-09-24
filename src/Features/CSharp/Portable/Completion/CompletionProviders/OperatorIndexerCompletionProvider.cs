@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (!indexers.IsEmpty)
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: $"this[]",
-                    filterText: "[",
-                    sortText: $"{SortingPrefix}",
+                    displayText: "this[]",
+                    filterText: "this[]",
+                    sortText: $"{SortingPrefix}this[]",
                     symbols: indexers,
                     rules: CompletionItemRules.Default,
                     contextPosition: position,
