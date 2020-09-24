@@ -52,21 +52,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.RunRemoteAsync<SerializableConflictResolution?>(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteRenamer.ResolveConflictsAsync),
+                    var serializableLocationSet = renameLocationSet.Dehydrate(solution, cancellationToken);
+                    var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
+
+                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
-                        new object?[]
-                        {
-                            renameLocationSet.Dehydrate(solution, cancellationToken),
-                            replacementText,
-                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
-                        },
+                        (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result != null)
-                        return await result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    if (result.HasValue && result.Value != null)
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                 }
             }
 

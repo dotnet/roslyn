@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.EnterRegion();
         }
 
-        override protected void LeaveRegion()
+        protected override void LeaveRegion()
         {
             _regionEndPointIsReachable = this.State.Alive;
             base.LeaveRegion();

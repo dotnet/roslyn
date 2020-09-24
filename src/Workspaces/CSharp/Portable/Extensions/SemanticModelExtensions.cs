@@ -14,11 +14,14 @@ using Microsoft.CodeAnalysis.Utilities;
 using Humanizer;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+        private const string DefaultParameterName = "p";
+
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             ArgumentListSyntax argumentList,
@@ -219,25 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Otherwise, figure out the type of the expression and generate a name from that
             // instead.
             var info = semanticModel.GetTypeInfo(expression, cancellationToken);
+            if (info.Type == null)
+            {
+                return DefaultParameterName;
+            }
 
-            // If we can't determine the type, then fallback to some placeholders.
-            var type = info.Type;
-            var pluralize = Pluralize(semanticModel, type);
-
-            var parameterName = type.CreateParameterName(capitalize);
-            return pluralize ? parameterName.Pluralize() : parameterName;
-        }
-
-        private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
-        {
-            if (type == null)
-                return false;
-
-            if (type.SpecialType == SpecialType.System_String)
-                return false;
-
-            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
-            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+            return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
         }
 
         private static string TryGenerateNameForArgumentExpression(

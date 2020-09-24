@@ -1644,6 +1644,68 @@ namespace N1
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_ExtendedPartialMethods()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM();
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix0 =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v);
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v) { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocation_Cascading_PartialMethodsInSameDocument()
@@ -2721,6 +2783,32 @@ void outer()
     }
 }
 ");
+        }
+
+        [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestAddParameter_TargetTypedNew()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    C(int i) { }
+
+    void M()
+    {
+       C c = [||]new(1, 2);
+    }
+}",
+@"
+class C
+{
+    C(int i, int v) { }
+
+    void M()
+    {
+       C c = new(1, 2);
+    }
+}");
         }
     }
 }

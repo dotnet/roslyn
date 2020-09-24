@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             workspace.TryApplyChanges(newSolution);
         }
 
-        public static void Updatedocument(this Workspace workspace, DocumentId documentId, SourceText newText)
+        public static void UpdateDocument(this Workspace workspace, DocumentId documentId, SourceText newText)
         {
             var oldSolution = workspace.CurrentSolution;
             var newSolution = oldSolution.WithDocumentText(documentId, newText);

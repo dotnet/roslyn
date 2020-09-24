@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            return GetAllClassificationsAsync(document, span);
+            return await GetAllClassificationsAsync(document, span);
         }
 
         [Theory]
@@ -938,8 +938,8 @@ class C
                 ParseOptions(Options.Regular),
                 Keyword("static"),
                 Keyword("class"),
-                Static("ExtMethod"),
                 Class("ExtMethod"),
+                Static("ExtMethod"),
                 Punctuation.OpenCurly,
                 Keyword("public"),
                 Keyword("static"),
@@ -962,8 +962,8 @@ class C
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Static("ExtMethod"),
                 Class("ExtMethod"),
+                Static("ExtMethod"),
                 Operators.Dot,
                 Method("TestMethod"),
                 Static("TestMethod"),

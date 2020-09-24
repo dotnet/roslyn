@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -43,12 +42,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         Unset = 1 << 23, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
-    }
-
-    internal static class DeclarationModifierExtensions
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasFlag(this DeclarationModifiers modifiers, DeclarationModifiers flag)
-            => (modifiers & flag) != 0;
     }
 }

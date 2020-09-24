@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this; }
         }
 
-        public override sealed bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public override sealed bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

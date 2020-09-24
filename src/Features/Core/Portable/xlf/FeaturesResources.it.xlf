@@ -500,6 +500,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Imposta rientro per parametri con ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_0">
+        <source>Inline '{0}'</source>
+        <target state="new">Inline '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="new">Inline and keep '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Cifre esadecimali insufficienti</target>
@@ -663,6 +673,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Esegui pull dei membri fino al tipo di base...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">

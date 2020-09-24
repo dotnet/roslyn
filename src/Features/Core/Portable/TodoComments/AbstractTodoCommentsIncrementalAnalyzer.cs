@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
         }
 
-        protected abstract Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
 
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             // Just report this back as there being no more comments for this document.
-            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken);
+            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
@@ -66,24 +66,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
             // Convert the roslyn-level results to the more VS oriented line/col data.
             using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-            await ConvertAsync(
+            await TodoComment.ConvertAsync(
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             // Now inform VS about this new information
             await ReportTodoCommentDataAsync(document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task ConvertAsync(
-            Document document,
-            ImmutableArray<TodoComment> todoComments,
-            ArrayBuilder<TodoCommentData> converted,
-            CancellationToken cancellationToken)
-        {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var comment in todoComments)
-                converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
         }
     }
 }

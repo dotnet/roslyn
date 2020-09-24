@@ -190,7 +190,18 @@
                 Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
                   OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
     </ItemGroup>
+
+    <!--
+      Explicitly reference Humanizer prior to https://github.com/dotnet/roslyn/pull/47297
+    -->
+    <ItemGroup>
+      <Analyzer Include="$(NuGetPackageRoot)\humanizer.core\$(HumanizerCoreVersion)\lib\netstandard1.0\Humanizer.dll" />
+    </ItemGroup>
   </Target>
+
+  <ItemGroup>
+    <PackageDownload Include="Humanizer.Core" Version="[$(HumanizerCoreVersion)]" />
+  </ItemGroup>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 

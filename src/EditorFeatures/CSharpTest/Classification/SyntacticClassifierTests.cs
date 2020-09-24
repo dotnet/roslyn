@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            return GetSyntacticClassificationsAsync(document, span);
+            return await GetSyntacticClassificationsAsync(document, span);
         }
 
         [Theory]
@@ -2618,6 +2616,8 @@ namespace MyNamespace
         decimal goo4;
 
         delegate void D();
+        delegate* managed<int, int> mgdfun;
+        delegate* unmanaged<int, int> unmgdfun;
 
         double goo5;
 
@@ -2832,6 +2832,26 @@ namespace MyNamespace
                 Delegate("D"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("managed"),
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Field("mgdfun"),
+                Punctuation.Semicolon,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Field("unmgdfun"),
                 Punctuation.Semicolon,
                 Keyword("double"),
                 Field("goo5"),
@@ -5462,6 +5482,40 @@ class X
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(45807, "https://github.com/dotnet/roslyn/issues/45807")]
+        public async Task FunctionPointer(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    delegate* unmanaged[Stdcall, SuppressGCTransition] <int, int> x;
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Identifier("Stdcall"),
+                Punctuation.Comma,
+                Identifier("SuppressGCTransition"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Field("x"),
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
     }

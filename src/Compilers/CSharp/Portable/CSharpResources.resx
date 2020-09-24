@@ -3914,6 +3914,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_UnexpectedVariance" xml:space="preserve">
     <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}'. '{1}' is {2}.</value>
   </data>
+  <data name="ERR_UnexpectedVarianceStaticMember" xml:space="preserve">
+    <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</value>
+  </data>
   <data name="ERR_DeriveFromDynamic" xml:space="preserve">
     <value>'{0}': cannot derive from the dynamic type</value>
   </data>
@@ -5600,6 +5603,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ParameterDisallowsNull_Title" xml:space="preserve">
     <value>Parameter must have a non-null value when exiting.</value>
   </data>
+  <data name="WRN_ParameterNotNullIfNotNull" xml:space="preserve">
+    <value>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</value>
+  </data>
+  <data name="WRN_ParameterNotNullIfNotNull_Title" xml:space="preserve">
+    <value>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</value>
+  </data>
+  <data name="WRN_ReturnNotNullIfNotNull" xml:space="preserve">
+    <value>Return value must be non-null because parameter '{0}' is non-null.</value>
+  </data>
+  <data name="WRN_ReturnNotNullIfNotNull_Title" xml:space="preserve">
+    <value>Return value must be non-null because parameter is non-null.</value>
+  </data>
   <data name="WRN_MemberNotNull" xml:space="preserve">
     <value>Member '{0}' must have a non-null value when exiting.</value>
   </data>
@@ -5836,6 +5851,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_SwitchExpressionNotExhaustiveWithWhen_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</value>
   </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
@@ -6251,9 +6272,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInitOnlySetters" xml:space="preserve">
     <value>init-only setters</value>
   </data>
-  <data name="ERR_BadRecordDeclaration" xml:space="preserve">
-    <value>A positional record must have a non-empty parameter list</value>
-  </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
@@ -6387,7 +6405,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameters must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
     <value>Only a single record partial declaration may have a parameter list</value>
@@ -6509,5 +6527,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric" xml:space="preserve">
     <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_EntryPointCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="WRN_RecordEqualsWithoutGetHashCode" xml:space="preserve">
+    <value>'{0}' defines 'Equals' but not 'GetHashCode'</value>
+    <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
+  </data>
+  <data name="WRN_RecordEqualsWithoutGetHashCode_Title" xml:space="preserve">
+    <value>Record defines 'Equals' but not 'GetHashCode'.</value>
+    <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
+  </data>
+  <data name="ERR_InitCannotBeReadonly" xml:space="preserve">
+    <value>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</value>
+  </data>
+  <data name="IDS_FeatureDiscards" xml:space="preserve">
+    <value>discards</value>
+  </data>
+  <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
+    <value>variance safety for static interface members</value>
   </data>
 </root>
