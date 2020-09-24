@@ -51,10 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
-        {
-            var ch = text[insertedCharacterPosition];
-            return ch == '.';
-        }
+            => text[insertedCharacterPosition] == '.';
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
@@ -145,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var syntaxNode = token.Parent;
             return syntaxNode switch
             {
-                MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression.GetRootConditionalAccessExpression() as ExpressionSyntax) ?? memberAccess,
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
                 MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression(),
                 _ => null,
             };
@@ -159,9 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     CompletionHandlerConversion => await HandleConversionChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
                     CompletionHandlerIndexer => await HandleIndexerChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
-                    _ => null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(value),
                 };
-                if (completionChange is { })
+                if (completionChange is not null)
                 {
                     return completionChange;
                 }
@@ -173,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
-            if (!item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName))
+            Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
             {
                 return null;
             }
@@ -205,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var fromRootToParent = rootExpression.ToString();
             if (identifier is { })
             {
-                // Cut of the identifier
+                // Cut off the identifier
                 var length = identifier.Span.Start - rootExpression.SpanStart;
                 fromRootToParent = fromRootToParent.Substring(0, length);
                 // place cursor right behind ).
