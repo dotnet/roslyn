@@ -220,32 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             return node;
         }
 
-        private static UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
-        {
-            var stylePreferences = UseVarPreference.None;
-
-            var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
-            var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-            var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
-
-            if (styleForIntrinsicTypes.Value)
-            {
-                stylePreferences |= UseVarPreference.ForBuiltInTypes;
-            }
-
-            if (styleForApparent.Value)
-            {
-                stylePreferences |= UseVarPreference.WhenTypeIsApparent;
-            }
-
-            if (styleForElsewhere.Value)
-            {
-                stylePreferences |= UseVarPreference.Elsewhere;
-            }
-
-            return stylePreferences;
-        }
-
         public static bool IsPredefinedType(TypeSyntax type)
         {
             return type is PredefinedTypeSyntax predefinedType
