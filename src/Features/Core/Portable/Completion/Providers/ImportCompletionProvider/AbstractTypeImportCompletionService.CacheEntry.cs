@@ -74,8 +74,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
                     }
 
-                    // A project with different language than when the cache entry was created for,
-                    // then we will change the generic suffix accordingly.
+                    // C# and VB the display text is different for generics, i.e. <T> and (Of T). For simpllicity, we only cache for one language.
+                    // But when we trigger in a project with different language than when the cache entry was created for, we will need to
+                    // change the generic suffix accordingly.
                     if (!isSameLanguage && info.IsGeneric)
                     {
                         // We don't want to cache this item.
