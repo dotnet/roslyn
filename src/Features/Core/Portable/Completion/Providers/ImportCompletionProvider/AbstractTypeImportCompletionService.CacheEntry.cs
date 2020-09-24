@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,18 +24,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
 
-            public bool ContainsAdvancedMembers { get; }
-
             private CacheEntry(
                 Checksum checksum,
                 string language,
-                bool containsAdvancedmembers,
                 ImmutableArray<TypeImportCompletionItemInfo> items)
             {
                 Checksum = checksum;
                 Language = language;
 
-                ContainsAdvancedMembers = containsAdvancedmembers;
                 ItemInfos = items;
             }
 
@@ -48,54 +43,48 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 bool isCaseSensitive,
                 bool hideAdvancedMembers)
             {
-                // We will need to adjust some items if the request is made in:
-                // 1. attribute context, then we will not show or complete with "Attribute" suffix.
-                // 2. a project with different language than when the cache entry was created,
-                //    then we will change the generic suffix accordingly.
-                // 3. option to show advanced members is false and there is advanced member items in this cache entry
-                //    (which need to be filtered out)
-                // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;
-                var needToFilterOutAdvancedMembers = hideAdvancedMembers && ContainsAdvancedMembers;
-                if (isSameLanguage &&
-                    !isAttributeContext &&
-                    !needToFilterOutAdvancedMembers)
-                {
-                    return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
-                }
+                using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
 
-                var builder = ArrayBuilder<CompletionItem>.GetInstance();
                 foreach (var info in ItemInfos)
                 {
-                    if (info.IsPublic || isInternalsVisible)
+                    if (!info.IsPublic && !isInternalsVisible)
                     {
-                        if (hideAdvancedMembers && info.IsEditorBrowsableStateAdvanced)
+                        continue;
+                    }
+
+                    // Option to show advanced members is false so we need to exclude them.
+                    if (hideAdvancedMembers && info.IsEditorBrowsableStateAdvanced)
+                    {
+                        continue;
+                    }
+
+                    var item = info.Item;
+
+                    if (isAttributeContext)
+                    {
+                        // Don't show non attribute item in attribute context
+                        if (!info.IsAttribute)
                         {
                             continue;
                         }
 
-                        var item = info.Item;
-                        if (isAttributeContext)
-                        {
-                            if (!info.IsAttribute)
-                            {
-                                continue;
-                            }
-
-                            item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
-                        }
-
-                        if (!isSameLanguage && info.IsGeneric)
-                        {
-                            // We don't want to cache this item.
-                            item = ImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
-                        }
-
-                        builder.Add(item);
+                        // We are in attribute context, will not show or complete with "Attribute" suffix.
+                        item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
                     }
+
+                    // A project with different language than when the cache entry was created for,
+                    // then we will change the generic suffix accordingly.
+                    if (!isSameLanguage && info.IsGeneric)
+                    {
+                        // We don't want to cache this item.
+                        item = ImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
+                    }
+
+                    builder.Add(item);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
 
                 static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
                 {
@@ -118,8 +107,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
-                private bool _containsAdvancedMembers;
-
                 public Builder(Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
                 {
                     _checksum = checksum;
@@ -135,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     return new CacheEntry(
                         _checksum,
                         _language,
-                        _containsAdvancedMembers,
                         _itemsBuilder.ToImmutable());
                 }
 
@@ -176,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         CompletionItemFlags.CachedAndExpanded,
                         extensionMethodData: null);
 
-                    _containsAdvancedMembers = _containsAdvancedMembers || isEditorBrowsableStateAdvanced;
                     _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced));
                 }
 
