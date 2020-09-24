@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return provider?.IsGenerated(this, cancellationToken) switch
             {
                 null or GeneratedKind.Unknown => isGeneratedHeuristic(),
-                GeneratedKind kind => kind == GeneratedKind.MarkedGenerated
+                GeneratedKind kind => kind != GeneratedKind.NotGenerated
             };
 
             bool isGeneratedHeuristic()
