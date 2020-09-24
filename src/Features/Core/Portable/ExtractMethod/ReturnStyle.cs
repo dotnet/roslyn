@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public DeclarationBehavior DeclarationBehavior { get; private set; }
 
         public static readonly ReturnStyle None =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.None, DeclarationBehavior = DeclarationBehavior.None };
+            new() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.None, DeclarationBehavior = DeclarationBehavior.None };
 
         public static readonly ReturnStyle AssignmentWithInput =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.Input, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.None };
+            new() { ParameterBehavior = ParameterBehavior.Input, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.None };
 
         public static readonly ReturnStyle AssignmentWithNoInput =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.SplitIn };
+            new() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.SplitIn };
 
         public static readonly ReturnStyle Initialization =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Initialization, DeclarationBehavior = DeclarationBehavior.SplitOut };
+            new() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Initialization, DeclarationBehavior = DeclarationBehavior.SplitOut };
     }
 }

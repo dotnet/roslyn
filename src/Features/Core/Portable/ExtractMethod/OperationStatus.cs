@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         public OperationStatus MakeFail()
-            => new OperationStatus(OperationStatusFlag.None, Reasons);
+            => new(OperationStatusFlag.None, Reasons);
 
         public OperationStatus MarkSuggestion()
-            => new OperationStatus(Flag | OperationStatusFlag.Suggestion, Reasons);
+            => new(Flag | OperationStatusFlag.Suggestion, Reasons);
 
         public OperationStatus<T> With<T>(T data)
             => Create(this, data);

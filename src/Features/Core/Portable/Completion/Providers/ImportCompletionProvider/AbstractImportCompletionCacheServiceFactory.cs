@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
     internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry> : IWorkspaceServiceFactory
     {
         private readonly ConcurrentDictionary<string, TMetadataCacheEntry> _peItemsCache
-            = new ConcurrentDictionary<string, TMetadataCacheEntry>();
+            = new();
 
         private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
-            = new ConcurrentDictionary<ProjectId, TProjectCacheEntry>();
+            = new();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {

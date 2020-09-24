@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class CompilationOutputFiles : CompilationOutputs
     {
-        internal static readonly CompilationOutputFiles None = new CompilationOutputFiles();
+        internal static readonly CompilationOutputFiles None = new();
 
         public override string AssemblyDisplayPath => AssemblyFilePath;
         public override string PdbDisplayPath => PdbFilePath;

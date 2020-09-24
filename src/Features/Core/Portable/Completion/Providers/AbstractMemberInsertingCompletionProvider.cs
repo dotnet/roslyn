@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-        private readonly SyntaxAnnotation _otherAnnotation = new SyntaxAnnotation();
+        private readonly SyntaxAnnotation _annotation = new();
+        private readonly SyntaxAnnotation _otherAnnotation = new();
 
         protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 

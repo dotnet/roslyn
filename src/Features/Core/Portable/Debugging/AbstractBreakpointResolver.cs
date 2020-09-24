@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         // enable setting breakpoints on all accessors by setting a breakpoint on the property
         // declaration (same as C# behavior).
         private static readonly SymbolDisplayFormat s_vsDebugNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle:
                     SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:

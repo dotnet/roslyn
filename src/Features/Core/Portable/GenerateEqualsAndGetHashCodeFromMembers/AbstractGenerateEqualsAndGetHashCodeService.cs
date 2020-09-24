@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IGenerateEqualsAndGetHashCodeService
     {
         private const string GetHashCodeName = nameof(object.GetHashCode);
-        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new();
 
         protected abstract bool TryWrapWithUnchecked(
             ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements);

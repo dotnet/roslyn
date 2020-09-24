@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
     internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 

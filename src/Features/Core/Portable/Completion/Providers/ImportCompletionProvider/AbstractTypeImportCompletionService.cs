@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
         private static Task s_cachingTask = Task.CompletedTask;
 
         private IImportCompletionCacheService<CacheEntry, CacheEntry> CacheService { get; }
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 => (_properties & ItemPropertyKind.IsAttribute) != 0;
 
             public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-                => new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
+                => new(item, IsPublic, IsGeneric, IsAttribute);
 
             [Flags]
             private enum ItemPropertyKind : byte
