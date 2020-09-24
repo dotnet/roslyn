@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var expression = GetParentExpressionOfInvocation(token);
+            var expression = GetParentExpressionOfToken(token);
             if (expression is null)
             {
                 return;
@@ -129,7 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static ExpressionSyntax? GetParentExpressionOfInvocation(SyntaxToken token)
+        /// <summary>
+        /// Returns the expression left to the passed dot <paramref name="token"/>.
+        /// </summary>
+        /// <example>
+        /// Expression: a.b?.ccc.
+        /// Token     :  ↑  ↑   ↑
+        /// Returns   :  a  a.b .ccc
+        /// </example>
+        /// <param name="token">A dot token.</param>
+        /// <returns>The expression left to the dot token or null.</returns>
+        private static ExpressionSyntax? GetParentExpressionOfToken(SyntaxToken token)
         {
             var syntaxNode = token.Parent;
             return syntaxNode switch
@@ -140,7 +150,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static ExpressionSyntax? GetRootExpressionOfInvocation(SyntaxToken token)
+        /// <summary>
+        /// Returns the expression left to the passed dot <paramref name="token"/>.
+        /// </summary>
+        /// <example>
+        /// Given the expression a.b?.c.d. returns a.b?.c.d. for all dot tokens
+        /// </example>
+        /// <param name="token">A dot token.</param>
+        /// <returns>The root expression associated with the dot or null.</returns>
+        private static ExpressionSyntax? GetRootExpressionOfToken(SyntaxToken token)
         {
             var syntaxNode = token.Parent;
             return syntaxNode switch
@@ -174,9 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
-            {
-                return null;
-            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var tokenAtPosition = root.FindTokenOnLeftOfPosition(position);
@@ -192,8 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //                   ↑                  | insert closing brace between White and dot (parentExpression.Span.End)
             // ((Black)white?.Black.White).?.White  | The result. Because we removed the identifier, the remainder after the identifier may be syntactically wrong 
             //                             ↑        | cursor after the manipulation is placed after the dot
-            var rootExpression = GetRootExpressionOfInvocation(normalizedToken);
-            var parentExpression = GetParentExpressionOfInvocation(normalizedToken);
+            var rootExpression = GetRootExpressionOfToken(normalizedToken);
+            var parentExpression = GetParentExpressionOfToken(normalizedToken);
             var identifier = tokenAtPosition.Parent as IdentifierNameSyntax;
             if (rootExpression is null || parentExpression is null)
             {
