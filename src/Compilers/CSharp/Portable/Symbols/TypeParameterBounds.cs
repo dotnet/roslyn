@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -94,6 +95,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
             return canIgnoreNullableContext || !boundsOpt.IgnoresNullableContext;
+        }
+
+        // Returns true if bounds was updated with value.
+        // Returns false if bounds already had a value with expected 'IgnoresNullableContext'
+        // or was updated to a value with the expected 'IgnoresNullableContext' value on another thread.
+        internal static bool InterlockedUpdate(ref TypeParameterBounds? bounds, TypeParameterBounds? value)
+        {
+            bool canIgnoreNullableContext = (value?.IgnoresNullableContext == true);
+            while (true)
+            {
+                var comparand = bounds;
+                if (comparand != TypeParameterBounds.Unset && comparand.HasValue(canIgnoreNullableContext))
+                {
+                    return false;
+                }
+                if (Interlocked.CompareExchange(ref bounds, value, comparand) == comparand)
+                {
+                    return true;
+                }
+            }
         }
     }
 }

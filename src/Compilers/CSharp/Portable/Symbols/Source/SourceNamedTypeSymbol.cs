@@ -257,12 +257,10 @@ next:;
             if (!clauses.HasValue(canIgnoreNullableContext))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(canIgnoreNullableContext, diagnostics), clauses) == clauses)
+                if (TypeParameterConstraintClauseExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(canIgnoreNullableContext, diagnostics)) &&
+                    _lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext: false))
                 {
-                    if (_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext: false))
-                    {
-                        this.AddDeclarationDiagnostics(diagnostics);
-                    }
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
                 clauses = _lazyTypeParameterConstraints;

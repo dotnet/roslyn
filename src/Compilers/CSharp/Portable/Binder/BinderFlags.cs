@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InEEMethodBinder = 1 << 30,
 
         /// <summary>
-        /// Assume '#nullable disabled'.
+        /// Assume '#nullable disable' context.
         /// </summary>
         IgnoreNullableContext = 1u << 31,
 

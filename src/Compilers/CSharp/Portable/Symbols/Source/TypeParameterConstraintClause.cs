@@ -224,12 +224,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            return canIgnoreNullableContext || !constraintClauses.Any(clause => clause.IgnoresNullableContext);
+            return canIgnoreNullableContext || !constraintClauses.IgnoresNullableContext();
+        }
+
+        internal static bool IgnoresNullableContext(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        {
+            return constraintClauses.Any(clause => clause.IgnoresNullableContext);
         }
 
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             return constraintClauses.All(clause => clause.IsEmpty);
+        }
+
+        // Returns true if constraintClauses was updated with value.
+        // Returns false if constraintClauses already had a value with expected 'IgnoresNullableContext'
+        // or was updated to a value with the expected 'IgnoresNullableContext' value on another thread.
+        internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
+        {
+            bool canIgnoreNullableContext = value.IgnoresNullableContext();
+            while (true)
+            {
+                var comparand = constraintClauses;
+                if (comparand.HasValue(canIgnoreNullableContext))
+                {
+                    return false;
+                }
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref constraintClauses, value, comparand) == comparand)
+                {
+                    return true;
+                }
+            }
         }
     }
 }

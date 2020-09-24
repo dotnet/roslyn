@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            bool canIgnoreNullableContext,
             DiagnosticBag diagnostics)
         {
             if (typeParameters.Length == 0)
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
             return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
-                                                             canIgnoreNullableContext: false,
+                                                             canIgnoreNullableContext,
                                                              ref isValueTypeOverride,
                                                              diagnostics);
         }
