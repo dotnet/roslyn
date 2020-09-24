@@ -802,8 +802,13 @@ public class Program
         [InlineData("c.$$", "c[$$]")]
         [InlineData("c. $$", "c[$$] ")]
         [InlineData("c.$$;", "c[$$];")]
+        [InlineData("c.th$$", "c[$$]")]
+        [InlineData("c.this$$", "c[$$]")]
+        [InlineData("c.th$$;", "c[$$];")]
         [InlineData("var f = c.$$;", "var f = c[$$];")]
+        [InlineData("var f = c.th$$;", "var f = c[$$];")]
         [InlineData("c?.$$", "c?[$$]")]
+        [InlineData("c?.this$$", "c?[$$]")]
         [InlineData("((C)c).$$", "((C)c)[$$]")]
         [InlineData("(true ? c : c).$$", "(true ? c : c)[$$]")]
         public async Task IndexerCompletionForDifferentInvocations(string invocation, string fixedCode)

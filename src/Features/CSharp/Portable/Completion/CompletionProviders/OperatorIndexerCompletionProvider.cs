@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: "this[]",
-                    filterText: "this[]",
-                    sortText: $"{SortingPrefix}this[]",
+                    filterText: "this",
+                    sortText: $"{SortingPrefix}this",
                     symbols: indexers,
                     rules: CompletionItemRules.Default,
                     contextPosition: position,
@@ -247,12 +247,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var token = root.FindTokenOnLeftOfPosition(position);
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position);
+            var token = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
             if (token.IsKind(SyntaxKind.DotToken))
             {
                 var newPosition = token.Span.End;
-                return CompletionChange.Create(new TextChange(token.Span, "[]"), newPosition);
+                var replaceSpan = TextSpan.FromBounds(token.SpanStart, tokenAtPosition.Span.End);
+                return CompletionChange.Create(new TextChange(replaceSpan, "[]"), newPosition);
             }
 
             return null;
