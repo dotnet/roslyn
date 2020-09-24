@@ -132,7 +132,7 @@ public class Program
         [InlineData("((C)c).$$", true)]
         [InlineData("(true ? c : c).$$", true)]
         [InlineData("c.$$ var x=0;", false)]
-        public async Task ExplicitUserDefinedConversionDifferentInvocations(string invocation, bool shouldSuggestConversion)
+        public async Task ExplicitUserDefinedConversionDifferentExpressions(string expression, bool shouldSuggestConversion)
         {
             Func<string, string, Task> verifyFunc = shouldSuggestConversion
                 ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem)
@@ -149,7 +149,7 @@ public class Program
     public void Main()
     {{
         var c = new C();
-        {invocation}
+        {expression}
     }}
 }}
 ", "(float)");
@@ -216,7 +216,6 @@ public class C
     public static explicit operator C(float f) => new C();
     public static implicit operator C(string s) => new C();
     public static implicit operator string(C c) => "";
-    public static bool op_Explicit(C c) => false;
 }
 
 public class Program
@@ -254,10 +253,9 @@ public class Program
 ");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitUserDefinedConversionIgnoreMalformedOpertors()
+        public async Task ExplicitUserDefinedConversionIgnoreMalformedOperators()
         {
             await VerifyNoItemsExistAsync(@"
 public class C
@@ -372,7 +370,7 @@ public class Program
            "((Black)((White)white)).$$")]
         [InlineData("(true ? white : white).$$", "(Black)",
            "((Black)(true ? white : white)).$$")]
-        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvocations(string invocation, string conversionOffering, string fixedCode)
+        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentExpressions(string expression, string conversionOffering, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
 namespace N
@@ -393,7 +391,7 @@ namespace N
         public void Main()
         {{
             var white = new White();
-            {invocation}
+            {expression}
         }}
     }}
 }}
@@ -425,6 +423,7 @@ namespace N
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // Source: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types
         [InlineData("bool")]
         [InlineData("byte")]
         [InlineData("sbyte")]
@@ -438,9 +437,9 @@ namespace N
         [InlineData("ulong")]
         [InlineData("short")]
         [InlineData("ushort")]
-        [InlineData("object")]
+        [InlineData("object")] //not valid: https://docs.microsoft.com/de-de/dotnet/csharp/misc/cs0553
         [InlineData("string")]
-        [InlineData("dynamic")]
+        [InlineData("dynamic")] //not valid: CS1964 conversion to or from dynamic type is not allowed
         public async Task ExplicitUserDefinedConversionIsAppliedForBuiltinTypeKeywords(string builtinType)
         {
             await VerifyCustomCommitProviderAsync($@"
@@ -448,7 +447,7 @@ namespace N
 {{
     public class C
     {{
-        public static explicit operator {builtinType}(C _) => 0;
+        public static explicit operator {builtinType}(C _) => default;
     }}
     
     public class Program
@@ -465,7 +464,7 @@ namespace N
 {{
     public class C
     {{
-        public static explicit operator {builtinType}(C _) => 0;
+        public static explicit operator {builtinType}(C _) => default;
     }}
     
     public class Program
@@ -643,7 +642,7 @@ namespace N
         [InlineData("c.  $$", "((float)c).  $$")]
         [InlineData("(true ? /* Inline */ c : c).$$", "((float)(true ? /* Inline */ c : c)).$$")]
         [InlineData("c.fl$$ /* Trailing */", "((float)c).$$ /* Trailing */")]
-        public async Task ExplicitUserDefinedConversionTriviaHandling(string invocation, string fixedCode)
+        public async Task ExplicitUserDefinedConversionTriviaHandling(string expression, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
 public class C
@@ -656,7 +655,7 @@ public class Program
     public void Main()
     {{
         var c = new C();
-        {invocation}
+        {expression}
     }}
 }}
 ", "(float)", @$"
@@ -811,7 +810,7 @@ public class Program
         [InlineData("c?.this$$", "c?[$$]")]
         [InlineData("((C)c).$$", "((C)c)[$$]")]
         [InlineData("(true ? c : c).$$", "(true ? c : c)[$$]")]
-        public async Task IndexerCompletionForDifferentInvocations(string invocation, string fixedCode)
+        public async Task IndexerCompletionForDifferentExpressions(string expression, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
 public class C
@@ -824,7 +823,7 @@ public class Program
     public void Main()
     {{
         var c = new C();
-        {invocation}
+        {expression}
     }}
 }}
 ", "this[]", @$"
