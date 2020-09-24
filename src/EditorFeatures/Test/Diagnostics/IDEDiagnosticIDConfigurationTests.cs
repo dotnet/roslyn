@@ -564,6 +564,9 @@ visual_basic_style_prefer_isnot_expression = true:suggestion
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
+# IDE0091
+dotnet_diagnostic.IDE0091.severity = %value%
+
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
 
@@ -1149,6 +1152,9 @@ No editorconfig based code style option
 visual_basic_style_prefer_isnot_expression = true:suggestion
 
 # IDE0090
+No editorconfig based code style option
+
+# IDE0091
 No editorconfig based code style option
 
 # IDE1006
