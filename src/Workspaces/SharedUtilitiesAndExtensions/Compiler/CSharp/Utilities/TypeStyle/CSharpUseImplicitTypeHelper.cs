@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     {
-        public static readonly CSharpUseImplicitTypeHelper Instance = new CSharpUseImplicitTypeHelper();
+        public static readonly CSharpUseImplicitTypeHelper Instance = new();
 
         private CSharpUseImplicitTypeHelper()
         {

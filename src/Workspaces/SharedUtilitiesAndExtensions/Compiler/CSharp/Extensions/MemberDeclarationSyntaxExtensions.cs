@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class MemberDeclarationSyntaxExtensions
     {
         private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache =
-            new ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>();
+            new();
         private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>.CreateValueCallback s_createLocalDeclarationMap = CreateLocalDeclarationMap;
 
         public static LocalDeclarationMap GetLocalDeclarationMap(this MemberDeclarationSyntax member)
