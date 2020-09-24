@@ -34,6 +34,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.CallingConvention.get -> System.Reflection.
 Microsoft.CodeAnalysis.IMethodSymbol.CallingConventionTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>
 Microsoft.CodeAnalysis.ISourceGenerator.Execute(Microsoft.CodeAnalysis.GeneratorExecutionContext context) -> void
 Microsoft.CodeAnalysis.ISourceGenerator.Initialize(Microsoft.CodeAnalysis.GeneratorInitializationContext context) -> void
+Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.InitializationContext.InitializationContext() -> void
 Microsoft.CodeAnalysis.SourceGeneratorContext.SourceGeneratorContext() -> void
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.UseExplicitManagedCallingConventionSpecifier = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
@@ -55,7 +56,6 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTy
 Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
 Microsoft.CodeAnalysis.CompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-static readonly Microsoft.CodeAnalysis.SymbolEqualityComparer.IgnoreAll -> Microsoft.CodeAnalysis.SymbolEqualityComparer
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
 Microsoft.CodeAnalysis.GeneratedSourceResult

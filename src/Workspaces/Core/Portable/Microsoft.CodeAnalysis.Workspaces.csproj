@@ -32,7 +32,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.Core.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.Core.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.Desktop.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ShadowCopyAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\ShadowCopyAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\CSharp\Portable\SymbolDisplay\SymbolDisplayVisitorHelpers.cs" Link="Classification\SymbolDisplayVisitorHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AnalyzerRunner" />

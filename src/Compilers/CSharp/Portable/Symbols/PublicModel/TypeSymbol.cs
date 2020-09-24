@@ -168,5 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType;
 
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
+
+        bool ITypeSymbol.IsRecord => SymbolDisplayVisitor.FindValidCloneMethod(this) != null;
     }
 }

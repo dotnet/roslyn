@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -251,7 +250,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
-
-        public static bool IsRecord(this ITypeSymbol type) => SymbolDisplayVisitorHelpers.FindValidCloneMethod(type) != null;
     }
 }
