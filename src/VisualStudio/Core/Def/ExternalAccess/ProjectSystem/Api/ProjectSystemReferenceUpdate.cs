@@ -14,12 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// <summary>
         /// Gets the reference to be updated.
         /// </summary>
-        public ProjectSystemReference Reference { get; }
+        public ProjectSystemReferenceInfo ReferenceInfo { get; }
 
-        public ProjectSystemReferenceUpdate(ProjectSystemUpdateAction action, ProjectSystemReference reference)
+        public ProjectSystemReferenceUpdate(ProjectSystemUpdateAction action, ProjectSystemReferenceInfo referenceInfo)
         {
             Action = action;
-            Reference = reference;
+            ReferenceInfo = referenceInfo;
         }
     }
 }

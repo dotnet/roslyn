@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             return new ReferenceUpdate(
                 (UpdateAction)projectSystemReferenceUpdate.Action,
-                projectSystemReferenceUpdate.Reference.ToReference());
+                projectSystemReferenceUpdate.ReferenceInfo.ToReferenceInfo());
         }
 
-        public static Reference ToReference(this ProjectSystemReference projectSystemReference)
+        public static ReferenceInfo ToReferenceInfo(this ProjectSystemReferenceInfo projectSystemReference)
         {
-            return new Reference(
+            return new ReferenceInfo(
                 (ReferenceType)projectSystemReference.ReferenceType,
                 projectSystemReference.ItemSpecification,
                 projectSystemReference.TreatAsUsed);
@@ -30,12 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             return new ProjectSystemReferenceUpdate(
                 (ProjectSystemUpdateAction)referenceUpdate.Action,
-                referenceUpdate.Reference.ToProjectSystemReference());
+                referenceUpdate.ReferenceInfo.ToProjectSystemReferenceInfo());
         }
 
-        public static ProjectSystemReference ToProjectSystemReference(this Reference reference)
+        public static ProjectSystemReferenceInfo ToProjectSystemReferenceInfo(this ReferenceInfo reference)
         {
-            return new ProjectSystemReference(
+            return new ProjectSystemReferenceInfo(
                 (ProjectSystemReferenceType)reference.ReferenceType,
                 reference.ItemSpecification,
                 reference.TreatAsUsed);

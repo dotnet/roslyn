@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// <summary>
         /// Gets the reference to be updated.
         /// </summary>
-        public Reference Reference { get; }
+        public ReferenceInfo ReferenceInfo { get; }
 
-        public ReferenceUpdate(UpdateAction action, Reference reference)
+        public ReferenceUpdate(UpdateAction action, ReferenceInfo referenceInfo)
         {
             Action = action;
-            Reference = reference;
+            ReferenceInfo = referenceInfo;
         }
     }
 }

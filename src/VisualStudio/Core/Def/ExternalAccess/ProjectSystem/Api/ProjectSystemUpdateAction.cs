@@ -12,9 +12,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         None,
 
         /// <summary>
-        /// Indicates the reference needs to be updated.
+        /// Indicates the reference should be marked as used.
         /// </summary>
-        Update,
+        TreatAsUsed,
+
+        /// <summary>
+        /// Indicates the reference should be marked as unused
+        /// </summary>
+        TreatAsUnused,
 
         /// <summary>
         /// Indicates the reference should be removed from the project.

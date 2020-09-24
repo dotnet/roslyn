@@ -13,30 +13,30 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
     {
         /// <summary>
         /// For the given project, returns the full path to the project.assets.json file
-        /// typically generated in the intermediate output path by a NuGet restore.
+        /// generated in the intermediate output path by a NuGet restore.
         /// </summary>
         Task<string> GetProjectAssetsFilePathAsync(
             string projectPath,
-            string targetFramework,
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Return the set of direct references for the given project. This is used to
-        /// get the initial state of the TreatAsUsed attribute for each reference.
+        /// Return the set of direct Project and Package References for the given project. This 
+        /// is used to get the initial state of the TreatAsUsed attribute for each reference.
         /// </summary>
-        Task<ImmutableArray<ProjectSystemReference>> GetProjectReferencesAsync(
+        Task<ImmutableArray<ProjectSystemReferenceInfo>> GetProjectReferencesAsync(
             string projectPath,
-            string targetFramework,
+            string targetFrameworkMoniker,
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Updates the project’s references by adding, removing or marking references as
+        /// Updates the project’s references by removing or marking references as
         /// TreatAsUsed in the project file.
         /// </summary>
-        Task<bool> UpdateReferencesAsync(
+        /// <returns>True, if the reference was updated.</returns>
+        Task<bool> TryUpdateReferenceAsync(
             string projectPath,
-            string targetFramework,
-            ImmutableArray<ProjectSystemReferenceUpdate> referenceUpdates,
+            string targetFrameworkMoniker,
+            ProjectSystemReferenceUpdate referenceUpdate,
             CancellationToken cancellationToken);
     }
 }

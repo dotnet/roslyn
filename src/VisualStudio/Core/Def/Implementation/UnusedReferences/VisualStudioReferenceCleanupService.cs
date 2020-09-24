@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             _workspace = workspace;
         }
 
-        public string GetTargetFramworkMoniker(ProjectId projectId)
+        public string GetTargetFrameworkMoniker(ProjectId projectId)
         {
             if (_workspace.TryGetHierarchy(projectId, out var hierarchy) &&
                 hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker))
@@ -48,21 +48,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return string.Empty;
         }
 
-        public Task<string> GetProjectAssetsFilePathAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
+        public Task<string> GetProjectAssetsFilePathAsync(string projectPath, CancellationToken cancellationToken)
         {
-            return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, targetFramework, cancellationToken);
+            return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, cancellationToken);
         }
 
-        public async Task<ImmutableArray<Reference>> GetProjectReferencesAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
         {
             var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, targetFramework, cancellationToken).ConfigureAwait(false);
-            return projectSystemReferences.Select(reference => reference.ToReference()).ToImmutableArray();
+            return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
         }
 
-        public Task<bool> UpdateReferencesAsync(string projectPath, string targetFramework, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        public Task<bool> TryUpdateReferenceAsync(string projectPath, string targetFramework, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {
-            var projectSystemReferenceUpdates = referenceUpdates.Select(update => update.ToProjectSystemReferenceUpdate()).ToImmutableArray();
-            return _projectSystemReferenceUpdateService.UpdateReferencesAsync(projectPath, targetFramework, projectSystemReferenceUpdates, cancellationToken);
+            return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, targetFramework, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
         }
     }
 }
