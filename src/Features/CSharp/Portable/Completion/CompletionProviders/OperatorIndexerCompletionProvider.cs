@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -41,10 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string CompletionHandlerConversion = "Conversion";
         private const string CompletionHandlerIndexer = "Indexer";
 
-        // Identifier can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
-        // Sorting is done via StringComparer.OrdinalIgnoreCase which compares the utf-16 bytes after converting to uppercase
-        // utf-16 \ufffd is the largest possible value for utf-16 and is also greater than surrogate pairs, if byte comparison is used.
-        // The "biggest" possible characters are \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\ud884\udf4a" and
+        // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of the type.
+        // Identifier (of methods or properties) can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
+        // Sorting is done via StringComparer.OrdinalIgnoreCase which compares the utf-16 bytes after converting to uppercase.
+        // \ufffd http://www.fileformat.info/info/unicode/char/fffd/index.htm is the largest possible value for utf-16
+        // and is also greater than surrogate pairs, if byte comparison is used. The "biggest" possible characters are 
+        // \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\ud884\udf4a" and
         // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
         private const string SortingPrefix = "\uFFFD";
 
@@ -115,13 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (!indexers.IsEmpty)
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
-                               displayText: $"this[]",
-                               filterText: "[",
-                               sortText: $"{SortingPrefix}",
-                               symbols: indexers,
-                               rules: CompletionItemRules.Default,
-                               contextPosition: position,
-                               properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
+                    displayText: $"this[]",
+                    filterText: "[",
+                    sortText: $"{SortingPrefix}",
+                    symbols: indexers,
+                    rules: CompletionItemRules.Default,
+                    contextPosition: position,
+                    properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
                 context.AddItem(indexerCompletion);
             }
         }
