@@ -23,9 +23,6 @@ jobs:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine
       displayName: Build
 
-    - script: dotnet --info
-      displayName: Display DotNet Info
-
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload
       inputs:
