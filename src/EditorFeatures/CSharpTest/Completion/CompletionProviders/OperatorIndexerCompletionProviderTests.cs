@@ -372,7 +372,7 @@ public class Program
            "((Black)((White)white)).$$")]
         [InlineData("(true ? white : white).$$", "(Black)",
            "((Black)(true ? white : white)).$$")]
-        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvcations(string invocation, string conversionOffering, string fixedCode)
+        public async Task ExplicitUserDefinedConversionIsAppliedForDifferentInvocations(string invocation, string conversionOffering, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
 namespace N
@@ -417,6 +417,63 @@ namespace N
         {{
             var white = new White();
             {fixedCode}
+        }}
+    }}
+}}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("bool")]
+        [InlineData("byte")]
+        [InlineData("sbyte")]
+        [InlineData("char")]
+        [InlineData("decimal")]
+        [InlineData("double")]
+        [InlineData("float")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("object")]
+        [InlineData("string")]
+        [InlineData("dynamic")]
+        public async Task ExplicitUserDefinedConversionIsAppliedForBuiltinTypeKeywords(string builtinType)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+namespace N
+{{
+    public class C
+    {{
+        public static explicit operator {builtinType}(C _) => 0;
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var c = new C();
+            c.{builtinType}$$
+        }}
+    }}
+}}
+", $"({builtinType})", @$"
+namespace N
+{{
+    public class C
+    {{
+        public static explicit operator {builtinType}(C _) => 0;
+    }}
+    
+    public class Program
+    {{
+        public void Main()
+        {{
+            var c = new C();
+            (({builtinType})c).$$
         }}
     }}
 }}

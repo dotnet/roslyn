@@ -170,6 +170,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
+        private static SyntaxNode? FindSyntaxNodeToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
+        {
+            return tokenAtCursor.Parent switch
+            {
+                IdentifierNameSyntax identifierName => identifierName,
+                PredefinedTypeSyntax predefinedType => predefinedType,
+                _ => null,
+            };
+        }
+
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
             if (item.Properties.TryGetValue(CompletionHandlerPropertyName, out var value))
@@ -210,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //                             ↑        | cursor after the manipulation is placed after the dot
             var rootExpression = GetRootExpressionOfToken(normalizedToken);
             var parentExpression = GetParentExpressionOfToken(normalizedToken);
-            var identifier = tokenAtPosition.Parent as IdentifierNameSyntax;
+            var identifier = FindSyntaxNodeToRemoveAtCursorPosition(tokenAtPosition);
             if (rootExpression is null || parentExpression is null)
             {
                 return null;
