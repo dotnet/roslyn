@@ -1982,8 +1982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             // SPEC: The explicit enumeration conversions are:
-            // SPEC: From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum-type.
-            // SPEC: From any enum-type to sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal.
+            // SPEC: From sbyte, byte, short, ushort, int, uint, long, ulong, nint, nuint, char, float, double, or decimal to any enum-type.
+            // SPEC: From any enum-type to sbyte, byte, short, ushort, int, uint, long, ulong, nint, nuint, char, float, double, or decimal.
             // SPEC: From any enum-type to any other enum-type.
 
             if (IsNumericType(source) && destination.IsEnumType())
