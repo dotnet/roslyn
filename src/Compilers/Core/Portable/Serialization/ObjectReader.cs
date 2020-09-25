@@ -107,8 +107,8 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Creates <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/> requires the version
+        /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
         /// of the data in the stream to exactly match the current format version.
         /// Should only be used to read data written by the same version of Roslyn.
         /// </summary>
