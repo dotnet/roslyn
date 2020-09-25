@@ -461,6 +461,60 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("55.0", langVersion);
             Assert.Equal("7.3", maxLangVersion);
         }
+
+        [Fact]
+        public void MaxSupportedLangVersionIsReadable()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <TargetFrameworkIdentifier>.NETCoreApp</TargetFrameworkIdentifier>
+        <_TargetFrameworkVersionWithoutV>2.0</_TargetFrameworkVersionWithoutV>
+        <LangVersion>9.0</LangVersion>
+    </PropertyGroup>
+    <Import Project=""Microsoft.CSharp.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+            instance.Build(GetTestLoggers());
+
+            var langVersion = instance.GetPropertyValue("LangVersion");
+            var maxLangVersion = instance.GetPropertyValue("_MaxSupportedLangVersion");
+            var publicMaxLangVersion = instance.GetPropertyValue("MaxSupportedLangVersion");
+
+            Assert.Equal("9.0", langVersion);
+            Assert.Equal("7.3", maxLangVersion);
+            Assert.Equal("7.3", publicMaxLangVersion);
+        }
+
+        [Fact]
+        public void MaxSupportedLangVersionIsnotWriteable()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <TargetFrameworkIdentifier>.NETCoreApp</TargetFrameworkIdentifier>
+        <_TargetFrameworkVersionWithoutV>2.0</_TargetFrameworkVersionWithoutV>
+        <LangVersion>9.0</LangVersion> 
+        <MaxSupportedLangVersion>9.0</MaxSupportedLangVersion>
+    </PropertyGroup>
+    <Import Project=""Microsoft.CSharp.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+            instance.Build(GetTestLoggers());
+
+            var langVersion = instance.GetPropertyValue("LangVersion");
+            var maxLangVersion = instance.GetPropertyValue("_MaxSupportedLangVersion");
+            var publicMaxLangVersion = instance.GetPropertyValue("MaxSupportedLangVersion");
+
+            Assert.Equal("9.0", langVersion);
+            Assert.Equal("7.3", maxLangVersion);
+            Assert.Equal("7.3", publicMaxLangVersion);
+        }
+
         [Fact]
         public void GenerateEditorConfigIsPassedToTheCompiler()
         {

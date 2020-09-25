@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
 
-            public ImmutableArray<INamedTypeSymbol> CallingConventionTypes => _symbol.CallingConventionTypes;
+            public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => _symbol.UnmanagedCallingConventionTypes;
         }
     }
 }

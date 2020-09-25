@@ -290,10 +290,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 lock (_trackingSpans)
                 {
-                    if (_trackingSpans.TryGetValue(document.Id, out var documentSpans) && documentSpans != null)
+                    if (_trackingSpans.TryGetValue(document.Id, out var documentSpans) && !documentSpans.IsDefaultOrEmpty)
                     {
-                        Debug.Assert(!documentSpans.IsEmpty);
-
                         var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
                         if (snapshot != null && snapshot.TextBuffer == documentSpans.First().Span.TextBuffer)
                         {
