@@ -1230,18 +1230,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
+
+                var enumerableType = forEachStatementSyntax.AwaitKeyword == default
+                    ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                    : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
+
                 // foreach (int v = Goo())
                 var variableTypes = GetTypes(forEachStatementSyntax.Type);
                 if (!variableTypes.Any())
                 {
                     return CreateResult(
-                        this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                        enumerableType
                             .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
                 }
 
-                var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType)));
+                return variableTypes.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
