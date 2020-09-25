@@ -5797,9 +5797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var visitArgumentResult = argumentResults[i];
                 var lambdaState = visitArgumentResult.StateForLambda;
-                var argumentResult = visitArgumentResult.LValueType;
-                if (!argumentResult.HasType)
-                    argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations(compilation);
+                // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)
+                var argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations(compilation);
                 builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResult, lambdaState));
             }
             return builder.ToImmutableAndFree();
