@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => request.TextDocument;
 
         public async Task<DiagnosticReport[]?> HandleRequestAsync(
-            DocumentDiagnosticsParams request, RequestContext context, CancellationToken cancellationToken)
+            DocumentDiagnosticsParams documentDiagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(request.TextDocument, $"Got a DocumentPullDiagnostic request that did not specify a {nameof(request.TextDocument)}");
+            Contract.ThrowIfNull(documentDiagnosticsParams.TextDocument, $"Got a DocumentPullDiagnostic request that did not specify a {nameof(documentDiagnosticsParams.TextDocument)}");
 
             var document = context.Document;
             if (document == null)
@@ -87,12 +87,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // If the client has already asked for diagnostics for this document, see if we have actually recorded any
             // differences, or if they should just use the same diagnostics as before.
-            if (request.PreviousResultId != null)
+            if (documentDiagnosticsParams.PreviousResultId != null)
             {
                 lock (_gate)
                 {
                     if (_documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                        lastReportedResultId == request.PreviousResultId)
+                        lastReportedResultId == documentDiagnosticsParams.PreviousResultId)
                     {
                         // Nothing changed between the last request and this one.  Report a null response to the client
                         // to know they don't need to do anything.

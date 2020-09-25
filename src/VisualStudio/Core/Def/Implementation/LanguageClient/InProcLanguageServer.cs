@@ -148,6 +148,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return Task.CompletedTask;
         }
 
+        [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<DiagnosticReport[]?> GetDocumentPullDiagnosticsAsync(DocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
+            => _requestHandlerProvider.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(
+                _queue, MSLSPMethods.DocumentPullDiagnosticName,
+                documentDiagnosticsParams, _clientCapabilities, _clientName, cancellationToken);
+
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
         public Task<LSP.Location[]> GetTextDocumentDefinitionAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
             => _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(_queue, Methods.TextDocumentDefinitionName,
