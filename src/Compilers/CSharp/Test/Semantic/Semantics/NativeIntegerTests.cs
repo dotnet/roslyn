@@ -12758,7 +12758,7 @@ class Program
 @"A
 B
 -1
-2");
+1");
         }
 
         [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
