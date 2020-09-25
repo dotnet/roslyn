@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "generatedfilesout":
-                            if (RoslynString.IsNullOrWhiteSpace(value))
+                            if (string.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
                             }

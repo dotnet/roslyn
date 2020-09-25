@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder.ToImmutable());
+                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
                         if (hasAnalyzerConfigs)
                         {
                             analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(

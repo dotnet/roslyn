@@ -12545,6 +12545,49 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
+        [Fact]
+        public void SourceGenerators_Error_When_NoDirectoryArgumentGiven()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedFilesOut:", "/langversion:preview", "/out:embed.exe" });
+            Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedFilesOut:' option", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_ReportedWrittenFiles_To_TouchedFilesLogger()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedFilesOut:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var touchedFiles = Directory.GetFiles(dir.Path, "touched*");
+            Assert.Equal(2, touchedFiles.Length);
+
+            string[] writtenText = File.ReadAllLines(Path.Combine(dir.Path, "touched.write"));
+            Assert.Equal(2, writtenText.Length);
+            Assert.EndsWith("EMBED.EXE", writtenText[0], StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
 
         [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
