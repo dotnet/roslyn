@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Nerdbank.Streams;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
 
@@ -151,10 +152,52 @@ namespace Microsoft.CodeAnalysis.Remote
             var pipe = new Pipe();
 
             // Create new tasks that both start executing, rather than invoking the delegates directly.
-            // If any of the operation blocked before awaiting we would end up in a deadlock.
-            var writerTask = Task.Run(async () => await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false), cancellationToken);
-            var readerTask = Task.Run(async () => await reader(pipe.Reader, cancellationToken).ConfigureAwait(false), cancellationToken);
-            await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
+            // If any of the operation blocked before awairing 
+            var writerTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    // Ensure that the writer is complete if an exception is thrown
+                    // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
+                    // the proxy should complete it as soon as the remote side completes it.
+                    await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
+
+                    throw;
+                }
+            }, cancellationToken);
+
+            var readerTask = Task.Run(
+                async () =>
+                {
+                    Exception? exception = null;
+
+                    try
+                    {
+                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when ((exception = e) == null)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                    finally
+                    {
+                        await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
+                    }
+                }, cancellationToken);
+
+            try
+            {
+                await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
+            }
+            catch (AggregateException aggregateException) when (cancellationToken.IsCancellationRequested)
+            {
+                aggregateException.Handle(e => e is OperationCanceledException);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
 
             return readerTask.Result;
         }
