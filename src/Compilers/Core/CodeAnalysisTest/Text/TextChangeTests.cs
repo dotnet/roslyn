@@ -10,11 +10,20 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class TextChangeTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public TextChangeTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void TestSubTextStart()
         {
@@ -802,6 +811,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void TestMergeChanges_NewDeletionLargerThanOld()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 3), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 3), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa4", change1.ToString());
+            Assert.Equal("0bb", change2.ToString());
+        }
+
+        [Fact]
         public void TestMergeChanges_AfterAdjacent()
         {
             var original = SourceText.From("Hell");
@@ -878,6 +900,164 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void DebuggerDisplay()
+        {
+            Assert.Equal("new TextChange(new TextSpan(0, 0), null)", default(TextChange).GetDebuggerDisplay());
+            Assert.Equal("new TextChange(new TextSpan(0, 1), \"abc\")", new TextChange(new TextSpan(0, 1), "abc").GetDebuggerDisplay());
+            Assert.Equal("new TextChange(new TextSpan(0, 1), (NewLength = 10))", new TextChange(new TextSpan(0, 1), "0123456789").GetDebuggerDisplay());
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void Fuzz()
+        {
+            var random = new Random();
+
+            // Adjust upper bound as needed to generate a simpler reproducer for an error scenario
+            var originalText = SourceText.From(string.Join("", Enumerable.Range(0, random.Next(10))));
+
+            foreach (var iteration in Enumerable.Range(0, 100000))
+            {
+                var editedLength = originalText.Length;
+                ArrayBuilder<TextChange> oldChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
+
+                const int maxEditLength = 3;
+                const int maxSkipLength = 2;
+                // generate sequence of "old edits" which meet invariants
+                for (int i = 0; i < originalText.Length; i += 1 + random.Next(maxSkipLength))
+                {
+                    var newText = string.Join("", Enumerable.Repeat('a', random.Next(maxEditLength)));
+                    var newChange = new TextChange(new TextSpan(i, length: random.Next(Math.Min(originalText.Length - i, maxEditLength))), newText);
+                    i = newChange.Span.End;
+
+                    editedLength = editedLength - newChange.Span.Length + newChange.NewText.Length;
+                    oldChangesBuilder.Add(newChange);
+
+                    // Adjust as needed to generate a simpler reproducer for an error scenario
+                     if (oldChangesBuilder.Count == 5) break;
+                }
+
+                var change1 = originalText.WithChanges(oldChangesBuilder);
+
+                ArrayBuilder<TextChange> newChangesBuilder = ArrayBuilder<TextChange>.GetInstance();
+
+                // generate sequence of "new edits" which meet invariants
+                for (int i = 0; i < editedLength; i += 1 + random.Next(maxSkipLength))
+                {
+                    var newText = string.Join("", Enumerable.Repeat('b', random.Next(maxEditLength)));
+                    var newChange = new TextChange(new TextSpan(i, length: random.Next(Math.Min(editedLength - i, maxEditLength))), newText);
+                    i = newChange.Span.End;
+
+                    newChangesBuilder.Add(newChange);
+
+                    // Adjust as needed to generate a simpler reproducer for an error scenario
+                    if (newChangesBuilder.Count == 5) break;
+                }
+
+                var change2 = change1.WithChanges(newChangesBuilder);
+                try
+                {
+                    var textChanges = change2.GetTextChanges(originalText);
+                    Assert.Equal(originalText.WithChanges(textChanges).ToString(), change2.ToString());
+                }
+                catch
+                {
+                    _output.WriteLine($@"
+    [Fact]
+    public void Fuzz_{iteration}()
+    {{
+        var originalText = SourceText.From(""{originalText}"");
+        var change1 = originalText.WithChanges({string.Join(", ", oldChangesBuilder.Select(c => c.GetDebuggerDisplay()))});
+        var change2 = change1.WithChanges({string.Join(", ", newChangesBuilder.Select(c => c.GetDebuggerDisplay()))});
+        Assert.Equal(""{change1}"", change1.ToString()); // double-check for correctness
+        Assert.Equal(""{change2}"", change2.ToString()); // double-check for correctness
+
+        var changes = change2.GetTextChanges(originalText);
+        Assert.Equal(""{change2}"", originalText.WithChanges(changes).ToString());
+    }}
+");
+                    throw;
+                }
+
+                // we delay freeing so that if we need to debug the fuzzer
+                // it's easier to see what changes were introduced at each stage.
+                oldChangesBuilder.Free();
+                newChangesBuilder.Free();
+            }
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void Fuzz_0()
+        {
+            var originalText = SourceText.From("01234");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 2), "a"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 2), "bb"));
+            Assert.Equal("a234", change1.ToString());
+            Assert.Equal("bb34", change2.ToString());
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("bb34", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void Fuzz_1()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(0, 0), "aa"), new TextChange(new TextSpan(1, 1), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 1), "b"), new TextChange(new TextSpan(2, 2), ""));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("aa0aa234", change1.ToString());
+            Assert.Equal("baa234", change2.ToString());
+            Assert.Equal(change2.ToString(), original.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void Fuzz_2()
+        {
+            var originalText = SourceText.From("01234");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 0), "a"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 2), ""), new TextChange(new TextSpan(2, 0), "bb"));
+            Assert.Equal("a01234", change1.ToString());
+            Assert.Equal("bb1234", change2.ToString());
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("bb1234", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void Fuzz_10()
+        {
+            var originalText = SourceText.From("01234");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 1), "a"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 1), "b"), new TextChange(new TextSpan(2, 2), "b"));
+            Assert.Equal("a1234", change1.ToString());
+            Assert.Equal("b1b4", change2.ToString());
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("b1b4", originalText.WithChanges(changes).ToString());
+        }
+
+        [Fact]
+        [WorkItem(47234, "https://github.com/dotnet/roslyn/issues/47234")]
+        public void Fuzz_23()
+        {
+            var originalText = SourceText.From("01234");
+            var change1 = originalText.WithChanges(new TextChange(new TextSpan(0, 1), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 0), "b"), new TextChange(new TextSpan(1, 2), "b"));
+            Assert.Equal("aa1234", change1.ToString());
+            Assert.Equal("bab234", change2.ToString());
+
+            var changes = change2.GetTextChanges(originalText);
+            Assert.Equal("bab234", originalText.WithChanges(changes).ToString());
         }
 
         private SourceText GetChangesWithoutMiddle(

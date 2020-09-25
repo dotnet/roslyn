@@ -6,7 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Represents the change to a span of text.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public readonly struct TextChangeRange : IEquatable<TextChangeRange>
     {
         /// <summary>
@@ -126,6 +127,11 @@ namespace Microsoft.CodeAnalysis.Text
             var newLen = combined.Length + diff;
 
             return new TextChangeRange(combined, newLen);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return $"new TextChangeRange(new TextSpan({Span.Start}, {Span.Length}), {NewLength})";
         }
     }
 }

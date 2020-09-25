@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Describes a single change when a particular span is replaced with a new text.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public readonly struct TextChange : IEquatable<TextChange>
     {
         /// <summary>
@@ -93,5 +94,16 @@ namespace Microsoft.CodeAnalysis.Text
         /// An empty set of changes.
         /// </summary>
         public static IReadOnlyList<TextChange> NoChanges => SpecializedCollections.EmptyReadOnlyList<TextChange>();
+
+        internal string GetDebuggerDisplay()
+        {
+            var newTextDisplay = NewText switch
+            {
+                null => "null",
+                { Length: < 10 } => $"\"{NewText}\"",
+                { Length: var length } => $"(NewLength = {length})"
+            };
+            return $"new TextChange(new TextSpan({Span.Start}, {Span.Length}), {newTextDisplay})";
+        }
     }
 }
