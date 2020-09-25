@@ -368,8 +368,6 @@ namespace Microsoft.CodeAnalysis
             if (!finalize)
             {
                 this.ClearSolutionData();
-
-                this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
             // Dispose per-instance services created for this workspace (direct MEF exports, including factories, will
