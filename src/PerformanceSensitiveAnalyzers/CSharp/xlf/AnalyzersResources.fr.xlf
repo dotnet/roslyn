@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Ce site d'appel appelle une fonction avec un paramètre 'params'. Cela se traduit par une allocation de tableau même si aucun paramètre n'est passé pour le paramètre params</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">Ce site d'appel appelle une fonction avec un paramètre 'params'. Cela se traduit par une allocation de tableau</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">La conversion d'un type valeur en type référence entraîne un boxing sur le site d'appel (ici), et une conversion unboxing sur le site appelé. Utiliser des génériques, le cas échéant</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">La conversion d'un type valeur en type référence entraîne un boxing sur le site d'appel (ici), et une conversion unboxing sur le site appelé. Utiliser des génériques, le cas échéant</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">Le type valeur ({0}) est converti (boxed) en type référence pour une concaténation de chaîne.</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">Le type valeur ({0}) est converti (boxed) en type référence pour une concaténation de chaîne.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

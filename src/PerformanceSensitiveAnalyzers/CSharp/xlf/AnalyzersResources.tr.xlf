@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Bu çağrı sitesi 'params' parametresi ile bir işleve çağrı yapıyor. params parametresiyle geçirilen bir parametre olmasa bile bu durum bir dizi ayırmasına neden olur</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">Bu çağrı sitesi 'params' parametresi ile bir işleve çağrı yapıyor. Bu durum bir dizi ayırmasına neden olur</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">Değer türünden başvuru türüne dönüştürme, çağrı sitesinde (burada) kutulamaya ve çağrılan sitede ise kutudan çıkarmaya neden olur. Varsa genel türleri kullanmayı deneyin</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">Değer türünden başvuru türüne dönüştürme, çağrı sitesinde (burada) kutulamaya ve çağrılan sitede ise kutudan çıkarmaya neden olur. Varsa genel türleri kullanmayı deneyin</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">({0}) değer türü dize birleştirmesi için bir başvuru türüne kutulanıyor.</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">({0}) değer türü dize birleştirmesi için bir başvuru türüne kutulanıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

@@ -102,6 +102,21 @@
         <target state="translated">Konstruktor činí z nedědičné základní třídy dědičnou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Všechny veřejné členy by měly používat odkazové typy s možnou hodnotou null, nebo bez ní, ale ne odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">Symbol {0} používá některé odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Veřejné členy by neměly používat typy bez určení možnosti použití hodnoty null</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">Symbol {0} porušuje požadavek na zpětnou kompatibilitu: Veřejné rozhraní API s nepovinnými parametry by mělo mít ze všech veřejných přetížení nejvíce parametrů. Podrobnosti najdete tady: {1}</target>
@@ -110,6 +125,16 @@
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
         <target state="translated">Veřejné rozhraní API s nepovinnými parametry by mělo mít ze všech veřejných přetížení nejvíce parametrů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
@@ -163,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Všechny veřejné typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru PublicAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">Soubory PublicAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, PublicAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používají typy bez určení možnosti použití hodnoty null (předpona ~ na řádku).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -173,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Přidat anotace o možnosti použití hodnoty null u typů a členů v deklarovaném rozhraní API</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Povolit sledování možnosti použití hodnoty null pro typy odkazů v deklarovaném rozhraní API</target>
         <note />
       </trans-unit>
     </body>

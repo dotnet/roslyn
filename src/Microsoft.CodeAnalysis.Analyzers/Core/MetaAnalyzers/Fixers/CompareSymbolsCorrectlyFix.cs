@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             return Task.CompletedTask;
         }
 
-        private async Task<Document> ConvertToEqualsAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> ConvertToEqualsAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -62,19 +62,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            if (invocationOperation.Instance is null)
-            {
-                var replacement = generator.InvocationExpression(
-                                    GetEqualityComparerDefaultEquals(generator),
-                                    invocationOperation.Arguments.Select(argument => argument.Syntax).ToImmutableArray());
+            var arguments = invocationOperation.Arguments.Select(argument => argument.Syntax);
 
-                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
-            }
-            else
+            if (invocationOperation.Instance is not null)
             {
-                var replacement = generator.AddParameters(invocationOperation.Syntax, new[] { GetEqualityComparerDefault(generator) });
-                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
+                arguments = new[] { invocationOperation.Instance.Syntax }.Concat(arguments);
             }
+
+            var replacement = generator.InvocationExpression(
+                                    GetEqualityComparerDefaultEquals(generator),
+                                    arguments);
+
+            editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
 
             return editor.GetChangedDocument();
         }

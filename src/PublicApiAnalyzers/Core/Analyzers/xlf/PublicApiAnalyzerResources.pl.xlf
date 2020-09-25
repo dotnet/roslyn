@@ -102,6 +102,21 @@
         <target state="translated">Konstruktor umożliwia dziedziczenie klasy podstawowej nieprzeznaczonej do dziedziczenia</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Wszystkie publiczne składowe powinny używać typów referencyjnych dopuszczających wartość null lub nie dopuszczających jej, ale nie nieświadomych typów referencyjnych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">Symbol „{0}” używa pewnych nieświadomych typów referencyjnych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Publiczne składowe nie powinny używać typów nieświadomych</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">Symbol „{0}” narusza wymaganie wstecznej zgodności: „Publiczny interfejs API z opcjonalnymi parametrami powinien mieć najwięcej parametrów spośród przeciążeń publicznych”. Zobacz „{1}”, aby uzyskać szczegółowe informacje.</target>
@@ -110,6 +125,16 @@
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
         <target state="translated">Publiczny interfejs API z opcjonalnymi parametrami powinien mieć najwięcej parametrów spośród przeciążeń publicznych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
@@ -163,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Wszystkie publiczne typy i składowe powinny być zadeklarowane w pliku PublicAPI.txt z adnotacjami opcji dopuszczania wartości null. To przyciąga uwagę do zmian opcji dopuszczania wartości null interfejsu API w przeglądach kodu i historii kontroli źródła oraz pomaga zapobiegać zmianom powodującym nieprawidłowe działanie.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">Pliki PublicAPI.txt powinny zawierać wartość „#nullable enable” w celu śledzenia informacji o dopuszczaniu wartości null lub należy pominąć tę diagnostykę. W przypadku włączenia informacji o dopuszczaniu wartości null plik PublicAPI.txt rejestruje typy dopuszczające wartość null (sufiks „?” dla typu) i niedopuszczające wartości null (sufiks „!”). Śledzi on również wszelkie interfejsy API, które nadal korzystają z nieświadomego typu odwołania (prefiks „~” w wierszu).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -173,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Dodawanie adnotacji opcji dopuszczania wartości null typów i składowych w zadeklarowanym interfejsie API</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Włącz śledzenie wartości null typów referencyjnych w zadeklarowanym interfejsie API</target>
         <note />
       </trans-unit>
     </body>

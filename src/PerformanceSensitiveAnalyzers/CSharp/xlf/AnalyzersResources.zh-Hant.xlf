@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">此呼叫站台呼叫函式時設定了 'params' 參數。如此會導致即使沒有為 params 參數傳入任何參數，都會進行陣列配置</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">此呼叫位置正在呼叫具有 'params' 參數的函式。這會產生陣列配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">將實值型別轉換為參考型別，導致在呼叫站台 (此處) 發生 Boxing，而在被呼叫站台則出現 Unboxing。如果可行的話，請考慮使用泛型</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">將實值型別轉換為參考型別，導致在呼叫站台 (此處) 發生 Boxing，而在被呼叫站台則出現 Unboxing。如果可行的話，請考慮使用泛型</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">實值型別 ({0}) 正 Box 為參考型別，以進行字串串連。</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">實值型別 ({0}) 正 Box 為參考型別，以進行字串串連。</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

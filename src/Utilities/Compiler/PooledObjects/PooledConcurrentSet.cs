@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -14,6 +15,7 @@ namespace Analyzer.Utilities.PooledObjects
     /// </summary>
 #pragma warning disable CA1710 // Identifiers should have correct suffix
     internal sealed class PooledConcurrentSet<T> : ICollection<T>, IDisposable
+        where T : notnull
 #pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         private readonly PooledConcurrentDictionary<T, byte> _dictionary;
@@ -23,8 +25,8 @@ namespace Analyzer.Utilities.PooledObjects
             _dictionary = dictionary;
         }
 
-        public void Dispose() => Free();
-        public void Free() => _dictionary.Free();
+        public void Dispose() => Free(CancellationToken.None);
+        public void Free(CancellationToken cancellationToken) => _dictionary.Free(cancellationToken);
 
         public static PooledConcurrentSet<T> GetInstance(IEqualityComparer<T>? comparer = null)
         {

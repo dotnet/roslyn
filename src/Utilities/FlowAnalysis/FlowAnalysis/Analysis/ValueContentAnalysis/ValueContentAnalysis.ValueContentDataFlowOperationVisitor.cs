@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// Operation visitor to flow the data values across a given statement in a basic block.
         /// </summary>
-        private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
+        private sealed class ValueContentDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
         {
             private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain;
 
@@ -66,6 +66,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override void ResetCurrentAnalysisData()
                 => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
 
+            protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation)
+            {
+                if (DataFlowAnalysisContext.CopyAnalysisResult == null &&
+                    AnalysisEntityFactory.TryCreate(operation, out var entity) &&
+                    entity.CaptureId.HasValue &&
+                    AnalysisEntityFactory.TryGetCopyValueForFlowCapture(entity.CaptureId.Value.Id, out var copyValue) &&
+                    copyValue.Kind == CopyAbstractValueKind.KnownValueCopy)
+                {
+                    return copyValue;
+                }
+
+                return base.GetCopyAbstractValue(operation);
+            }
+
             #region Predicate analysis
             protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, ValueContentAnalysisData targetAnalysisData)
                 => PredicateValueKind.Unknown;
@@ -94,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 if (currentAssignedValue.IsLiteralState &&
                     AnalysisEntityFactory.TryCreate(target, out var targetEntity))
                 {
-                    if (CurrentAnalysisData.TryGetValue(targetEntity, out ValueContentAbstractValue existingTargetValue) &&
+                    if (CurrentAnalysisData.TryGetValue(targetEntity, out var existingTargetValue) &&
                         existingTargetValue.IsLiteralState)
                     {
                         var newValue = currentAssignedValue.IntersectLiteralValues(existingTargetValue);
@@ -138,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             protected override ValueContentAnalysisData MergeAnalysisData(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => _valueContentAnalysisDomain.Merge(value1, value2);
-            protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
+            protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2, BasicBlock forBlock)
                 => _valueContentAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2);
             protected override void UpdateValuesForAnalysisData(ValueContentAnalysisData targetAnalysisData)
                 => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
@@ -185,6 +199,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                             _ => ValueContentAbstractValue.MayBeContainsNonLiteralState,
                         };
                     }
+                }
+                else if (DataFlowAnalysisContext.GetValueForAdditionalSupportedValueTypeOperation is { } getValueFunc &&
+                    operation.Type is INamedTypeSymbol namedType &&
+                    DataFlowAnalysisContext.AdditionalSupportedValueTypes.Contains(namedType))
+                {
+                    return getValueFunc(operation);
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;

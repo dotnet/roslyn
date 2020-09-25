@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => Id.Equals(other.Id) && ControlFlowGraph == other.ControlFlowGraph;
 
         public override bool Equals(object obj)
-            => obj is InterproceduralCaptureId && Equals((InterproceduralCaptureId)obj);
+            => obj is InterproceduralCaptureId id && Equals(id);
 
         public override int GetHashCode()
             => HashUtilities.Combine(Id.GetHashCode(), ControlFlowGraph.GetHashCode());

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -35,7 +37,7 @@ namespace Analyzer.Utilities.Extensions
         /// <see cref="Stack{T}"/>.
         /// </para>
         /// <para>
-        /// Similarly, if <paramref name="parentType"/> is the interface <see cref="IList{T}"/>, 
+        /// Similarly, if <paramref name="parentType"/> is the interface <see cref="IList{T}"/>,
         /// then this method will return <see langword="true"/> for <c>List&gt;int></c>
         /// or any other class that extends <see cref="IList{T}"/> or an class that implements it,
         /// because <c>IList&gt;int></c> is constructed from <see cref="IList{T}"/>.
@@ -138,8 +140,10 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            // Sealed objects are presumed to be non-static holder types
-            if (symbol.IsSealed)
+            // Sealed objects are presumed to be non-static holder types for C#.
+            // In VB.NET the type cannot be static and guidelines favor having a sealed (NotInheritable) type
+            //  to act as static holder type.
+            if (symbol.IsSealed && symbol.Language == LanguageNames.CSharp)
             {
                 return false;
             }
@@ -163,7 +167,6 @@ namespace Analyzer.Utilities.Extensions
                     }
                 }
             }
-
 
             return hasQualifyingMembers;
         }
@@ -259,5 +262,24 @@ namespace Analyzer.Utilities.Extensions
             // from being considered a static holder class.
             return !member.IsStatic && !member.IsDefaultConstructor();
         }
+
+        public static bool IsXUnitTestAttribute(this INamedTypeSymbol attributeClass, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        {
+            if (knownTestAttributes.TryGetValue(attributeClass, out var isTest))
+                return isTest;
+
+            return knownTestAttributes.GetOrAdd(attributeClass, attributeClass.DerivesFrom(xunitFactAttribute));
+        }
+
+        /// <summary>
+        /// Check if the given <paramref name="typeSymbol"/> is an implicitly generated type for top level statements.
+        /// </summary>
+        public static bool IsTopLevelStatementsEntryPointType([NotNullWhen(true)] this INamedTypeSymbol? typeSymbol)
+            => typeSymbol?.IsStatic == true && typeSymbol.Name switch
+            {
+                "$Program" => true,
+                "<Program>$" => true,
+                _ => false
+            };
     }
 }

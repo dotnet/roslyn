@@ -102,6 +102,21 @@
         <target state="translated">생성자가 상속할 수 없는 기본 클래스를 상속할 수 있도록 만듭니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">모든 public 멤버는 nullable 또는 nullable이 아닌 참조 형식을 사용해야 하지만, 인식 불가능한 참조 형식은 사용하면 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">'{0}' 기호는 일부 인식 불가능한 참조 형식을 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">public 멤버는 인식 불가능한 형식을 사용하면 안 됨</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">'{0}' 기호가 backcompat 요구 사항인 '선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 가장 많은 매개 변수를 보유해야 합니다.'를 위반합니다. 자세한 내용은 '{1}'을(를) 참조하세요.</target>
@@ -110,6 +125,16 @@
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
         <target state="translated">선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 대부분의 매개 변수가 포함되어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
@@ -163,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">Null 허용 여부 정보를 추적하려면 PublicAPI.txt 파일에 '#nullable enable'이 있어야 합니다. 또는 이 진단이 표시되지 않아야 합니다. Null 허용 여부를 사용하는 경우 PublicAPI.txt는 nullable 형식(형식에 접미사 '?') 또는 nullable이 아닌 형식(접미사 '!')을 기록합니다. 또한 null을 허용하지 않는 참조 형식(줄에 접두사 '~')을 계속 사용하는 모든 API를 추적합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -173,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">선언된 API에서 형식 및 멤버의 Null 허용 여부 주석 추가</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">선언된 API에서 참조 형식의 Null 허용 여부 추적 사용</target>
         <note />
       </trans-unit>
     </body>

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(EnableConcurrentExecutionFix))]
-    [Shared]
-    public sealed class EnableConcurrentExecutionFix : CodeFixProvider
+    public abstract class EnableConcurrentExecutionFix : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(EnableConcurrentExecutionAnalyzer.Rule.Id);
 
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 return document;
             }
 
-            var statements = generator.GetStatements(methodDeclaration);
+            var statements = GetStatements(methodDeclaration);
             var newInvocation = generator.InvocationExpression(
                 generator.MemberAccessExpression(
                     generator.IdentifierName(generator.GetName(parameterDeclaration)),
@@ -67,5 +65,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var newMethodDeclaration = generator.WithStatements(methodDeclaration, newStatements);
             return document.WithSyntaxRoot(root.ReplaceNode(methodDeclaration, newMethodDeclaration));
         }
+
+        protected abstract IEnumerable<SyntaxNode> GetStatements(SyntaxNode methodDeclaration);
     }
 }

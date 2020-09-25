@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -126,6 +126,7 @@
   <data name="DeclarePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
+
   <data name="AnnotatePublicApiTitle" xml:space="preserve">
     <value>Annotate nullability of public types and members in the declared API</value>
   </data>
@@ -137,13 +138,23 @@
   </data>
 
   <data name="ShouldAnnotateApiFilesTitle" xml:space="preserve">
-    <value>Annotate nullability of types and members in the declared API</value>
+    <value>Enable tracking of nullability of reference types in the declared API</value>
   </data>
   <data name="ShouldAnnotateApiFilesMessage" xml:space="preserve">
     <value>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</value>
   </data>
   <data name="ShouldAnnotateApiFilesDescription" xml:space="preserve">
-    <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <value>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</value>
+  </data>
+
+  <data name="ObliviousPublicApiTitle" xml:space="preserve">
+    <value>Public members should not use oblivious types</value>
+  </data>
+  <data name="ObliviousPublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' uses some oblivious reference types.</value>
+  </data>
+  <data name="ObliviousPublicApiDescription" xml:space="preserve">
+    <value>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</value>
   </data>
   
   <data name="RemoveDeletedApiTitle" xml:space="preserve">
@@ -166,6 +177,12 @@
   </data>
   <data name="PublicApiFilesInvalidMessage" xml:space="preserve">
     <value>The contents of the public API files are invalid: {0}</value>
+  </data>
+  <data name="PublicApiFileMissingTitle" xml:space="preserve">
+    <value>Missing shipped or unshipped public API file</value>
+  </data>
+  <data name="PublicApiFileMissingMessage" xml:space="preserve">
+    <value>Public API file '{0}' is missing or not marked as an additional analyzer file</value>
   </data>
   <data name="DuplicateSymbolsInPublicApiFilesTitle" xml:space="preserve">
     <value>Do not duplicate symbols in public API files</value>

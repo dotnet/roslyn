@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool HasAbstractValue(AnalysisEntity analysisEntity) => CoreAnalysisData.ContainsKey(analysisEntity);
 
-        public bool TryGetValue(AnalysisEntity key, out TValue value) => CoreAnalysisData.TryGetValue(key, out value);
+        public bool TryGetValue(AnalysisEntity key, [MaybeNullWhen(false)] out TValue value) => CoreAnalysisData.TryGetValue(key, out value);
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public TValue this[AnalysisEntity key] => CoreAnalysisData[key];

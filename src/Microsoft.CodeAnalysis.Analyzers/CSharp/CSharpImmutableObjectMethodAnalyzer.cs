@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             var candidateInvocation = (InvocationExpressionSyntax)context.Node;
 
             //We're looking for invocations that are direct children of expression statements
-            if (!(candidateInvocation.Parent.IsKind(SyntaxKind.ExpressionStatement)))
+            if (!candidateInvocation.Parent.IsKind(SyntaxKind.ExpressionStatement))
             {
                 return;
             }
 
             //If we can't find the method symbol, quit
-            if (!(model.GetSymbolInfo(candidateInvocation).Symbol is IMethodSymbol methodSymbol))
+            if (model.GetSymbolInfo(candidateInvocation, context.CancellationToken).Symbol is not IMethodSymbol methodSymbol)
             {
                 return;
             }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             }
 
             //If we're not in one of the known immutable types, quit
-            if (!(methodSymbol.ReceiverType is INamedTypeSymbol parentType))
+            if (methodSymbol.ReceiverType is not INamedTypeSymbol parentType)
             {
                 return;
             }

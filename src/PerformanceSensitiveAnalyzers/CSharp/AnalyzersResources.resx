@@ -151,7 +151,7 @@
     <value>Delegate allocation from a method group</value>
   </data>
   <data name="ParamsParameterRuleMessage" xml:space="preserve">
-    <value>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</value>
+    <value>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</value>
   </data>
   <data name="ParamsParameterRuleTitle" xml:space="preserve">
     <value>Array allocation for params parameter</value>
@@ -181,13 +181,13 @@
     <value>Non-overridden virtual method call on value type</value>
   </data>
   <data name="ValueTypeToReferenceTypeConversionRuleMessage" xml:space="preserve">
-    <value>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</value>
+    <value>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</value>
   </data>
   <data name="ValueTypeToReferenceTypeConversionRuleTitle" xml:space="preserve">
     <value>Value type to reference type conversion causing boxing allocation</value>
   </data>
   <data name="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage" xml:space="preserve">
-    <value>Value type ({0}) is being boxed to a reference type for a string concatenation.</value>
+    <value>Value type ({0}) is being boxed to a reference type for a string concatenation</value>
   </data>
   <data name="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle" xml:space="preserve">
     <value>Value type to reference type conversion allocation for string concatenation</value>

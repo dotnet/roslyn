@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            INamedTypeSymbol? codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsCodeBlockStartAnalysisContext);
+            INamedTypeSymbol? codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsCodeBlockStartAnalysisContext1);
             if (codeBlockStartAnalysisContext == null)
             {
                 return null;
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                         }
 
                                         SyntaxNode invocationExpression = GetInvocationExpression(invocation);
-                                        Diagnostic diagnostic = Diagnostic.Create(rule, invocationExpression.GetLocation());
+                                        Diagnostic diagnostic = invocationExpression.CreateDiagnostic(rule);
                                         context.ReportDiagnostic(diagnostic);
                                     }
                                     else if (isRegisterSymbolAction)
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                                 _symbolKind.Equals(symbol.ContainingType) &&
                                                 !s_supportedSymbolKinds.Contains(symbol.Name))
                                             {
-                                                Diagnostic diagnostic = Diagnostic.Create(UnsupportedSymbolKindArgumentRule, argument.GetLocation(), symbol.Name);
+                                                Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
                                                 context.ReportDiagnostic(diagnostic);
                                             }
                                         }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                 }
 
-                if (method.TypeParameters.Length > 0 &&
+                if (!method.TypeParameters.IsEmpty &&
                     (isRegisterSyntaxNodeAction || isRegisterCodeBlockStartAction))
                 {
                     ITypeSymbol? typeArgument = null;
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 // Get the context parameter on which we are registering an action.
-                if (!(model.GetSymbolInfo(receiver, cancellationToken).Symbol is IParameterSymbol contextParameter))
+                if (model.GetSymbolInfo(receiver, cancellationToken).Symbol is not IParameterSymbol contextParameter)
                 {
                     return;
                 }

@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedApiText != null)
@@ -47,8 +46,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         private async Task VerifyAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newShippedApiText, string newUnshippedApiText)
         {
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
-
-            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, oldShippedApiText));
@@ -244,6 +241,110 @@ C.Field -> string?
 C.Field2 -> string!";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutOblivious()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0036:ChangedField|};
+}
+";
+            var shippedText = $@"#nullable enable";
+            var unshippedText = @"C
+C.C() -> void
+C.ChangedField -> string";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.ChangedField -> string?";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker()
+        {
+            var source = @"
+public class C
+{
+    public string {|RS0036:{|RS0041:Field|}|}; // oblivious
+}
+";
+            var shippedText = $@"#nullable enable";
+            var unshippedText = @"C
+C.C() -> void
+C.Field -> string";
+            var fixedUnshippedText = @"C
+C.C() -> void
+~C.Field -> string";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFile()
+        {
+            var source = @"
+public class C
+{
+    public string {|RS0036:{|RS0041:Field|}|}; // oblivious
+}
+";
+            var shippedText = $@"#nullable enable
+C
+C.C() -> void
+C.Field -> string";
+            var unshippedText = @"";
+            var fixedShippedText = $@"#nullable enable
+C
+C.C() -> void
+~C.Field -> string";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullable()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0036:Field|};
+}
+";
+            var shippedText = $@"#nullable enable
+C
+C.C() -> void
+~C.Field -> string";
+            var unshippedText = @"";
+            var fixedShippedText = $@"#nullable enable
+C
+C.C() -> void
+C.Field -> string?";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullable()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string {|RS0036:Field|};
+}
+";
+            var shippedText = $@"#nullable enable
+C
+C.C() -> void
+~C.Field -> string";
+            var unshippedText = @"";
+            var fixedShippedText = $@"#nullable enable
+C
+C.C() -> void
+C.Field -> string!";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
         }
 
         #endregion

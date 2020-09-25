@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -57,6 +58,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresValueContentAnalysis => false;
 
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis => false;
+
+        /// <summary>
+        /// Qualified names of the optional dependency types.
+        /// </summary>
+        public ImmutableArray<string> DependencyFullTypeNames => ImmutableArray<string>.Empty;
+
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SinkProperties,
@@ -69,7 +80,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override bool Equals(object obj)
         {
-            return obj is SinkInfo other ? this.Equals(other) : false;
+            return obj is SinkInfo other && this.Equals(other);
         }
 
         public bool Equals(SinkInfo other)

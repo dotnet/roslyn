@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -64,8 +62,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemWebHttpServerUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "HtmlEncode",
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 1,
+                        new[] { ("s", TaintedTargetValue.Return) }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 2,
+                        new[] { ("s", "output") }
+                    ),
                 });
             builder.AddSanitizerInfo(
                 WellKnownTypeNames.SystemWebHttpServerUtilityBase,
@@ -122,8 +127,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "HtmlAttributeEncode",
                     "HtmlEncode",
                 });
-
-            builder.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos);
 
             SanitizerInfos = builder.ToImmutableAndFree();
         }

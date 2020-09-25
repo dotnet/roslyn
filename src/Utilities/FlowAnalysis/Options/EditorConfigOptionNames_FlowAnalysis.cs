@@ -67,6 +67,12 @@ namespace Analyzer.Utilities
         /// </summary>
         public const string CopyAnalysis = "copy_analysis";
 
+        /// <summary>
+        /// Option to configure points to analysis kind, i.e. <see cref="Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis.PointsToAnalysisKind"/>.
+        /// Allowed option values: Fields from <see cref="Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis.PointsToAnalysisKind"/>.
+        /// </summary>
+        public const string PointsToAnalysisKind = "points_to_analysis_kind";
+
         #endregion
     }
 }

@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var builder = PooledHashSet<SourceInfo>.GetInstance();
 
             builder.AddSourceInfoSpecifyingTaintedTargets(
-                WellKnownTypeNames.SystemIOFileFullName,
+                WellKnownTypeNames.SystemIOFile,
                 isInterface: false,
                 taintedProperties: null,
                 taintedMethodsNeedsPointsToAnalysis: null,

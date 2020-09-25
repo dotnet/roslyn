@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "AnnotatePublicApiFix"), Shared]
     public sealed class AnnotatePublicApiFix : CodeFixProvider
     {
+        private const char ObliviousMarker = '~';
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             for (int i = 0; i < lines.Count; i++)
             {
-                if (changes.TryGetValue(lines[i], out string newLine))
+                if (changes.TryGetValue(lines[i].Trim(ObliviousMarker), out string newLine))
                 {
                     lines.Insert(i, newLine);
                     lines.RemoveAt(i + 1);
@@ -101,13 +104,34 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
 
+                using var uniqueShippedDocuments = PooledHashSet<string>.GetInstance();
+                using var uniqueUnshippedDocuments = PooledHashSet<string>.GetInstance();
+
                 foreach (KeyValuePair<Project, ImmutableArray<Diagnostic>> pair in _diagnosticsToFix)
                 {
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
                     TextDocument? unshippedDocument = DeclarePublicApiFix.GetUnshippedDocument(project);
+                    if (unshippedDocument?.FilePath != null && !uniqueUnshippedDocuments.Add(unshippedDocument.FilePath))
+                    {
+                        // Skip past duplicate unshipped documents.
+                        // Multi-tfm projects can likely share the same api files, and we want to avoid duplicate code fix application.
+                        unshippedDocument = null;
+                    }
+
                     TextDocument? shippedDocument = DeclarePublicApiFix.GetShippedDocument(project);
+                    if (shippedDocument?.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
+                    {
+                        // Skip past duplicate shipped documents.
+                        // Multi-tfm projects can likely share the same api files, and we want to avoid duplicate code fix application.
+                        shippedDocument = null;
+                    }
+
+                    if (unshippedDocument == null && shippedDocument == null)
+                    {
+                        continue;
+                    }
 
                     SourceText? unshippedSourceText = unshippedDocument is null ? null : await unshippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     SourceText? shippedSourceText = shippedDocument is null ? null : await shippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -134,10 +158,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
+                            if (diagnostic.Id != DeclarePublicApiAnalyzer.AnnotateApiRule.Id)
+                            {
+                                continue;
+                            }
+
                             string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
                             string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                             bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";
-                            (isShipped ? shippedChanges : unshippedChanges).Add(oldName, newName);
+                            var mapToUpdate = isShipped ? shippedChanges : unshippedChanges;
+                            mapToUpdate[oldName] = newName;
                         }
                     }
 

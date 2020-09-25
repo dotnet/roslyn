@@ -4,8 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -27,28 +27,30 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<PropertyMetricData> ComputeAsync(IPropertySymbol property, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal static async Task<PropertyMetricData> ComputeAsync(IPropertySymbol property, CodeMetricsAnalysisContext context)
             {
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = property.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, property, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, property, context).ConfigureAwait(false);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, property, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, property.Parameters);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, property.Type);
+                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, property, coupledTypesBuilder, context).ConfigureAwait(false);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, property.Parameters);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, property.Type);
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(property), semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(property), context).ConfigureAwait(false);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     computationalComplexityMetrics = computationalComplexityMetrics.Union(child.ComputationalComplexityMetrics);
                 }
 
                 int? depthOfInheritance = null;
-                int maintainabilityIndex = children.Length > 0 ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
+                int maintainabilityIndex = !children.IsEmpty ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
                 MetricsHelper.RemoveContainingTypes(property, coupledTypesBuilder);
 
                 return new PropertyMetricData(property, maintainabilityIndex, computationalComplexityMetrics,

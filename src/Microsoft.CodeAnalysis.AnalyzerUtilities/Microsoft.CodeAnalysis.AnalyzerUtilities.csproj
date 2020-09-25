@@ -9,6 +9,7 @@
     <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
     <ExcludeInternalFlowAnalyses>true</ExcludeInternalFlowAnalyses>
     <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
 
     <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
     <NoWarn>$(NoWarn);RS0026</NoWarn>
@@ -18,6 +19,5 @@
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="2.6.3" />
   </ItemGroup>
 </Project>

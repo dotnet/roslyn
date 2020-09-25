@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">이 호출 사이트가 'params' 매개 변수가 있는 함수를 호출하고 있습니다. 이로 인해 params 매개 변수에 대해 매개 변수가 전달되지 않는 경우에도 배열 할당이 발생합니다.</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">이 호출 사이트가 'params' 매개 변수가 있는 함수를 호출하고 있습니다. 이 작업으로 인해 배열 할당이 발생합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">값 형식에서 참조 형식으로 변환하면 호출 사이트(여기)에서 boxing되고 호출 수신자 사이트에서 unboxing됩니다. 해당하는 경우 제네릭을 사용하는 것이 좋습니다.</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">값 형식에서 참조 형식으로 변환하면 호출 사이트(여기)에서 boxing되고 호출 수신자 사이트에서 unboxing됩니다. 해당하는 경우 제네릭을 사용하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">값 형식({0})이 문자열 연결을 위해 참조 형식으로 boxing됩니다.</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">값 형식({0})이 문자열 연결을 위해 참조 형식으로 boxing됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

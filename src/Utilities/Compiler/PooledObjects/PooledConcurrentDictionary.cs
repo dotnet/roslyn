@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -13,6 +14,7 @@ namespace Analyzer.Utilities.PooledObjects
     /// <see cref="ConcurrentDictionary{TKey, TValue}"/> that can be recycled via an object pool.
     /// </summary>
     internal sealed class PooledConcurrentDictionary<K, V> : ConcurrentDictionary<K, V>, IDisposable
+        where K : notnull
     {
         private readonly ObjectPool<PooledConcurrentDictionary<K, V>>? _pool;
 
@@ -27,12 +29,19 @@ namespace Analyzer.Utilities.PooledObjects
             _pool = pool;
         }
 
-        public void Dispose() => Free();
+        public void Dispose() => Free(CancellationToken.None);
 
-        public void Free()
+        public void Free(CancellationToken cancellationToken)
         {
+            // Do not free in presence of cancellation.
+            // See https://github.com/dotnet/roslyn/issues/46859 for details.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             this.Clear();
-            _pool?.Free(this);
+            _pool?.Free(this, cancellationToken);
         }
 
         // global pool
@@ -58,7 +67,7 @@ namespace Analyzer.Utilities.PooledObjects
                 s_poolInstance :
                 s_poolInstancesByComparer.GetOrAdd(keyComparer, c => CreatePool(c));
             var instance = pool.Allocate();
-            Debug.Assert(instance.Count == 0);
+            Debug.Assert(instance.IsEmpty);
             return instance;
         }
 

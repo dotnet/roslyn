@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -16,43 +17,50 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// Stores all the tracked entities.
         /// NOTE: Entities added to this set should not be removed.
         /// </summary>
-        private PooledHashSet<AnalysisEntity> _allEntities { get; }
+        private PooledHashSet<AnalysisEntity> AllEntities { get; }
 
         /// <summary>
-        /// Stores all the tracked <see cref="PointsToAbstractValue"/> that some entity from <see cref="_allEntities"/>
+        /// Stores all the tracked <see cref="PointsToAbstractValue"/> that some entity from <see cref="AllEntities"/>
         /// points to during points to analysis.
         /// NOTE: Values added to this set should not be removed.
         /// </summary>
-        private PooledHashSet<PointsToAbstractValue> _pointsToValues { get; }
+        private PooledHashSet<PointsToAbstractValue> PointsToValues { get; }
 
-        public TrackedEntitiesBuilder()
+        public TrackedEntitiesBuilder(PointsToAnalysisKind pointsToAnalysisKind)
         {
-            _allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-            _pointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
+            Debug.Assert(pointsToAnalysisKind != PointsToAnalysisKind.None);
+
+            PointsToAnalysisKind = pointsToAnalysisKind;
+            AllEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            PointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
         }
+
+        public PointsToAnalysisKind PointsToAnalysisKind { get; }
 
         public void Dispose()
         {
-            _allEntities.Free();
-            _pointsToValues.Free();
+            AllEntities.Dispose();
+            PointsToValues.Dispose();
         }
 
         public void AddEntityAndPointsToValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)
         {
-            _allEntities.Add(analysisEntity);
+            Debug.Assert(PointsToAnalysisKind == PointsToAnalysisKind.Complete || !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis());
+
+            AllEntities.Add(analysisEntity);
             AddTrackedPointsToValue(value);
         }
 
         public void AddTrackedPointsToValue(PointsToAbstractValue value)
-            => _pointsToValues.Add(value);
+            => PointsToValues.Add(value);
 
         public IEnumerable<AnalysisEntity> EnumerateEntities()
-            => _allEntities;
+            => AllEntities;
 
         public bool IsTrackedPointsToValue(PointsToAbstractValue value)
-            => _pointsToValues.Contains(value);
+            => PointsToValues.Contains(value);
 
         public (ImmutableHashSet<AnalysisEntity>, ImmutableHashSet<PointsToAbstractValue>) ToImmutable()
-            => (_allEntities.ToImmutable(), _pointsToValues.ToImmutable());
+            => (AllEntities.ToImmutable(), PointsToValues.ToImmutable());
     }
 }
