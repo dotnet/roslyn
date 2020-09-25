@@ -1842,19 +1842,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstantValueTypeDiscriminator.Int16:
                     return value.Int16Value == 0;
                 case ConstantValueTypeDiscriminator.Int32:
+                case ConstantValueTypeDiscriminator.NInt:
                     return value.Int32Value == 0;
                 case ConstantValueTypeDiscriminator.Int64:
                     return value.Int64Value == 0;
-                case ConstantValueTypeDiscriminator.NInt:
-                    return value.Int32Value == 0;
                 case ConstantValueTypeDiscriminator.UInt16:
                     return value.UInt16Value == 0;
                 case ConstantValueTypeDiscriminator.UInt32:
+                case ConstantValueTypeDiscriminator.NUInt:
                     return value.UInt32Value == 0;
                 case ConstantValueTypeDiscriminator.UInt64:
                     return value.UInt64Value == 0;
-                case ConstantValueTypeDiscriminator.NUInt:
-                    return value.UInt32Value == 0;
                 case ConstantValueTypeDiscriminator.Single:
                 case ConstantValueTypeDiscriminator.Double:
                     return value.DoubleValue == 0;
