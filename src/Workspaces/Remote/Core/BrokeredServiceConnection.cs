@@ -151,8 +151,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var pipe = new Pipe();
 
-            // Create new tasks that both start executing, rather than invoking the delegates directly.
-            // If any of the operation blocked before awairing 
+            // Create new tasks that both start executing, rather than invoking the delegates directly
+            // to make sure both invocation and reader start executing and transfering data.
+
             var writerTask = Task.Run(async () =>
             {
                 try
