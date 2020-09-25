@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual ImmutableArray<NamedTypeSymbol> CallingConventionTypes => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal virtual ImmutableArray<NamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<NamedTypeSymbol>.Empty;
 
         /// <summary>
         /// Returns the map from type parameters to type arguments.
