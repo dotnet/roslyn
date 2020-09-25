@@ -85,7 +85,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 && Equals(ad.AttributeClass.ContainingNamespace, exportAttribute.ContainingNamespace)))
             {
                 // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), namedType.Name));
+                context.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
             }
         }
     }
