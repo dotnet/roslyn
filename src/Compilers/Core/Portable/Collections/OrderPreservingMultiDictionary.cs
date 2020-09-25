@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -109,6 +110,18 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        public bool TryGetValue<TArg>(K key, Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+        {
+            if (_dictionary is not null && _dictionary.TryGetValue(key, out var valueSet))
+            {
+                Debug.Assert(valueSet.Count >= 1);
+                return valueSet.TryGetValue(predicate, arg, out value);
+            }
+
+            value = default;
+            return false;
+        }
+
         public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
         {
             return _dictionary is null ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
@@ -204,6 +217,35 @@ namespace Microsoft.CodeAnalysis.Collections
                         return arrayBuilder[index];
                     }
                 }
+            }
+
+            public bool TryGetValue<TArg>(Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+            {
+                Debug.Assert(this.Count >= 1);
+                var arrayBuilder = _value as ArrayBuilder<V>;
+                if (arrayBuilder is not null)
+                {
+                    foreach (var v in arrayBuilder)
+                    {
+                        if (predicate(v, arg))
+                        {
+                            value = v;
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    var singleValue = (V)_value;
+                    if (predicate(singleValue, arg))
+                    {
+                        value = singleValue;
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
             }
 
             internal bool Contains(V item)
