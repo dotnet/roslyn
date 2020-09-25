@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Mapping of a document to the last result id we reported for it.
         /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), string> _documentIdToLastResultId =
-            new Dictionary<(Workspace workspace, DocumentId documentId), string>();
+        private readonly Dictionary<(Workspace workspace, DocumentId documentId), string> _documentIdToLastResultId = new();
 
         /// <summary>
         /// The next available id to label results with.
