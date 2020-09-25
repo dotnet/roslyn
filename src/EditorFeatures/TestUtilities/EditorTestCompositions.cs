@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Fakes;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // Microsoft.VisualStudio.Text.Internal
                 typeof(VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly)
             .AddParts(
+                typeof(TestSerializerService.Factory),
                 typeof(TestExportJoinableTaskContext),
                 typeof(StubStreamingFindUsagesPresenter), // actual implementation is in VS layer
                 typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
