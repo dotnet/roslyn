@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteTo(reference, writer, cancellationToken);
+            WriteMetadataReferenceTo(reference, writer, cancellationToken);
         }
 
         private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
