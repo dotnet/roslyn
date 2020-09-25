@@ -86,6 +86,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(ErrorReport)]; }
         }
 
+        public string? GeneratedFilesOutputPath
+        {
+            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
+        }
+
         public bool GenerateFullPaths
         {
             set { _store[nameof(GenerateFullPaths)] = value; }
@@ -205,6 +211,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
