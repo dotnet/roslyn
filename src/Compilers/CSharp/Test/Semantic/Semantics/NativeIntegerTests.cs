@@ -12834,7 +12834,7 @@ B
             convert(baseType: "uint", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u4", "4294967295", "conv.ovf.u4.un");
 
             convert(baseType: "long", fromType: "E", toType: "nint", "long.MinValue", IntPtr.Size == 4 ? "0" : "-9223372036854775808", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "-9223372036854775808", "conv.ovf.i");
-            convert(baseType: "long", fromType: "E", toType: "nint", "long.MaxValue", "-1", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.i");
+            convert(baseType: "long", fromType: "E", toType: "nint", "long.MaxValue", IntPtr.Size == 4 ? "-1" : "9223372036854775807", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.i");
             convert(baseType: "long", fromType: "E", toType: "nuint", "long.MinValue", IntPtr.Size == 4 ? "0" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
             convert(baseType: "long", fromType: "E", toType: "nuint", "long.MaxValue", IntPtr.Size == 4 ? "4294967295" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.u");
             convert(baseType: "long", fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i8", "-2147483648", "conv.i8");
