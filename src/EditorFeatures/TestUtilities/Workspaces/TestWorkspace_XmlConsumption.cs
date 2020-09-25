@@ -447,17 +447,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (language == LanguageNames.CSharp)
             {
-                _ = CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, out var languageVersion);
-                parseOptions = ((CSharpParseOptions)parseOptions).WithLanguageVersion(languageVersion);
+                if (CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, out var languageVersion))
+                {
+                    return ((CSharpParseOptions)parseOptions).WithLanguageVersion(languageVersion);
+                }
             }
             else if (language == LanguageNames.VisualBasic)
             {
                 var languageVersion = CodeAnalysis.VisualBasic.LanguageVersion.Default;
-                _ = CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, ref languageVersion);
-                parseOptions = ((VisualBasicParseOptions)parseOptions).WithLanguageVersion(languageVersion);
+                if (CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, ref languageVersion))
+                {
+                    return ((VisualBasicParseOptions)parseOptions).WithLanguageVersion(languageVersion);
+                }
             }
 
-            return parseOptions;
+            throw new Exception($"LanguageVersion attribute on {languageVersionAttribute.Parent} was not recognized.");
         }
 
         private static DocumentationMode? GetDocumentationMode(XElement projectElement)
