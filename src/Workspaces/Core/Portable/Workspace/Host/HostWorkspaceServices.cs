@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,6 +16,34 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Per workspace services provided by the host environment.
     /// </summary>
+    /// <remarks>
+    /// <para>Workspace services which implement <see cref="IDisposable"/> are considered ownable, in which case the
+    /// owner is responsible for disposing of owned instances when they are no longer in use. When
+    /// <see cref="IWorkspaceService"/> or <see cref="IWorkspaceServiceFactory"/> instances are provided directly to the
+    /// <see cref="HostWorkspaceServices"/>, the owner of the instances is the type or container (e.g. a MEF export
+    /// provider) which created the instances. For the specific case of ownable workspace services created by a factory
+    /// (i.e. instances returned by <see cref="IWorkspaceServiceFactory.CreateService"/>), the <see cref="Workspace"/>
+    /// is considered the owner of the resulting instance and is expected to be disposed during the call to
+    /// <see cref="Dispose"/>.</para>
+    ///
+    /// <para><strong>Summary of lifetime rules</strong></para>
+    ///
+    /// <list type="bullet">
+    /// <item><description>
+    ///   <strong><see cref="IWorkspaceService"/> instance constructed externally (e.g. MEF):</strong> Owned by the
+    ///   external source, and will not be automatically disposed when <see cref="Workspace"/> is disposed.
+    /// </description></item>
+    /// <item><description>
+    ///   <strong><see cref="IWorkspaceServiceFactory"/> instance constructed externally (e.g. MEF):</strong> Owned by
+    ///   the external source, and will not be automatically disposed when <see cref="Workspace"/> is disposed.
+    /// </description></item>
+    /// <item><description>
+    ///   <strong><see cref="IWorkspaceService"/> instance constructed by <see cref="IWorkspaceServiceFactory"/> within
+    ///   the context of <see cref="HostWorkspaceServices"/>:</strong> Owned by <see cref="Workspace"/>, and
+    ///   <strong>will</strong> be automatically disposed when <see cref="Workspace"/> is disposed.
+    /// </description></item>
+    /// </list>
+    /// </remarks>
     public abstract class HostWorkspaceServices : IDisposable
     {
         /// <summary>

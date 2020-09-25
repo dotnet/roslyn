@@ -6,12 +6,21 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// Per language services provided by the host environment.
+    /// Per-language services provided by the host environment.
     /// </summary>
+    /// <remarks>
+    /// <para>Language services which implement <see cref="IDisposable"/> are considered ownable, in which case the
+    /// owner is responsible for disposing of owned instances when they are no longer in use. The ownership rules are
+    /// described in detail for <see cref="HostWorkspaceServices"/>. Instances of <see cref="ILanguageService"/> have
+    /// the same ownership rules as <see cref="IWorkspaceService"/>, and instances of
+    /// <see cref="ILanguageServiceFactory"/> have the same ownership rules as
+    /// <see cref="IWorkspaceServiceFactory"/>.</para>
+    /// </remarks>
     public abstract class HostLanguageServices : IDisposable
     {
         /// <summary>
