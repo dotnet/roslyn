@@ -1885,7 +1885,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
         }
-#nullable restore
 
         private static bool HasSpecialIntPtrConversion(TypeSymbol source, TypeSymbol target)
         {
@@ -1973,7 +1972,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerType;
         }
 
-#nullable enable
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -2001,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-#nullable restore
+#nullable disable
 
         private Conversion ClassifyImplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
