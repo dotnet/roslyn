@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
-#nullable restore
+#nullable disable
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
