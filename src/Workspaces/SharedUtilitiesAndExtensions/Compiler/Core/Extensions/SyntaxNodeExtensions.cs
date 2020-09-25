@@ -833,6 +833,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return token.WithLeadingTrivia(default(SyntaxTriviaList));
         }
 
+        /// <summary>
+        /// Creates a new token with the trailing trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutTrailingTrivia(this SyntaxToken token)
+        {
+            return token.WithTrailingTrivia(default(SyntaxTriviaList));
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {

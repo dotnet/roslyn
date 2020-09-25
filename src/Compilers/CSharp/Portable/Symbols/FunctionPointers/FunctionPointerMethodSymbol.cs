@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> CallingConventionTypes
+        internal override ImmutableArray<NamedTypeSymbol> UnmanagedCallingConventionTypes
         {
             get
             {

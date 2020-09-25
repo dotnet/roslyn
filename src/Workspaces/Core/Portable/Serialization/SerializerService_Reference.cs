@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public static void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var type = reader.ReadString();
             if (type == nameof(PortableExecutableReference))

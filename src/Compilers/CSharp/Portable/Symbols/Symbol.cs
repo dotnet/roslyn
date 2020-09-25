@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
+            return (type.DefaultType.TypeKind != TypeKind.TypeParameter && DeriveUseSiteDiagnosticFromType(ref result, type.Type)) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 

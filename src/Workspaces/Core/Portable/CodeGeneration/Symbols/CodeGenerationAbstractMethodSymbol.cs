@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 
-        public ImmutableArray<INamedTypeSymbol> CallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
+        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());

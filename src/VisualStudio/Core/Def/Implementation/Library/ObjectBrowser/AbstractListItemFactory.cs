@@ -184,10 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             ImmutableArray<ObjectListItem>.Builder builder)
             where TSymbol : class, ISymbol
         {
-            var editorBrowsableAttributeConstructor = EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
-            var typeLibFuncAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(compilation);
-            var typeLibTypeAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(compilation);
-            var typeLibVarAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(compilation);
+            var editorBrowsableInfo = new EditorBrowsableHelpers.EditorBrowsableInfo(compilation);
 
             foreach (var symbol in symbols)
             {
@@ -197,13 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 var hideAdvancedMembers = false;
-                var isHidden = !symbol.IsEditorBrowsable(
-                    hideAdvancedMembers,
-                    compilation,
-                    editorBrowsableAttributeConstructor,
-                    typeLibFuncAttributeConstructors,
-                    typeLibTypeAttributeConstructors,
-                    typeLibVarAttributeConstructors);
+                var isHidden = !symbol.IsEditorBrowsable(hideAdvancedMembers, compilation, editorBrowsableInfo);
 
                 builder.Add(listItemCreator(symbol, projectId, isHidden));
             }

@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
     public sealed class TestSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
     {
         private readonly Dictionary<SyntaxTree, Dictionary<string, ReportDiagnostic>>? _options;
-        private readonly Dictionary<SyntaxTree, bool?>? _isGenerated;
+        private readonly Dictionary<SyntaxTree, GeneratedKind>? _isGenerated;
         private readonly Dictionary<string, ReportDiagnostic>? _globalOptions;
         public TestSyntaxTreeOptionsProvider(
             IEqualityComparer<string> comparer,
@@ -53,7 +53,7 @@ namespace Roslyn.Utilities
         { }
 
         public TestSyntaxTreeOptionsProvider(
-            params (SyntaxTree, bool? isGenerated)[] isGenerated
+            params (SyntaxTree, GeneratedKind isGenerated)[] isGenerated
         )
         {
             _options = null;
@@ -63,8 +63,8 @@ namespace Roslyn.Utilities
             );
         }
 
-        public override bool? IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
-        => _isGenerated != null && _isGenerated.TryGetValue(tree, out var val) ? val : null;
+        public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
+            => _isGenerated != null && _isGenerated.TryGetValue(tree, out var kind) ? kind : GeneratedKind.Unknown;
 
         public override bool TryGetDiagnosticValue(
             SyntaxTree tree,
