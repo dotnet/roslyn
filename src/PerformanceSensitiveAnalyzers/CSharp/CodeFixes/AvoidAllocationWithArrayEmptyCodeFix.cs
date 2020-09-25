@@ -13,12 +13,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
-namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
+namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AvoidAllocationWithArrayEmptyCodeFix)), Shared]
-    public class AvoidAllocationWithArrayEmptyCodeFix : CodeFixProvider
+    internal sealed class AvoidAllocationWithArrayEmptyCodeFix : CodeFixProvider
     {
-        private readonly string _title = AnalyzersResources.AvoidAllocationByUsingArrayEmpty;
+        private readonly string _title = CodeFixesResources.AvoidAllocationByUsingArrayEmpty;
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(ExplicitAllocationAnalyzer.ObjectCreationRuleId, ExplicitAllocationAnalyzer.ArrayCreationRuleId);
@@ -96,12 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             }
         }
 
-
         private static bool IsMethodInvocationParameter(SyntaxNode node) => node is ArgumentSyntax;
 
         private static bool IsReturnStatement(SyntaxNode node)
         {
-            return node.Parent is ReturnStatementSyntax || node.Parent is YieldStatementSyntax || node.Parent is ArrowExpressionClauseSyntax;
+            return node.Parent is ReturnStatementSyntax or YieldStatementSyntax or ArrowExpressionClauseSyntax;
         }
 
         private static bool IsInsideMemberReturningEnumerable(SyntaxNode node, SemanticModel semanticModel)
@@ -114,12 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static bool IsInsidePropertyDeclaration(SyntaxNode node, SemanticModel semanticModel)
         {
             var propertyDeclaration = node.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (propertyDeclaration != null && IsPropertyTypeReadonlySequence(semanticModel, propertyDeclaration))
-            {
-                return IsAutoPropertyWithGetter(node) || IsArrowExpression(node);
-            }
-
-            return false;
+            return propertyDeclaration != null &&
+                IsPropertyTypeReadonlySequence(semanticModel, propertyDeclaration) &&
+                (IsAutoPropertyWithGetter(node) || IsArrowExpression(node));
         }
 
         private static bool IsAutoPropertyWithGetter(SyntaxNode node)

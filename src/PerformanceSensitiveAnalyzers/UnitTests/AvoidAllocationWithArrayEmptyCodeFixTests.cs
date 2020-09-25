@@ -5,19 +5,12 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
     Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.ExplicitAllocationAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.AvoidAllocationWithArrayEmptyCodeFix>;
+    Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.AvoidAllocationWithArrayEmptyCodeFix>;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
 {
     public class AvoidAllocationWithArrayEmptyCodeFixTests
     {
-        public static readonly TheoryData<string> CollectionTypes = new TheoryData<string>
-        {
-            "IEnumerable<int>",
-            "IReadOnlyList<int>",
-            "IReadOnlyCollection<int>"
-        };
-
         [Theory]
         [InlineData("IEnumerable<int>")]
         [InlineData("IReadOnlyList<int>")]
