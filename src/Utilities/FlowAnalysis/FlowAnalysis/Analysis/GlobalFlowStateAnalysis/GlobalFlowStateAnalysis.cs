@@ -27,6 +27,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         {
         }
 
+        /// <summary>
+        /// Performs global flow state analysis and returns the analysis result.
+        /// </summary>
+        /// <param name="cfg">Control flow graph to analyze.</param>
+        /// <param name="owningSymbol">Owning symbol for the analyzed <paramref name="cfg"/>.</param>
+        /// <param name="createOperationVisitor">Delegate to create a <see cref="GlobalFlowStateDataFlowOperationVisitor"/> that performs the core analysis.</param>
+        /// <param name="wellKnownTypeProvider">Well-known type provider for the compilation.</param>
+        /// <param name="analyzerOptions">Analyzer options for analysis</param>
+        /// <param name="rule"><see cref="DiagnosticDescriptor"/> for fetching any rule specific analyzer option values from <paramref name="analyzerOptions"/>.</param>
+        /// <param name="performValueContentAnalysis">Flag to indicate if <see cref="ValueContentAnalysis.ValueContentAnalysis"/> should be performed.</param>
+        /// <param name="pessimisticAnalysis">
+        /// This boolean field determines if we should perform an optimistic OR a pessimistic analysis.
+        /// For example, invoking a lambda method for which we do not know the target method being invoked can change/invalidate the current global flow state.
+        /// An optimistic points to analysis assumes that the global flow state doesn't change for such scenarios.
+        /// A pessimistic points to analysis resets the the global flow state to an unknown state for such scenarios.
+        /// </param>
+        /// <param name="cancellationToken">Token to cancel analysis.</param>
+        /// <param name="valueContentAnalysisResult">Optional value content analysis result, if <paramref name="performValueContentAnalysis"/> is true</param>
+        /// <param name="interproceduralAnalysisKind"><see cref="InterproceduralAnalysisKind"/> for the analysis.</param>
+        /// <param name="interproceduralAnalysisPredicate">Optional predicate for interprocedural analysis.</param>
+        /// <param name="additionalSupportedValueTypes">Additional value types for which the caller wants to track stored values during value content analysis.</param>
+        /// <param name="getValueContentValueForAdditionalSupportedValueTypeOperation">
+        /// Optional delegate to compute values for <paramref name="additionalSupportedValueTypes"/>.
+        /// Must be non-null if <paramref name="additionalSupportedValueTypes"/> is non-empty.
+        /// </param>
+        /// <returns>Global flow state analysis result, or null if analysis did not succeed.</returns>
         public static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
@@ -35,10 +61,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             bool performValueContentAnalysis,
+            bool pessimisticAnalysis,
             CancellationToken cancellationToken,
             out ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
-            bool pessimisticAnalysis = true,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
             ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
             Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
