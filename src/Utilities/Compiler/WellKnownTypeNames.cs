@@ -109,6 +109,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIEqualityComparer1 = "System.Collections.Generic.IEqualityComparer`1";
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
+        public const string SystemCollectionsGenericIReadOnlyList1 = "System.Collections.Generic.IReadOnlyList`1";
         public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";

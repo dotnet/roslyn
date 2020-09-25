@@ -270,9 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         }
 
         private static readonly ImmutableArray<string> _readonlySequenceTypeNames = ImmutableArray.Create(
-            "System.Collections.Generic.IEnumerable`1",
-            "System.Collections.Generic.IReadOnlyList`1",
-            "System.Collections.Generic.IReadOnlyCollection`1");
+            WellKnownTypeNames.SystemCollectionsGenericIEnumerable1,
+            WellKnownTypeNames.SystemCollectionsGenericIReadOnlyList1,
+            WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
 
         private static IEnumerable<INamedTypeSymbol?> GetReadonlySequenceTypes(SemanticModel semanticModel)
         {
