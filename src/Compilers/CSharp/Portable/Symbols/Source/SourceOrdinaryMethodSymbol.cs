@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, TypeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
+                                                                                 canIgnoreNullableContext: false,
                                                                                  ref isValueTypeOverride,
                                                                                  diagnostics, isForOverride: true);
                 }
@@ -280,9 +281,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
         {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            if (!_lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
@@ -295,9 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    syntax.Identifier.GetLocation(),
+                    canIgnoreNullableContext,
                     diagnostics);
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
+                if (TypeParameterConstraintClauseExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, constraints) &&
+                    _lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext: false))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }

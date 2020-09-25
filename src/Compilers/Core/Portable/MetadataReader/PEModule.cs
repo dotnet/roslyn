@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -17,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1134,6 +1134,53 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+#nullable enable
+        internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
+            EntityHandle token,
+            IAttributeNamedArgumentDecoder attributeArgumentDecoder,
+            Func<string, TypedConstant, bool, (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs)> unmanagedCallersOnlyDecoder)
+        {
+            // We don't want to load all attributes and their public data just to answer whether a PEMethodSymbol has an UnmanagedCallersOnly
+            // attached. It would create unnecessary memory pressure that isn't going to be needed 99% of the time, so we just crack this 1
+            // attribute.
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.UnmanagedCallersOnlyAttribute);
+            if (!info.HasValue || info.SignatureIndex != 0 || !TryGetAttributeReader(info.Handle, out BlobReader sigReader))
+            {
+                return null;
+            }
+
+            var unmanagedConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+
+            if (sigReader.RemainingBytes > 0)
+            {
+                try
+                {
+                    var numNamed = sigReader.ReadUInt16();
+                    for (int i = 0; i < numNamed; i++)
+                    {
+                        var ((name, value), isProperty, typeCode, elementTypeCode) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+                        if (typeCode != SerializationTypeCode.SZArray || elementTypeCode != SerializationTypeCode.Type)
+                        {
+                            continue;
+                        }
+
+                        var namedArgumentDecoded = unmanagedCallersOnlyDecoder(name, value, !isProperty);
+                        if (namedArgumentDecoded.IsCallConvs)
+                        {
+                            unmanagedConventionTypes = namedArgumentDecoded.CallConvs;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
+                {
+                }
+            }
+
+            return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
+        }
+#nullable restore
+
         internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
             Debug.Assert(description.Namespace == "System.Diagnostics.CodeAnalysis");
@@ -1724,7 +1771,7 @@ namespace Microsoft.CodeAnalysis
                 var numNamed = sig.ReadUInt16();
                 for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
                 {
-                    var ((name, value), isProperty, typeCode) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                    var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
                     if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
                     {
                         if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName)
