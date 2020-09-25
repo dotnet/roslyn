@@ -277,7 +277,8 @@
     CompilerGeneratedFilesOutputPath controls the location the files will be output to.
     The compiler will not emit any generated files when the path is empty, and defaults to a /generated directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
     EmitCompilerGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
-    When CompilerGeneratedFilesOutputPath is set we ensure the directory exists, and issue a warning if EmitCompilerGeneratedFiles is true, but no CompilerGeneratedFilesOutputPath is set
+    When EmitCompilerGeneratedFiles is true, we ensure that CompilerGeneatedFilesOutputPath has a value and issue a warning if not.
+    We will create CompilerGeneratedFilesOutputPath if it does not exist.
     -->
   <PropertyGroup>
     <EmitCompilerGeneratedFiles Condition="'$(EmitCompilerGeneratedFiles)' == ''">false</EmitCompilerGeneratedFiles>
@@ -287,7 +288,7 @@
 
   <Target Name="CreateCompilerGeneratedFilesOutputPath"
         BeforeTargets="CoreCompile"
-        Condition="'$(EmitCompilerGeneratedFiles)' == 'true'">
+        Condition="'$(EmitCompilerGeneratedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
 
     <Warning Condition="'$(CompilerGeneratedFilesOutputPath)' == ''"
              Text="EmitCompilerGeneratedFiles was true, but no CompilerGeneratedFilesOutputPath was provided. CompilerGeneratedFilesOutputPath must be set in order to emit generated files." />

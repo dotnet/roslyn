@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var dir = instance.GetPropertyValue("CompilerGeneratedFilesOutputPath");
 
             Assert.Equal("false", emit);
-            Assert.Equal("", dir);
+            Assert.Equal(string.Empty, dir);
         }
 
         [Theory]
