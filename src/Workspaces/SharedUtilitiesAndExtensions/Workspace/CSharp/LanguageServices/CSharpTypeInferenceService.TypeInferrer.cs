@@ -1235,6 +1235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
                     : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
 
+                enumerableType ??= this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+
                 // foreach (int v = Goo())
                 var variableTypes = GetTypes(forEachStatementSyntax.Type);
                 if (!variableTypes.Any())
