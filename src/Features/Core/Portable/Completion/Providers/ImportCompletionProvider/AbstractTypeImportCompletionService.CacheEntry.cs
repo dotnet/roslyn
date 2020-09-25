@@ -7,11 +7,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
@@ -41,46 +42,52 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 string genericTypeSuffix,
                 bool isInternalsVisible,
                 bool isAttributeContext,
-                bool isCaseSensitive)
+                bool isCaseSensitive,
+                bool hideAdvancedMembers)
             {
-                // We will need to adjust some items if the request is made in:
-                // 1. attribute context, then we will not show or complete with "Attribute" suffix.
-                // 2. a project with different language than when the cache entry was created,
-                //    then we will change the generic suffix accordingly.
-                // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;
-                if (isSameLanguage && !isAttributeContext)
-                {
-                    return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
-                }
+                using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
 
-                var builder = ArrayBuilder<CompletionItem>.GetInstance();
                 foreach (var info in ItemInfos)
                 {
-                    if (info.IsPublic || isInternalsVisible)
+                    if (!info.IsPublic && !isInternalsVisible)
                     {
-                        var item = info.Item;
-                        if (isAttributeContext)
-                        {
-                            if (!info.IsAttribute)
-                            {
-                                continue;
-                            }
-
-                            item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
-                        }
-
-                        if (!isSameLanguage && info.IsGeneric)
-                        {
-                            // We don't want to cache this item.
-                            item = ImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
-                        }
-
-                        builder.Add(item);
+                        continue;
                     }
+
+                    // Option to show advanced members is false so we need to exclude them.
+                    if (hideAdvancedMembers && info.IsEditorBrowsableStateAdvanced)
+                    {
+                        continue;
+                    }
+
+                    var item = info.Item;
+
+                    if (isAttributeContext)
+                    {
+                        // Don't show non attribute item in attribute context
+                        if (!info.IsAttribute)
+                        {
+                            continue;
+                        }
+
+                        // We are in attribute context, will not show or complete with "Attribute" suffix.
+                        item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
+                    }
+
+                    // C# and VB the display text is different for generics, i.e. <T> and (Of T). For simpllicity, we only cache for one language.
+                    // But when we trigger in a project with different language than when the cache entry was created for, we will need to
+                    // change the generic suffix accordingly.
+                    if (!isSameLanguage && info.IsGeneric)
+                    {
+                        // We don't want to cache this item.
+                        item = ImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
+                    }
+
+                    builder.Add(item);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
 
                 static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
                 {
@@ -99,14 +106,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 private readonly string _language;
                 private readonly string _genericTypeSuffix;
                 private readonly Checksum _checksum;
+                private readonly EditorBrowsableInfo _editorBrowsableInfo;
 
                 private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
-                public Builder(Checksum checksum, string language, string genericTypeSuffix)
+                public Builder(Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
                 {
                     _checksum = checksum;
                     _language = language;
                     _genericTypeSuffix = genericTypeSuffix;
+                    _editorBrowsableInfo = editorBrowsableInfo;
 
                     _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 }
@@ -121,6 +130,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
                 {
+                    // We want to cache items with EditoBrowsableState == Advanced regardless of current "hide adv members" option value
+                    var (isBrowsable, isEditorBrowsableStateAdvanced) = symbol.IsEditorBrowsableWithState(
+                        hideAdvancedMembers: false,
+                        _editorBrowsableInfo.Compilation,
+                        _editorBrowsableInfo);
+
+                    if (!isBrowsable)
+                    {
+                        // Hide this item from completion
+                        return;
+                    }
+
                     var isGeneric = symbol.Arity > 0;
 
                     // Need to determine if a type is an attribute up front since we want to filter out 
@@ -140,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         CompletionItemFlags.CachedAndExpanded,
                         extensionMethodData: null);
 
-                    _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
+                    _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced));
                 }
 
                 public void Dispose()
