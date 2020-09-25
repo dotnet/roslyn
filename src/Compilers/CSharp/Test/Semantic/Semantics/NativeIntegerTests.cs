@@ -12734,25 +12734,111 @@ class Program
         }
 
         [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
-        [Theory]
-        [InlineData(null)]
-        // PROTOTYPE: Test all base types, signed and unsigned.
-        public void EnumConversions_02(string baseType)
+        [Fact]
+        public void EnumConversions_02()
         {
-            if (baseType != null) baseType = " : " + baseType;
             string source =
+@"using static System.Console;
+enum E { A = -1, B = 1 }
+class Program
+{
+    static E F1(nint i) => (E)i;
+    static E F2(nuint u) => (E)u;
+    static nint F3(E e) => (nint)e;
+    static nuint F4(E e) => (nuint)e;
+    static void Main()
+    {
+        WriteLine(F1(-1));
+        WriteLine(F2(1));
+        WriteLine(F3(E.A));
+        WriteLine(F4(E.B));
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"A
+B
+-1
+2");
+        }
+
+        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [Fact]
+        public void EnumConversions_03()
+        {
+            convert(baseType: null, fromType: "E", toType: "nint", "int.MinValue", "-2147483648", "conv.i", "-2147483648", "conv.i");
+            convert(baseType: null, fromType: "E", toType: "nint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.i");
+            convert(baseType: null, fromType: "E", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: null, fromType: "E", toType: "nuint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.ovf.u");
+            convert(baseType: null, fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i4", "-2147483648", "conv.ovf.i4");
+            convert(baseType: null, fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i4", "2147483647", "conv.ovf.i4");
+            convert(baseType: null, fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i4", "System.OverflowException", "conv.ovf.i4.un");
+
+            convert(baseType: "sbyte", fromType: "E", toType: "nint", "sbyte.MinValue", "-128", "conv.i", "-128", "conv.i");
+            convert(baseType: "sbyte", fromType: "E", toType: "nint", "sbyte.MaxValue", "127", "conv.i", "127", "conv.i");
+            convert(baseType: "sbyte", fromType: "E", toType: "nuint", "sbyte.MinValue", IntPtr.Size == 4 ? "4294967168" : "18446744073709551488", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "sbyte", fromType: "E", toType: "nuint", "sbyte.MaxValue", "127", "conv.i", "127", "conv.ovf.u");
+            convert(baseType: "sbyte", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.i1", "System.OverflowException", "conv.ovf.i1");
+            convert(baseType: "sbyte", fromType: "nint", toType: "E", "int.MaxValue", "-1", "conv.i1", "System.OverflowException", "conv.ovf.i1");
+            convert(baseType: "sbyte", fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i1", "System.OverflowException", "conv.ovf.i1.un");
+
+            convert(baseType: "byte", fromType: "E", toType: "nint", "byte.MaxValue", "255", "conv.u", "255", "conv.u");
+            convert(baseType: "byte", fromType: "E", toType: "nuint", "byte.MaxValue", "255", "conv.u", "255", "conv.u");
+            convert(baseType: "byte", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.u1", "System.OverflowException", "conv.ovf.u1");
+            convert(baseType: "byte", fromType: "nint", toType: "E", "int.MaxValue", "255", "conv.u1", "System.OverflowException", "conv.ovf.u1");
+            convert(baseType: "byte", fromType: "nuint", toType: "E", "uint.MaxValue", "255", "conv.u1", "System.OverflowException", "conv.ovf.u1.un");
+
+            convert(baseType: "short", fromType: "E", toType: "nint", "short.MinValue", "-32768", "conv.i", "-32768", "conv.i");
+            convert(baseType: "short", fromType: "E", toType: "nint", "short.MaxValue", "32767", "conv.i", "32767", "conv.i");
+            convert(baseType: "short", fromType: "E", toType: "nuint", "short.MinValue", IntPtr.Size == 4 ? "4294934528" : "18446744073709518848", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "short", fromType: "E", toType: "nuint", "short.MaxValue", "32767", "conv.i", "32767", "conv.ovf.u");
+            convert(baseType: "short", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.i2", "System.OverflowException", "conv.ovf.i2");
+            convert(baseType: "short", fromType: "nint", toType: "E", "int.MaxValue", "-1", "conv.i2", "System.OverflowException", "conv.ovf.i2");
+            convert(baseType: "short", fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i2", "System.OverflowException", "conv.ovf.i2.un");
+
+            convert(baseType: "ushort", fromType: "E", toType: "nint", "ushort.MaxValue", "65535", "conv.u", "65535", "conv.u");
+            convert(baseType: "ushort", fromType: "E", toType: "nuint", "ushort.MaxValue", "65535", "conv.u", "65535", "conv.u");
+            convert(baseType: "ushort", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.u2", "System.OverflowException", "conv.ovf.u2");
+            convert(baseType: "ushort", fromType: "nint", toType: "E", "int.MaxValue", "65535", "conv.u2", "System.OverflowException", "conv.ovf.u2");
+            convert(baseType: "ushort", fromType: "nuint", toType: "E", "uint.MaxValue", "65535", "conv.u2", "System.OverflowException", "conv.ovf.u2.un");
+
+            convert(baseType: "int", fromType: "E", toType: "nint", "int.MinValue", "-2147483648", "conv.i", "-2147483648", "conv.i");
+            convert(baseType: "int", fromType: "E", toType: "nint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.i");
+            convert(baseType: "int", fromType: "E", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "int", fromType: "E", toType: "nuint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.ovf.u");
+            convert(baseType: "int", fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i4", "-2147483648", "conv.ovf.i4");
+            convert(baseType: "int", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i4", "2147483647", "conv.ovf.i4");
+            convert(baseType: "int", fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i4", "System.OverflowException", "conv.ovf.i4.un");
+
+            convert(baseType: "uint", fromType: "E", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+            convert(baseType: "uint", fromType: "E", toType: "nuint", "uint.MaxValue", "4294967295", "conv.u", "4294967295", "conv.u");
+            convert(baseType: "uint", fromType: "nint", toType: "E", "int.MinValue", "2147483648", "conv.u4", "System.OverflowException", "conv.ovf.u4");
+            convert(baseType: "uint", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.u4", "2147483647", "conv.ovf.u4");
+            convert(baseType: "uint", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u4", "4294967295", "conv.ovf.u4.un");
+
+            convert(baseType: "long", fromType: "E", toType: "nint", "long.MinValue", IntPtr.Size == 4 ? "0" : "-9223372036854775808", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "-9223372036854775808", "conv.ovf.i");
+            convert(baseType: "long", fromType: "E", toType: "nint", "long.MaxValue", "-1", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.i");
+            convert(baseType: "long", fromType: "E", toType: "nuint", "long.MinValue", IntPtr.Size == 4 ? "0" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "long", fromType: "E", toType: "nuint", "long.MaxValue", IntPtr.Size == 4 ? "4294967295" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.u");
+            convert(baseType: "long", fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i8", "-2147483648", "conv.i8");
+            convert(baseType: "long", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.i8");
+            convert(baseType: "long", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
+
+            convert(baseType: "ulong", fromType: "E", toType: "nint", "ulong.MaxValue", "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+            convert(baseType: "ulong", fromType: "E", toType: "nuint", "ulong.MaxValue", IntPtr.Size == 4 ? "4294967295" : "18446744073709551615", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "18446744073709551615", "conv.ovf.u.un");
+            convert(baseType: "ulong", fromType: "nint", toType: "E", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(baseType: "ulong", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
+            convert(baseType: "ulong", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.u8");
+
+            void convert(string baseType, string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
+            {
+                if (baseType != null) baseType = " : " + baseType;
+                string source =
 $@"using System;
 enum E{baseType} {{ A, B }}
 class Program
 {{
-    static E ToEnum1(nint i) => (E)i;
-    static E ToEnum2(nuint u) => (E)u;
-    static E ToEnum3(nint i) => checked((E)i);
-    static E ToEnum4(nuint u) => checked((E)u);
-    static nint FromEnum1(E e) => (nint)e;
-    static nuint FromEnum2(E e) => (nuint)e;
-    static nint FromEnum3(E e) => checked((nint)e);
-    static nuint FromEnum4(E e) => checked((nuint)e);
+    static {toType} Convert({fromType} value) => ({toType})(value);
+    static {toType} ConvertChecked({fromType} value) => checked(({toType})(value));
     static object Execute(Func<object> f)
     {{
         try
@@ -12764,121 +12850,33 @@ class Program
             return e.GetType().FullName;
         }}
     }}
-    static void Execute(E e)
-    {{
-        Console.WriteLine(Execute(() => FromEnum1(e)));
-        Console.WriteLine(Execute(() => FromEnum2(e)));
-        Console.WriteLine(Execute(() => FromEnum3(e)));
-        Console.WriteLine(Execute(() => FromEnum4(e)));
-    }}
-    static void Execute(nint i)
-    {{
-        Console.WriteLine(Execute(() => ToEnum1(i)));
-        Console.WriteLine(Execute(() => ToEnum3(i)));
-    }}
-    static void Execute(nuint u)
-    {{
-        Console.WriteLine(Execute(() => ToEnum2(u)));
-        Console.WriteLine(Execute(() => ToEnum4(u)));
-    }}
     static void Main()
     {{
-        Execute((nint)(-1));
-        Execute((nuint)2);
-        Execute((nint)int.MinValue);
-        Execute((nuint)int.MaxValue);
-        Execute(E.B);
-        Execute((E)int.MinValue);
-        Execute((E)int.MaxValue);
+        {fromType} value = ({fromType})({fromValue});
+        Console.WriteLine(Execute(() => Convert(value)));
+        Console.WriteLine(Execute(() => ConvertChecked(value)));
     }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
-            string expectedOutput =
-@"-1
--1
-2
-2
--2147483648
--2147483648
-2147483647
-2147483647
-1
-1
-1
-1
--2147483648
-18446744071562067968
--2147483648
-System.OverflowException
-2147483647
-2147483647
-2147483647
-2147483647";
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
-            verifier.VerifyIL("Program.ToEnum1",
-@"{
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+$@"{toValueUnchecked}
+{toValueChecked}");
+                verifier.VerifyIL("Program.Convert",
+    $@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  conv.i4
+  IL_0001:  {toConvUnchecked}
   IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.ToEnum2",
-@"{
+}}");
+                verifier.VerifyIL("Program.ConvertChecked",
+    $@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  conv.i4
+  IL_0001:  {toConvChecked}
   IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.ToEnum3",
-@"{
-  // Code size        3 (0x3)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.ovf.i4
-  IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.ToEnum4",
-@"{
-  // Code size        3 (0x3)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.ovf.i4.un
-  IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.FromEnum1",
-@"{
-  // Code size        3 (0x3)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.i
-  IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.FromEnum2",
-@"{
-  // Code size        3 (0x3)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.i
-  IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.FromEnum3",
-@"{
-  // Code size        3 (0x3)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.i
-  IL_0002:  ret
-}");
-            verifier.VerifyIL("Program.FromEnum4",
-@"{
-  // Code size        3 (0x3)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  conv.ovf.u
-  IL_0002:  ret
-}");
+}}");
+            }
         }
     }
 }
