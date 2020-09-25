@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _diagnosticService = diagnosticService;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
-            _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+            // _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
             _clientCapabilities = new VSClientCapabilities();
 
@@ -104,17 +104,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.InitializedName)]
         public async Task InitializedAsync()
         {
-            // Publish diagnostics for all open documents immediately following initialization.
-            var solution = _workspace.CurrentSolution;
-            var openDocuments = _workspace.GetOpenDocumentIds();
-            foreach (var documentId in openDocuments)
-            {
-                var document = solution.GetDocument(documentId);
-                if (document != null)
-                {
-                    await PublishDiagnosticsAsync(document).ConfigureAwait(false);
-                }
-            }
+            //// Publish diagnostics for all open documents immediately following initialization.
+            //var solution = _workspace.CurrentSolution;
+            //var openDocuments = _workspace.GetOpenDocumentIds();
+            //foreach (var documentId in openDocuments)
+            //{
+            //    var document = solution.GetDocument(documentId);
+            //    if (document != null)
+            //    {
+            //        await PublishDiagnosticsAsync(document).ConfigureAwait(false);
+            //    }
+            //}
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
             _shuttingDown = true;
-            _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
+            // _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
             ShutdownRequestQueue();
 
@@ -271,6 +271,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
 
+#if false
+
         private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
             // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
@@ -294,6 +296,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     .CompletesAsyncOperation(asyncToken);
             }
         }
+
+#endif
 
         private void ShutdownRequestQueue()
         {
@@ -355,6 +359,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
+
+#if false
 
         internal async Task PublishDiagnosticsAsync(Document document)
         {
@@ -494,6 +500,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
+
+#endif
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 

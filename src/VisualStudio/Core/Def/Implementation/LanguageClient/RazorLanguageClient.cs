@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 {
+#if false
     /// <summary>
     /// Defines the LSP server for Razor C#.  This is separate so that we can
     /// activate this outside of a liveshare session and publish diagnostics
@@ -48,4 +49,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         {
         }
     }
+#endif
 }
