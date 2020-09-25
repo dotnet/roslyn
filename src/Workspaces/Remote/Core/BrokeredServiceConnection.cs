@@ -205,6 +205,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
+            if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
+            {
+                return false;
+            }
+
             // Do not report telemetry when the host is shutting down or the remote service threw an IO exception:
             if (IsHostShuttingDown || IsRemoteIOException(exception))
             {
@@ -214,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // report telemetry event:
             Logger.Log(FunctionId.FeatureNotAvailable, $"{ServiceDescriptors.GetServiceName(typeof(TService))}: {exception.GetType()}: {exception.Message}");
 
-            return FatalError.ReportWithoutCrashUnlessCanceled(exception, cancellationToken);
+            return FatalError.ReportWithoutCrash(exception);
         }
 
         private bool IsHostShuttingDown
