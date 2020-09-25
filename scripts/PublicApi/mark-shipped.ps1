@@ -29,7 +29,7 @@ function MarkShipped([string]$dir) {
         }
     }
 
-    $shipped | Sort-Object | ?{ -not $removed.Contains($_) } | Out-File $shippedFilePath -Encoding Ascii
+    $shipped | Sort-Object -Culture en-US | ?{ -not $removed.Contains($_) } | Out-File $shippedFilePath -Encoding Ascii
     "" | Out-File $unshippedFilePath -Encoding Ascii
 }
 
