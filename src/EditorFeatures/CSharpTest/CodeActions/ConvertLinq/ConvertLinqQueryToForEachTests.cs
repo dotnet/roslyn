@@ -2527,7 +2527,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        IEnumerable<int> queryables()
+        IEnumerable<int> queryable()
         {
             foreach (int n1 in nums.AsQueryable())
             {
@@ -2535,7 +2535,7 @@ class C
             }
         }
 
-        IEnumerable<int> q = queryables();
+        IEnumerable<int> q = queryable();
     }
 }";
 

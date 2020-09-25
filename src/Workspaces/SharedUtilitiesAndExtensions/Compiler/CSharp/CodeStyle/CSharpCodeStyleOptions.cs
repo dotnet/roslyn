@@ -308,6 +308,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion),
                 s_allOptionsBuilder);
 
+        public static readonly Option2<CodeStyleOption2<bool>> ImplicitObjectCreationWhenTypeIsApparent = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(ImplicitObjectCreationWhenTypeIsApparent),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_implicit_object_creation_when_type_is_apparent"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.ImplicitObjectCreationWhenTypeIsApparent")});
+
+#if false
+
+        public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
+            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarElsewhere),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_elsewhere"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible")});
+
+#endif
+
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

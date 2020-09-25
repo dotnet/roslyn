@@ -82,6 +82,11 @@
         <target state="translated">Biçimlendirme sırasında ek kod temizleme gerçekleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>

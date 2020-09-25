@@ -128,7 +128,8 @@ namespace M
         private static async Task<LSP.CompletionList> RunGetCompletionsAsync(Solution solution, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(queue, LSP.Methods.TextDocumentCompletionName,
                 completionParams, clientCapabilities, null, CancellationToken.None);
         }
     }

@@ -20,18 +20,20 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : AbstractRequestHandler<DocumentSymbolParams, object[]>
+    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
+    internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSymbolsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public DocumentSymbolsHandler()
         {
         }
 
-        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
+
+        public async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();

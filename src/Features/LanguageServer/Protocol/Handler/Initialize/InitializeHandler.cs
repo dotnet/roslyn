@@ -14,13 +14,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.Methods.InitializeName)]
+    [ExportLspMethod(LSP.Methods.InitializeName, mutatesSolutionState: false)]
     internal class InitializeHandler : IRequestHandler<LSP.InitializeParams, LSP.InitializeResult>
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> _completionProviders;
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .Where(lz => lz.Metadata.Language == LanguageNames.CSharp || lz.Metadata.Language == LanguageNames.VisualBasic)
                 .ToImmutableArray();
         }
+
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(InitializeParams request) => null;
 
         public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -58,6 +61,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
                     ProjectContextProvider = true,
+                    SemanticTokensOptions = new LSP.SemanticTokensOptions
+                    {
+                        DocumentProvider = new LSP.SemanticTokensDocumentProviderOptions { Edits = true },
+                        RangeProvider = true,
+                        Legend = new LSP.SemanticTokensLegend
+                        {
+                            TokenTypes = LSP.SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                            TokenModifiers = new string[] { LSP.SemanticTokenModifiers.Static }
+                        }
+                    },
                     ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {

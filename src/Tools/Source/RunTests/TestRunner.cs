@@ -175,7 +175,7 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            if (_options.UseHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
+            if (_options.IncludeHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
             {
                 Process.Start(testResult.ResultsFilePath);
             }

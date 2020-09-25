@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -22,33 +23,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Handle a completion resolve request to add description.
     /// </summary>
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : AbstractRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false)]
+    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public CompletionResolveHandler()
         {
         }
 
-        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
         {
-            CompletionResolveData data;
-            if (completionItem.Data is JToken token)
-            {
-                data = token.ToObject<CompletionResolveData>();
-            }
-            else
-            {
-                return completionItem;
-            }
+            Contract.ThrowIfNull(request.Data);
 
-            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
+            return ((JToken)request.Data).ToObject<CompletionResolveData>();
+        }
+
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
+            => GetCompletionResolveData(request).TextDocument;
+
+        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        {
+            var document = context.Document;
             if (document == null)
             {
                 return completionItem;
             }
 
+            var data = GetCompletionResolveData(completionItem);
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();

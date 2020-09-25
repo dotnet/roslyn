@@ -135,7 +135,8 @@ class A
 
             var progress = new ProgressCollector<LSP.VSReferenceItem>();
 
-            await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+            var queue = CreateRequestQueue(solution);
+            await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
 
             return progress.GetItems();
