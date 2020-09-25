@@ -167,7 +167,7 @@ You can also attach a debugger to Visual Studio and check the loaded modules, lo
 where the various `CodeAnalysis` modules were loaded from (the `RoslynDev` should load them somewhere 
 under `AppData`, not from `Program File`).
 
-### Testing on the `runtime` repo
+### Testing on the [dotnet/runtime](https://github.com/dotnet/runtime) repo
 
 1. make sure that you can build the `runtime` repo as baseline (install some pre-requisites then `build.cmd libs` which should be sufficient to build all C# code)
 2. `build.cmd -pack` on your `roslyn` repo
