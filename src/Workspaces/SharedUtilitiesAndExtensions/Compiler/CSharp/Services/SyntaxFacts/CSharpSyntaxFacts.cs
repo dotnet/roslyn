@@ -2153,7 +2153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     node.Kind() == SyntaxKind.ArrowExpressionClause ||
                     node.Kind() == SyntaxKind.MethodDeclaration;
 
-            static bool StatementIsRoot(SyntaxNode node)
+            static bool IsAccessorBlock(SyntaxNode node)
             {
                 if (node.Kind() == SyntaxKind.Block)
                 {

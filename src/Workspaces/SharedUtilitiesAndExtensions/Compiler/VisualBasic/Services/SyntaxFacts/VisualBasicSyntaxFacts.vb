@@ -2404,7 +2404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetIOperationRootNode(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetIOperationRootNode
-            If (node Is Nothing) Then
+            If node Is Nothing Then
                 Return Nothing
             End If
 
@@ -2412,9 +2412,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Private Shared Function NodeIsOperationRoot(node As SyntaxNode) As Boolean
-
             Dim statementNode = TryCast(node, StatementSyntax)
-            If (statementNode IsNot Nothing) Then
+            If statementNode IsNot Nothing Then
                 Return True
             End If
 
