@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
@@ -205,8 +206,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
-            if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
+            if (exception is OperationCanceledException)
             {
+                // It's a bug for a service to throw OCE based on a different cancellation token than it has received in the call.
+                // The server side filter will report NFW in such scenario, so that the underlying issue can be fixed.
+                // Do not treat this as a critical failure of the service for now and only fail in debug build.
+                Debug.Assert(cancellationToken.IsCancellationRequested);
+
                 return false;
             }
 
