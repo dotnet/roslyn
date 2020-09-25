@@ -625,6 +625,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 TryGetSourceFile(trees(i)).GenerateAllDeclarationErrors()
                             Catch e As Exception When FatalError.ReportUnlessCanceled(e)
                                 Throw ExceptionUtilities.Unreachable
+                            Catch e As OperationCanceledException When cancellationToken.IsCancellationRequested AndAlso e.CancellationToken <> cancellationToken
+                                ' Parallel.For checks for a specific cancellation token, so make sure we throw with the
+                                ' correct one.
+                                cancellationToken.ThrowIfCancellationRequested()
+                                Throw ExceptionUtilities.Unreachable
                             End Try
                         End Sub))
                 trees.Free()

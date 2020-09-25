@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         throw ExceptionUtilities.Unreachable;
                                     }
+                                    catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested && e.CancellationToken != cancellationToken)
+                                    {
+                                        // Parallel.For checks for a specific cancellation token, so make sure we throw with the
+                                        // correct one.
+                                        cancellationToken.ThrowIfCancellationRequested();
+                                        throw ExceptionUtilities.Unreachable;
+                                    }
                                 }));
 
                                 foreach (var member in members)
