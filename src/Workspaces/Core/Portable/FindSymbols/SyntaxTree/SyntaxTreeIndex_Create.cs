@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// doesn't need to be kept around further.
         /// </summary>
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new ConditionalWeakTable<Project, StringTable>();
+            new();
 
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
     internal static class TodoCommentOptions
     {
-        public static readonly Option<string> TokenList = new Option<string>(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0");
+        public static readonly Option<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0");
     }
 
     [ExportOptionProvider, Shared]

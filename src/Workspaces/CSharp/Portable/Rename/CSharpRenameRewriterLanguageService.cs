@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly bool _replacementTextValid;
             private readonly ISimplificationService _simplificationService;
             private readonly ISemanticFactsService _semanticFactsService;
-            private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new HashSet<SyntaxToken>();
-            private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new HashSet<InvocationExpressionSyntax>();
+            private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new();
+            private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new();
 
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
-        private static readonly SymbolDisplayFormat s_format = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_format = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
             parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);

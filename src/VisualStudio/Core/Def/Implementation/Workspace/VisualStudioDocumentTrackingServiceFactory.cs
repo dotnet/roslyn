@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _workspace = workspace;
             }
 
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private int _subscriptions = 0;
             private event EventHandler<DocumentId> _activeDocumentChangedEventHandler;
 

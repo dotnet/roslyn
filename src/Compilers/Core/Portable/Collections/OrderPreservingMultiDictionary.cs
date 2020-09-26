@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         // An empty dictionary we keep around to simplify certain operations (like "Keys")
         // when we don't have an underlying dictionary of our own.
-        private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new Dictionary<K, ValueSet>();
+        private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new();
 
         // The underlying dictionary we store our data in.  null if we are empty.
         private PooledDictionary<K, ValueSet>? _dictionary;

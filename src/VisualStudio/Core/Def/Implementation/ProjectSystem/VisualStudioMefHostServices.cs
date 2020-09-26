@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         public static VisualStudioMefHostServices Create(ExportProvider exportProvider)
-            => new VisualStudioMefHostServices(exportProvider);
+            => new(exportProvider);
 
         /// <summary>
         /// Creates a new <see cref="HostWorkspaceServices"/> associated with the specified workspace.

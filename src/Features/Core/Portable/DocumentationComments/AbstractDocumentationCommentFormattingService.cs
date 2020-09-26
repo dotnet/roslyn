@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private bool _pendingLineBreak;
             private bool _pendingSingleSpace;
 
-            private static readonly TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
-            private static readonly TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
+            private static readonly TaggedText s_spacePart = new(TextTags.Space, " ");
+            private static readonly TaggedText s_newlinePart = new(TextTags.LineBreak, "\r\n");
 
-            internal readonly List<TaggedText> Builder = new List<TaggedText>();
+            internal readonly List<TaggedText> Builder = new();
 
             /// <summary>
             /// Defines the containing lists for the current formatting state. The last item in the list is the
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             /// </item>
             /// </list>
             /// </summary>
-            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new List<(DocumentationCommentListType type, int index, bool renderedItem)>();
+            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new();
 
             /// <summary>
             /// The top item of the stack indicates the hyperlink to apply to text rendered at the current location. It
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             /// (typically shown as a tooltip for the link). This stack is never empty; when no hyperlink applies to the
             /// current scope, the top item of the stack will be a default tuple instance.
             /// </summary>
-            private readonly Stack<(string target, string hint)> _navigationTargetStack = new Stack<(string target, string hint)>();
+            private readonly Stack<(string target, string hint)> _navigationTargetStack = new();
 
             /// <summary>
             /// Tracks the style for text. The top item of the stack is the current style to apply (the merged result of
             /// all containing styles). This stack is never empty; when no style applies to the current scope, the top
             /// item of the stack will be <see cref="TaggedTextStyle.None"/>.
             /// </summary>
-            private readonly Stack<TaggedTextStyle> _styleStack = new Stack<TaggedTextStyle>();
+            private readonly Stack<TaggedTextStyle> _styleStack = new();
 
             public FormatterState()
             {

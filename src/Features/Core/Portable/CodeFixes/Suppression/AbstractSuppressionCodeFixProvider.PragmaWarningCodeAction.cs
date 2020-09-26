@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             public PragmaWarningCodeAction CloneForFixMultipleContext()
-                => new PragmaWarningCodeAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
+                => new(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
 

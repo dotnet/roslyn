@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 => Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
         }
 
-        private static readonly Comparer s_comparer = new Comparer();
+        private static readonly Comparer s_comparer = new();
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

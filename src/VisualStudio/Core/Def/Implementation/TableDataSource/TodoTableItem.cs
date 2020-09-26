@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new LinePosition(Data.OriginalLine, Data.OriginalColumn);
+            => new(Data.OriginalLine, Data.OriginalColumn);
 
         public override string GetOriginalFilePath()
             => Data.OriginalFilePath;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         internal sealed class GroupingComparer : IEqualityComparer<TodoCommentData>, IEqualityComparer<TodoTableItem>
         {
-            public static readonly GroupingComparer Instance = new GroupingComparer();
+            public static readonly GroupingComparer Instance = new();
 
             public bool Equals(TodoCommentData left, TodoCommentData right)
             {

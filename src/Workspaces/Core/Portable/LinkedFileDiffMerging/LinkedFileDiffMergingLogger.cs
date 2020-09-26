@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal class LinkedFileDiffMergingLogger
     {
-        private static readonly LogAggregator LogAggregator = new LogAggregator();
+        private static readonly LogAggregator LogAggregator = new();
 
         internal enum MergeInfo
         {

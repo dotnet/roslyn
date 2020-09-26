@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private TextChange GetWhitespaceTextChange(LineColumn lineColumn, LineColumnDelta delta, TextSpan span)
-            => new TextChange(span, GetWhitespaceString(lineColumn, delta));
+            => new(span, GetWhitespaceString(lineColumn, delta));
 
         private void AddWhitespaceTextChange(LineColumn lineColumn, LineColumnDelta delta, TextSpan span, ArrayBuilder<TextChange> changes)
         {

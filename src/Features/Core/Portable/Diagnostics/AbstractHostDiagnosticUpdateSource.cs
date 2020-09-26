@@ -140,10 +140,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
         }
 
-        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new HostArgsId(this, analyzer, project?.Id);
+        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new(this, analyzer, project?.Id);
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

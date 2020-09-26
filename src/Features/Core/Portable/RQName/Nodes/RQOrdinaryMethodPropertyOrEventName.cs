@@ -28,24 +28,24 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         }
 
         public static RQOrdinaryMethodPropertyOrEventName CreateConstructorName()
-            => new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.MethName, RQNameStrings.SpecialConstructorName);
+            => new(RQNameStrings.MethName, RQNameStrings.SpecialConstructorName);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateDestructorName()
-            => new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.MethName, RQNameStrings.SpecialDestructorName);
+            => new(RQNameStrings.MethName, RQNameStrings.SpecialDestructorName);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryIndexerName()
-            => new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.PropName, RQNameStrings.SpecialIndexerName);
+            => new(RQNameStrings.PropName, RQNameStrings.SpecialIndexerName);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryMethodName(string name)
-            => new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.MethName, name);
+            => new(RQNameStrings.MethName, name);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryEventName(string name)
-            => new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.EventName, name);
+            => new(RQNameStrings.EventName, name);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryPropertyName(string name)
-            => new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.PropName, name);
+            => new(RQNameStrings.PropName, name);
 
         public override SimpleGroupNode ToSimpleTree()
-            => new SimpleGroupNode(_constructType, Name);
+            => new(_constructType, Name);
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         private class SuppressionFixAllProvider : FixAllProvider
         {
-            public static readonly SuppressionFixAllProvider Instance = new SuppressionFixAllProvider();
+            public static readonly SuppressionFixAllProvider Instance = new();
 
             private SuppressionFixAllProvider()
             {

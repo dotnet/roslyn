@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
-        internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+        internal static readonly CSharpSemanticFactsService Instance = new();
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;

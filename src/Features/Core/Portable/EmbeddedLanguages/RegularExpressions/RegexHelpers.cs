@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             => (options & val) != 0;
 
         public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, VirtualCharSequence virtualChars)
-            => new RegexToken(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
+            => new(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
 
         public static RegexToken CreateMissingToken(RegexKind kind)
             => CreateToken(kind, ImmutableArray<RegexTrivia>.Empty, VirtualCharSequence.Empty);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
         public static RegexTrivia CreateTrivia(RegexKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            => new RegexTrivia(kind, virtualChars, diagnostics);
+            => new(kind, virtualChars, diagnostics);
 
         /// <summary>
         /// Maps an escaped character to the actual character it was escaping.  For something like

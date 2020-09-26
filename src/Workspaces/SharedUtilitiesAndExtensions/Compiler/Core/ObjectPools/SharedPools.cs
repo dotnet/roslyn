@@ -41,20 +41,20 @@ namespace Microsoft.CodeAnalysis
         /// pool that uses string as element with StringComparer.OrdinalIgnoreCase as element comparer
         /// </summary>
         public static readonly ObjectPool<HashSet<string>> StringIgnoreCaseHashSet =
-            new ObjectPool<HashSet<string>>(() => new HashSet<string>(StringComparer.OrdinalIgnoreCase), 20);
+            new(() => new HashSet<string>(StringComparer.OrdinalIgnoreCase), 20);
 
         /// <summary>
         /// pool that uses string as element with StringComparer.Ordinal as element comparer
         /// </summary>
         public static readonly ObjectPool<HashSet<string>> StringHashSet =
-            new ObjectPool<HashSet<string>>(() => new HashSet<string>(StringComparer.Ordinal), 20);
+            new(() => new HashSet<string>(StringComparer.Ordinal), 20);
 
         /// <summary>
         /// Used to reduce the # of temporary byte[]s created to satisfy serialization and
         /// other I/O requests
         /// </summary>
-        public static readonly ObjectPool<byte[]> ByteArray = new ObjectPool<byte[]>(() => new byte[ByteBufferSize], ByteBufferCount);
-        public static readonly ObjectPool<char[]> CharArray = new ObjectPool<char[]>(() => new char[ByteBufferSize], CharBufferCount);
+        public static readonly ObjectPool<byte[]> ByteArray = new(() => new byte[ByteBufferSize], ByteBufferCount);
+        public static readonly ObjectPool<char[]> CharArray = new(() => new char[ByteBufferSize], CharBufferCount);
 
         // byte pooled memory : 4K * 512 = 4MB
         public const int ByteBufferSize = 4 * 1024;
@@ -65,18 +65,18 @@ namespace Microsoft.CodeAnalysis
 
         private static class DefaultBigPool<T> where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 100);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 100);
         }
 
         private static class DefaultNormalPool<T> where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 20);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 20);
         }
 
         private static class StringIgnoreCaseDictionaryNormalPool<T>
         {
             public static readonly ObjectPool<Dictionary<string, T>> Instance =
-                new ObjectPool<Dictionary<string, T>>(() => new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase), 20);
+                new(() => new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase), 20);
         }
     }
 }

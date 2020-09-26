@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
-        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+        public static readonly SymbolEquivalenceComparer Instance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
         private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
         private readonly bool _tupleNamesMustMatch;

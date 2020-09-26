@@ -277,13 +277,13 @@ namespace Roslyn.Utilities
             private readonly List<T> _values;
 
             private static readonly ObjectPool<List<T>> s_objectListPool
-                = new ObjectPool<List<T>>(() => new List<T>(20));
+                = new(() => new List<T>(20));
 
             private ReaderReferenceMap(List<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+                => new(s_objectListPool.Allocate());
 
             public void Dispose()
             {

@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private class PerSubjectBufferProperty<TProperty, TTextView> where TTextView : ITextView
         {
             private readonly TTextView _textView;
-            private readonly Dictionary<ITextBuffer, Dictionary<object, TProperty>> _subjectBufferMap = new Dictionary<ITextBuffer, Dictionary<object, TProperty>>();
+            private readonly Dictionary<ITextBuffer, Dictionary<object, TProperty>> _subjectBufferMap = new();
 
             // Some other VS components (e.g. Razor) will temporarily disconnect out ITextBuffer from the ITextView.  When listening to 
             // BufferGraph.GraphBuffersChanged, we should allow buffers we previously knew about to be re-attached.
-            private readonly ConditionalWeakTable<ITextBuffer, Dictionary<object, TProperty>> _buffersRemovedFromTextViewBufferGraph = new ConditionalWeakTable<ITextBuffer, Dictionary<object, TProperty>>();
+            private readonly ConditionalWeakTable<ITextBuffer, Dictionary<object, TProperty>> _buffersRemovedFromTextViewBufferGraph = new();
 
             public static bool GetOrCreateValue(
                 TTextView textView,

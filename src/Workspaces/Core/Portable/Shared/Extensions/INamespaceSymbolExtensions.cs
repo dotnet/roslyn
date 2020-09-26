@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class INamespaceSymbolExtensions
     {
         private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>> s_namespaceToNameMap =
-            new ConditionalWeakTable<INamespaceSymbol, List<string>>();
+            new();
 
         public static readonly Comparison<INamespaceSymbol> CompareNamespaces = CompareTo;
         public static readonly IEqualityComparer<INamespaceSymbol> EqualityComparer = new Comparer();

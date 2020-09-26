@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             NewFile
         }
 
-        public static readonly ExtractInterfaceOptionsResult Cancelled = new ExtractInterfaceOptionsResult(isCancelled: true);
+        public static readonly ExtractInterfaceOptionsResult Cancelled = new(isCancelled: true);
 
         public bool IsCancelled { get; }
         public ImmutableArray<ISymbol> IncludedMembers { get; }

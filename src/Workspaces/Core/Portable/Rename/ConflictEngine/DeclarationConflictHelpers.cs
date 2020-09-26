@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private sealed class ConflictingSignatureComparer : IEqualityComparer<ImmutableArray<ITypeSymbol>>
         {
-            public static readonly ConflictingSignatureComparer Instance = new ConflictingSignatureComparer();
+            public static readonly ConflictingSignatureComparer Instance = new();
 
             private ConflictingSignatureComparer() { }
 

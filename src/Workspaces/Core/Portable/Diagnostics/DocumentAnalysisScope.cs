@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public DocumentAnalysisScope WithSpan(TextSpan? span)
-            => new DocumentAnalysisScope(TextDocument, span, Analyzers, Kind);
+            => new(TextDocument, span, Analyzers, Kind);
 
         public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
-            => new DocumentAnalysisScope(TextDocument, Span, analyzers, Kind);
+            => new(TextDocument, Span, analyzers, Kind);
     }
 }

@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis
         private readonly IOptionService _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
-        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
-        private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
 
         // Current solution.
         private Solution _latestSolution;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
         private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            => new Solution(this, solutionInfo.Attributes, options, analyzerReferences);
+            => new(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.

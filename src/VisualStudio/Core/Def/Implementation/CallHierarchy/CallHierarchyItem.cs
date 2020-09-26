@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         }
 
         public static readonly SymbolDisplayFormat MemberNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public static readonly SymbolDisplayFormat ContainingTypeFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public static readonly SymbolDisplayFormat ContainingNamespaceFormat =
-           new SymbolDisplayFormat(
+           new(
                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private readonly Workspace _workspace;

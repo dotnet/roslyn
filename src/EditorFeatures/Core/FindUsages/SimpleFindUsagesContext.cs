@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// </summary>
     internal class SimpleFindUsagesContext : FindUsagesContext
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
             ImmutableArray.CreateBuilder<DefinitionItem>();
 
