@@ -1148,7 +1148,7 @@ No editorconfig based code style option
 # IDE0084, PreferIsNotExpression
 visual_basic_style_prefer_isnot_expression = true:suggestion
 
-# IDE0091
+# IDE0100
 No editorconfig based code style option
 
 # IDE1006
