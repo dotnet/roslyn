@@ -7775,5 +7775,41 @@ public class P
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(44656, "https://github.com/dotnet/roslyn/issues/44656")]
+        public async Task ImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync( @"
+class A
+{
+    public void Create(A a, B b)
+    {
+    }
+}
+
+class B
+{
+    void M()
+    {
+        new A().Create(new A(), [|new(1)|]);
+    }
+}", @"
+class A
+{
+    public void Create(A a, B b)
+    {
+    }
+}
+
+class B
+{
+    void M()
+    {
+        B {|Rename:b|} = new(1);
+        new A().Create(new A(), b);
+    }
+}");
+        }
     }
 }
