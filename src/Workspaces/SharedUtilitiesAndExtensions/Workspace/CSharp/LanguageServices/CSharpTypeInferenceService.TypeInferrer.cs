@@ -1230,7 +1230,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-
                 var enumerableType = forEachStatementSyntax.AwaitKeyword == default
                     ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
                     : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
