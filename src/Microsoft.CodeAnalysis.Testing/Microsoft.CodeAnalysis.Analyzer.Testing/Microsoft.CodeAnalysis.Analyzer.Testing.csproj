@@ -31,7 +31,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <NuGetApiVersion>5.3.1</NuGetApiVersion>
+        <NuGetApiVersion>5.6.0</NuGetApiVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -40,6 +40,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.MSTest" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.NUnit" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" />
+
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
