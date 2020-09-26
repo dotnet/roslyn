@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The only case we want this block to be entered for function pointers is if it's called with a named argument.
                     // We have a special error for it (ERR_FunctionPointersCannotBeCalledWithNamedArguments) reported
                     // in ReportNoCorrespondingNamedParameter.
-                    && (firstSupported.Member is not FunctionPointerMethodSymbol || firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter)))
+                    && (firstSupported.Member is not FunctionPointerMethodSymbol || firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter))
                 {
                     switch (firstSupported.Result.Kind)
                     {
