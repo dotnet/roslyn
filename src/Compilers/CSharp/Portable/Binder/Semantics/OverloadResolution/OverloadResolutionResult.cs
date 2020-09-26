@@ -473,10 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
                 if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
-                    && !isMethodGroupConversion
-                    // Function pointer type symbols don't have named parameters, so we just want to report a general mismatched parameter
-                    // count instead of name errors.
-                    && !(firstSupported.Member is FunctionPointerMethodSymbol _))
+                    && !isMethodGroupConversion)
                 {
                     switch (firstSupported.Result.Kind)
                     {
@@ -828,6 +825,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Error CS1746: The delegate 'D' does not have a parameter named 'x'
 
             Location location = new SourceLocation(badName);
+
+            // Function pointers cannot be called with named arguments at all.
+            if (bad.Member is FunctionPointerMethodSymbol)
+            {
+                diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, location);
+                return;
+            }
 
             ErrorCode code = (object)delegateTypeBeingInvoked != null ?
                 ErrorCode.ERR_BadNamedArgumentForDelegateInvoke :
