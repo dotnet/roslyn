@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal enum OperatorPosition
         {
             None = 0,
-            Perfix = 1,
+            Prefix = 1,
             Infix = 2,
             Postfix = 4,
         }
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 case WellKnownMemberNames.OnesComplementOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
-                    return OperatorPosition.Perfix;
+                    return OperatorPosition.Prefix;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(m.Name);
             }
