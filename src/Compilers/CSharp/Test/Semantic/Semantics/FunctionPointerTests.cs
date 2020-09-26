@@ -3128,9 +3128,6 @@ public class C
                 // (6,13): error CS8904: A function pointer cannot be called with named arguments.
                 //         ptr(arg0: "a", arg1: 1);
                 Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
-                // (6,24): error CS8904: A function pointer cannot be called with named arguments.
-                //         ptr(arg0: "a", arg1: 1);
-                //Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg1").WithLocation(6, 24)
             );
         }
     }
