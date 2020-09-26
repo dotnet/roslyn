@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
-
         private readonly CSharpCompilationOptions _options;
         private readonly Lazy<Imports> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
@@ -2472,31 +2470,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxTrees = this.SyntaxTrees;
                 if (this.Options.ConcurrentBuild)
                 {
-                    var parallelOptions = cancellationToken.CanBeCanceled
-                                        ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                        : DefaultParallelOptions;
-
-                    Parallel.For(0, syntaxTrees.Length, parallelOptions,
+                    RoslynParallel.For(
+                        0,
+                        syntaxTrees.Length,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
-                            try
-                            {
-                                var syntaxTree = syntaxTrees[i];
-                                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
-                                builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
-                            }
-                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                            {
-                                throw ExceptionUtilities.Unreachable;
-                            }
-                            catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested && e.CancellationToken != cancellationToken)
-                            {
-                                // Parallel.For checks for a specific cancellation token, so make sure we throw with the
-                                // correct one.
-                                cancellationToken.ThrowIfCancellationRequested();
-                                throw ExceptionUtilities.Unreachable;
-                            }
-                        }));
+                            var syntaxTree = syntaxTrees[i];
+                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                        }),
+                        cancellationToken);
                 }
                 else
                 {

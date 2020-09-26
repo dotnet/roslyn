@@ -616,22 +616,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim trees = ArrayBuilder(Of SyntaxTree).GetInstance()
                 trees.AddRange(SyntaxTrees)
 
-                Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                Parallel.For(0, trees.Count, options,
+                RoslynParallel.For(
+                    0,
+                    trees.Count,
                     UICultureUtilities.WithCurrentUICulture(
                         Sub(i As Integer)
-                            Try
-                                cancellationToken.ThrowIfCancellationRequested()
-                                TryGetSourceFile(trees(i)).GenerateAllDeclarationErrors()
-                            Catch e As Exception When FatalError.ReportUnlessCanceled(e)
-                                Throw ExceptionUtilities.Unreachable
-                            Catch e As OperationCanceledException When cancellationToken.IsCancellationRequested AndAlso e.CancellationToken <> cancellationToken
-                                ' Parallel.For checks for a specific cancellation token, so make sure we throw with the
-                                ' correct one.
-                                cancellationToken.ThrowIfCancellationRequested()
-                                Throw ExceptionUtilities.Unreachable
-                            End Try
-                        End Sub))
+                            TryGetSourceFile(trees(i)).GenerateAllDeclarationErrors()
+                        End Sub),
+                    cancellationToken)
                 trees.Free()
             Else
                 For Each tree In SyntaxTrees
