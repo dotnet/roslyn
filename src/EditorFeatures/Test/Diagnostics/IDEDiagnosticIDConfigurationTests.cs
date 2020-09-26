@@ -954,7 +954,7 @@ csharp_style_prefer_not_pattern = true:suggestion
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
 csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
 
-# IDE0091
+# IDE0100
 No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
