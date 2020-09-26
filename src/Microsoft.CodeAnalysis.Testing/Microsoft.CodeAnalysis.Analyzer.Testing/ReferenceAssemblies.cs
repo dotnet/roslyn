@@ -815,14 +815,28 @@ namespace Microsoft.CodeAnalysis.Testing
                         "Microsoft.NETCore.App.Ref",
                         "3.1.0"),
                     Path.Combine("ref", "netcoreapp3.1"));
+        }
 
-            public static ReferenceAssemblies NetCoreApp50 { get; }
-                = new ReferenceAssemblies(
-                    "netcoreapp5.0",
-                    new PackageIdentity(
-                        "Microsoft.NETCore.App.Ref",
-                        "5.0.0-preview.1.20120.5"),
-                    Path.Combine("ref", "netcoreapp5.0"));
+        public static class Net
+        {
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet50 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net5.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net5.0' target framework
+                        throw new NotSupportedException("The 'net5.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net5.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "5.0.0-rc.1.20451.14"),
+                        Path.Combine("ref", "net5.0"));
+                });
+
+            public static ReferenceAssemblies Net50 => _lazyNet50.Value;
         }
 
         public static class NetStandard
@@ -984,6 +998,15 @@ namespace Microsoft.CodeAnalysis.Testing
                         "NETStandard.Library.Ref",
                         "2.1.0"),
                     Path.Combine("ref", "netstandard2.1"));
+        }
+
+        internal static class TestAccessor
+        {
+            public static bool IsPackageBased(string targetFramework)
+            {
+                var framework = NuGetFramework.ParseFolder(targetFramework);
+                return framework.IsPackageBased;
+            }
         }
     }
 }
