@@ -1688,7 +1688,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods,
                     typeContainingConstructor: null,
                     delegateTypeBeingInvoked: null,
-                    returnRefKind: funcPtr.Signature.RefKind);
+                    returnRefKind: funcPtr.Signature.RefKind,
+                    delegateOrFunctionPointerType: funcPtr);
 
                 return new BoundFunctionPointerInvocation(
                     node,
