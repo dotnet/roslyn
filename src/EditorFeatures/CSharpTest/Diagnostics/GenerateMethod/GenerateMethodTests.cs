@@ -2551,7 +2551,7 @@ interface ISomeInterface
 
         [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestInvocationWithinAsynchronousForEach()
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableDoesNotExist_FallbackToIEnumerable()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -2581,8 +2581,44 @@ class C
 
 interface ISomeInterface
 {
-    IAsyncEnumerable<object> GetItems();
+    IEnumerable<object> GetItems();
 }");
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}
+" + IAsyncEnumerable,
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    System.Collections.Generic.IAsyncEnumerable<object> GetItems();
+}
+" + IAsyncEnumerable);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
