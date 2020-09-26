@@ -561,8 +561,8 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0084
 visual_basic_style_prefer_isnot_expression = true:suggestion
 
-# IDE0091
-dotnet_diagnostic.IDE0091.severity = %value%
+# IDE0100
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
