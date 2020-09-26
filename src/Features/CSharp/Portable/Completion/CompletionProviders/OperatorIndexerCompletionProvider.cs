@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -130,18 +132,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.AddItem(indexerCompletion);
             }
 
-            var operators = from m in allMembers.OfType<IMethodSymbol>()
-                            where m.IsUserDefinedOperator() && !IsExcludedOperator(m)
-                            let sign = m.GetOperatorSignOfOperator()
-                            select SymbolCompletionItem.CreateWithSymbolId(
-                                displayText: sign,
-                                filterText: "",
-                                sortText: $"{SortingPrefix}{sign}",
-                                symbols: ImmutableList.Create(m),
-                                rules: CompletionItemRules.Default,
-                                contextPosition: position,
-                                properties: CreateCompletionHandlerProperty(CompletionHandlerOperator));
-            context.AddItems(operators);
+            if (!IsExcludedFromOperators(semanticModel, container))
+            {
+                var operators = from m in allMembers.OfType<IMethodSymbol>()
+                                where m.IsUserDefinedOperator() && !IsExcludedOperator(m)
+                                let sign = m.GetOperatorSignOfOperator()
+                                select SymbolCompletionItem.CreateWithSymbolId(
+                                    displayText: sign,
+                                    filterText: "",
+                                    sortText: $"{SortingPrefix}{sign}",
+                                    symbols: ImmutableList.Create(m),
+                                    rules: CompletionItemRules.Default,
+                                    contextPosition: position,
+                                    properties: CreateCompletionHandlerProperty(CompletionHandlerOperator));
+                context.AddItems(operators);
+            }
+        }
+
+        private static bool IsExcludedFromOperators(SemanticModel semanticModel, ITypeSymbol container)
+        {
+            if (container.IsSpecialType())
+            {
+                return true;
+            }
+            var unbound = container is INamedTypeSymbol named && named.IsGenericType
+                ? named.ConstructedFrom
+                : container;
+            return ExcludedTypes().Any(t => EqualityComparer<ITypeSymbol>.Default.Equals(unbound, t));
+
+            IEnumerable<ITypeSymbol?> ExcludedTypes()
+            {
+                // System
+                yield return GetTypeByMetadataName(typeof(DateTime));
+                yield return GetTypeByMetadataName(typeof(TimeSpan));
+                yield return GetTypeByMetadataName(typeof(DateTimeOffset));
+                yield return GetTypeByMetadataName(typeof(decimal));
+                yield return GetTypeByMetadataName(typeof(IntPtr));
+                yield return GetTypeByMetadataName(typeof(UIntPtr));
+                yield return GetTypeByMetadataName(typeof(Guid));
+                yield return GetTypeByMetadataName(typeof(Span<>));
+                // System.Numeric
+                yield return GetTypeByMetadataName(typeof(BigInteger));
+                yield return GetTypeByMetadataName(typeof(Complex));
+                yield return GetTypeByMetadataName(typeof(Matrix3x2));
+                yield return GetTypeByMetadataName(typeof(Matrix4x4));
+                yield return GetTypeByMetadataName(typeof(Plane));
+                yield return GetTypeByMetadataName(typeof(Quaternion));
+                yield return GetTypeByMetadataName(typeof(Vector<>));
+                yield return GetTypeByMetadataName(typeof(Vector2));
+                yield return GetTypeByMetadataName(typeof(Vector3));
+                yield return GetTypeByMetadataName(typeof(Vector4));
+                // System.Data.SqlTypes
+                yield return GetTypeByMetadataName(typeof(SqlBinary));
+                yield return GetTypeByMetadataName(typeof(SqlBoolean));
+                yield return GetTypeByMetadataName(typeof(SqlByte));
+                yield return GetTypeByMetadataName(typeof(SqlDateTime));
+                yield return GetTypeByMetadataName(typeof(SqlDecimal));
+                yield return GetTypeByMetadataName(typeof(SqlDouble));
+                yield return GetTypeByMetadataName(typeof(SqlGuid));
+                yield return GetTypeByMetadataName(typeof(SqlInt16));
+                yield return GetTypeByMetadataName(typeof(SqlInt32));
+                yield return GetTypeByMetadataName(typeof(SqlInt64));
+                yield return GetTypeByMetadataName(typeof(SqlMoney));
+                yield return GetTypeByMetadataName(typeof(SqlSingle));
+                yield return GetTypeByMetadataName(typeof(SqlString));
+
+                INamedTypeSymbol? GetTypeByMetadataName(Type type)
+                {
+                    var typeName = type.FullName;
+                    if (typeName is not null)
+                    {
+                        return semanticModel.Compilation.GetTypeByMetadataName(typeName);
+                    }
+
+                    return null;
+                }
+            }
         }
 
         private static bool IsExcludedOperator(IMethodSymbol m)
@@ -214,6 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     CompletionHandlerConversion => await HandleConversionChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
                     CompletionHandlerIndexer => await HandleIndexerChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
+                    CompletionHandlerOperator => await HandleOperatorChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
                     _ => throw ExceptionUtilities.UnexpectedValue(value),
                 };
                 if (completionChange is not null)
@@ -223,6 +290,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<CompletionChange?> HandleOperatorChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var symbol = symbols.Length == 1
+                ? symbols[0] as IMethodSymbol
+                : null;
+            if (symbol is not null)
+            {
+                Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
+                var operatorPosition = symbol.GetOperatorPosition();
+                var operatorSign = symbol.GetOperatorSignOfOperator();
+                if (operatorPosition == OperatorSymbolExtensions.OperatorPosition.Infix)
+                {
+                    return await ReplaceDotAndTokenAfterWithTextAsync(document, item, $" {operatorSign} ", 0, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return null;
         }
 
         private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -273,15 +360,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static async Task<CompletionChange?> HandleIndexerChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
+            return await ReplaceDotAndTokenAfterWithTextAsync(document, item, "[]", -1, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, int positionOffset, CancellationToken cancellationToken)
+        {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
             var tokenAtPosition = root.FindTokenOnLeftOfPosition(position);
             var token = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                var newPosition = token.Span.End;
+                var newPosition = token.Span.End + (text.Length - 1) + positionOffset;
                 var replaceSpan = TextSpan.FromBounds(token.SpanStart, tokenAtPosition.Span.End);
-                return CompletionChange.Create(new TextChange(replaceSpan, "[]"), newPosition);
+                return CompletionChange.Create(new TextChange(replaceSpan, text), newPosition);
             }
 
             return null;
@@ -335,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Postfix = 4,
         }
 
-        internal static OperatorPosition GetOperatorPosition(IMethodSymbol m)
+        internal static OperatorPosition GetOperatorPosition(this IMethodSymbol m)
         {
             switch (m.Name)
             {

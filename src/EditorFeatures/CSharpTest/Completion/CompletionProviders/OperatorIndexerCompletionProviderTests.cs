@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Newtonsoft.Json.Linq;
 using System.Collections;
+using System.Numerics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -35,6 +36,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 "+" or "&" or "|" or "/" or "==" or "^" or ">" or ">=" or "!=" or "<<" or "<" or "<=" or "%" or "*" or ">>" or "-" or "--" or "false" or "++" or "!" or "~" or "true" or "-" or "+" => "",
                 _ => base.ItemPartiallyWritten(expectedItemOrNull)
             };
+
+        private static IEnumerable<string[]> BinaryOperators()
+        {
+            yield return new[] { "+" };
+            yield return new[] { "&" };
+            yield return new[] { "|" };
+            yield return new[] { "/" };
+            yield return new[] { "==" };
+            yield return new[] { "^" };
+            yield return new[] { ">" };
+            yield return new[] { ">=" };
+            yield return new[] { "!=" };
+            yield return new[] { "<<" };
+            yield return new[] { "<" };
+            yield return new[] { "<=" };
+            yield return new[] { "%" };
+            yield return new[] { "*" };
+            yield return new[] { ">>" };
+            yield return new[] { "-" };
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
@@ -987,24 +1008,102 @@ public class Program
 ", "+");
         }
 
-        private static IEnumerable<string[]> BinaryOperators()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [InlineData("bool")]
+        [InlineData("System.Boolean")]
+        [InlineData("char")]
+        [InlineData("System.Char")]
+        [InlineData("string")]
+        [InlineData("System.String")]
+        [InlineData("sbyte")]
+        [InlineData("System.SByte")]
+        [InlineData("byte")]
+        [InlineData("System.Byte")]
+        [InlineData("short")]
+        [InlineData("System.Int16")]
+        [InlineData("ushort")]
+        [InlineData("System.UInt16")]
+        [InlineData("int")]
+        [InlineData("System.Int32")]
+        [InlineData("uint")]
+        [InlineData("System.UInt32")]
+        [InlineData("long")]
+        [InlineData("System.Int64")]
+        [InlineData("ulong")]
+        [InlineData("System.UInt64")]
+        [InlineData("float")]
+        [InlineData("System.Single")]
+        [InlineData("double")]
+        [InlineData("System.Double")]
+        [InlineData("decimal")]
+        [InlineData("System.Decimal")]
+        [InlineData("System.IntPtr")]
+        [InlineData("System.UIntPtr")]
+        [InlineData("System.DateTime")]
+        [InlineData("System.TimeSpan")]
+        [InlineData("System.DateTimeOffset")]
+        [InlineData("System.Guid")]
+        // TODO: Add Span, System.Numeric and System.Data.SqlTypes to the test workspace. These types are currently "ErrorTypes" in the semanticModel.
+        [InlineData("System.ReadOnlySpan<int>")]
+        [InlineData("System.Span<int>")]
+        [InlineData("System.Numerics.BigInteger")]
+        [InlineData("System.Numerics.Complex")]
+        [InlineData("System.Numerics.Matrix3x2")]
+        [InlineData("System.Numerics.Matrix4x4")]
+        [InlineData("System.Numerics.Plane")]
+        [InlineData("System.Numerics.Quaternion")]
+        [InlineData("System.Numerics.Vector<int>")]
+        [InlineData("System.Numerics.Vector2")]
+        [InlineData("System.Numerics.Vector3")]
+        [InlineData("System.Numerics.Vector4")]
+        [InlineData("System.Data.SqlTypes.SqlBinary")]
+        [InlineData("System.Data.SqlTypes.SqlBoolean")]
+        [InlineData("System.Data.SqlTypes.SqlByte")]
+        [InlineData("System.Data.SqlTypes.SqlDateTime")]
+        [InlineData("System.Data.SqlTypes.SqlDecimal")]
+        [InlineData("System.Data.SqlTypes.SqlDouble")]
+        [InlineData("System.Data.SqlTypes.SqlGuid")]
+        [InlineData("System.Data.SqlTypes.SqlInt16")]
+        [InlineData("System.Data.SqlTypes.SqlInt32")]
+        [InlineData("System.Data.SqlTypes.SqlInt64")]
+        [InlineData("System.Data.SqlTypes.SqlMoney")]
+        [InlineData("System.Data.SqlTypes.SqlSingle")]
+        [InlineData("System.Data.SqlTypes.SqlString")]
+        public async Task OperatorNoSuggestionForSpecialTypes(string specialType)
         {
-            yield return new[] { "+" };
-            yield return new[] { "&" };
-            yield return new[] { "|" };
-            yield return new[] { "/" };
-            yield return new[] { "==" };
-            yield return new[] { "^" };
-            yield return new[] { ">" };
-            yield return new[] { ">=" };
-            yield return new[] { "!=" };
-            yield return new[] { "<<" };
-            yield return new[] { "<" };
-            yield return new[] { "<=" };
-            yield return new[] { "%" };
-            yield return new[] { "*" };
-            yield return new[] { ">>" };
-            yield return new[] { "-" };
+            await VerifyNoItemsExistAsync(@$"
+public class Program
+{{
+    public void Main()
+    {{
+        {specialType} i = default({specialType});
+        i.$$
+    }}
+}}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorNoSuggestionForTrueAndFalse()
+        {
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static bool operator true(C _) => true;
+    public static bool operator false(C _) => true;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+");
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1029,7 +1128,7 @@ public class Program
 ", binaryOperator, @$"
 public class C
 {{
-    public int this[int i] => i;
+    public static C operator {binaryOperator}(C _, C _) => default;
 }}
 
 public class Program
@@ -1037,7 +1136,7 @@ public class Program
     public void Main()
     {{
         var c = new C();
-        c {binaryOperator}$$
+        c {binaryOperator} $$
     }}
 }}
 ");
