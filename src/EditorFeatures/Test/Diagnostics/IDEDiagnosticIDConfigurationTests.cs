@@ -401,7 +401,7 @@ csharp_style_prefer_not_pattern = true:suggestion
 csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
 
 # IDE0091
-dotnet_diagnostic.IDE0091.severity = %value%
+dotnet_diagnostic.IDE0100.severity = %value%
 
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
