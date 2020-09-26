@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Newtonsoft.Json.Linq;
+using System.Collections;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -26,9 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => typeof(OperatorIndexerCompletionProvider);
 
         protected override string? ItemPartiallyWritten(string? expectedItemOrNull) =>
-            expectedItemOrNull?.Length >= 2 && (expectedItemOrNull.StartsWith("(") || expectedItemOrNull.StartsWith("["))
-            ? expectedItemOrNull.Substring(1, 1)
-            : base.ItemPartiallyWritten(expectedItemOrNull);
+            expectedItemOrNull switch
+            {
+                { Length: >= 2 } s when s.StartsWith("(") || s.StartsWith("[") => expectedItemOrNull.Substring(1, 1),
+                "+" or "&" or "|" or "/" or "==" or "^" or ">" or ">=" or "!=" or "<<" or "<" or "<=" or "%" or "*" or ">>" or "-" or "--" or "false" or "++" or "!" or "~" or "true" or "-" or "+" => "",
+                _ => base.ItemPartiallyWritten(expectedItemOrNull)
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
@@ -955,6 +961,86 @@ public class Program
             Assert.True(indexerCompletionItem.Properties.TryGetValue("Symbols", out var symbols));
             var symbolSplitted = symbols!.Split('|');
             Assert.Equal(2, symbolSplitted.Length);
+        }
+
+        //
+        // Operators
+        //
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorIsSuggestedAfterDot()
+        {
+            await VerifyItemExistsAsync(@"
+public class C
+{
+    public static C operator +(C _, C _) => default;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$;
+    }
+}
+", "+");
+        }
+
+        private static IEnumerable<string[]> BinaryOperators()
+        {
+            yield return new[] { "+" };
+            yield return new[] { "&" };
+            yield return new[] { "|" };
+            yield return new[] { "/" };
+            yield return new[] { "==" };
+            yield return new[] { "^" };
+            yield return new[] { ">" };
+            yield return new[] { ">=" };
+            yield return new[] { "!=" };
+            yield return new[] { "<<" };
+            yield return new[] { "<" };
+            yield return new[] { "<=" };
+            yield return new[] { "%" };
+            yield return new[] { "*" };
+            yield return new[] { ">>" };
+            yield return new[] { "-" };
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(BinaryOperators))]
+        public async Task OperatorBinaryIsCompleted(string binaryOperator)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static C operator {binaryOperator}(C _, C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c.$$
+    }}
+}}
+", binaryOperator, @$"
+public class C
+{{
+    public int this[int i] => i;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c {binaryOperator}$$
+    }}
+}}
+");
         }
     }
 }
