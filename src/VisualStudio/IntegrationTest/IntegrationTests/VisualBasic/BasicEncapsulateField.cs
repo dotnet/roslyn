@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicEncapsulateField : AbstractEditorTest
     {
-        public BasicEncapsulateField(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicEncapsulateField))
+        public BasicEncapsulateField(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicEncapsulateField))
         {
         }
 

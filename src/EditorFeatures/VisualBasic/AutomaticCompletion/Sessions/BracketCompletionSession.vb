@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion.Sessions
             Return CheckCurrentPosition(session, cancellationToken)
         End Function
 
-        Private Function IsBracketInCData(token As SyntaxToken) As Boolean
+        Private Shared Function IsBracketInCData(token As SyntaxToken) As Boolean
             Dim skippedToken = TryCast(token.Parent, SkippedTokensTriviaSyntax)
             If skippedToken Is Nothing Then
                 Return False

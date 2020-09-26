@@ -40,7 +40,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Installs the keys used for testing into the machine cache on Windows.
         /// </summary>
-        internal unsafe static void InstallKey()
+        internal static unsafe void InstallKey()
         {
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -55,7 +55,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private unsafe static void InstallKey(byte[] keyBlob, string keyName)
+        private static unsafe void InstallKey(byte[] keyBlob, string keyName)
         {
             try
             {

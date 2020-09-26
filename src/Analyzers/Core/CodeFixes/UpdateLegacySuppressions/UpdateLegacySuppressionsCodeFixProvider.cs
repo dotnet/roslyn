@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (diagnostic.Properties?.ContainsKey(AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.DocCommentIdKey) == true &&
+                if (diagnostic.Properties?.ContainsKey(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey) == true &&
                     root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) != null)
                 {
                     context.RegisterCodeFix(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                var newDocCommentId = diagnostic.Properties[AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.DocCommentIdKey];
+                var newDocCommentId = diagnostic.Properties[AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey];
                 editor.ReplaceNode(node, editor.Generator.LiteralExpression(newDocCommentId).WithTriviaFrom(node));
             }
 

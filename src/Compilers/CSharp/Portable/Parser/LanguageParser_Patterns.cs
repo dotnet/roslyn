@@ -308,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
+                    subPatterns.SeparatorCount == 0 &&
                     subPatterns[0].NameColon == null)
                 {
                     var subpattern = subPatterns[0].Pattern;

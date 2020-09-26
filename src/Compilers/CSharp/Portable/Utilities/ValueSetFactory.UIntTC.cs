@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             uint INumericTC<uint>.MaxValue => uint.MaxValue;
 
+            uint INumericTC<uint>.Zero => 0;
+
             public bool Related(BinaryOperatorKind relation, uint left, uint right)
             {
                 switch (relation)

@@ -16,13 +16,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpF1Help(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpF1Help))
+        public CSharpF1Help(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpF1Help))
         {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        void F1Help()
+        private void F1Help()
         {
             var text = @"
 using System;

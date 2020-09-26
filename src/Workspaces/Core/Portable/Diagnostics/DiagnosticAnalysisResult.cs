@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -254,13 +255,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             => (IsAggregatedForm || IsEmpty) ? ImmutableArray<DiagnosticData>.Empty : _others;
 
         public DiagnosticAnalysisResult ToAggregatedForm()
-            => new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
+            => new(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
 
         public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId, bool fromBuild)
-            => new DiagnosticAnalysisResult(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
+            => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
 
         public DiagnosticAnalysisResult Reset()
-            => new DiagnosticAnalysisResult(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
+            => new(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
 
         public DiagnosticAnalysisResult DropExceptSyntax()
         {
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetDocument(documentId)?.SupportsDiagnostics() == true);
+                Debug.Assert(project.GetTextDocument(documentId)?.SupportsDiagnostics() == true);
             }
         }
     }

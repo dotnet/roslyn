@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return null;
         }
 
-        private SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
+        private static SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
             => owningNode switch
             {
-                BaseFieldDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                BaseMethodDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                BasePropertyDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                StatementSyntax n => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
-                UsingDirectiveSyntax n => SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
+                BaseFieldDeclarationSyntax _ => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                BaseMethodDeclarationSyntax _ => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                BasePropertyDeclarationSyntax _ => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                StatementSyntax _ => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                UsingDirectiveSyntax _ => SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
 
                 _ => (SyntaxNode)null,
             };
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// <summary>
         /// wrap field in type
         /// </summary>
-        private string WrapInType(string textToParse)
+        private static string WrapInType(string textToParse)
             => "class C { " + textToParse + " }";
 
         /// <summary>

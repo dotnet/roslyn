@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new LoadKeywordRecommender(),
                 new LockKeywordRecommender(),
                 new LongKeywordRecommender(),
+                new ManagedKeywordRecommender(),
                 new MethodKeywordRecommender(),
                 new ModuleKeywordRecommender(),
                 new NameOfKeywordRecommender(),
@@ -186,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override async Task<CSharpSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var span = new TextSpan(position, length: 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 

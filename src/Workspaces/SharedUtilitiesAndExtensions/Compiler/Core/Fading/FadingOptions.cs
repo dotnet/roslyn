@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Fading
 {
     internal static class FadingOptions
     {
-        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new PerLanguageOption2<bool>(
+        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
             nameof(FadingOptions), nameof(FadeOutUnusedImports), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnusedImports)}"));
 
-        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new PerLanguageOption2<bool>(
+        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
             nameof(FadingOptions), nameof(FadeOutUnreachableCode), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnreachableCode)}"));
     }

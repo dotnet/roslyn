@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
-        private OptionsCollection OptionOn()
+        private static OptionsCollection OptionOn()
         {
             var optionsSet = new OptionsCollection(LanguageNames.CSharp);
             optionsSet.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, true);

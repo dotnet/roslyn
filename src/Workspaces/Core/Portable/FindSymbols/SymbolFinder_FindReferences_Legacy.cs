@@ -68,19 +68,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
-            return FindReferencesAsync(
+            return await FindReferencesAsync(
                 symbol, solution, progress, documents,
-                FindReferencesSearchOptions.Default, cancellationToken);
+                FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static class TestAccessor
         {
-            internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            internal static Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
                 ISymbol symbol,
                 Solution solution,
                 IFindReferencesProgress progress,

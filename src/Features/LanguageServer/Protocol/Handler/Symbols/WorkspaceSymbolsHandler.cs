@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.WorkspaceSymbolName)]
+    [ExportLspMethod(Methods.WorkspaceSymbolName, mutatesSolutionState: false)]
     internal class WorkspaceSymbolsHandler : IRequestHandler<WorkspaceSymbolParams, SymbolInformation[]>
     {
         [ImportingConstructor]
@@ -26,9 +26,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<SymbolInformation[]> HandleRequestAsync(Solution solution, WorkspaceSymbolParams request,
-            ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceSymbolParams request) => null;
+
+        public async Task<SymbolInformation[]> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            var solution = context.Solution;
+
             var searchTasks = Task.WhenAll(solution.Projects.Select(project => SearchProjectAsync(project, request, cancellationToken)));
             return (await searchTasks.ConfigureAwait(false)).SelectMany(s => s).ToArray();
 

@@ -360,9 +360,6 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-#if !CODE_STYLE // TODO: Skipped tests in CodeStyle layer depend on new compiler API (IsNativeIntegerType) that is not available in CodeStyle layer.
-        // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task InNativeIntIntrinsicType()
@@ -414,7 +411,6 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
-#endif
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
@@ -1955,7 +1951,7 @@ class C
 }", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInCheckedExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1981,7 +1977,7 @@ class C
 }", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInAwaitExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -2017,7 +2013,7 @@ class C
 }", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInBuiltInNumericType()
         {
             await TestInRegularAndScriptAsync(
@@ -2041,7 +2037,7 @@ class C
 }", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInBuiltInCharType()
         {
             await TestInRegularAndScriptAsync(
@@ -2069,7 +2065,7 @@ class C
 }", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInBuiltInType_string()
         {
             // though string isn't an intrinsic type per the compiler
@@ -2095,7 +2091,7 @@ class C
 }", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInBuiltInType_object()
         {
             // object isn't an intrinsic type per the compiler
@@ -2123,7 +2119,7 @@ class C
 }", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelSilent()
         {
             var source =
@@ -2141,7 +2137,7 @@ class C
                 diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelInfo()
         {
             var source =
@@ -2159,7 +2155,7 @@ class C
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
         public async Task SuggestExplicitTypeNotificationLevelWarning()
         {
@@ -2178,7 +2174,7 @@ class C
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelError()
         {
             var source =
@@ -2285,7 +2281,7 @@ class C
 options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames1()
         {
@@ -2301,7 +2297,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames2()
         {
@@ -2319,7 +2315,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames3()
         {
@@ -2335,7 +2331,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames4()
         {
@@ -2355,7 +2351,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames5()
         {
@@ -2372,7 +2368,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames6()
         {
@@ -2389,7 +2385,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames7()
         {
@@ -2406,7 +2402,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames8()
         {
@@ -2428,7 +2424,7 @@ class C
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames9()
         {
@@ -2445,7 +2441,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames10()
         {
@@ -2463,7 +2459,7 @@ class Program
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
         public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames11()
         {

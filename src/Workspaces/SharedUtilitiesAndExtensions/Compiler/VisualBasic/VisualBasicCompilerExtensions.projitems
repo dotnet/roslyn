@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SingleLineRewriter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.vb" />
@@ -28,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicDocumentationCommentService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\VisualBasicInferredMemberNameSimplifier.vb" />

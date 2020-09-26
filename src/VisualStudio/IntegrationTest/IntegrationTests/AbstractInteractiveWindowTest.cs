@@ -10,8 +10,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

@@ -81,6 +81,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
+        public void AddAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.AddAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void RemoveAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.RemoveAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void SetLanguageVersion(ProjectUtils.Project projectName, string languageVersion)
+        {
+            _inProc.SetLanguageVersion(projectName.Name, languageVersion);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
         /// <summary>
         /// Add a PackageReference to the specified project. Generally this should be followed up by
         /// a call to <see cref="RestoreNuGetPackages"/>.
@@ -107,8 +125,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(ProjectUtils.Project project, string fileName)
             => _inProc.GetFileContents(project.Name, fileName);
 
-        public void BuildSolution(bool waitForBuildToFinish)
-            => _inProc.BuildSolution(waitForBuildToFinish);
+        public void BuildSolution()
+            => _inProc.BuildSolution();
 
         public void OpenFileWithDesigner(ProjectUtils.Project project, string fileName)
             => _inProc.OpenFileWithDesigner(project.Name, fileName);
@@ -208,11 +226,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddStandaloneFile(string fileName)
             => _inProc.AddStandaloneFile(fileName);
-
-        public void BeginWatchForCodingConventionsChange(ProjectUtils.Project project, string fileName)
-            => _inProc.BeginWatchForCodingConventionsChange(project.Name, fileName);
-
-        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
-            => _inProc.EndWaitForCodingConventionsChange(timeout);
     }
 }

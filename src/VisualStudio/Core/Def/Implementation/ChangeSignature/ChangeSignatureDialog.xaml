@@ -48,20 +48,24 @@
         <Thickness x:Key="textboxPadding">2</Thickness>
         <vs:NegateBooleanConverter x:Key="NegateBooleanConverter"/>
         <RoutedUICommand x:Key="MoveUp" />
+        <RoutedUICommand x:Key="MoveUpFocus" />
         <RoutedUICommand x:Key="MoveDown" />
+        <RoutedUICommand x:Key="MoveDownFocus" />
         <RoutedUICommand x:Key="MoveSelectionUp" />
         <RoutedUICommand x:Key="MoveSelectionDown" />
         <RoutedUICommand x:Key="ClickOK" />
         <RoutedUICommand x:Key="ToggleRemovedState" />
     </Window.Resources>
     <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource MoveUpFocus}" Executed="MoveUp_Click_FocusRow" />
         <CommandBinding Command="{StaticResource MoveUp}" Executed="MoveUp_Click" />
+        <CommandBinding Command="{StaticResource MoveDownFocus}" Executed="MoveDown_Click_FocusRow" />
         <CommandBinding Command="{StaticResource MoveDown}" Executed="MoveDown_Click" />
         <CommandBinding Command="{StaticResource ToggleRemovedState}" Executed="ToggleRemovedState" />
     </Window.CommandBindings>
     <Window.InputBindings>
-        <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
-        <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
+        <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUpFocus}" />
+        <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDownFocus}" />
         <KeyBinding Key="Delete" Command="{StaticResource ToggleRemovedState}" />
         <KeyBinding Key="Return" Command="{StaticResource ClickOK}" />
     </Window.InputBindings>
@@ -199,6 +203,11 @@
                     <!-- This column appears empty to sighted users, but provides an improved screenreader 
                     experience that avoids moving cell-by-cell through the DataGrid -->
                     <DataGridTextColumn x:Name="automationHeader" IsReadOnly="True" Width="0">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="{x:Type DataGridColumnHeader}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding ElementName=dialog, Path=CurrentParameter}" />
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}"/>
@@ -308,7 +317,7 @@
                 <ScrollViewer Name="Scroller"
                               AutomationProperties.Name="{Binding SignaturePreviewAutomationText}"
                               AutomationProperties.LabeledBy="{Binding ElementName=PreviewMethodSignatureLabel}"
-                              IsTabStop="True"
+                              IsTabStop="False"
                               Padding="8, 4, 4, 4" 
                               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" 
                               Content="{Binding SignatureDisplay}" 
@@ -318,6 +327,7 @@
             <StackPanel Name="ControlButtonsPanel" Grid.Column="1" Grid.Row="0" Height="Auto" Width="Auto" Margin="0, 3, 0, 0" >
                 <vs:DialogButton Name="UpButton" 
                                  AutomationProperties.Name="{Binding MoveUpAutomationText}"
+                                 ToolTip="{Binding MoveUpAutomationText}"
                                  Margin="9 0 0 0"
                                  IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
                                  AutomationProperties.AutomationId="UpButton"
@@ -331,6 +341,7 @@
                 </vs:DialogButton>
                 <vs:DialogButton Name="DownButton" 
                                  AutomationProperties.Name="{Binding MoveDownAutomationText}"
+                                 ToolTip="{Binding MoveDownAutomationText}"
                                  Margin="9 9 0 0"
                                  IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
                                  AutomationProperties.AutomationId="DownButton"

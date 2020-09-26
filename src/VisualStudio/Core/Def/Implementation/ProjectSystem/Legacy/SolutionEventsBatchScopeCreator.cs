@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
             {
-                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemID);
+                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
 
                 // Some document is being opened in this project; we need to ensure the project is fully updated so any requests
                 // for CodeModel or the workspace are successful.

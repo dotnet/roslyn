@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private static void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             if (selectionOpt.HasValue)
             {
@@ -188,6 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
-            => new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
+            => new(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
     }
 }

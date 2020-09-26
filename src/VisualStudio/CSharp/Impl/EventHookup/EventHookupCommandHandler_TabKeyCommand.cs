@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
                 // The += token will not move during this process, so it is safe to use that
                 // position as a location from which to find the identifier we're renaming.
-                BeginInlineRename(workspace, textView, subjectBuffer, plusEqualTokenEndPosition, cancellationToken);
+                BeginInlineRename(textView, plusEqualTokenEndPosition, cancellationToken);
             }
         }
 
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")));
         }
 
-        private void BeginInlineRename(Workspace workspace, ITextView textView, ITextBuffer subjectBuffer, int plusEqualTokenEndPosition, CancellationToken cancellationToken)
+        private void BeginInlineRename(ITextView textView, int plusEqualTokenEndPosition, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 

@@ -228,15 +228,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        private const string SpecExample3 = @"for (int i = 0; i < 10; i++) {
-    if (x) {
-        break;
-    }
-    else {
-        continue;
-    }
-}";
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample3_1()
         {

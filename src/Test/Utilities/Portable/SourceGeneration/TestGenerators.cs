@@ -24,12 +24,12 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _hintName = hintName;
         }
 
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
-            context.AdditionalSources.Add(this._hintName, SourceText.From(_content, Encoding.UTF8));
+            context.AddSource(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
 
-        public void Initialize(InitializationContext context)
+        public void Initialize(GeneratorInitializationContext context)
         {
         }
     }
@@ -43,31 +43,31 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
     internal class CallbackGenerator : ISourceGenerator
     {
-        private readonly Action<InitializationContext> _onInit;
-        private readonly Action<SourceGeneratorContext> _onExecute;
+        private readonly Action<GeneratorInitializationContext> _onInit;
+        private readonly Action<GeneratorExecutionContext> _onExecute;
         private readonly string? _source;
 
-        public CallbackGenerator(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string? source = "")
+        public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "")
         {
             _onInit = onInit;
             _onExecute = onExecute;
             _source = source;
         }
 
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
             _onExecute(context);
             if (!string.IsNullOrWhiteSpace(_source))
             {
-                context.AdditionalSources.Add("source.cs", SourceText.From(_source, Encoding.UTF8));
+                context.AddSource("source.cs", SourceText.From(_source, Encoding.UTF8));
             }
         }
-        public void Initialize(InitializationContext context) => _onInit(context);
+        public void Initialize(GeneratorInitializationContext context) => _onInit(context);
     }
 
     internal class CallbackGenerator2 : CallbackGenerator
     {
-        public CallbackGenerator2(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string? source = "") : base(onInit, onExecute, source)
+        public CallbackGenerator2(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "") : base(onInit, onExecute, source)
         {
         }
     }
@@ -76,30 +76,28 @@ namespace Roslyn.Test.Utilities.TestGenerators
     {
         public bool CanApplyChanges { get; set; } = true;
 
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
             foreach (var file in context.AdditionalFiles)
             {
-                AddSourceForAdditionalFile(context.AdditionalSources, file);
+                context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
             }
         }
 
-        public void Initialize(InitializationContext context)
+        public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForAdditionalFileChanges(UpdateContext);
         }
 
-        bool UpdateContext(EditContext context, AdditionalFileEdit edit)
+        bool UpdateContext(GeneratorEditContext context, AdditionalFileEdit edit)
         {
             if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
             {
-                AddSourceForAdditionalFile(context.AdditionalSources, add.AddedText);
+                context.AdditionalSources.Add(GetGeneratedFileName(add.AddedText.Path), SourceText.From("", Encoding.UTF8));
                 return true;
             }
             return false;
         }
-
-        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
         private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path.Replace('\\', Path.DirectorySeparatorChar))}.generated";
     }

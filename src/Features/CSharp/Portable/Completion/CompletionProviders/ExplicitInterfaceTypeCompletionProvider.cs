@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<SyntaxContext> CreateContextAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(
                 document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }

@@ -4715,7 +4715,7 @@ namespace ConsoleApplication24
             ERR_AnonMethGrpInForEach = 446,
             //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
             ERR_BadIncDecRetType = 448,
-            ERR_RefValBoundMustBeFirst = 449,
+            ERR_TypeConstraintsMustBeUniqueAndFirst = 449,
             ERR_RefValBoundWithClass = 450,
             ERR_NewBoundWithVal = 451,
             ERR_RefConstraintNotSatisfied = 452,
@@ -9608,7 +9608,7 @@ class Program
     };
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
             compVerifier.VerifyIL("Program.M2", @"
@@ -9673,7 +9673,7 @@ class Program
       IL_004b:  ret
     }
 ");
-            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics();
             compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
             compVerifier.VerifyIL("Program.M2", @"

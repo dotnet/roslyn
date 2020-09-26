@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
                 return CommandState.Unspecified;
             }

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             XElement dumpXML = LoadChildNamespace1(assembly.Modules[0].GlobalNamespace);
 
             var baseLine = XElement.Load(new MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes));
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test2()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             XElement dumpXML = LoadChildNamespace2(assembly.Modules[0].GlobalNamespace);
 
             var baseLine = XElement.Load(new MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes));
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test3()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             var module0 = assembly.Modules[0];
             var globalNS = module0.GlobalNamespace;
 
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test4()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             TestGetMembersOfName(assembly.Modules[0]);
 
             var assembly2 = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase);
@@ -378,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var compilation = CSharpCompilation.Create("C1", references:
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_21006.mscorlib,
+                    Net40.mscorlib,
                     TestReferences.SymbolsTests.WithSpaces
                 });
 
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var compilation = CSharpCompilation.Create("C1", references:
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_21006.mscorlib,
+                    Net40.mscorlib,
                     TestReferences.SymbolsTests.WithSpacesModule
                 });
 

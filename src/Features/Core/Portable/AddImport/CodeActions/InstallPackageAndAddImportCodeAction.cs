@@ -48,13 +48,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 // Make a SolutionChangeAction.  This way we can let it generate the diff
                 // preview appropriately.
-                var solutionChangeAction = new SolutionChangeAction(
-                    "", c => GetUpdatedSolutionAsync(c));
+                var solutionChangeAction = new SolutionChangeAction("", c => GetUpdatedSolutionAsync(c));
 
-                var result = ArrayBuilder<CodeActionOperation>.GetInstance();
+                using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
                 result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
                 result.Add(_installOperation);
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)

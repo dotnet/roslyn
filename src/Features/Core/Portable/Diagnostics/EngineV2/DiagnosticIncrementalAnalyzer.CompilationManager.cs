@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => AnalyzerHelper.CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
 
+        private void ClearCompilationsWithAnalyzersCache(Project project)
+            => _projectCompilationsWithAnalyzers.Remove(project);
+
         private void ClearCompilationsWithAnalyzersCache()
         {
             // we basically eagarly clear the cache on some known changes

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -126,8 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
             // type it will be preferred over the switch expression conversion.  Technically, we would want the language
             // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
-            // from the type, and we accomplish that by making it lowest priority.
-            return GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            // from the type, and we accomplish that by making it lowest priority.  The same is true for the conditional
+            // expression conversion.
+            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            if (conversion.Exists)
+            {
+                return conversion;
+            }
+            return GetConditionalExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -352,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // unambiguous. The native compiler in this case prefers the explicit conversion,
             // and for backwards compatibility, we match it.
 
-            return implicitConversion.Exists ? implicitConversion : Conversion.NoConversion;
+            return implicitConversion;
         }
 
         /// <summary>
@@ -839,6 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitNullable:
+                case ConversionKind.ConditionalExpression:
                     return true;
 
                 default:
@@ -980,6 +988,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return Conversion.NoConversion;
             }
+        }
+
+        private Conversion GetConditionalExpressionConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (!(source is BoundUnconvertedConditionalOperator conditionalOperator))
+                return Conversion.NoConversion;
+
+            var trueConversion = this.ClassifyImplicitConversionFromExpression(conditionalOperator.Consequence, destination, ref useSiteDiagnostics);
+            if (!trueConversion.Exists)
+                return Conversion.NoConversion;
+
+            var falseConversion = this.ClassifyImplicitConversionFromExpression(conditionalOperator.Alternative, destination, ref useSiteDiagnostics);
+            if (!falseConversion.Exists)
+                return Conversion.NoConversion;
+
+            return Conversion.MakeConditionalExpression(ImmutableArray.Create(trueConversion, falseConversion));
         }
 
         private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
@@ -1493,12 +1517,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
+            var sourceIsPossiblyNullableTypeParameter = IsPossiblyNullableTypeTypeParameter(source);
+            var destinationIsPossiblyNullableTypeParameter = IsPossiblyNullableTypeTypeParameter(destination);
+            if (sourceIsPossiblyNullableTypeParameter && !destinationIsPossiblyNullableTypeParameter)
             {
                 return destination.NullableAnnotation.IsAnnotated();
             }
 
-            if (destination.IsPossiblyNullableTypeTypeParameter() && !source.IsPossiblyNullableTypeTypeParameter())
+            if (destinationIsPossiblyNullableTypeParameter && !sourceIsPossiblyNullableTypeParameter)
             {
                 return source.NullableAnnotation.IsAnnotated();
             }
@@ -1523,12 +1549,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
+            if (IsPossiblyNullableTypeTypeParameter(source) && !IsPossiblyNullableTypeTypeParameter(destination))
             {
                 return false;
             }
 
             return !source.NullableAnnotation.IsAnnotated();
+        }
+
+        private static bool IsPossiblyNullableTypeTypeParameter(in TypeWithAnnotations typeWithAnnotations)
+        {
+            var type = typeWithAnnotations.Type;
+            return type is object &&
+                (type.IsPossiblyNullableReferenceTypeTypeParameter() || type.IsNullableTypeOrTypeParameter());
         }
 
         /// <summary>
@@ -1884,15 +1917,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var s0 = source.StrippedType();
             var t0 = target.StrippedType();
 
-            if (s0.SpecialType != SpecialType.System_UIntPtr &&
-                s0.SpecialType != SpecialType.System_IntPtr &&
-                t0.SpecialType != SpecialType.System_UIntPtr &&
-                t0.SpecialType != SpecialType.System_IntPtr)
+            TypeSymbol otherType;
+            if (isIntPtrOrUIntPtr(s0))
+            {
+                otherType = t0;
+            }
+            else if (isIntPtrOrUIntPtr(t0))
+            {
+                otherType = s0;
+            }
+            else
             {
                 return false;
             }
-
-            TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
             if (otherType.IsPointerOrFunctionPointer())
             {
@@ -1922,6 +1959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+
+            static bool isIntPtrOrUIntPtr(TypeSymbol type) =>
+                (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerType;
         }
 
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)
@@ -2956,12 +2996,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (sourceSig.CallingConvention == Cci.CallingConvention.Unmanaged &&
+                !sourceSig.GetCallingConventionModifiers().SetEquals(destinationSig.GetCallingConventionModifiers()))
+            {
+                return false;
+            }
+
             for (int i = 0; i < sourceSig.ParameterCount; i++)
             {
                 var sourceParam = sourceSig.Parameters[i];
-                var destintationParam = destinationSig.Parameters[i];
+                var destinationParam = destinationSig.Parameters[i];
 
-                if (sourceParam.RefKind != destintationParam.RefKind)
+                if (sourceParam.RefKind != destinationParam.RefKind)
                 {
                     return false;
                 }
@@ -3455,20 +3501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The spec should state that any pointer type is convertible to
             // sbyte, byte, ... etc, or any corresponding nullable type.
 
-            switch (destination.StrippedType().SpecialType)
-            {
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                    return true;
-            }
-
-            return false;
+            return IsIntegerTypeSupportingPointerConversions(destination.StrippedType());
         }
 
         private static bool HasIntegerToPointerConversion(TypeSymbol source, TypeSymbol destination)
@@ -3482,8 +3515,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Note that void* is convertible to int?, but int? is not convertible to void*.
+            return IsIntegerTypeSupportingPointerConversions(source);
+        }
 
-            switch (source.SpecialType)
+        private static bool IsIntegerTypeSupportingPointerConversions(TypeSymbol type)
+        {
+            switch (type.SpecialType)
             {
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
@@ -3494,6 +3531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int64:
                 case SpecialType.System_UInt64:
                     return true;
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return type.IsNativeIntegerType;
             }
 
             return false;

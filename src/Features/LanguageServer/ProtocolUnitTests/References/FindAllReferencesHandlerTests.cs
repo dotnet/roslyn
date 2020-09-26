@@ -129,8 +129,9 @@ class A
                 SupportsVisualStudioExtensions = true
             };
 
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
-                solution, CreateReferenceParams(caret), vsClientCapabilities, null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
+                CreateReferenceParams(caret), vsClientCapabilities, null, CancellationToken.None);
         }
 
         private static void AssertValidDefinitionProperties(LSP.ReferenceItem[] referenceItems, int definitionIndex)

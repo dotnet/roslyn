@@ -258,9 +258,6 @@ unsafe class Test
                 // (8,40): error CS0841: Cannot use local variable 'obj3' before it is declared
                 //         var obj3 = stackalloc    [ ] { obj3 };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(8, 40),
-                // (8,40): error CS0165: Use of unassigned local variable 'obj3'
-                //         var obj3 = stackalloc    [ ] { obj3 };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj3").WithArguments("obj3").WithLocation(8, 40),
                 // (13,40): error CS0841: Cannot use local variable 'obj1' before it is declared
                 //         var obj1 = stackalloc int[2] { obj1[0] , obj1[1] };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 40),
@@ -314,9 +311,6 @@ unsafe class Test
                 // (8,54): error CS0841: Cannot use local variable 'obj3' before it is declared
                 //         var obj3 = c ? default : stackalloc    [ ] { obj3 };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(8, 54),
-                // (8,54): error CS0165: Use of unassigned local variable 'obj3'
-                //         var obj3 = c ? default : stackalloc    [ ] { obj3 };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj3").WithArguments("obj3").WithLocation(8, 54),
                 // (13,54): error CS0841: Cannot use local variable 'obj1' before it is declared
                 //         var obj1 = c ? default : stackalloc int[2] { obj1[0] , obj1[1] };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 54),

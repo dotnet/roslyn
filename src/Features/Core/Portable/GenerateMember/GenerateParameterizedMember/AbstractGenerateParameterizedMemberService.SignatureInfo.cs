@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var optionality = DetermineParameterOptionality(cancellationToken);
                 var names = DetermineParameterNames(cancellationToken);
 
-                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
                 for (var i = 0; i < modifiers.Length; i++)
                 {
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         name: names[i].BestNameForParameter));
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private Accessibility DetermineAccessibility(bool isAbstract)

@@ -1404,6 +1404,107 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             Return currentSymbol
         End Function
 
+        <WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")>
+        <Fact>
+        Public Sub UseSiteError_01()
+            Dim sourceA =
+"
+public class A
+End Class
+"
+            Dim comp = CreateCompilation(sourceA, assemblyName:="UseSiteError_sourceA")
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"
+public class B( Of T)
+    public enum E
+        F
+    end enum
+end class
+public class C
+    public const F as B(Of A).E = Nothing
+end class
+"
+            comp = CreateCompilation(sourceB, references:={refA})
+            Dim refB = comp.EmitToImageReference()
+
+            Dim sourceC =
+"
+class Program
+    Shared Sub Main()
+        const x As Integer = CType(Not C.F, Integer)
+        System.Console.WriteLine(x)
+    End Sub
+end class
+"
+            comp = CreateCompilation(sourceC, references:={refB})
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+        const x As Integer = CType(Not C.F, Integer)
+                                       ~~~
+</expected>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim expr = tree.GetRoot().DescendantNodes().Single(Function(n) n.Kind() = SyntaxKind.NotExpression)
+            Dim value = model.GetConstantValue(expr)
+            Assert.True(value.HasValue)
+            Assert.Equal(-1, value.Value)
+        End Sub
+
+        <WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")>
+        <Fact>
+        Public Sub UseSiteError_02()
+            Dim sourceA =
+"
+public class A
+End Class
+"
+            Dim comp = CreateCompilation(sourceA, assemblyName:="UseSiteError_sourceA")
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"
+public class B( Of T)
+    public enum E
+        F
+    end enum
+end class
+public class C
+    public const F as B(Of A).E = Nothing
+end class
+"
+            comp = CreateCompilation(sourceB, references:={refA})
+            Dim refB = comp.EmitToImageReference()
+
+            Dim sourceC =
+"
+Option Infer On 
+class Program
+    Shared Sub Main()
+        Dim x = Not C.F
+        System.Console.WriteLine(x)
+    End Sub
+end class
+"
+            comp = CreateCompilation(sourceC, references:={refB}, options:=TestOptions.ReleaseExe)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+        Dim x = Not C.F
+                    ~~~
+</expected>)
+
+            comp = CreateCompilation(sourceC, references:={refB}, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+        Dim x = Not C.F
+                    ~~~
+</expected>)
+        End Sub
     End Class
 
 End Namespace

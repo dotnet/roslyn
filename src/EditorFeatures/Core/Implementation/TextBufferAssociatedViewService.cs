@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor
     internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
     {
 #if DEBUG
-        private static readonly HashSet<ITextView> s_registeredViews = new HashSet<ITextView>();
+        private static readonly HashSet<ITextView> s_registeredViews = new();
 #endif
 
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
-            new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
+            new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         [Conditional("DEBUG")]
-        private void DebugRegisterView_NoLock(ITextView textView)
+        private static void DebugRegisterView_NoLock(ITextView textView)
         {
 #if DEBUG
             if (s_registeredViews.Add(textView))
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
 #if DEBUG
-        private void OnTextViewClose(object sender, EventArgs e)
+        private static void OnTextViewClose(object sender, EventArgs e)
         {
             var view = sender as ITextView;
 

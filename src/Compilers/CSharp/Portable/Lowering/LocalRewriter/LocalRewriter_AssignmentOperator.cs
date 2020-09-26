@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (setMethod is null)
             {
-                var autoProp = (SourceOrRecordPropertySymbol)property;
+                var autoProp = (SourcePropertySymbolBase)property;
                 Debug.Assert(autoProp.IsAutoProperty,
                     "only autoproperties can be assignable without having setters");
 
@@ -380,7 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [DisallowNull] T newElement)
+        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, T newElement)
+            where T : notnull
         {
             Debug.Assert(newElement is { });
             return possibleNull.NullToEmpty().Add(newElement);

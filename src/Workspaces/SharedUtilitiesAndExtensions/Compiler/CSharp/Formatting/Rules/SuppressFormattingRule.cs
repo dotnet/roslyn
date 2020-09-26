@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private static bool IsFormatDirective(DirectiveTriviaSyntax trivia, SyntaxKind disableOrRestoreKeyword)
+        private static bool IsFormatDirective(DirectiveTriviaSyntax? trivia, SyntaxKind disableOrRestoreKeyword)
         {
             if (!(trivia is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
             {

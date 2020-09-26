@@ -48,7 +48,7 @@ namespace Roslyn.Utilities
         /// We'll then kick of a task to process this in the future if we don't already have an
         /// existing task in flight for that.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// Data added that we want to process in our next update task.
@@ -126,6 +126,12 @@ namespace Roslyn.Utilities
                 AddItemsToBatch(items);
                 TryKickOffNextBatchTask();
             }
+        }
+
+        public Task WaitUntilCurrentBatchCompletesAsync()
+        {
+            lock (_gate)
+                return _updateTask;
         }
 
         private void AddItemsToBatch(IEnumerable<TItem> items)

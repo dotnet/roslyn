@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicFindReferences))
+        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicFindReferences))
         {
         }
 

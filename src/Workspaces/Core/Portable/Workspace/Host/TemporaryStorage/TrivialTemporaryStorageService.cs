@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        public static readonly TrivialTemporaryStorageService Instance = new TrivialTemporaryStorageService();
+        public static readonly TrivialTemporaryStorageService Instance = new();
 
         private TrivialTemporaryStorageService()
         {

@@ -1707,5 +1707,22 @@ public class Repro
     private readonly object second;
 }");
         }
+
+        [WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46785"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    private string [|_x|] = string.Empty;
+
+    public bool M()
+    {
+        ref var myVar = ref x;
+        return myVar is null;
+    }
+}");
+        }
     }
 }

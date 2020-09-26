@@ -37,5 +37,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         StatementAttributes,
         TopLevelStatements,
         InitOnlySetters,
+        AnonymousFunctions,
+        ModuleInitializers,
+        FunctionPointers,
     }
 }

@@ -883,7 +883,7 @@ oneMoreTime:
         ///
         /// gets emitted as something like ===>
         ///
-        /// Try           
+        /// Try
         ///     TryBlock
         /// Filter 
         ///     var tmp = Pop() as {ExceptionType}
@@ -902,6 +902,9 @@ oneMoreTime:
         ///     variable ex can be used here
         ///     Handler
         /// EndCatch
+        /// 
+        /// When evaluating `Condition` requires additional statements be executed first, those
+        /// statements are stored in `catchBlock.ExceptionFilterPrologueOpt` and emitted before the condition.
         /// </remarks>
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
@@ -1005,6 +1008,7 @@ oneMoreTime:
                 while (exceptionSource.Kind == BoundKind.Sequence)
                 {
                     var seq = (BoundSequence)exceptionSource;
+                    Debug.Assert(seq.Locals.IsDefaultOrEmpty);
                     EmitSideEffects(seq);
                     exceptionSource = seq.Value;
                 }
@@ -1053,6 +1057,12 @@ oneMoreTime:
             else
             {
                 _builder.EmitOpCode(ILOpCode.Pop);
+            }
+
+            if (catchBlock.ExceptionFilterPrologueOpt != null)
+            {
+                Debug.Assert(_builder.IsStackEmpty);
+                EmitStatements(catchBlock.ExceptionFilterPrologueOpt.Statements);
             }
 
             // Emit the actual filter expression, if we have one, and normalize

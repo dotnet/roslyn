@@ -9,15 +9,14 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions
 {
     internal sealed class SnippetFunctionSimpleTypeName : AbstractSnippetFunctionSimpleTypeName
     {
-        public SnippetFunctionSimpleTypeName(SnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
-            : base(snippetExpansionClient, textView, subjectBuffer, fieldName, fullyQualifiedName)
+        public SnippetFunctionSimpleTypeName(SnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
+            : base(snippetExpansionClient, subjectBuffer, fieldName, fullyQualifiedName)
         {
         }
 

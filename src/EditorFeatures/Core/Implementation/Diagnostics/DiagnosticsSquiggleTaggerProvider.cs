@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
         }
 
-        private string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
         }
 
-        private string? GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
         {
             if (diagnostic.Severity == DiagnosticSeverity.Error &&
                 diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))

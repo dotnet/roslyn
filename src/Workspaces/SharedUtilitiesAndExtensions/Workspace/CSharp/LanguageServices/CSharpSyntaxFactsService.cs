@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class CSharpSyntaxFactsService : CSharpSyntaxFacts, ISyntaxFactsService
         {
-            internal static new readonly CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
+            internal static new readonly CSharpSyntaxFactsService Instance = new();
 
             public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return syntaxTree.IsInNonUserCode(position, cancellationToken);
             }
 
-            private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+            private static readonly SyntaxAnnotation s_annotation = new();
 
             public void AddFirstMissingCloseBrace<TContextNode>(
                 SyntaxNode root, TContextNode contextNode,

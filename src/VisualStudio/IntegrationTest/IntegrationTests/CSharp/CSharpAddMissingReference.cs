@@ -105,8 +105,8 @@ class Program
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

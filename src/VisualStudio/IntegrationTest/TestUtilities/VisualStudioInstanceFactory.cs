@@ -78,10 +78,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 Directory.CreateDirectory(logDir);
 
-                var exception = eventArgs.Exception;
-                File.WriteAllText(
-                    Path.Combine(logDir, $"{baseFileName}.log"),
-                    $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
+                File.WriteAllText(Path.Combine(logDir, $"{baseFileName}.log"), eventArgs.Exception.ToString());
 
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
@@ -120,7 +117,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+                var shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
                 await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
@@ -342,6 +339,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
                 // custom handler or fail silently and continue testing.
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Text Editor\" \"Report Exceptions\" dword 0")).WaitForExit();
+
+                // Configure RemoteHostOptions.OOP64Bit for testing
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOP64BIT"), "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Features\" OOP64Bit dword 0")).WaitForExit();
+                }
 
                 _firstLaunch = false;
             }

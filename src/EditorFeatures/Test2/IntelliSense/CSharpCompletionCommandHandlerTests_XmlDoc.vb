@@ -669,7 +669,7 @@ class c
             Return InvokeWithKeywordCommitSeeLangword("await", showCompletionInArgumentLists)
         End Function
 
-        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c

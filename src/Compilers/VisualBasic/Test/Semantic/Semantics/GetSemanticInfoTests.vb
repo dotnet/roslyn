@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Imports Roslyn.Test.Utilities
 
@@ -4493,7 +4494,7 @@ Module Program
     End Function
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -4555,7 +4556,7 @@ Module Program
     End Sub
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
             comp.AssertNoDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -5298,7 +5299,7 @@ End Namespace End Class
        apInitScenario("7. generic T_Method B ----------------------------
 
 }]]></file>
-    </compilation>, {SystemCoreRef, SystemRef, SystemDataRef}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
+    </compilation>, {Net40.SystemCore, Net40.System, Net40.SystemData}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
 
             compilation.GetDiagnostics()
 

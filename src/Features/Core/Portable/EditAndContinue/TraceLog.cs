@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public override string ToString() => (Object is null) ? Int32.ToString() : Object.ToString();
 
-            public static implicit operator Arg(string value) => new Arg(value);
-            public static implicit operator Arg(int value) => new Arg(value);
-            public static implicit operator Arg(ProjectId value) => new Arg(value.Id.GetHashCode());
-            public static implicit operator Arg(ProjectAnalysisSummary value) => new Arg(ToString(value));
-            public static implicit operator Arg(Diagnostic value) => new Arg(value);
+            public static implicit operator Arg(string value) => new(value);
+            public static implicit operator Arg(int value) => new(value);
+            public static implicit operator Arg(ProjectId value) => new(value.Id.GetHashCode());
+            public static implicit operator Arg(ProjectAnalysisSummary value) => new(ToString(value));
+            public static implicit operator Arg(Diagnostic value) => new(value);
 
             private static string ToString(ProjectAnalysisSummary summary)
                 => summary switch
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

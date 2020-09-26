@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // this helper class is primarily to improve active typing perf. don't bother to cache
                 // something very big. 
                 private const int MaxClassificationNumber = 32;
-                private readonly object _gate = new object();
+                private readonly object _gate = new();
 
                 // mutating state
                 private SnapshotSpan _span;

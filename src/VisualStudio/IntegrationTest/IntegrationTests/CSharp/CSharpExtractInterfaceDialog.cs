@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractInterfaceDialog))
+        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpExtractInterfaceDialog))
         {
         }
 
@@ -166,7 +166,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     void M();
@@ -238,7 +238,7 @@ class C : IC
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"namespace A
 {
     interface IC
@@ -274,7 +274,7 @@ class C : IC
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     bool M();

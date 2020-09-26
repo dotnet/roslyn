@@ -18,16 +18,6 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
-            public static bool IsBodyLevelSymbol(ISymbol symbol)
-                => symbol switch
-                {
-                    ILabelSymbol _ => true,
-                    IRangeVariableSymbol _ => true,
-                    ILocalSymbol _ => true,
-                    IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
-                    _ => false,
-                };
-
             public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
@@ -116,29 +106,40 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var name = reader.ReadString();
+                var name = reader.ReadString()!;
                 var kind = (SymbolKind)reader.ReadInteger();
-                var locations = reader.ReadLocationArray();
+#pragma warning disable IDE0007 // Use implicit type
+                PooledArrayBuilder<Location> locations = reader.ReadLocationArray(out var locationsFailureReason)!;
+#pragma warning restore IDE0007 // Use implicit type
                 var ordinal = reader.ReadInteger();
 
-                // First check if we can recover the symbol just through the original location.
-                foreach (var loc in locations)
+                if (locationsFailureReason != null)
                 {
-                    var resolutionOpt = reader.ResolveLocation(loc);
-                    if (resolutionOpt.HasValue)
+                    failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> {locationsFailureReason})";
+                    return default;
+                }
+
+                // First check if we can recover the symbol just through the original location.
+
+                string? totalFailureReason = null;
+                for (var i = 0; i < locations.Count; i++)
+                {
+                    var loc = locations[i];
+
+                    if (!TryResolveLocation(loc, i, out var resolution, out var reason))
                     {
-                        var resolution = resolutionOpt.Value;
-                        var symbol = resolution.GetAnySymbol();
-                        if (symbol?.Kind == kind &&
-                            SymbolKey.Equals(reader.Compilation, name, symbol.Name))
-                        {
-                            return resolution;
-                        }
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
                     }
+
+                    failureReason = null;
+                    return resolution;
                 }
 
                 // Couldn't recover.  See if we can still find a match across the textual drift.
@@ -148,11 +149,49 @@ namespace Microsoft.CodeAnalysis
                     foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
                     {
                         if (symbol.ordinal == ordinal)
+                        {
+                            failureReason = null;
                             return new SymbolKeyResolution(symbol.symbol);
+                        }
                     }
                 }
 
+                failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found -> {totalFailureReason})";
                 return default;
+
+                bool TryResolveLocation(Location loc, int index, out SymbolKeyResolution resolution, out string? reason)
+                {
+                    var resolutionOpt = reader.ResolveLocation(loc);
+                    if (resolutionOpt == null)
+                    {
+                        reason = $"location {index} failed to resolve";
+                        resolution = default;
+                        return false;
+                    }
+
+                    resolution = resolutionOpt.Value;
+                    var symbol = resolution.GetAnySymbol();
+                    if (symbol == null)
+                    {
+                        reason = $"location {index} did not produce any symbol";
+                        return false;
+                    }
+
+                    if (symbol.Kind != kind)
+                    {
+                        reason = $"location {index} did not match kind: {symbol.Kind} != {kind}";
+                        return false;
+                    }
+
+                    if (!SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                    {
+                        reason = $"location {index} did not match name: {symbol.Name} != {name}";
+                        return false;
+                    }
+
+                    reason = null;
+                    return true;
+                }
             }
 
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(

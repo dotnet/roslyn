@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
 
             var spanStart = position;
             while (true)

@@ -67,7 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_topologicallySortedNodes.IsDefault)
                 {
                     // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-                    _topologicallySortedNodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors, out _topologicallySortedNodes);
+
+                    // Since these nodes were constructed by an isomorphic mapping from a known acyclic graph, it cannot be cyclic
+                    Debug.Assert(wasAcyclic);
                 }
 
                 return _topologicallySortedNodes;

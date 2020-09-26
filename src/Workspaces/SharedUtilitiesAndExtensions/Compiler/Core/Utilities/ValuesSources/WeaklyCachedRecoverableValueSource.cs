@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = Task.CompletedTask;
-        private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
+        private static readonly NonReentrantLock s_taskGuard = new();
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
@@ -161,7 +161,9 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
+#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
             return null;
+#pragma warning restore VSTHRD114 // Avoid returning a null Task
         }
     }
 }

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return CompileAndVerifyCommon(compilation, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
-        static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
+        internal static void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
             Assert.True(assemblyValidator != null || symbolValidator != null);
 
@@ -389,6 +389,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     references.Add(referencedCompilation.EmitToImageReference());
                 }
             }
+        }
+
+        internal static MetadataReference AsReference(Compilation comp, bool useCompilationReference)
+        {
+            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
         }
 
         public static string WithWindowsLineBreaks(string source)

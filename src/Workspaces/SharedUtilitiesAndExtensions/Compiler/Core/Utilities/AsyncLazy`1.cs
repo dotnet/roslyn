@@ -13,6 +13,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
+    internal static class AsyncLazy
+    {
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
+            => new(asynchronousComputeFunction, cacheResult);
+    }
+
     /// <summary>
     /// Represents a value that can be retrieved synchronously or asynchronously by many clients.
     /// The value will be computed on-demand the moment the first client asks for it. While being
@@ -56,7 +62,7 @@ namespace Roslyn.Utilities
         /// by using a single lock for all AsyncLazy instances.  Only trivial and non-reentrant work
         /// should be done while holding the lock.
         /// </summary>
-        private static readonly NonReentrantLock s_gate = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private static readonly NonReentrantLock s_gate = new(useThisInstanceForSynchronization: true);
 
         /// <summary>
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,

@@ -350,12 +350,8 @@ namespace Microsoft.CodeAnalysis
             out string? outputFileName,
             out string? outputDirectory)
         {
-            outputFileName = null;
-            outputDirectory = null;
-            string? invalidPath = null;
-
             string unquoted = RemoveQuotesAndSlashes(value);
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out string? invalidPath);
             if (outputFileName == null ||
                 !MetadataHelpers.IsValidAssemblyOrModuleName(outputFileName))
             {
@@ -370,13 +366,10 @@ namespace Microsoft.CodeAnalysis
             IList<Diagnostic> errors,
             string? baseDirectory)
         {
-            string? outputFileName = null;
-            string? outputDirectory = null;
             string? pdbPath = null;
-            string? invalidPath = null;
 
             string unquoted = RemoveQuotesAndSlashes(value);
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out string? outputFileName, out string? outputDirectory, out string? invalidPath);
             if (outputFileName == null ||
                 PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
             {
@@ -398,12 +391,9 @@ namespace Microsoft.CodeAnalysis
             string? baseDirectory,
             bool generateDiagnostic = true)
         {
-            string? outputFileName = null;
-            string? outputDirectory = null;
             string? genericPath = null;
-            string? invalidPath = null;
 
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out string? outputFileName, out string? outputDirectory, out string? invalidPath);
             if (string.IsNullOrWhiteSpace(outputFileName))
             {
                 if (generateDiagnostic)
@@ -559,9 +549,7 @@ namespace Microsoft.CodeAnalysis
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                bool hasValue;
-                string? value;
-                if (isClientArgsOption(arg, "keepalive", out hasValue, out value))
+                if (isClientArgsOption(arg, "keepalive", out bool hasValue, out string? value))
                 {
                     if (string.IsNullOrEmpty(value))
                     {
@@ -569,8 +557,7 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    int intValue;
-                    if (int.TryParse(value, out intValue))
+                    if (int.TryParse(value, out int intValue))
                     {
                         if (intValue < -1)
                         {
@@ -618,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
+            static bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
             {
                 hasValue = false;
                 optionValue = null;
@@ -660,13 +647,11 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-                using (TextReader reader = CreateTextFileReader(fullPath))
+                using TextReader reader = CreateTextFileReader(fullPath);
+                string? str;
+                while ((str = reader.ReadLine()) != null)
                 {
-                    string? str;
-                    while ((str = reader.ReadLine()) != null)
-                    {
-                        lines.Add(str);
-                    }
+                    lines.Add(str);
                 }
             }
             catch (Exception)
@@ -1000,9 +985,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static Encoding? TryParseEncodingName(string arg)
         {
-            long codepage;
             if (!string.IsNullOrWhiteSpace(arg)
-                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out codepage)
+                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out long codepage)
                 && (codepage > 0))
             {
                 try

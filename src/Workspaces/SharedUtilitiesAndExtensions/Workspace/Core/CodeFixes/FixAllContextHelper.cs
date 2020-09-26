@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
             FixAllContext fixAllContext,
-            IProgressTracker progressTrackerOpt)
+            IProgressTracker? progressTrackerOpt)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
@@ -86,14 +88,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
 
             var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            foreach (var documentAndDiagnostics in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
+            foreach (var (document, diagnosticsForDocument) in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
             {
+                if (document is null)
+                    continue;
+
                 cancellationToken.ThrowIfCancellationRequested();
-                var document = documentAndDiagnostics.Key;
                 if (!await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
-                    builder.Add(document, diagnosticsForDocument);
+                    builder.Add(document, diagnosticsForDocument.ToImmutableArray());
                 }
             }
 
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     builder.Add(tree, document);
                 }
             }
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return builder.ToImmutable();
         }
 
-        private static Document GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
+        private static Document? GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
         {
             var tree = diagnostic.Location.SourceTree;
             if (tree != null)
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static string GetDefaultFixAllTitle(
             FixAllScope fixAllScope,
             ImmutableHashSet<string> diagnosticIds,
-            Document triggerDocument,
+            Document? triggerDocument,
             Project triggerProject)
         {
             string diagnosticId;
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return string.Format(WorkspaceExtensionsResources.Fix_all_0, diagnosticId);
 
                 case FixAllScope.Document:
-                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument.Name);
+                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument!.Name);
 
                 case FixAllScope.Project:
                     return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerProject.Name);

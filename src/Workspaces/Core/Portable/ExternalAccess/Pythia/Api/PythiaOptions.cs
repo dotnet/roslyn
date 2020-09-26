@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
     {
         public const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        public static readonly Option<bool> ShowDebugInfo = new Option<bool>(
+        public static readonly Option<bool> ShowDebugInfo = new(
             "InternalFeatureOnOffOptions", nameof(ShowDebugInfo), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ShowDebugInfo)));
 
-        public static readonly Option<bool> RemoveRecommendationLimit = new Option<bool>(
+        public static readonly Option<bool> RemoveRecommendationLimit = new(
             "InternalFeatureOnOffOptions", nameof(RemoveRecommendationLimit), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(RemoveRecommendationLimit)));
     }

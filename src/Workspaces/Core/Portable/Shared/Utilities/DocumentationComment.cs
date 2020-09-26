@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private readonly Dictionary<string, string> _parameterTexts = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _typeParameterTexts = new Dictionary<string, string>();
-        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new Dictionary<string, ImmutableArray<string>>();
+        private readonly Dictionary<string, string> _parameterTexts = new();
+        private readonly Dictionary<string, string> _typeParameterTexts = new();
+        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new();
 
         /// <summary>
         /// Returns the text for a given parameter, or null if no documentation was given for the parameter.
@@ -300,6 +300,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// An empty comment.
         /// </summary>
-        public static readonly DocumentationComment Empty = new DocumentationComment(string.Empty);
+        public static readonly DocumentationComment Empty = new(string.Empty);
     }
 }

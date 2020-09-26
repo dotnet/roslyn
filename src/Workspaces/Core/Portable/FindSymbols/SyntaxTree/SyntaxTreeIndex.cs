@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _extensionMethodInfo = extensionMethodInfo;
         }
 
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new ConditionalWeakTable<Document, SyntaxTreeIndex>();
-        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         public sealed override bool HasActionSets => true;
 
-        public async sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

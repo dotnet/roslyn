@@ -21,6 +21,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
+        private static ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
+            ImmutableArray.Create(
+                (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
+                (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
+                (PatternMatchKind.Substring, NavigateToMatchKind.Substring),
+                (PatternMatchKind.CamelCaseExact, NavigateToMatchKind.CamelCaseExact),
+                (PatternMatchKind.CamelCasePrefix, NavigateToMatchKind.CamelCasePrefix),
+                (PatternMatchKind.CamelCaseNonContiguousPrefix, NavigateToMatchKind.CamelCaseNonContiguousPrefix),
+                (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
+                (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
+                (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy));
+
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
@@ -71,11 +83,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SearchResult>.GetInstance();
+            using var _ = ArrayBuilder<SearchResult>.GetInstance(out var result);
 
             // Prioritize the active documents if we have any.
-            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id))
-                                               .ToImmutableArray();
+            var highPriDocs = priorityDocuments.WhereAsArray(d => project.ContainsDocument(d.Id));
 
             var highPriDocsSet = highPriDocs.ToSet();
             var lowPriDocs = project.Documents.Where(d => !highPriDocsSet.Contains(d));
@@ -90,9 +101,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var document in orderedDocs)
             {
                 if (searchDocument != null && document != searchDocument)
-                {
                     continue;
-                }
 
                 cancellationToken.ThrowIfCancellationRequested();
                 var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
@@ -108,7 +117,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static void AddResultIfMatch(
@@ -143,15 +152,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
-            var matchedSpans = ArrayBuilder<TextSpan>.GetInstance();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchedSpans);
             foreach (var match in nameMatches)
-            {
                 matchedSpans.AddRange(match.MatchedSpans);
-            }
 
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutableAndFree());
+                matchedSpans.ToImmutable());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
@@ -192,44 +199,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static NavigateToMatchKind GetNavigateToMatchKind(ArrayBuilder<PatternMatch> nameMatches)
         {
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Exact))
-            {
-                return NavigateToMatchKind.Exact;
-            }
+            // work backwards through the match kinds.  That way our result is as bad as our worst match part.  For
+            // example, say the user searches for `Console.Write` and we find `Console.Write` (exact, exact), and
+            // `Console.WriteLine` (exact, prefix).  We don't want the latter hit to be considered an `exact` match, and
+            // thus as good as `Console.Write`.
 
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Prefix))
+            for (var i = s_kindPairs.Length - 1; i >= 0; i--)
             {
-                return NavigateToMatchKind.Prefix;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Substring))
-            {
-                return NavigateToMatchKind.Substring;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseExact))
-            {
-                return NavigateToMatchKind.CamelCaseExact;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCasePrefix))
-            {
-                return NavigateToMatchKind.CamelCasePrefix;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseNonContiguousPrefix))
-            {
-                return NavigateToMatchKind.CamelCaseNonContiguousPrefix;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseSubstring))
-            {
-                return NavigateToMatchKind.CamelCaseSubstring;
-            }
-
-            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseNonContiguousSubstring))
-            {
-                return NavigateToMatchKind.CamelCaseNonContiguousSubstring;
+                var (roslynKind, vsKind) = s_kindPairs[i];
+                foreach (var match in nameMatches)
+                {
+                    if (match.Kind == roslynKind)
+                        return vsKind;
+                }
             }
 
             return NavigateToMatchKind.Regular;

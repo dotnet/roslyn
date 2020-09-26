@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Reflection;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 //test
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.SymbolsTests.MDTestLib2,
                 TestReferences.SymbolsTests.Methods.CSMethods,
                 TestReferences.SymbolsTests.Methods.VBMethods,
-                TestReferences.NetFx.v4_0_21006.mscorlib,
+                Net40.mscorlib,
                 TestReferences.SymbolsTests.Methods.ByRefReturn
             },
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 mrefs: new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -472,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -563,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -656,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
 
@@ -690,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 

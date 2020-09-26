@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of a VersionStamp.
         /// </summary>
         public static VersionStamp Create()
-            => new VersionStamp(DateTime.UtcNow);
+            => new(DateTime.UtcNow);
 
         /// <summary>
         /// Creates a new instance of a version stamp based on the specified DateTime.
         /// </summary>
         public static VersionStamp Create(DateTime utcTimeLastModified)
-            => new VersionStamp(utcTimeLastModified);
+            => new(utcTimeLastModified);
 
         /// <summary>
         /// compare two different versions and return either one of the versions if there is no collision, otherwise, create a new version
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

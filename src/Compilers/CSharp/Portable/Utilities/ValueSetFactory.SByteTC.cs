@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             sbyte INumericTC<sbyte>.MaxValue => sbyte.MaxValue;
 
+            sbyte INumericTC<sbyte>.Zero => 0;
+
             bool INumericTC<sbyte>.Related(BinaryOperatorKind relation, sbyte left, sbyte right)
             {
                 switch (relation)

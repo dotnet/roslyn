@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         private readonly Dictionary<K, CacheValue> _cache;
         private readonly LinkedList<K> _nodeList;
         // This is a naive course-grained lock, it can probably be optimized
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new();
 
         public ConcurrentLruCache(int capacity)
         {

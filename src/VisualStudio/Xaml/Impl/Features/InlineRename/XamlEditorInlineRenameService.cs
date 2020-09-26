@@ -33,21 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         {
             var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            return new InlineRenameInfo(_renameService, document, position, renameInfo);
+            return new InlineRenameInfo(document, renameInfo);
         }
 
         private class InlineRenameInfo : IInlineRenameInfo
         {
-            private readonly IXamlRenameInfoService _renameService;
             private readonly Document _document;
-            private readonly int _position;
             private readonly IXamlRenameInfo _renameInfo;
 
-            public InlineRenameInfo(IXamlRenameInfoService renameService, Document document, int position, IXamlRenameInfo renameInfo)
+            public InlineRenameInfo(Document document, IXamlRenameInfo renameInfo)
             {
-                _renameService = renameService;
                 _document = document;
-                _position = position;
                 _renameInfo = renameInfo;
             }
 
@@ -185,11 +181,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     public IEnumerable<DocumentId> DocumentIds => _inlineRenameLocationSet.Locations.Select(l => l.Document.Id).Distinct();
 
                     public bool ReplacementTextValid => _inlineRenameLocationSet.IsReplacementTextValid(_replacementText);
-
-                    public IEnumerable<TextSpan> GetConflictSpans(DocumentId documentId)
-                    {
-                        yield break;
-                    }
 
                     public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
                     {

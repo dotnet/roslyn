@@ -235,9 +235,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                 else
                                 {
                                     // A boolean flag.
-                                    bool flagSet = false;
-
-                                    flagSet = Utilities.TryConvertItemMetadataToBool(parameter, metadataNames[i]);
+                                    bool flagSet = Utilities.TryConvertItemMetadataToBool(parameter, metadataNames[i]);
 
                                     if (flagSet)
                                     {

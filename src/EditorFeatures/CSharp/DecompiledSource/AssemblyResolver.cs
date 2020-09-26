@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
     internal class AssemblyResolver : IAssemblyResolver
     {
         private readonly Compilation _parentCompilation;
-        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new Dictionary<string, List<IAssemblySymbol>>();
+        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new();
         private readonly StringBuilder _logger;
 
         public AssemblyResolver(Compilation parentCompilation, StringBuilder logger)
@@ -39,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     list.Add(reference);
                 }
             }
+        }
+
+        bool IAssemblyResolver.IsGacAssembly(IAssemblyReference reference)
+        {
+            // This method is not called by the decompiler
+            throw new NotSupportedException();
         }
 
         public PEFile Resolve(IAssemblyReference name)

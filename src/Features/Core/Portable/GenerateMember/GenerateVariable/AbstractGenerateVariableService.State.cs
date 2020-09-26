@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
                 return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
+            }
+
+            internal bool CanGeneratePropertyOrField()
+            {
+                return !ContainingType.IsImplicitClass;
             }
 
             internal bool CanGenerateLocal()
@@ -414,11 +419,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var enclosingMethodSymbol = semanticDocument.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
                 if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
                 {
-                    var combinedTypeParameters = new List<ITypeParameterSymbol>();
+                    using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
                     combinedTypeParameters.AddRange(availableTypeParameters);
                     combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
-                    LocalType = inferredType.RemoveUnavailableTypeParameters(
-                    compilation, combinedTypeParameters);
+                    LocalType = inferredType.RemoveUnavailableTypeParameters(compilation, combinedTypeParameters);
                 }
                 else
                 {

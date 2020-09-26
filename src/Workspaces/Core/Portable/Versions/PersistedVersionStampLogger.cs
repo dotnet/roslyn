@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Versions
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Versions
         private const string Project = nameof(Project);
         private const string DependentProject = nameof(DependentProject);
 
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
+        private static readonly LogAggregator s_logAggregator = new();
 
         public static void LogPersistedTextVersionUsage(bool succeeded)
         {

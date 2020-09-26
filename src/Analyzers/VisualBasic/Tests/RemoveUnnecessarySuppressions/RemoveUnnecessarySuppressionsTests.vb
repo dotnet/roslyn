@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveUnnecessarySuppressionsCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveUnnecessaryAttributeSuppressionsCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessarySuppressions
 

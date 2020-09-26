@@ -130,7 +130,7 @@ public class C
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
+                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;

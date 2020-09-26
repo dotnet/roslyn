@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     [UseExportProvider]
     public class LocationInfoGetterTests
     {
-        private async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
+        private static async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions);
 

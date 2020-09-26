@@ -7952,7 +7952,7 @@ class Program
         [Fact]
         public void DelegateSignatureMismatch3()
         {
-            // This test and the DelgateSignatureMismatch4 should have identical results, as they are semantically identical
+            // This test and the DelegateSignatureMismatch4 should have identical results, as they are semantically identical
 
             string sourceCode = @"
 using System;
@@ -8485,7 +8485,7 @@ public class Test
             Assert.Equal(true, semanticInfo.ConstantValue);
         }
 
-        [ConditionalFact(typeof(IsDebug))]
+        [Fact]
         [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_Constant02()
         {
@@ -8513,11 +8513,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
-            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -8531,7 +8531,7 @@ public class Test
             Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
-        [ConditionalFact(typeof(IsDebug))]
+        [Fact]
         [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_NotConstant()
         {
@@ -8558,11 +8558,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
-            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 

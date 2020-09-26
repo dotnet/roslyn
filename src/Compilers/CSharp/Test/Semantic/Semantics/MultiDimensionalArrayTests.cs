@@ -201,7 +201,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
                 );
         }
 
-        private static string s_arraysOfRank1IlSource = @"
+        private static readonly string s_arraysOfRank1IlSource = @"
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object
 {

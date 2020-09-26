@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public abstract class RecommenderTests : TestBase
     {
-        protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharp9);
+        protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         protected string keywordText;
         internal Func<int, CSharpSyntaxContext, Task<IEnumerable<RecommendedKeyword>>> RecommendKeywordsAsync;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var compilation = CSharpCompilation.Create(
                 "test",
                 syntaxTrees: new[] { tree },
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                references: new[] { TestMetadata.Net451.mscorlib });
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        protected string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+        protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
         {
             if (topLevelStatement)
             {

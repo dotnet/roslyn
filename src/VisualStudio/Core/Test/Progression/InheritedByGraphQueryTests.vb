@@ -6,12 +6,13 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class InheritedByGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByClassesCSharp() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -50,7 +51,7 @@ class ReallyDerived : Goo // should not be shown as inherited by Base
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -72,7 +73,7 @@ class ReallyDerived : Goo // should not be shown as inherited by Base
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByInterfacesCSharp() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -98,7 +99,7 @@ interface I3 : I2 // should not be shown as inherited by I
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -120,7 +121,7 @@ interface I3 : I2 // should not be shown as inherited by I
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByClassesVisualBasic() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -158,7 +159,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -180,7 +181,7 @@ End Class
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByInterfacesVisualBasic() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -211,7 +212,7 @@ End Interface
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(

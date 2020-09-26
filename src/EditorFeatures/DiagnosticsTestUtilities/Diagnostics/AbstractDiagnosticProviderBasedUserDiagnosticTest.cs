@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         /// is re-implemented here in a way that is potentially overly aggressive with the knowledge that if this method
         /// starts failing on non-analyzer exception diagnostics, it can be appropriately tuned or re-evaluated.
         /// </summary>
-        private void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private static void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
 #pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
         {
             var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));

@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal static class IDEDiagnosticIdToOptionMappingHelper
     {
-        private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>();
-        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>>();
+        private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new();
 
         public static bool TryGetMappedOptions(string diagnosticId, string language, out ImmutableHashSet<IOption2> options)
             => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
 
-            internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
+            internal static readonly MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
                                                 new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, SymbolEqualityComparer.CLRSignature);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -590,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public virtual ImmutableArray<FieldSymbol> TupleElements => default(ImmutableArray<FieldSymbol>);
 
+#nullable enable
         /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
@@ -597,13 +598,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal bool IsManagedType => ManagedKind == ManagedKind.Managed;
+        internal bool IsManagedType(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => GetManagedKind(ref useSiteDiagnostics) == ManagedKind.Managed;
+
+        internal bool IsManagedTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                return IsManagedType(ref useSiteDiagnostics);
+            }
+        }
 
         /// <summary>
         /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
         /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
         /// </summary>
-        internal abstract ManagedKind ManagedKind { get; }
+        internal abstract ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics);
+
+        internal ManagedKind ManagedKindNoUseSiteDiagnostics
+        {
+            get
+            {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                return GetManagedKind(ref useSiteDiagnostics);
+            }
+        }
+#nullable restore
 
         internal bool NeedsNullableAttribute()
         {
@@ -621,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SetNullabilityForReferenceTypes(s_setUnknownNullability);
         }
 
-        private readonly static Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
+        private static readonly Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>

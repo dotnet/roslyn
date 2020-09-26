@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.AddItem(navigateToItem);
             }
 
-            private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
+            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
                 => matchKind switch
                 {
                     NavigateToMatchKind.Exact => PatternMatchKind.Exact,

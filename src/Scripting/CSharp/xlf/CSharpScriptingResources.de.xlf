@@ -36,19 +36,26 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">Syntax: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">Syntax: csi [option] ... [script-file.csx] [script-argument] ...
 
 Führt "script-file.csx" aus, wenn angegeben. Andernfalls wird eine interaktive REPL (Read Eval Print Loop) gestartet.
 
 Optionen:
-  /help                          Zeigt diese Syntaxmeldung an (alternatives Format: /?)
-  /version                       Anzeige der Version und Beendigung.
-  /i                             Ablegen in REPL, nachdem das angegebene Skript ausgeführt wurde.
-  /r:&lt;Datei&gt;                      Verweis auf Metadaten aus der angegebenen Assemblydatei (alternatives Format: /reference).
-  /r:&lt;Dateiliste&gt;                 Verweis auf Metadaten aus den angegebenen Assemblydateien (alternatives Format: /reference).
-  /lib:&lt;Pfadliste&gt;               Liste der Verzeichnisse, in denen nach Bibliotheken gesucht werden soll, die durch die Direktive "#r" angegeben werden. 
-                                 (alternatives Format: /libPath /libPaths)
+  /help                          Zeigt diese Syntaxmeldung an (alternatives Format: /?).
+  /version                       Zeigt die Version an und beendet den Vorgang.
+  /i                             Wechselt zu REPL, nachdem das angegebene Skript ausgeführt wurde.
+  /r:&lt;Datei&gt;                      Verweist auf Metadaten aus der angegebenen Assemblydatei (alternatives Format: /reference).
+  /r:&lt;Dateiliste&gt;                 Verweist auf Metadaten aus den angegebenen Assemblydateien (alternatives Format: /reference).
+  /lib:&lt;Pfadliste&gt;               Liste der Verzeichnisse, in denen nach Bibliotheken gesucht werden soll, die durch die Anweisung "#r" angegeben werden 
+                                 (alternative Formate: /libPath /libPaths).
   /u:&lt;Namespace&gt;                 Definiert einen globalen Namespace mit "using" (alternative Formate: /using, /usings, /import, /imports).
+  /langversion:?                 Zeigt die zulässigen Werte für die Sprachversion an und beendet den Vorgang.
+  /langversion:&lt;string&gt;          Gibt die Sprachversion an, z. B.
+                                 "latest" (neueste Version, einschließlich Nebenversionen),
+                                 "default" (entspricht "latest"),
+                                 "latestmajor" (neueste Version ohne Nebenversionen),
+                                 "preview" (neueste Version, einschließlich Features in nicht unterstützter Vorschau)
+                                 oder spezifische Versionen wie "6" oder "7.1".
   @&lt;Datei&gt;                        Liest die Antwortdatei, um weitere Optionen abzurufen.
   --                             Gibt an, dass die verbleibenden Argumente nicht als Optionen behandelt werden sollen.
 </target>

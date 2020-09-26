@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             Debug.Assert(anonymousType != null);
 
             var position = span.Start;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -139,14 +140,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             editor.ReplaceNode(container, (currentContainer, _) =>
             {
                 var codeGenService = document.GetLanguageService<ICodeGenerationService>();
-                var options = new CodeGenerationOptions(
+                var codeGenOptions = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
                     autoInsertionLocation: false,
+                    options: options,
                     parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
-                    currentContainer, namedTypeSymbol, options, cancellationToken);
+                    currentContainer, namedTypeSymbol, codeGenOptions, cancellationToken);
             });
 
             var updatedDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
@@ -168,7 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
             foreach (var identifier in identifiers)
             {
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(identifier))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifier) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(identifier))
                 {
                     continue;
                 }
@@ -295,14 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 document, namedTypeWithoutMembers,
                 readonlyProperties, cancellationToken).ConfigureAwait(false);
 
-            var members = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
             members.AddRange(properties);
             members.Add(constructor);
             members.Add(equalsMethod);
             members.Add(getHashCodeMethod);
 
-            var namedTypeSymbol = CreateNamedType(className, capturedTypeParameters, members.ToImmutableAndFree());
-            return namedTypeSymbol;
+            return CreateNamedType(className, capturedTypeParameters, members.ToImmutable());
         }
 
         private static INamedTypeSymbol CreateNamedType(

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithFilePath(value), opt => opt.FilePath, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithOutputFilePath(value), opt => opt.OutputFilePath, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithOutputRefFilePath(value), opt => opt.OutputRefFilePath, "New");
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithCompilationOutputFilePaths(value), opt => opt.CompilationOutputFilePaths, new CompilationOutputFilePaths("NewPath"));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithCompilationOutputInfo(value), opt => opt.CompilationOutputInfo, new CompilationOutputInfo("NewPath"));
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDefaultNamespace(value), opt => opt.DefaultNamespace, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithHasAllInformation(value), opt => opt.HasAllInformation, true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithRunAnalyzers(value), opt => opt.RunAnalyzers, true);

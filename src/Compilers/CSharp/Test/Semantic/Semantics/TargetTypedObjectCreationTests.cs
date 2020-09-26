@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class TargetTypedObjectCreationTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions TargetTypedObjectCreationTestOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions TargetTypedObjectCreationTestOptions = TestOptions.Regular9;
 
         private static CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null, IEnumerable<MetadataReference> references = null)
         {
@@ -91,30 +91,30 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         C v1 = new();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(10, 16),
-                // (11,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(10, 16),
+                // (11,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S v2 = new();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(11, 16),
-                // (12,17): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(11, 16),
+                // (12,17): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S? v3 = new();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(12, 17),
-                // (13,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(12, 17),
+                // (13,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         C v4 = new(missing);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(13, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(13, 16),
                 // (13,20): error CS0103: The name 'missing' does not exist in the current context
                 //         C v4 = new(missing);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(13, 20),
-                // (14,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,16): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S v5 = new(missing);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(14, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(14, 16),
                 // (14,20): error CS0103: The name 'missing' does not exist in the current context
                 //         S v5 = new(missing);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(14, 20),
-                // (15,17): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,17): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         S? v6 = new(missing);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(15, 17),
                 // (15,21): error CS0103: The name 'missing' does not exist in the current context
                 //         S? v6 = new(missing);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(15, 21)
@@ -538,10 +538,10 @@ abstract class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                // (6,16): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         C x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
-                // (7,21): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                // (7,21): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         var x1 = (C)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
                 );
@@ -563,10 +563,10 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (7,16): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         I x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("I").WithLocation(7, 16),
-                // (8,21): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (8,21): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         var x1 = (I)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("I").WithLocation(8, 21)
                 );
@@ -1022,9 +1022,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (8,20): error CS0117: 'new()' does not contain a definition for 'field'
+                // (6,13): error CS8754: There is no target type for 'new()'
                 //        _ = (new()).field;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("new()", "field").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
                 );
         }
 
@@ -1832,9 +1832,9 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (6,15): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,15): error CS8107: Feature 'target-typed object creation' is not available in C# 7.0. Please use language version 9.0 or greater.
                 //         C x = new();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(6, 15)
                 );
         }
 
@@ -2074,7 +2074,7 @@ class C
                 // (10,24): error CS8754: There is no target type for 'new()'
                 //         using (var x = new())
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(10, 24),
-                // (14,39): error CS0144: Cannot create an instance of the abstract class or interface 'IDisposable'
+                // (14,39): error CS0144: Cannot create an instance of the abstract type or interface 'IDisposable'
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );
@@ -2444,9 +2444,9 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0117: 'new()' does not contain a definition for 'ToString'
+                // (6,9): error CS8754: There is no target type for 'new()'
                 //         new().ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("new()", "ToString").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 9),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new()[0].ToString();
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 9)
@@ -4058,9 +4058,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,30): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'new()' and 'new()'
+                // (7,24): error CS0121: The call is ambiguous between the following methods or properties: 'Console.Write(bool)' and 'Console.Write(char)'
                 //         System.Console.Write(flag ? new() : new());
-                Diagnostic(ErrorCode.ERR_InvalidQM, "flag ? new() : new()").WithArguments("new()", "new()").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Write").WithArguments("System.Console.Write(bool)", "System.Console.Write(char)").WithLocation(7, 24)
                 );
         }
 
@@ -4363,7 +4363,7 @@ public class Source
 ";
 
             var comp = CreateCompilation(source, new[] { new CSharpCompilationReference(libAv1), new CSharpCompilationReference(libBv2) },
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (6,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy

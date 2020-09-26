@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(" \t ", leadingWhitespace);
         }
 
-        private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
+        private static string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
         {
             var text = SourceText.From(code);
             return text.GetLeadingWhitespaceOfLineAtPosition(position);

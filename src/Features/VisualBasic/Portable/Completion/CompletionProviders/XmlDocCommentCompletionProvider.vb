@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return GetCloseTagItem(token.GetPreviousToken())
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
                 Dim symbol As ISymbol = Nothing
 
                 If declaration IsNot Nothing Then

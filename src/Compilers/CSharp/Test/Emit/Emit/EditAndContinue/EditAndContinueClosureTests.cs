@@ -525,7 +525,7 @@ class C
         var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
         var <N:4>z</N:4> = G(<N:5>() => y1.A + y2.B</N:5>);
     }
-}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
             var source1 = MarkedSource(@"
 using System;
 #nullable enable
@@ -542,7 +542,7 @@ class C
         var <N:2>y2</N:2> = G(<N:3>() => new { B = id(x) }</N:3>);
         var <N:4>z</N:4> = G(<N:5>() => y1.A + y2.B</N:5>);
     }
-}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
 
             var compilation1 = compilation0.WithSource(source1.Tree);

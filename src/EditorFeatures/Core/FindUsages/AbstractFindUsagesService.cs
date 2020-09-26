@@ -10,9 +10,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService, IFindUsagesLSPService
     {
-        private readonly IThreadingContext _threadingContext;
-
-        protected AbstractFindUsagesService(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
     }
 }

@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class LazyDiagnosticInfo : DiagnosticInfo
     {
-        private DiagnosticInfo _lazyInfo;
+        private DiagnosticInfo? _lazyInfo;
 
         protected LazyDiagnosticInfo()
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
@@ -25,6 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyInfo;
         }
 
-        protected abstract DiagnosticInfo ResolveInfo();
+        protected abstract DiagnosticInfo? ResolveInfo();
     }
 }

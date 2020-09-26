@@ -8,16 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class RecordDeclarationSyntax
     {
-        internal SimpleBaseTypeSyntax? BaseWithArguments
+        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseType
         {
             get
             {
-                if (BaseList?.Types.FirstOrDefault() is SimpleBaseTypeSyntax { ArgumentList: { } } firstBase)
-                {
-                    return firstBase;
-                }
-
-                return null;
+                return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
             }
         }
     }

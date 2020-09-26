@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UpdateLegacySuppressions
@@ -48,7 +48,7 @@ Namespace N
     End Class
 End Namespace
 "
-            Dim expectedDiagnostic = VerifyVB.Diagnostic(AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor).
+            Dim expectedDiagnostic = VerifyVB.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor).
                                         WithLocation(0).
                                         WithArguments(target)
 

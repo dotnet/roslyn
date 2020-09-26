@@ -32,6 +32,11 @@
         <target state="translated">Mai</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="new">Prefer 'IsNot' expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Preferisci 'Is Nothing' per i controlli di uguaglianza dei riferimenti</target>
@@ -90,7 +95,7 @@
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">_Genera commenti in formato documentazione XML per '''</target>
-        <note />
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>

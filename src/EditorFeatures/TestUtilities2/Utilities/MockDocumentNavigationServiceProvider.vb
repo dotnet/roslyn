@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     Public Class MockDocumentNavigationServiceProvider
         Implements IWorkspaceServiceFactory
 
-        Private _instance As MockDocumentNavigationService = New MockDocumentNavigationService()
+        Private ReadOnly _instance As MockDocumentNavigationService = New MockDocumentNavigationService()
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

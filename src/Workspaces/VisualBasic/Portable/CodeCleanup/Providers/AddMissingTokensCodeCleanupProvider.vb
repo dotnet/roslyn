@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Shared Async Function CreateAsync(document As Document, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of AddMissingTokensRewriter)
                 Dim modifiedSpan = spans.Collapse()
                 Dim semanticModel = If(document Is Nothing, Nothing,
-                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
+                    Await document.ReuseExistingSpeculativeModelAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
                 Return New AddMissingTokensRewriter(semanticModel, spans, cancellationToken)
             End Function

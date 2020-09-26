@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpdateProjectToAllowUnsafe : AbstractUpdateProjectTest
     {
-        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

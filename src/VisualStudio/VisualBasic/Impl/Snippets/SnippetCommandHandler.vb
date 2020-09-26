@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             If (caretPosition > 1 AndAlso text(caretPosition - 1) = "?"c AndAlso CodeAnalysis.VisualBasic.SyntaxFacts.IsWhitespace(text(caretPosition - 2))) OrElse
                 (caretPosition = 1 AndAlso text(0) = "?"c) Then
 
-                DeleteQuestionMark(textView, subjectBuffer, caretPosition)
+                DeleteQuestionMark(subjectBuffer, caretPosition)
                 TryInvokeInsertionUI(textView, subjectBuffer)
                 Return True
             End If
@@ -89,7 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return False
         End Function
 
-        Private Sub DeleteQuestionMark(textView As ITextView, subjectBuffer As ITextBuffer, caretPosition As Integer)
+        Private Sub DeleteQuestionMark(subjectBuffer As ITextBuffer, caretPosition As Integer)
             Dim currentSnapshot = subjectBuffer.CurrentSnapshot
             Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document IsNot Nothing Then

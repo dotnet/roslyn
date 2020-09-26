@@ -158,7 +158,7 @@ class TestClass
         {
             get
             {
-                return TestReferences.NetFx.v4_0_21006.mscorlib;
+                return TestMetadata.Net40.mscorlib;
             }
         }
 
@@ -166,7 +166,7 @@ class TestClass
         {
             get
             {
-                return TestReferences.NetFx.v4_0_30319.mscorlib;
+                return TestMetadata.Net451.mscorlib;
             }
         }
 

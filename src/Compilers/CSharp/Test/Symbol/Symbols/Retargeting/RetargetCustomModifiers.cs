@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 {
@@ -19,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         [Fact]
         public void Test1()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
-            var newMsCorLib = MscorlibRef;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
+            var newMsCorLib = TestMetadata.Net451.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1", references: new[]
             {
@@ -126,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         [Fact]
         public void Test2()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
-            var newMsCorLib = MscorlibRef;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
+            var newMsCorLib = TestMetadata.Net451.mscorlib;
 
             var source = @"
 public class Modifiers
@@ -145,7 +146,7 @@ public class Modifiers
             var c1Assembly = c1.Assembly;
 
             var r1 = new CSharpCompilationReference(c1);
-            CSharpCompilation c2 = CSharpCompilation.Create("C2", references: new[] { newMsCorLib, r1 });
+            CSharpCompilation c2 = CSharpCompilation.Create("C2", references: new[] { (MetadataReference)newMsCorLib, r1 });
             var c1AsmRef = c2.GetReferencedAssemblySymbol(r1);
 
             Assert.NotSame(c1Assembly, c1AsmRef);

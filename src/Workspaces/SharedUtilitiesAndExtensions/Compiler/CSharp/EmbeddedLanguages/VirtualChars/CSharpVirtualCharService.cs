@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             // we won't classify any escape characters.  And there is no way that these strings would
             // be Regex/Json snippets.  So it's easier to just bail out and return nothing.
             if (IsInDirective(token.Parent))
-            {
                 return default;
-            }
 
             Debug.Assert(!token.ContainsDiagnostics);
             if (token.Kind() == SyntaxKind.StringLiteralToken)
@@ -52,16 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             }
 
             if (token.Kind() == SyntaxKind.CharacterLiteralToken)
-            {
                 return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
-            }
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
-                // The sections between  `}` and `{` are InterpolatedStringTextToken *as are* the
-                // format specifiers in an interpolated string.  We only want to get the virtual
-                // chars for this first type.
-                if (token.Parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
+                var parent = token.Parent;
+                if (parent is InterpolationFormatClauseSyntax)
+                    parent = parent.Parent;
+
+                if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
                 {
                     return interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken
                        ? TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true)

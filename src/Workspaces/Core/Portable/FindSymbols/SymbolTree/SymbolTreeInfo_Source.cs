@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo
     {
         private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
-            new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
+            new(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
             => s_symbolMapPool.Allocate();
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this each time we get a project.
         /// </summary>
         private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
-            new ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>>();
+            new();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
         {
@@ -114,8 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return CreateSymbolTreeInfo(
                 project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                simpleMethods: null,
-                complexMethods: ImmutableArray<ExtensionMethodInfo>.Empty);
+                simpleMethods: null);
         }
 
         // generate nodes for the global namespace an all descendants

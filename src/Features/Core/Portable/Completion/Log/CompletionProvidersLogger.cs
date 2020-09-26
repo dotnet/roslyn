@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         private const string Range = nameof(Range);
         private const string Count = nameof(Count);
 
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly LogAggregator s_logAggregator = new();
 
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
         internal enum ActionInfo
         {
@@ -29,15 +29,12 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
             TargetTypeCompletionTicks,
 
-            ExtensionMethodCompletionSuccessCount,
-            // following are only reported when successful (i.e. filter is available)
             ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionMethodsProvided,
-            ExtensionMethodCompletionGetFilterTicks,
-            ExtensionMethodCompletionGetSymbolTicks,
-            ExtensionMethodCompletionTypesChecked,
-            ExtensionMethodCompletionMethodsChecked,
+            ExtensionMethodCompletionGetSymbolsTicks,
+            ExtensionMethodCompletionCreateItemsTicks,
             CommitsOfExtensionMethodImportCompletionItem,
+            ExtensionMethodCompletionPartialResultCount,
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count)
@@ -61,9 +58,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
-        internal static void LogExtensionMethodCompletionSuccess() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
-
         internal static void LogExtensionMethodCompletionTicksDataPoint(int count)
         {
             s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, count);
@@ -73,20 +67,17 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
-        internal static void LogExtensionMethodCompletionGetFilterTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetFilterTicks, count);
+        internal static void LogExtensionMethodCompletionGetSymbolsTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, count);
 
-        internal static void LogExtensionMethodCompletionGetSymbolTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolTicks, count);
-
-        internal static void LogExtensionMethodCompletionTypesCheckedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesChecked, count);
-
-        internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
+        internal static void LogExtensionMethodCompletionCreateItemsTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionCreateItemsTicks, count);
 
         internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
+
+        internal static void LogExtensionMethodCompletionPartialResultCount() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
 
         internal static void ReportTelemetry()
         {

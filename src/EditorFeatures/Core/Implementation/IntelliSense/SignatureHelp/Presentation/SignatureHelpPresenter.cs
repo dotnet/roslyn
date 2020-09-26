@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SignatureHelpPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
     {
-        private static readonly object s_augmentSessionKey = new object();
+        private static readonly object s_augmentSessionKey = new();
 
         private readonly ISignatureHelpBroker _sigHelpBroker;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         ISignatureHelpPresenterSession IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ISignatureHelpSession sessionOpt)
         {
             AssertIsForeground();
-            return new SignatureHelpPresenterSession(ThreadingContext, _sigHelpBroker, textView, subjectBuffer);
+            return new SignatureHelpPresenterSession(ThreadingContext, _sigHelpBroker, textView);
         }
 
         ISignatureHelpSource ISignatureHelpSourceProvider.TryCreateSignatureHelpSource(ITextBuffer textBuffer)

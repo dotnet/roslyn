@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         [ContentType(ContentTypeNames.RoslynContentType)]
         [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
 #pragma warning disable 0169
+#pragma warning disable IDE0051 // Remove unused private members
         private readonly AdornmentLayerDefinition _lineSeparatorLayer;
+#pragma warning restore IDE0051 // Remove unused private members
 #pragma warning restore 0169
 
         [ImportingConstructor]

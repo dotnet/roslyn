@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Discard:
                     return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     var funcPtr = (FunctionPointerTypeSymbol)symbol;
                     if (!IsSymbolAccessibleCore(funcPtr.Signature.ReturnType, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.DefaultType.TypeKind != TypeKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }

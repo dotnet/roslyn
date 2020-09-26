@@ -172,8 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // Where GetFNVHashCode is the FNV-1a hash code.
 
-                const int HASH_FACTOR = -1521134295; // (int)0xa5555529
-
                 // Type expression
                 AnonymousTypeTemplateSymbol anonymousType = (AnonymousTypeTemplateSymbol)this.ContainingType;
 
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int initHash = 0;
                 foreach (var property in anonymousType.Properties)
                 {
-                    initHash = unchecked(initHash * HASH_FACTOR + Hash.GetFNVHashCode(property.BackingField.Name));
+                    initHash = unchecked(initHash * MethodBodySynthesizer.HASH_FACTOR + Hash.GetFNVHashCode(property.BackingField.Name));
                 }
 
                 //  Generate expression for return statement
@@ -191,30 +189,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  prepare symbols
                 MethodSymbol equalityComparer_GetHashCode = manager.System_Collections_Generic_EqualityComparer_T__GetHashCode;
                 MethodSymbol equalityComparer_get_Default = manager.System_Collections_Generic_EqualityComparer_T__get_Default;
-                NamedTypeSymbol equalityComparerType = equalityComparer_GetHashCode.ContainingType;
 
                 //  bound HASH_FACTOR
-                BoundLiteral boundHashFactor = F.Literal(HASH_FACTOR);
+                BoundLiteral boundHashFactor = null;
 
                 // Process fields
                 for (int index = 0; index < anonymousType.Properties.Length; index++)
                 {
-                    // Prepare constructed symbols
-                    TypeParameterSymbol typeParameter = anonymousType.TypeParameters[index];
-                    NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(typeParameter);
-
-                    // Generate 'retExpression' <= 'retExpression * HASH_FACTOR 
-                    retExpression = F.Binary(BinaryOperatorKind.IntMultiplication, manager.System_Int32, retExpression, boundHashFactor);
-
-                    // Generate 'retExpression' <= 'retExpression + EqualityComparer<T_index>.Default.GetHashCode(this.backingFld_index)'
-                    retExpression = F.Binary(BinaryOperatorKind.IntAddition,
-                                             manager.System_Int32,
-                                             retExpression,
-                                             F.Call(
-                                                F.StaticCall(constructedEqualityComparer,
-                                                             equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
-                                                equalityComparer_GetHashCode.AsMember(constructedEqualityComparer),
-                                                F.Field(F.This(), anonymousType.Properties[index].BackingField)));
+                    retExpression = MethodBodySynthesizer.GenerateHashCombine(retExpression, equalityComparer_GetHashCode, equalityComparer_get_Default, ref boundHashFactor,
+                                                                              F.Field(F.This(), anonymousType.Properties[index].BackingField),
+                                                                              F);
                 }
 
                 // Create a bound block 

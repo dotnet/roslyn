@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Structure
             var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
             var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
 
-            var updatedSpans = ArrayBuilder<BlockSpan>.GetInstance();
+            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var updatedSpans);
             foreach (var span in context.Spans)
             {
                 var updatedSpan = UpdateBlockSpan(span,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 updatedSpans.Add(updatedSpan);
             }
 
-            return new BlockStructure(updatedSpans.ToImmutableAndFree());
+            return new BlockStructure(updatedSpans.ToImmutable());
         }
 
         private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan,

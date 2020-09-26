@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class SourceNamedTypeSymbol
+    Partial Friend Class SourceNamedTypeSymbol
 
         Protected Overrides Sub AddGroupClassMembersIfNeeded(membersBuilder As MembersAndInitializersBuilder, diagnostics As DiagnosticBag)
             ' For reference, see Bindable::IsMyGroupCollection and Bindable::CrackAttributesOnAllSymbolsInContainer in native code.

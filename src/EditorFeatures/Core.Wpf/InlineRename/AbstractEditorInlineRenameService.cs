@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 
-        private async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
+        private static async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

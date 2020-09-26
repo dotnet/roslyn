@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
             }
 
-            var snapshot = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            var snapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
             ActiveSession = new InlineRenameSession(
                 _threadingContext,
                 this,

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var cancellationToken = completionContext.CancellationToken;
 
-                var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
                 var workspace = document.Project.Solution.Workspace;
                 var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private static readonly object s_controllerPropertyKey = new object();
+        private static readonly object s_controllerPropertyKey = new();
         private readonly IAsyncCompletionBroker _completionBroker;
 
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
             else
             {
-                var selectedItem = modelOpt.SelectedItem;
                 var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
 
                 // We want the span to actually only go up to the caret.  So get the expected span

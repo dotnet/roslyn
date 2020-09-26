@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             if (enabled)
             {
                 _hogger = new MemoryHogger();
-                var ignore = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
+                _ = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
             }
         }
 
@@ -83,14 +83,14 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 {
                     try
                     {
-                        for (int n = 0; n < size; n++)
+                        for (var n = 0; n < size; n++)
                         {
                             _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                             var block = new byte[BlockSize];
 
                             // initialize block bits (so the memory actually gets allocated.. silly runtime!)
-                            for (int i = 0; i < BlockSize; i++)
+                            for (var i = 0; i < BlockSize; i++)
                             {
                                 block[i] = 0xFF;
                             }
@@ -120,7 +120,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                                 var block = _blocks[b];
 
                                 byte tmp;
-                                for (int i = 0; i < block.Length; i++)
+                                for (var i = 0; i < block.Length; i++)
                                 {
                                     tmp = block[i];
                                 }
@@ -141,7 +141,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                     _blocks.Clear();
 
                     // force garbage collection
-                    for (int i = 0; i < 5; i++)
+                    for (var i = 0; i < 5; i++)
                     {
                         GC.Collect(GC.MaxGeneration);
                         GC.WaitForPendingFinalizers();

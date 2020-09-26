@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -207,5 +208,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return trivia.FullSpan.Length;
         }
 #endif
+
+        public static bool IsPragmaDirective(this SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+        {
+            if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
+            {
+                var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
+                isDisable = pragmaWarning.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
+                isActive = pragmaWarning.IsActive;
+                errorCodes = pragmaWarning.ErrorCodes;
+                return true;
+            }
+
+            isDisable = false;
+            isActive = false;
+            errorCodes = default;
+            return false;
+        }
     }
 }

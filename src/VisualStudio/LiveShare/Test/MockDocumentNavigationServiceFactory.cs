@@ -15,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     using Workspace = CodeAnalysis.Workspace;
 
-    [Shared]
-    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), WorkspaceKind.Test)]
-    [PartNotDiscoverable]
+    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class MockDocumentNavigationServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

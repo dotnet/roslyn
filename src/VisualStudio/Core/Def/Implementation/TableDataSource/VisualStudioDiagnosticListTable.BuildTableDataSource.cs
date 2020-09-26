@@ -8,10 +8,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -22,9 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
         {
-            private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem>
+            /// <summary>
+            /// Error list diagnostic source for "Build only" setting.
+            /// See <see cref="VisualStudioBaseDiagnosticListTable.LiveTableDataSource"/>
+            /// for error list diagnostic source for "Build + Intellisense" setting.
+            /// </summary>
+            private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem, object>
             {
-                private readonly object _key = new object();
+                private readonly object _key = new();
 
                 private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
@@ -204,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab)
+                    public override bool TryNavigateTo(int index, bool previewTab, bool activate)
                     {
                         var item = GetItem(index);
                         if (item?.DocumentId == null)
@@ -216,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         var solution = item.Workspace.CurrentSolution;
 
                         return solution.ContainsDocument(documentId) &&
-                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab);
+                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate);
                     }
 
                     private DocumentId GetProperDocumentId(DiagnosticTableItem item)

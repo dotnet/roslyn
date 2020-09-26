@@ -98,6 +98,125 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStaticLambda()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z =  $$ static () => 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInLambda()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z =  static $$ () => 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInExpression()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = static $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterDuplicateStaticInExpression()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = static static $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticAsyncInExpression()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = static async $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAsyncStaticInExpression()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = async static $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttribute()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    [$$
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttributeArgument()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    [Attr($$
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStaticInExpression()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = $$ static
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotIfAlreadyAsync2()
         {
             await VerifyAbsenceAsync(@"

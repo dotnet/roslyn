@@ -20,7 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
+    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
     internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
@@ -29,10 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
-            ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
+
+        public async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = context.Document;
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
-            if (clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
+            if (context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
             {
                 foreach (var item in navBarItems)
                 {

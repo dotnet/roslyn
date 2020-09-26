@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var typeArgument in result)
             {
-                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                AddDefinitionUseSiteDiagnostics(typeArgument, ref useSiteDiagnostics);
             }
 
             return result;
@@ -72,8 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            AddDefinitionUseSiteDiagnostics(result, ref useSiteDiagnostics);
             return result;
+        }
+
+        private static void AddDefinitionUseSiteDiagnostics(TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            type.DefaultType.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -394,15 +399,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind ManagedKind
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            get
-            {
-                // CONSIDER: we could cache this, but it's only expensive for non-special struct types
-                // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
-                // nicely into the flags variable.
-                return BaseTypeAnalysis.GetManagedKind(this);
-            }
+            // CONSIDER: we could cache this, but it's only expensive for non-special struct types
+            // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
+            // nicely into the flags variable.
+            return BaseTypeAnalysis.GetManagedKind(this, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -1175,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed TypeSymbol OriginalTypeSymbolDefinition
+        protected sealed override TypeSymbol OriginalTypeSymbolDefinition
         {
             get
             {
@@ -1223,13 +1225,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool DeriveUseSiteDiagnosticFromTypeArguments(ref DiagnosticInfo result)
         {
-            foreach (TypeWithAnnotations arg in this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+            NamedTypeSymbol currentType = this;
+
+            do
             {
-                if (DeriveUseSiteDiagnosticFromType(ref result, arg))
+                foreach (TypeWithAnnotations arg in currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                 {
-                    return true;
+                    if (DeriveUseSiteDiagnosticFromType(ref result, arg, AllowedRequiredModifierType.None))
+                    {
+                        return true;
+                    }
                 }
+
+                currentType = currentType.ContainingType;
             }
+            while (currentType?.IsDefinition == false);
 
             return false;
         }

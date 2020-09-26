@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
+                    (BoundBlock)this.Visit(node.ExceptionFilterPrologueOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
                     (BoundBlock)this.Visit(node.Body),
                     node.IsSynthesizedAsyncCatchAll);
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
-        public override abstract BoundNode VisitScope(BoundScope node);
+        public abstract override BoundNode VisitScope(BoundScope node);
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -504,6 +505,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             method = VisitMethodSymbol(method);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)

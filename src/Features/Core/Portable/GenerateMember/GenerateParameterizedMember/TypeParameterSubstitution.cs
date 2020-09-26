@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         private sealed class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
         {
             public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
-                new Dictionary<ITypeSymbol, ITypeSymbol>();
+                new();
             private readonly CancellationToken _cancellationToken;
             private readonly Compilation _compilation;
             private readonly ISet<string> _availableTypeParameterNames;
@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 var symbol = constraintType;
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
 
                 var implementedTypes = await SymbolFinder.FindImplementationsAsync(
-                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, transitive: true, projects, _cancellationToken).ConfigureAwait(false);
 
                 return derivedClasses.Concat(implementedTypes).ToSet();
             }

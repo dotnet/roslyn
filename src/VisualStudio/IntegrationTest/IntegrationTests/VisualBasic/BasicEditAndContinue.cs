@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         private const string module1FileName = "Module1.vb";
 
-        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

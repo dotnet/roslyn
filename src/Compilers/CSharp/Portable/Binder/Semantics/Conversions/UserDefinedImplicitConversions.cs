@@ -564,6 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.SwitchExpression:
+                case ConversionKind.ConditionalExpression:
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:

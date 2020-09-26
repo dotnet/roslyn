@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return this.CachedTags.GetIntersectingTagSpans(spans);
             }
 
-            private Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan documentSpan, ClassificationTypeMap typeMap)
+            private static Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan documentSpan, ClassificationTypeMap typeMap)
             {
                 var document = documentSpan.Document;
 

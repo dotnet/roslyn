@@ -234,10 +234,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return (EnvDTE.CodeDelegate)CreateInternalCodeMember(this.State, fileCodeModel: this, node: newType);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - // TODO(DustinCa): "bases" is ignored in C# code model. Need to check VB.
         internal EnvDTE.CodeEnum AddEnum(SyntaxNode containerNode, string name, object position, object bases, EnvDTE.vsCMAccess access)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            // TODO(DustinCa): "bases" is ignored in C# code model. Need to check VB.
-
             var newType = CreateTypeDeclaration(containerNode, TypeKind.Enum, name, access);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -253,7 +253,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
             var type = semanticModel.GetDeclaredSymbol(containerNode) as ITypeSymbol;
@@ -376,12 +375,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
+            var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
             var propertyType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
-            var newProperty = CreatePropertyDeclaration(containerNode,
-                                                        CodeModelService.GetUnescapedName(isGetterPresent ? getterName : putterName),
-                                                        isGetterPresent,
-                                                        isPutterPresent,
-                                                        access, propertyType);
+            var newProperty = CreatePropertyDeclaration(
+                containerNode,
+                CodeModelService.GetUnescapedName(isGetterPresent ? getterName : putterName),
+                isGetterPresent,
+                isPutterPresent,
+                access,
+                propertyType,
+                options);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newProperty = InsertMember(containerNode, newProperty, insertionIndex);
@@ -389,10 +392,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return (EnvDTE.CodeProperty)CreateInternalCodeMember(this.State, fileCodeModel: this, node: newProperty);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - // TODO(DustinCa): Old C# code base doesn't even check bases for validity -- does VB?
         internal EnvDTE.CodeStruct AddStruct(SyntaxNode containerNode, string name, object position, object bases, object implementedInterfaces, EnvDTE.vsCMAccess access)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            // TODO(DustinCa): Old C# code base doesn't even check bases for validity -- does VB?
-
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 

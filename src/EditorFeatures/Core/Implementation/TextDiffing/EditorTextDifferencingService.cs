@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
                     newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
         }
 
-        private StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)
+        private static StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)
         {
             StringDifferenceTypes stringDifferenceTypes = default;
 

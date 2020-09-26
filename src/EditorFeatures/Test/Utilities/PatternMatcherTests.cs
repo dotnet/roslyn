@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void BreakIntoWordParts_TwoUppercaseCharacters()
             => VerifyBreakIntoWordParts("SimpleUIElement", "Simple", "UI", "Element");
 
-        private void VerifyBreakIntoWordParts(string original, params string[] parts)
+        private static void VerifyBreakIntoWordParts(string original, params string[] parts)
             => Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoWordParts(original));
 
-        private void VerifyBreakIntoCharacterParts(string original, params string[] parts)
+        private static void VerifyBreakIntoCharacterParts(string original, params string[] parts)
             => Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoCharacterParts(original));
 
         private const bool CaseSensitive = true;
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        private void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
+        private static void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
             => Assert.True(results.Any(r => r.Kind == type));
 
         [Fact]

@@ -16,19 +16,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionE
 
         public static object GetPropertyValue(this object instance, string propertyName)
         {
-            Type type = instance.GetType();
-            PropertyInfo propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var type = instance.GetType();
+            var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (propertyInfo == null)
             {
                 throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
             }
-            object result = propertyInfo.GetValue(instance, null);
+            var result = propertyInfo.GetValue(instance, null);
             return result;
         }
 
         public static object GetFieldValue(this object instance, string fieldName)
         {
-            Type type = instance.GetType();
+            var type = instance.GetType();
             FieldInfo fieldInfo = null;
             while (type != null)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionE
             {
                 throw new FieldAccessException("Field " + fieldName + " was not found on type " + type.ToString());
             }
-            object result = fieldInfo.GetValue(instance);
+            var result = fieldInfo.GetValue(instance);
             return result; // you can place a breakpoint here (for debugging purposes)
         }
 

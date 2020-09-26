@@ -78,12 +78,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             var builder = ArrayBuilder<TextSpan>.GetInstance();
 
-            for (int i = 0; i < tagInfo.Count; i += 2)
+            for (var i = 0; i < tagInfo.Count; i += 2)
             {
                 builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        public void InvokeNavigateToNextHighlightedReference()
+        {
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_NextHighlightedReference);
         }
 
         public string GetCurrentCompletionItem()

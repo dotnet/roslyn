@@ -110,7 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            hierarchyToItemIDsMap = null;
             rqnames = null;
             if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
             {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class TraceLogger : ILogger
     {
-        public static readonly TraceLogger Instance = new TraceLogger();
+        public static readonly TraceLogger Instance = new();
 
         private readonly Func<FunctionId, bool> _loggingChecker;
 

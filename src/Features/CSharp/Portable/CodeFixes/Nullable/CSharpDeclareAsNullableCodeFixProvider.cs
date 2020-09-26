@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string equivalenceKey, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string? equivalenceKey, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             return equivalenceKey == GetEquivalenceKey(node, model);
@@ -219,14 +219,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 {
                     return TryGetParameterTypeSyntax(parameter);
                 }
-                else if (symbol is IFieldSymbol field)
+                else if (symbol is IFieldSymbol { IsImplicitlyDeclared: false } field)
                 {
+                    // implicitly declared fields don't have DeclaringSyntaxReferences so filter them out
                     var syntax = field.DeclaringSyntaxReferences[0].GetSyntax();
                     if (syntax is VariableDeclaratorSyntax declarator &&
                        declarator.Parent is VariableDeclarationSyntax declaration &&
                        declaration.Variables.Count == 1)
                     {
                         return declaration.Type;
+                    }
+                    else if (syntax is TupleElementSyntax tupleElement)
+                    {
+                        return tupleElement.Type;
+                    }
+                }
+                else if (symbol is IFieldSymbol { CorrespondingTupleField: IFieldSymbol tupleField })
+                {
+                    // Assigning a tuple field, eg. foo.Item1 = null
+                    // The tupleField won't have DeclaringSyntaxReferences because it's implicitly declared, otherwise it
+                    // would have fallen into the branch above. We can use the Locations instead, if there is one and it's in source
+                    if (tupleField.Locations is { Length: 1 } &&
+                        tupleField.Locations[0] is { IsInSource: true } location)
+                    {
+                        if (location.FindNode(default) is TupleElementSyntax tupleElement)
+                        {
+                            return tupleElement.Type;
+                        }
                     }
                 }
                 else if (symbol is IPropertySymbol property)
@@ -278,6 +297,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             if (node is PropertyDeclarationSyntax propertyDeclarationSyntax)
             {
                 return propertyDeclarationSyntax.Type;
+            }
+
+            // string x;
+            // Unassigned value that's not marked as null
+            if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax _ } declarationSyntax } &&
+                declarationSyntax.Variables.Count == 1)
+            {
+                return declarationSyntax.Type;
             }
 
             // void M(string x = null) { }
@@ -332,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             static TypeSyntax? TryGetParameterTypeSyntax(IParameterSymbol? parameterSymbol)
             {
                 if (parameterSymbol is object &&
-                    parameterSymbol.DeclaringSyntaxReferences[0].GetSyntax() is ParameterSyntax parameterSyntax &&
+                    parameterSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is ParameterSyntax parameterSyntax &&
                     parameterSymbol.ContainingSymbol is IMethodSymbol method &&
                     method.GetAllMethodSymbolsOfPartialParts().Length == 1)
                 {
@@ -351,7 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 SyntaxKind.DefaultLiteralExpression,
                 SyntaxKind.ConditionalExpression,
                 SyntaxKind.ConditionalAccessExpression,
-                SyntaxKind.PropertyDeclaration);
+                SyntaxKind.PropertyDeclaration,
+                SyntaxKind.VariableDeclarator);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

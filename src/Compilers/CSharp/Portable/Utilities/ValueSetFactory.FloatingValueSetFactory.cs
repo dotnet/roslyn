@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private FloatingValueSetFactory() { }
 
+            IValueSet IValueSetFactory.AllValues => FloatingValueSet<TFloating, TFloatingTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => FloatingValueSet<TFloating, TFloatingTC>.NoValues;
+
             public IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value) =>
                 FloatingValueSet<TFloating, TFloatingTC>.Related(relation, value);
 

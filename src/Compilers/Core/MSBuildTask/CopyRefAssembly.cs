@@ -88,8 +88,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                ManagedCompiler.LogErrorOutput(e.ToString(), Log);
+                var util = new TaskLoggingHelper(this);
+                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
                 return false;
             }
 

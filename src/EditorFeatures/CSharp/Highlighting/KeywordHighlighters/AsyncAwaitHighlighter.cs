@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             }
         }
 
-        private IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
+        private static IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
         {
             using var pooledObject = s_stackPool.GetPooledObject();
 

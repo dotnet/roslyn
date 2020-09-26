@@ -101,7 +101,6 @@ namespace BuildBoss
             var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-            allGood &= CheckTransitiveReferences(textWriter, declaredList);
             allGood &= CheckNoGuidsOnProjectReferences(textWriter, declaredEntryList);
 
             return allGood;
@@ -260,63 +259,6 @@ namespace BuildBoss
             return allGood;
         }
 
-        /// <summary>
-        /// In order to ensure all dependencies are properly copied on deployment projects, the declared reference
-        /// set much match the transitive dependency set.  When there is a difference it represents dependencies that
-        /// MSBuild won't deploy on build.
-        /// </summary>
-        private bool CheckTransitiveReferences(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
-        {
-            if (!_projectUtil.IsDeploymentProject)
-            {
-                return true;
-            }
-
-            var list = GetProjectReferencesTransitive(declaredReferences);
-            var set = new HashSet<ProjectKey>(declaredReferences);
-            var allGood = true;
-            foreach (var key in list)
-            {
-                if (!set.Contains(key))
-                {
-                    textWriter.WriteLine($"Missing project reference {key.FileName}");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private List<ProjectKey> GetProjectReferencesTransitive(IEnumerable<ProjectKey> declaredReferences)
-        {
-            var list = new List<ProjectKey>();
-            var toVisit = new Queue<ProjectKey>(declaredReferences);
-            var seen = new HashSet<ProjectKey>();
-
-            while (toVisit.Count > 0)
-            {
-                var current = toVisit.Dequeue();
-                if (!seen.Add(current))
-                {
-                    continue;
-                }
-
-                if (!_solutionMap.TryGetValue(current, out var data))
-                {
-                    continue;
-                }
-
-                list.Add(current);
-                foreach (var dep in data.ProjectUtil.GetDeclaredProjectReferences())
-                {
-                    toVisit.Enqueue(dep.ProjectKey);
-                }
-            }
-
-            list.Sort((x, y) => x.FileName.CompareTo(y.FileName));
-            return list;
-        }
-
         private bool CheckTargetFrameworks(TextWriter textWriter)
         {
             if (!_data.IsUnitTestProject)
@@ -332,7 +274,7 @@ namespace BuildBoss
                     case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "$(RoslynPortableTargetFrameworks)":
+                    case "net5.0":
                         continue;
                 }
 

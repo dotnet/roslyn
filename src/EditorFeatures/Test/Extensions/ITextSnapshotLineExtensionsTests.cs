@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
 using Xunit;
@@ -181,25 +182,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.False(value);
         }
 
-        private ITextSnapshotLine GetLine(string codeLine)
+        private static ITextSnapshotLine GetLine(string codeLine)
         {
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, codeLine).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, codeLine).CurrentSnapshot;
             return snapshot.GetLineFromLineNumber(0);
         }
 
-        private bool IsEmptyOrWhitespace(string codeLine)
+        private static bool IsEmptyOrWhitespace(string codeLine)
         {
             var line = GetLine(codeLine);
             return line.IsEmptyOrWhitespace();
         }
 
-        private int? GetFirstNonWhitespacePosition(string codeLine)
+        private static int? GetFirstNonWhitespacePosition(string codeLine)
         {
             var line = GetLine(codeLine);
             return line.GetFirstNonWhitespacePosition();
         }
 
-        private int? GetLastNonWhitespacePosition(string codeLine)
+        private static int? GetLastNonWhitespacePosition(string codeLine)
         {
             var line = GetLine(codeLine);
             return line.GetLastNonWhitespacePosition();

@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string CallSiteValue { get; set; }
 
-        private static readonly SymbolDisplayFormat s_symbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_symbolDisplayFormat = new(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return false;
             }
 
-            if (!IsParameterTypeSyntacticallyValid(VerbatimTypeName))
+            if (TypeSymbol == null || !IsParameterTypeSyntacticallyValid(VerbatimTypeName))
             {
                 message = ServicesVSResources.Parameter_type_contains_invalid_characters;
                 return false;
@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
 
                 var typeParses = IsParameterTypeSyntacticallyValid(typeName);
-                if (!typeParses)
+                if (!typeParses || TypeSymbol == null)
                 {
                     TypeDoesNotParseImage = Visibility.Visible;
                     TypeDoesNotBindImage = Visibility.Collapsed;

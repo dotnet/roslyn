@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         private readonly ComEventSink _codeWindowEventsSink;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsImageService2 _imageService;
-        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new Dictionary<IVsTextView, ITextView>();
+        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
         private IVsDropdownBar _dropdownBar;
         private IList<NavigationBarProjectItem> _projectItems;
         private IList<NavigationBarItem> _currentTypeItems;
@@ -58,7 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             codeWindow.GetPrimaryView(out var pTextView);
             StartTrackingView(pTextView);
 
-            pTextView = null;
             codeWindow.GetSecondaryView(out pTextView);
             StartTrackingView(pTextView);
         }

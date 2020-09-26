@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             _assembly = MetadataTestHelpers.GetSymbolsForReferences(
                 TestReferences.SymbolsTests.Metadata.DynamicAttributeLib,
-                TestReferences.NetFx.v4_0_30319.mscorlib)[0];
+                TestMetadata.Net451.mscorlib)[0];
 
             _base0Class = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("Base0");
             _base1Class = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("Base1");

@@ -5,7 +5,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,14 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public PropertySubpatternCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(PropertySubpatternCompletionProvider);
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern()
         {
             var markup =
@@ -39,11 +34,11 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithPositional()
         {
             var markup =
@@ -60,11 +55,11 @@ public class Program
     public void Deconstruct(out int x, out int y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithPositional_UsingStaticType()
         {
             var markup =
@@ -81,11 +76,11 @@ public class Program
     public void Deconstruct(out int x, out int y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithEscapedKeyword()
         {
             var markup =
@@ -101,8 +96,8 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "@new");
-            await VerifyItemExistsAsync(markup, "@struct");
+            await VerifyItemExistsAsync(markup, "@new", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "@struct", displayTextSuffix: ":");
         }
 
         [Fact]
@@ -123,7 +118,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithDerivedType()
         {
             var markup =
@@ -141,11 +136,11 @@ class Derived
     public int P2 { get; set; }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithOtherType()
         {
             var markup =
@@ -163,8 +158,8 @@ class Other
     public int F2;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "F2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "F2", displayTextSuffix: ":");
         }
 
         [Fact]
@@ -188,7 +183,7 @@ class Derived : Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithDerivedType_WithPrivateMember()
         {
             var markup =
@@ -206,10 +201,10 @@ class Derived : Program
     private int P2 { get; set; }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_UseStaticTypeFromIs()
         {
             var markup =
@@ -226,11 +221,11 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InSwitchStatement()
         {
             var markup =
@@ -250,11 +245,11 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_UseStaticTypeFromSwitchStatement()
         {
             var markup =
@@ -274,11 +269,11 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InSwitchExpression()
         {
             var markup =
@@ -294,11 +289,11 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_NestedInProperty()
         {
             var markup =
@@ -321,11 +316,11 @@ class Program
 ";
             await VerifyItemIsAbsentAsync(markup, "P1");
             await VerifyItemIsAbsentAsync(markup, "P2");
-            await VerifyItemExistsAsync(markup, "P3");
-            await VerifyItemExistsAsync(markup, "P4");
+            await VerifyItemExistsAsync(markup, "P3", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P4", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_NestedInField()
         {
             var markup =
@@ -348,11 +343,11 @@ class Program
 ";
             await VerifyItemIsAbsentAsync(markup, "P1");
             await VerifyItemIsAbsentAsync(markup, "F2");
-            await VerifyItemExistsAsync(markup, "P3");
-            await VerifyItemExistsAsync(markup, "P4");
+            await VerifyItemExistsAsync(markup, "P3", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P4", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_Nested_WithFields()
         {
             var markup =
@@ -375,8 +370,8 @@ class Program
 ";
             await VerifyItemIsAbsentAsync(markup, "P1");
             await VerifyItemIsAbsentAsync(markup, "P2");
-            await VerifyItemExistsAsync(markup, "F3");
-            await VerifyItemExistsAsync(markup, "F4");
+            await VerifyItemExistsAsync(markup, "F3", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "F4", displayTextSuffix: ":");
         }
 
         [Fact]
@@ -441,7 +436,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_SecondProperty()
         {
             var markup =
@@ -458,7 +453,7 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
             await VerifyItemIsAbsentAsync(markup, "P2");
         }
 
@@ -484,7 +479,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
         {
             var markup =
@@ -528,7 +523,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
         {
             var markup =
@@ -539,16 +534,16 @@ public class Program
 
     void M()
     {
-        _ = this is ({ $$ }) // no deconstruction into 1 element
+        _ = this is ({ $$ }) // Can deconstruct into a parenthesized property pattern
     }
 
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
         {
             var markup =
@@ -559,13 +554,13 @@ public class Program
 
     void M()
     {
-        _ = this is ({ $$  // no deconstruction into 1 element
+        _ = this is ({ $$   // Can deconstruct into a parenthesized property pattern
     }
 
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
         [Fact]
@@ -590,7 +585,7 @@ public class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Complete_BeforeComma()
         {
             var markup =
@@ -607,10 +602,10 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Complete_AfterComma()
         {
             var markup =
@@ -627,7 +622,7 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
         [Fact]
@@ -649,7 +644,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_NotForEditorUnbrowsable()
         {
             var markup =
@@ -668,8 +663,8 @@ class Program
 }
 ";
             // Ignore browsability limiting attributes if the symbol is declared in source.
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
         }
 
         [Fact]

@@ -14,8 +14,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

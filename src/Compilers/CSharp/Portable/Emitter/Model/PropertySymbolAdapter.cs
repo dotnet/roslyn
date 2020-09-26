@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return setMethod;
             }
 
-            SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
+            var sourceProperty = this as SourcePropertySymbolBase;
             if ((object)sourceProperty != null && sourceProperty.ShouldInclude(context))
             {
                 SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private IMethodReference GetSynthesizedSealedAccessor(MethodKind targetMethodKind)
         {
-            SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
+            var sourceProperty = this as SourcePropertySymbolBase;
             if ((object)sourceProperty != null)
             {
                 SynthesizedSealedPropertyAccessor synthesized = sourceProperty.SynthesizedSealedAccessorOpt;

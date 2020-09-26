@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -32,7 +33,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
-            project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+            project.SetOptions(ImmutableArray.Create($"/ruleset:{ruleSetFile.Path}"));
 
             workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
             options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
@@ -57,10 +58,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using var environment = new TestEnvironment();
             using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
             // Verify SetRuleSetFile updates the ruleset.
-            project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+            project.SetOptions(ImmutableArray.Create($"/ruleset:{ruleSetFile.Path}"));
 
             // We need to explicitly update the command line arguments so the new ruleset is used to update options.
-            project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+            project.SetOptions(ImmutableArray.Create($"/ruleset:{ruleSetFile.Path}"));
             var ca1012DiagnosticOption = environment.Workspace.CurrentSolution.Projects.Single().CompilationOptions.SpecificDiagnosticOptions["CA1012"];
             Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
         }
@@ -75,7 +76,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
-                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+                project.SetOptions(ImmutableArray.Create($"/ruleset:{ruleSetFile.Path}"));
 
                 projectId = project.Id;
 

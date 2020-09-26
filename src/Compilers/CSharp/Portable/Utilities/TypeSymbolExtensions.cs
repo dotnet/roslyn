@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var pointer = (PointerTypeSymbol)type;
                         return customModifierCountForTypeWithAnnotations(pointer.PointedAtTypeWithAnnotations);
                     }
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     {
                         return ((FunctionPointerTypeSymbol)type).Signature.CustomModifierCount();
                     }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
                         return checkTypeWithAnnotations(pointedAtType, flagNonDefaultArraySizesOrLowerBounds);
                     }
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     {
                         var funcPtr = (FunctionPointerTypeSymbol)type;
                         if (!funcPtr.Signature.RefCustomModifiers.IsEmpty || checkTypeWithAnnotations(funcPtr.Signature.ReturnTypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))

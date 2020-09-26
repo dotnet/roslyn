@@ -1562,7 +1562,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);
             AssertEx.All(actualTypeParameters, p => p.ContainingSymbol == null);
-            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null).Length == 0);
+            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, canIgnoreNullableContext: false).Length == 0);
             AssertEx.All(actualTypeParameters, p => p.GetInterfaces(null).Length == 0);
 
             foreach (var p in actualTypeParameters)
@@ -3357,17 +3357,17 @@ class Outer
                 "T",
                 "void C<T>.M()",
                 "C<T>",
-                "Outer",
 
                 // Boring
                 "System",
-                "Microsoft",
 
                 // Inaccessible and boring
                 "FXAssembly",
                 "ThisAssembly",
                 "AssemblyRef",
-                "SRETW");
+                "SRETW",
+                "Outer",
+                "Microsoft");
 
             // Consider inaccessible symbols, as in Dev11
             Assert.Equal(typeInner.GetPublicSymbol(), model.LookupSymbols(position, typeOuter.GetPublicSymbol(), typeInner.Name).Single());

@@ -9,11 +9,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,10 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public TypeImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(TypeImportCompletionProvider);
 
@@ -33,15 +27,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool IsExpandedCompletion { get; set; } = true;
 
+        private bool DisallowAddingImports { get; set; }
+
+        private bool HideAdvancedMembers { get; set; }
+
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, DisallowAddingImports)
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         #region "Option tests"
 
@@ -744,6 +744,7 @@ namespace NS
         #endregion
 
         #region "Commit Change Tests"
+
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -773,6 +774,41 @@ namespace Baz
     class Bat
     {
         Bar$$
+    }
+}";
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_NoImport_InProject_DisallowAddingImports(SourceCodeKind kind)
+        {
+            DisallowAddingImports = true;
+
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{
+    }}
+}}";
+
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+        $$
+    }
+}";
+            var expectedCodeAfterCommit = @"
+namespace Baz
+{
+    class Bat
+    {
+        Foo.Bar$$
     }
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -889,7 +925,7 @@ class Bar
         #endregion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGLobalAliasedMetadataReference()
+        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGlobalAliasedMetadataReference()
         {
             var file1 = $@"
 namespace Foo
@@ -1020,7 +1056,7 @@ namespace Test
     class Program { }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1082,7 +1118,7 @@ namespace Test
     }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1141,7 +1177,7 @@ namespace Test
     class Program { }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1203,7 +1239,7 @@ namespace Test
     }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1371,6 +1407,138 @@ namespace Baz
             for (var i = 0; i < expectedTypesInRelativeOrder.Count; ++i)
             {
                 Assert.Equal(expectedTypesInRelativeOrder[i], actualTypesInRelativeOrder[i]);
+            }
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestBrowsableAwaysFromReferences(bool isProjectReference)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+    public class Goo
+    {
+    }
+}";
+
+            var markup = isProjectReference switch
+            {
+                true => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                false => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp)
+            };
+
+            await VerifyTypeImportItemExistsAsync(
+                    markup,
+                    "Goo",
+                    glyph: (int)Glyph.ClassPublic,
+                    inlineDescription: "Foo");
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestBrowsableNeverFromReferences(bool isProjectReference)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public class Goo
+    {
+    }
+}";
+
+            var (markup, shouldContainItem) = isProjectReference switch
+            {
+                true => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                false => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyTypeImportItemExistsAsync(
+                        markup,
+                        "Goo",
+                        glyph: (int)Glyph.ClassPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyTypeImportItemIsAbsentAsync(
+                        markup,
+                        "Goo",
+                        inlineDescription: "Foo");
+            }
+        }
+
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestBrowsableAdvancedFromReferences(bool isProjectReference, bool hideAdvancedMembers)
+        {
+            HideAdvancedMembers = hideAdvancedMembers;
+
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    public class Goo
+    {
+    }
+}";
+
+            var (markup, shouldContainItem) = isProjectReference switch
+            {
+                true => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                false => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), !hideAdvancedMembers),
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyTypeImportItemExistsAsync(
+                        markup,
+                        "Goo",
+                        glyph: (int)Glyph.ClassPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyTypeImportItemIsAbsentAsync(
+                        markup,
+                        "Goo",
+                        inlineDescription: "Foo");
             }
         }
 

@@ -71,13 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             switch (snippetFunctionName)
             {
                 case "SimpleTypeName":
-                    pFunc = new SnippetFunctionSimpleTypeName(this, TextView, SubjectBuffer, bstrFieldName, param);
+                    pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param);
                     return VSConstants.S_OK;
                 case "ClassName":
-                    pFunc = new SnippetFunctionClassName(this, TextView, SubjectBuffer, bstrFieldName);
+                    pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName);
                     return VSConstants.S_OK;
                 case "GenerateSwitchCases":
-                    pFunc = new SnippetFunctionGenerateSwitchCases(this, TextView, SubjectBuffer, bstrFieldName, param);
+                    pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
                     return VSConstants.S_OK;
                 default:
                     pFunc = null;
@@ -150,6 +150,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 if (candidateUsing == null)
                 {
                     continue;
+                }
+                else if (candidateUsing.ContainsDiagnostics && !namespaceToImport.Contains("="))
+                {
+                    // Retry by parsing the namespace as a name and constructing a using directive from it
+                    candidateUsing = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceToImport))
+                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithTrailingTrivia(SyntaxFactory.Space));
                 }
 
                 if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))

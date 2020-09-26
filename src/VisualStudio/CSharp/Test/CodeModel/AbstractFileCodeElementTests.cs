@@ -21,29 +21,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
         private readonly string _contents;
-        private Tuple<TestWorkspace, FileCodeModel> _workspaceAndCodeModel;
+        private (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
 
         public AbstractFileCodeElementTests(string contents)
         {
             _contents = contents;
         }
 
-        public Tuple<TestWorkspace, FileCodeModel> WorkspaceAndCodeModel
+        public (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
         {
             get
             {
-                return _workspaceAndCodeModel ?? (_workspaceAndCodeModel = CreateWorkspaceAndFileCodeModelAsync(_contents));
+                return _workspaceAndCodeModel ??= CreateWorkspaceAndFileCodeModelAsync(_contents);
             }
         }
 
         protected TestWorkspace GetWorkspace()
         {
-            return WorkspaceAndCodeModel.Item1;
+            return WorkspaceAndCodeModel.workspace;
+        }
+
+        private VisualStudioWorkspace GetExtraWorkspaceToDisposeButNotUse()
+        {
+            return WorkspaceAndCodeModel.extraWorkspaceToDisposeButNotUse;
         }
 
         protected FileCodeModel GetCodeModel()
         {
-            return WorkspaceAndCodeModel.Item2;
+            return WorkspaceAndCodeModel.fileCodeModel;
         }
 
         protected Microsoft.CodeAnalysis.Solution GetCurrentSolution()
@@ -55,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
             => GetCurrentProject().Documents.Single();
 
-        protected static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModelAsync(string file)
+        protected static (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected CodeElement GetCodeElement(params object[] path)
@@ -79,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         public void Dispose()
         {
+            GetExtraWorkspaceToDisposeButNotUse().Dispose();
             GetWorkspace().Dispose();
         }
 

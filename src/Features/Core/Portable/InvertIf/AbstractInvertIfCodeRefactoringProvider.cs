@@ -353,16 +353,14 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         private ImmutableArray<StatementRange> GetSubsequentStatementRanges(TIfStatementSyntax ifNode)
         {
-            var builder = ArrayBuilder<StatementRange>.GetInstance();
+            using var _ = ArrayBuilder<StatementRange>.GetInstance(out var builder);
 
             TStatementSyntax innerStatement = ifNode;
             foreach (var node in ifNode.Ancestors())
             {
                 var nextStatement = GetNextStatement(innerStatement);
                 if (nextStatement != null && IsStatementContainer(node))
-                {
                     builder.Add(new StatementRange(nextStatement, GetStatements(node).Last()));
-                }
 
                 if (!CanControlFlowOut(node))
                 {
@@ -372,12 +370,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 }
 
                 if (IsExecutableStatement(node))
-                {
                     innerStatement = (TStatementSyntax)node;
-                }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         protected abstract string GetTitle();

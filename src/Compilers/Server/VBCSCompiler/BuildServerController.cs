@@ -44,11 +44,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            var tempPath = Path.GetTempPath();
-
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, tempPath, cancellationToken: cancellationTokenSource.Token);
+                : RunServer(pipeName, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal TimeSpan? GetKeepAliveTimeout()
@@ -89,11 +87,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return BuildServerConnection.WasServerMutexOpen(mutexName);
         }
 
-        private static IClientConnectionHost CreateClientConnectionHost(string pipeName)
-        {
-            var compilerServerHost = CreateCompilerServerHost();
-            return CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
-        }
+        internal static IClientConnectionHost CreateClientConnectionHost(string pipeName) => new NamedPipeClientConnectionHost(pipeName);
 
         internal static ICompilerServerHost CreateCompilerServerHost()
         {
@@ -103,13 +97,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var sdkDirectory = BuildClient.GetSystemSdkDirectory();
 
             return new CompilerServerHost(clientDirectory, sdkDirectory);
-        }
-
-        internal static IClientConnectionHost CreateClientConnectionHostForServerHost(
-            ICompilerServerHost compilerServerHost,
-            string pipeName)
-        {
-            return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 
         private async Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
@@ -125,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal int RunServer(
             string pipeName,
-            string tempPath,
+            ICompilerServerHost compilerServerHost = null,
             IClientConnectionHost clientConnectionHost = null,
             IDiagnosticListener listener = null,
             TimeSpan? keepAlive = null,
@@ -134,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             keepAlive ??= GetKeepAliveTimeout();
             listener ??= new EmptyDiagnosticListener();
             clientConnectionHost ??= CreateClientConnectionHost(pipeName);
+            compilerServerHost ??= CreateCompilerServerHost();
 
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex
@@ -151,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
                 FatalError.Handler = FailFast.OnFatalException;
 
-                var dispatcher = new ServerDispatcher(clientConnectionHost, listener);
+                var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);
                 return CommonCompiler.Succeeded;
             }
@@ -159,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static int CreateAndRunServer(
             string pipeName,
-            string tempPath,
+            ICompilerServerHost compilerServerHost = null,
             IClientConnectionHost clientConnectionHost = null,
             IDiagnosticListener listener = null,
             TimeSpan? keepAlive = null,
@@ -168,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             appSettings ??= new NameValueCollection();
             var controller = new BuildServerController(appSettings);
-            return controller.RunServer(pipeName, tempPath, clientConnectionHost, listener, keepAlive, cancellationToken);
+            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
 
         internal int RunShutdown(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default)

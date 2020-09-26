@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TLanguageKindEnum : struct
     {
         private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
-            new Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>>();
+            new();
 
         private readonly IPrecedenceService _precedenceService;
 

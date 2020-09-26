@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IntPtr,
         InterpolatedString, // a conversion from an interpolated string to IFormattable or FormattableString
         SwitchExpression, // a conversion from a switch expression to a type which each arm can convert to
+        ConditionalExpression, // a conversion from a conditional expression to a type which each side can convert to
         Deconstruction, // The Deconstruction conversion is not part of the language, it is an implementation detail 
         StackAllocToPointerType,
         StackAllocToSpanType,

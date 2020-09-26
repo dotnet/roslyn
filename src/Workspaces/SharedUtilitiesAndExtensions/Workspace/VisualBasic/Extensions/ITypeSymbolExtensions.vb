@@ -42,6 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxKind.CSngKeyword
                 Case specialType.System_Int16
                     Return SyntaxKind.CShortKeyword
+                Case SpecialType.System_String
+                    Return SyntaxKind.CStrKeyword
                 Case specialType.System_UInt32
                     Return SyntaxKind.CUIntKeyword
                 Case specialType.System_UInt64

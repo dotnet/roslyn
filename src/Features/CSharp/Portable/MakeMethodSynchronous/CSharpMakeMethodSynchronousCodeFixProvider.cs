@@ -37,25 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             {
                 case MethodDeclarationSyntax method: return FixMethod(methodSymbolOpt, method, knownTypes);
                 case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(methodSymbolOpt, localFunction, knownTypes);
-                case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
-                case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
-                case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
+                case AnonymousMethodExpressionSyntax method: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(method);
+                case ParenthesizedLambdaExpressionSyntax lambda: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda);
+                case SimpleLambdaExpressionSyntax lambda: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda);
                 default: return node;
             }
         }
-
         private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
-            var newModifiers = FixMethodModifiers(method.Modifiers, ref newReturnType);
-            return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
+            return RemoveAsyncModifierHelpers.WithoutAsyncModifier(method, newReturnType);
         }
 
         private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, knownTypes);
-            var newModifiers = FixMethodModifiers(localFunction.Modifiers, ref newReturnType);
-            return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
+            return RemoveAsyncModifierHelpers.WithoutAsyncModifier(localFunction, newReturnType);
         }
 
         private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax, KnownTypes knownTypes)
@@ -86,46 +83,5 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 
             return newReturnType;
         }
-
-        private static SyntaxTokenList FixMethodModifiers(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
-        {
-            var asyncTokenIndex = modifiers.IndexOf(SyntaxKind.AsyncKeyword);
-            SyntaxTokenList newModifiers;
-            if (asyncTokenIndex == 0)
-            {
-                // Have to move the trivia on the async token appropriately.
-                var asyncLeadingTrivia = modifiers[0].LeadingTrivia;
-
-                if (modifiers.Count > 1)
-                {
-                    // Move the trivia to the next modifier;
-                    newModifiers = modifiers.Replace(
-                        modifiers[1],
-                        modifiers[1].WithPrependedLeadingTrivia(asyncLeadingTrivia));
-                    newModifiers = newModifiers.RemoveAt(0);
-                }
-                else
-                {
-                    // move it to the return type.
-                    newModifiers = modifiers.RemoveAt(0);
-                    newReturnType = newReturnType.WithPrependedLeadingTrivia(asyncLeadingTrivia);
-                }
-            }
-            else
-            {
-                newModifiers = modifiers.RemoveAt(asyncTokenIndex);
-            }
-
-            return newModifiers;
-        }
-
-        private static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
-            => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
-
-        private static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
-            => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
-
-        private static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
-            => method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
     }
 }

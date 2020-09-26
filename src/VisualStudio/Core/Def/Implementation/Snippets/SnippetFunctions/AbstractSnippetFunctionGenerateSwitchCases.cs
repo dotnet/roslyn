@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         protected abstract string CaseFormat { get; }
         protected abstract string DefaultCase { get; }
 
-        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
             this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[switchExpressionField.Length - 1] == '$')

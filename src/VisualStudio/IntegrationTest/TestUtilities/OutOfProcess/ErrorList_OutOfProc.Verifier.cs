@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     {
         public class Verifier
         {
-            private ErrorList_OutOfProc _errorList;
+            private readonly ErrorList_OutOfProc _errorList;
             private readonly VisualStudioInstance _instance;
 
             public Verifier(ErrorList_OutOfProc errorList, VisualStudioInstance instance)
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void NoBuildErrors()
             {
-                _instance.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+                _instance.SolutionExplorer.BuildSolution();
                 NoErrors();
             }
 

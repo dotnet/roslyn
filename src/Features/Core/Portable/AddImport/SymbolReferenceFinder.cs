@@ -119,13 +119,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
                 // Spin off tasks to do all our searching in parallel
-                var tasks = new List<Task<ImmutableArray<SymbolReference>>>
-                {
-                    GetReferencesForMatchingTypesAsync(searchScope),
-                    GetReferencesForMatchingNamespacesAsync(searchScope),
-                    GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    GetReferencesForMatchingExtensionMethodsAsync(searchScope),
-                };
+                using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);
+                tasks.Add(GetReferencesForMatchingTypesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingNamespacesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingExtensionMethodsAsync(searchScope));
 
                 // Searching for things like "Add" (for collection initializers) and "Select"
                 // (for extension methods) should only be done when doing an 'exact' search.
@@ -139,19 +137,21 @@ namespace Microsoft.CodeAnalysis.AddImport
                     tasks.Add(GetReferencesForQueryPatternsAsync(searchScope));
                     tasks.Add(GetReferencesForDeconstructAsync(searchScope));
                     tasks.Add(GetReferencesForGetAwaiterAsync(searchScope));
+                    tasks.Add(GetReferencesForGetEnumeratorAsync(searchScope));
+                    tasks.Add(GetReferencesForGetAsyncEnumeratorAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                var allReferences = ArrayBuilder<SymbolReference>.GetInstance();
+                using var _2 = ArrayBuilder<SymbolReference>.GetInstance(out var allReferences);
                 foreach (var task in tasks)
                 {
                     var taskResult = await task.ConfigureAwait(false);
                     allReferences.AddRange(taskResult);
                 }
 
-                return DeDupeAndSortReferences(allReferences.ToImmutableAndFree());
+                return DeDupeAndSortReferences(allReferences.ToImmutable());
             }
 
             private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)
@@ -302,7 +302,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                     // 'Black' did not bind.  We want to find a type called 'Color' that will actually
                     // allow 'Black' to bind.
                     var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
-                    if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                    if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
+                        syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                     {
                         var expression =
                             syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
@@ -485,6 +486,50 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             /// <summary>
+            /// Searches for extension methods exactly called 'GetEnumerator'.  Returns
+            /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
+            /// the static classes that those extension methods are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForGetEnumeratorAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
+                if (_owner.CanAddImportForGetEnumerator(_diagnosticId, _syntaxFacts, _node))
+                {
+                    var type = GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
+                    if (type != null)
+                    {
+                        return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetEnumeratorMethodName, type,
+                            m => m.IsValidGetEnumerator()).ConfigureAwait(false);
+                    }
+                }
+
+                return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            /// <summary>
+            /// Searches for extension methods exactly called 'GetAsyncEnumerator'.  Returns
+            /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
+            /// the static classes that those extension methods are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForGetAsyncEnumeratorAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
+                if (_owner.CanAddImportForGetAsyncEnumerator(_diagnosticId, _syntaxFacts, _node))
+                {
+                    var type = GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
+                    if (type != null)
+                    {
+                        return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAsyncEnumeratorMethodName, type,
+                            m => m.IsValidGetAsyncEnumerator()).ConfigureAwait(false);
+                    }
+                }
+
+                return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            /// <summary>
             /// Searches for extension methods exactly called 'Deconstruct'.  Returns
             /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
             /// the static classes that those extension methods are contained in.
@@ -552,7 +597,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private ImmutableArray<SymbolReference> GetNamespaceSymbolReferences(
                 SearchScope scope, ImmutableArray<SymbolResult<INamespaceSymbol>> namespaces)
             {
-                var references = ArrayBuilder<SymbolReference>.GetInstance();
+                using var _ = ArrayBuilder<SymbolReference>.GetInstance(out var references);
 
                 foreach (var namespaceResult in namespaces)
                 {
@@ -560,12 +605,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     var mappedResult = namespaceResult.WithSymbol(MapToCompilationNamespaceIfPossible(namespaceResult.Symbol));
                     var namespaceIsInScope = _namespacesInScope.Contains(mappedResult.Symbol);
                     if (!symbol.IsGlobalNamespace && !namespaceIsInScope)
-                    {
                         references.Add(scope.CreateReference(mappedResult));
-                    }
                 }
 
-                return references.ToImmutableAndFree();
+                return references.ToImmutable();
             }
 
             private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol

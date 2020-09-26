@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal void VerifyUnchangedDocument(
             string source,
             ActiveStatement[] oldActiveStatements,
-            TextSpan?[]? trackingSpans,
             TextSpan[] expectedNewActiveStatements,
-            ImmutableArray<TextSpan>[] expectedOldExceptionRegions,
             ImmutableArray<TextSpan>[] expectedNewExceptionRegions)
         {
             var text = SourceText.From(source);
@@ -43,9 +41,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             tree.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
-
-            var spanTracker = new TestActiveStatementSpanTracker(
-                (trackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, trackingSpans } } : null);
 
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
@@ -94,17 +89,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            var spanTracker = new TestActiveStatementSpanTracker(
-                (description.OldTrackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, description.OldTrackingSpans } } : null);
-
             Analyzer.GetTestAccessor().AnalyzeSyntax(
                 editScript,
                 editMap,
                 oldText,
                 newText,
-                documentId,
-                spanTracker,
                 oldActiveStatements.AsImmutable(),
+                description.OldTrackingSpans.ToImmutableArrayOrEmpty(),
                 actualNewActiveStatements,
                 actualNewExceptionRegions,
                 updatedActiveMethodMatches,
@@ -229,7 +220,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
             var diagnostics = new List<RudeEditDiagnostic>();
-            var spanTracker = new TestActiveStatementSpanTracker();
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
             var actualNewActiveStatements = new ActiveStatement[activeStatements.OldStatements.Length];
@@ -240,9 +230,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 editMap,
                 oldText,
                 newText,
-                documentId,
-                spanTracker,
                 oldActiveStatements,
+                activeStatements.OldTrackingSpans.ToImmutableArrayOrEmpty(),
                 actualNewActiveStatements,
                 actualNewExceptionRegions,
                 updatedActiveMethodMatches,
@@ -378,14 +367,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Old = partners.Key.ToString().Replace("\r\n", " ").Replace("\n", " "),
                     New = partners.Value.ToString().Replace("\r\n", " ").Replace("\n", " ")
                 }));
-        }
-
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
-        {
-            foreach (var pair in mapping)
-            {
-                yield return KeyValuePairUtil.Create(pair.Value, pair.Key);
-            }
         }
     }
 

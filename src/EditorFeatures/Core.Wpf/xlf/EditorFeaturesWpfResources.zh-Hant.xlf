@@ -2,21 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../EditorFeaturesWpfResources.resx">
     <body>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="translated">下載索引失敗</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="translated">下載索引失敗: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="translated">正在為 {0} 下載 IntelliSense 索引</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
         <target state="translated">正在蒐集建議 - '{0}'</target>
@@ -70,11 +55,6 @@
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">Regex - 其他逸出</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">隱藏或設定問題</target>
         <note />
       </trans-unit>
     </body>

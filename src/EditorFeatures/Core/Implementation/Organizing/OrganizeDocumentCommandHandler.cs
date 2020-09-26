@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
             => GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
 
-        private CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
+        private static CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
         {
             if (IsCommandSupported(args, needsSemantics, out var workspace))
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, out Workspace workspace)
+        private static bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, out Workspace workspace)
         {
             workspace = null;
             if (args.SubjectBuffer.TryGetWorkspace(out var retrievedWorkspace))
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
-                this.SortImports(args.SubjectBuffer, context.OperationContext);
+                SortImports(args.SubjectBuffer, context.OperationContext);
             }
 
             return true;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return true;
         }
 
-        private void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
+        private static void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();

@@ -341,7 +341,7 @@ End Class</code>.Value
             Verify(code, "Get")
         End Sub
 
-        Private Sub VerifyContinuousEdits(codeWithMarker As String,
+        Private Shared Sub VerifyContinuousEdits(codeWithMarker As String,
                                           type As String,
                                           expectedStringGetter As Func(Of String, String),
                                           removeOriginalContent As Boolean,
@@ -391,7 +391,7 @@ End Class</code>.Value
             End Using
         End Sub
 
-        Private Sub Verify(codeWithMarker As String, keyword As String)
+        Private Shared Sub Verify(codeWithMarker As String, keyword As String)
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
@@ -399,7 +399,7 @@ End Class</code>.Value
             VerifyEnd(codeWithMarker, keyword)
         End Sub
 
-        Private Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
+        Private Shared Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
@@ -408,11 +408,11 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.First()
                 Dim spanToVerify = selectedSpans.Skip(1).Single()
 
-                Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify)
             End Using
         End Sub
 
-        Private Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
+        Private Shared Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
@@ -421,11 +421,11 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.Skip(1).Single()
                 Dim spanToVerify = selectedSpans.First()
 
-                Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify)
             End Using
         End Sub
 
-        Private Sub Verify(workspace As TestWorkspace, document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
+        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
             Dim buffer = document.GetTextBuffer()
             Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
 

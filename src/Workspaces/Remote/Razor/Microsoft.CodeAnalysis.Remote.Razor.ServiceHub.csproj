@@ -12,10 +12,8 @@
       A private package for the Razor team to grant access to certain internal APIs.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -28,21 +26,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="Shared\WatsonTraceListener.cs" />
-    <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
-      <Link>Shared\RoslynJsonConverter.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
-      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\ServiceBase.cs">
-      <Link>Shared\ServiceBase.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\RemoteEndPoint.cs">
-      <Link>Shared\RemoteEndPoint.cs</Link>
-    </Compile>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>
 </Project>
