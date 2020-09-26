@@ -473,7 +473,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
                 if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
-                    && !isMethodGroupConversion)
+                    && !isMethodGroupConversion
+                    // Function pointer type symbols don't have named parameters, so we just want to report a general mismatched parameter
+                    // count instead of name errors.
+                    // The only case we want this block to be entered for function pointers is if it's called with a named argument.
+                    // We have a special error for it (ERR_FunctionPointersCannotBeCalledWithNamedArguments) reported
+                    // in ReportNoCorrespondingNamedParameter.
+                    && (firstSupported.Member is not FunctionPointerMethodSymbol || firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter)))
                 {
                     switch (firstSupported.Result.Kind)
                     {
