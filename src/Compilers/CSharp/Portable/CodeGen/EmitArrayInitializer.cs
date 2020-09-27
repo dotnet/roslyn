@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Generates a byte blob that matches serialized content of an array.
         /// </summary>
         /// <returns>True if the blob is generated successfully, false otherwise</returns>
-        private bool TryGetRawDataForArray(BoundArrayCreation initializer, out ImmutableArray<byte> data, out int elementCount)
+        private static bool TryGetRawDataForArray(BoundArrayCreation initializer, out ImmutableArray<byte> data, out int elementCount)
         {
             elementCount = getArrayElementCount(initializer);
 
