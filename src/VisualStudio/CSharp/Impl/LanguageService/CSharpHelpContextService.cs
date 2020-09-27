@@ -284,8 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             text = "partialmethod_CSharpKeyword";
                             return true;
                         }
-                        else if (token.Parent.GetAncestorOrThis<ClassDeclarationSyntax>() != null ||
-                            token.Parent.GetAncestorOrThis<RecordDeclarationSyntax>() != null)
+                        else if (token.Parent.GetAncestorOrThis<TypeDeclarationSyntax>() != null)
                         {
                             text = "partialtype_CSharpKeyword";
                             return true;
