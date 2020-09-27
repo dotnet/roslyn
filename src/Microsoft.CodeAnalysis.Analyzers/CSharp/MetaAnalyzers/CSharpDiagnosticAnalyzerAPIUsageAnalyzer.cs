@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             switch (syntax.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
