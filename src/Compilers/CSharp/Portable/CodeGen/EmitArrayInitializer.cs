@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <returns>True if the blob is generated successfully, false otherwise</returns>
         private bool TryGetRawDataForArray(BoundArrayCreation initializer, out ImmutableArray<byte> data, out int elementCount)
         {
-            elementCount = GetArrayElementCount(initializer);
+            elementCount = getArrayElementCount(initializer);
 
             if (elementCount < 0)
             {
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             data = ImmutableArray.Create(new byte[arraySizeInBytes]);
             return true;
 
-            static int GetArrayElementCount(BoundArrayCreation initializer)
+            static int getArrayElementCount(BoundArrayCreation initializer)
             {
                 if (initializer.InitializerOpt != null)
                 {
