@@ -167,6 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         break;
 
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                         var typeDeclaration = (TypeDeclarationSyntax)node;
