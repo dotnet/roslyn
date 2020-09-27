@@ -84,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -528,6 +529,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             switch (node.Kind())
             {
+                // TODO: Should records be added here?
                 case SyntaxKind.ClassDeclaration:
                     return (EnvDTE.CodeElement)CodeClass.Create(state, fileCodeModel, nodeKey, (int)node.Kind());
                 case SyntaxKind.InterfaceDeclaration:
@@ -579,7 +581,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 case SyntaxKind.NamespaceDeclaration:
                     return (EnvDTE.CodeElement)CodeNamespace.CreateUnknown(state, fileCodeModel, node.RawKind, GetName(node));
-
+                // TODO: Should records be added here
                 case SyntaxKind.ClassDeclaration:
                     return (EnvDTE.CodeElement)CodeClass.CreateUnknown(state, fileCodeModel, node.RawKind, GetName(node));
                 case SyntaxKind.InterfaceDeclaration:
@@ -789,6 +791,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.EnumDeclaration:
@@ -867,8 +870,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
-                    return SetNameOfClassOrStruct(node, newIdentifier);
+                    return SetNameOfClassOrRecordOrStruct(node, newIdentifier);
                 case SyntaxKind.InterfaceDeclaration:
                     return ((InterfaceDeclarationSyntax)node).WithIdentifier(newIdentifier);
                 case SyntaxKind.EnumDeclaration:
@@ -909,7 +913,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
         }
 
-        private static SyntaxNode SetNameOfClassOrStruct(SyntaxNode node, SyntaxToken newIdentifier)
+        private static SyntaxNode SetNameOfClassOrRecordOrStruct(SyntaxNode node, SyntaxToken newIdentifier)
         {
             var typeNode = (TypeDeclarationSyntax)node;
 
@@ -927,14 +931,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            if (typeNode.Kind() == SyntaxKind.StructDeclaration)
-            {
-                return ((StructDeclarationSyntax)typeNode).WithIdentifier(newIdentifier);
-            }
-            else
-            {
-                return ((ClassDeclarationSyntax)typeNode).WithIdentifier(newIdentifier);
-            }
+            return typeNode.WithIdentifier(newIdentifier);
         }
 
         public override string GetFullName(SyntaxNode node, SemanticModel semanticModel)
@@ -2200,6 +2197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override EnvDTE80.vsCMInheritanceKind GetInheritanceKind(SyntaxNode typeNode, INamedTypeSymbol typeSymbol)
         {
+            // TODO: records can be inherited too, this assertion can fail in debug? (and invalid cast in release)?
             Debug.Assert(typeNode is ClassDeclarationSyntax);
 
             var type = (ClassDeclarationSyntax)typeNode;
@@ -2266,6 +2264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             // If this is a class member and the class is not abstract, we throw.
+            // does this need to account for records as well?
             if (member.Parent is ClassDeclarationSyntax)
             {
                 var parentFlags = ((ClassDeclarationSyntax)member.Parent).GetModifierFlags();
@@ -2363,6 +2362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode SetInheritanceKind(SyntaxNode typeNode, EnvDTE80.vsCMInheritanceKind kind)
         {
+            // TODO: Records can be inherited too, should this assertion include records?.
             Debug.Assert(typeNode is ClassDeclarationSyntax);
 
             if (!(typeNode is MemberDeclarationSyntax member))
@@ -3351,6 +3351,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var newAttributeLists = classDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
                 return classDeclaration.WithAttributeLists(newAttributeLists);
             }
+            else if (container is RecordDeclarationSyntax recordDeclaration)
+            {
+                var newAttributeLists = recordDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return recordDeclaration.WithAttributeLists(newAttributeLists);
+            }
             else if (container is StructDeclarationSyntax structDeclaration)
             {
                 var newAttributeLists = structDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
@@ -3474,6 +3479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
@@ -3503,6 +3509,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         public override bool IsType(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.ClassDeclaration)
+                || node.IsKind(SyntaxKind.RecordDeclaration)            
                 || node.IsKind(SyntaxKind.InterfaceDeclaration)
                 || node.IsKind(SyntaxKind.StructDeclaration)
                 || node.IsKind(SyntaxKind.EnumDeclaration)
@@ -3691,6 +3698,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override bool IsValidBaseType(SyntaxNode node, ITypeSymbol typeSymbol)
         {
+            // TODO: Does this need to be updated with records?
+            // Related to https://github.com/dotnet/roslyn/issues/47713
             if (node.IsKind(SyntaxKind.ClassDeclaration))
             {
                 return typeSymbol.TypeKind == TypeKind.Class;
@@ -3705,7 +3714,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode AddBase(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel, int? position)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration))
+            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration, SyntaxKind.RecordDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3716,6 +3725,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 : 0;
 
             int insertionIndex;
+            // TODO: I'm not familiar with this. How records should be treated here?
             if (typeDeclaration.IsKind(SyntaxKind.ClassDeclaration))
             {
                 insertionIndex = 0;
@@ -3738,7 +3748,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode RemoveBase(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration))
+            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration, SyntaxKind.RecordDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3755,7 +3765,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             foreach (var type in typeDeclaration.BaseList.Types)
             {
-                if (!isFirst && node.IsKind(SyntaxKind.ClassDeclaration))
+                if (!isFirst && node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
                 {
                     break;
                 }
@@ -3788,7 +3798,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override bool IsValidInterfaceType(SyntaxNode node, ITypeSymbol typeSymbol)
         {
-            if (node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+            if (node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration))
             {
                 return typeSymbol.TypeKind == TypeKind.Interface;
             }
@@ -3798,7 +3808,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode AddImplementedInterface(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel, int? position)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3833,7 +3843,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode RemoveImplementedInterface(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
