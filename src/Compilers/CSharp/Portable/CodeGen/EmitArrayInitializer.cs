@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (initializer.InitializerOpt != null)
             {
-                return TryGetRawDataForArrayInit(initializer.InitializerOpt, elementType, out data);
+                return tryGetRawDataForArrayInit(initializer.InitializerOpt, elementType, out data);
             }
 
             var elementSize = elementType.SpecialType.SizeInBytes();
@@ -484,42 +484,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 return elementCountValue.Int32Value;
             }
-        }
 
-        /// <summary>
-        /// Generates a byte blob that matches serialized content of single array initializer.
-        /// </summary>
-        /// <returns>True if the blob is generated successfully, false otherwise</returns>
-        private bool TryGetRawDataForArrayInit(BoundArrayInitialization initializer, TypeSymbol elementType, out ImmutableArray<byte> data)
-        {
-            data = default;
-
-            // NB: we cannot use this approach for element types larger than one byte
-            //     the issue is that metadata stores blobs in little-endian format
-            //     so anything that is larger than one byte will be incorrect on a big-endian machine
-            //     With additional runtime support it might be possible, but not yet.
-            //     See: https://github.com/dotnet/corefx/issues/26948 for more details
-            var elementSize = elementType.SpecialType.SizeInBytes();
-            if (elementSize != 1)
+            /// <summary>
+            /// Generates a byte blob that matches serialized content of single array initializer.
+            /// </summary>
+            /// <returns>True if the blob is generated successfully, false otherwise</returns>
+            static bool tryGetRawDataForArrayInit(BoundArrayInitialization initializer, TypeSymbol elementType, out ImmutableArray<byte> data)
             {
-                return false;
+                data = default;
+
+                // NB: we cannot use this approach for element types larger than one byte
+                //     the issue is that metadata stores blobs in little-endian format
+                //     so anything that is larger than one byte will be incorrect on a big-endian machine
+                //     With additional runtime support it might be possible, but not yet.
+                //     See: https://github.com/dotnet/corefx/issues/26948 for more details
+                var elementSize = elementType.SpecialType.SizeInBytes();
+                if (elementSize != 1)
+                {
+                    return false;
+                }
+
+                var initializers = initializer.Initializers;
+                if (initializers.Any(init => init.ConstantValue == null))
+                {
+                    return false;
+                }
+
+                var writer = new BlobBuilder(initializers.Length * elementSize);
+
+                foreach (var init in initializer.Initializers)
+                {
+                    init.ConstantValue.Serialize(writer);
+                }
+
+                data = writer.ToImmutableArray();
+                return true;
             }
-
-            var initializers = initializer.Initializers;
-            if (initializers.Any(init => init.ConstantValue == null))
-            {
-                return false;
-            }
-
-            var writer = new BlobBuilder(initializers.Length * elementSize);
-
-            foreach (var init in initializer.Initializers)
-            {
-                init.ConstantValue.Serialize(writer);
-            }
-
-            data = writer.ToImmutableArray();
-            return true;
         }
     }
 }
