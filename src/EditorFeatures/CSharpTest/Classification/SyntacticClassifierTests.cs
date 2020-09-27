@@ -5518,5 +5518,60 @@ class C
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
+
+        [Fact, WorkItem(48094, "https://github.com/dotnet/roslyn/issues/48094")]
+        public async Task TestXmlAttributeNameSpan1()
+        {
+            var source = @"/// <param name=""value""></param>";
+            using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+
+            var classifications = await GetSyntacticClassificationsAsync(document, new TextSpan(0, source.Length));
+            Assert.Equal(new[]
+            {
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(0, 3)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentText, new TextSpan(3, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(4, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(5, 5)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentAttributeName, new TextSpan(11, 4)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(15, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentAttributeQuotes, new TextSpan(16, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.Identifier, new TextSpan(17, 5)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentAttributeQuotes, new TextSpan(22, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(23, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(24, 2)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(26, 5)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(31, 1))
+            }, classifications);
+        }
+
+        [Fact, WorkItem(48094, "https://github.com/dotnet/roslyn/issues/48094")]
+        public async Task TestXmlAttributeNameSpan2()
+        {
+            var source = @"
+/// <param
+/// name=""value""></param>";
+            using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+
+            var classifications = await GetSyntacticClassificationsAsync(document, new TextSpan(0, source.Length));
+            Assert.Equal(new[]
+            {
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(2, 3)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentText, new TextSpan(5, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(6, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(7, 5)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(14, 3)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentAttributeName, new TextSpan(18, 4)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(22, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentAttributeQuotes, new TextSpan(23, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.Identifier, new TextSpan(24, 5)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentAttributeQuotes, new TextSpan(29, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(30, 1)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(31, 2)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(33, 5)),
+                new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(38, 1))
+            }, classifications);
+        }
     }
 }

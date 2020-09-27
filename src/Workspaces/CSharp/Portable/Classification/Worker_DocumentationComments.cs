@@ -200,28 +200,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlName(XmlNameSyntax node)
         {
-            string classificationType;
-            if (node.Parent is XmlAttributeSyntax)
+            var classificationType = node.Parent switch
             {
-                classificationType = ClassificationTypeNames.XmlDocCommentAttributeName;
-            }
-            else if (node.Parent is XmlProcessingInstructionSyntax)
-            {
-                classificationType = ClassificationTypeNames.XmlDocCommentProcessingInstruction;
-            }
-            else
-            {
-                classificationType = ClassificationTypeNames.XmlDocCommentName;
-            }
+                XmlAttributeSyntax => ClassificationTypeNames.XmlDocCommentAttributeName,
+                XmlProcessingInstructionSyntax => ClassificationTypeNames.XmlDocCommentProcessingInstruction,
+                _ => ClassificationTypeNames.XmlDocCommentName,
+            };
 
             var prefix = node.Prefix;
             if (prefix != null)
             {
-                AddXmlClassification(prefix.Prefix, classificationType);
-                AddXmlClassification(prefix.ColonToken, classificationType);
+                AddXmlNameTokenClassification(prefix.Prefix, classificationType);
+                AddXmlNameTokenClassification(prefix.ColonToken, classificationType);
             }
 
-            AddXmlClassification(node.LocalName, classificationType);
+            AddXmlNameTokenClassification(node.LocalName, classificationType);
+        }
+
+        private void AddXmlNameTokenClassification(SyntaxToken token, string classificationType)
+        {
+            if (token.HasLeadingTrivia)
+                ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: null);
+
+            AddClassification(token, classificationType);
+
+            if (token.HasTrailingTrivia)
+                ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: null);
         }
 
         private void ClassifyXmlElement(XmlElementSyntax node)
