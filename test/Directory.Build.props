@@ -5,7 +5,6 @@
     <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;net472</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <RootNamespace />
   </PropertyGroup>
 
 </Project>

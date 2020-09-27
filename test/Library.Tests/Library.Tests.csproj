@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <RootNamespace />
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Library\Library.csproj" />
   </ItemGroup>
