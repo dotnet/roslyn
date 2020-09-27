@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IWorkspaceEventListenerService : IWorkspaceService
     {
         void EnsureListeners();
-        void Stop();
     }
 
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceEventListenerService), layer: ServiceLayer.Default), Shared]
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Host
             return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace, _eventListeners));
         }
 
-        private class Service : IWorkspaceEventListenerService
+        private class Service : IWorkspaceEventListenerService, IDisposable
         {
             private readonly object _gate = new();
             private bool _initialized = false;
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            public void Stop()
+            public void Dispose()
             {
                 lock (_gate)
                 {

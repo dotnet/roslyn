@@ -78,6 +78,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageServiceMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefConstruction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefLanguageServices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefWorkspaceServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableLanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableMetadata.cs" />

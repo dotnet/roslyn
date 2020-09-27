@@ -282,4 +282,7 @@
   <data name="NotSupported_FixedSizeCollection" xml:space="preserve">
     <value>Collection was of a fixed size.</value>
   </data>
+  <data name="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose" xml:space="preserve">
+    <value>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</value>
+  </data>
 </root>

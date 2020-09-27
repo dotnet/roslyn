@@ -37,8 +37,9 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        internal sealed class OptionService : IWorkspaceOptionService
+        internal sealed class OptionService : IOptionService, IDisposable
         {
+            private readonly Workspace _workspace;
             private readonly IGlobalOptionService _globalOptionService;
             private readonly TaskQueue _taskQueue;
 
@@ -57,20 +58,23 @@ namespace Microsoft.CodeAnalysis.Options
                 IGlobalOptionService globalOptionService,
                 HostWorkspaceServices workspaceServices)
             {
+                _workspace = workspaceServices.Workspace;
                 _globalOptionService = globalOptionService;
 
                 var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
                 var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
                 _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
+                _globalOptionService.RegisterWorkspace(workspaceServices.Workspace);
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
 
-            public void OnWorkspaceDisposed(Workspace workspace)
+            public void Dispose()
             {
                 // Disconnect us from the underlying global service.  That way it doesn't 
                 // keep us around (and all the event handlers we're holding onto) forever.
                 _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
+                _globalOptionService.UnregisterWorkspace(_workspace);
             }
 
             private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
@@ -126,8 +130,6 @@ namespace Microsoft.CodeAnalysis.Options
             public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => _globalOptionService.TryMapEditorConfigKeyToOption(key, language, out storageLocation, out optionKey);
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
             public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
-            public void RegisterWorkspace(Workspace workspace) => _globalOptionService.RegisterWorkspace(workspace);
-            public void UnregisterWorkspace(Workspace workspace) => _globalOptionService.UnregisterWorkspace(workspace);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
