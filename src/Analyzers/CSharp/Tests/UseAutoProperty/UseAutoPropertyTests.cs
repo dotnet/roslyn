@@ -2449,5 +2449,39 @@ class Class
     }
 }");
         }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyAndSetterNeeded()
+        {
+            await TestInRegularAndScript1Async(
+@"class Class
+{
+    [|int i|];
+    public readonly int P => i;
+    public void SetP(int value) => i = value;
+}",
+@"class Class
+{
+    public int P { get; private set; }
+    public void SetP(int value) => P = value;
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyAndSetterUnneeded()
+        {
+            await TestInRegularAndScript1Async(
+@"class Class
+{
+    [|int i|];
+    public readonly int P => i;
+}",
+@"class Class
+{
+    public readonly int P { get; }
+}");
+        }
     }
 }

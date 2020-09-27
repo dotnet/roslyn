@@ -61,7 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                     accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
                 }
 
-                updatedProperty = updatedProperty.AddAccessorListAccessors(accessor);
+                var modifiers = SyntaxFactory.TokenList(
+                    updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
+
+                updatedProperty = updatedProperty.WithModifiers(modifiers)
+                                                 .AddAccessorListAccessors(accessor);
             }
 
             var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
