@@ -2470,6 +2470,24 @@ class Class
 
         [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyWithNoAccessModifierAndSetterNeeded()
+        {
+            await TestInRegularAndScript1Async(
+@"class Class
+{
+    [|int i|];
+    readonly int P => i;
+    public void SetP(int value) => i = value;
+}",
+@"class Class
+{
+    int P { get; set; }
+    public void SetP(int value) => P = value;
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestPropertyIsReadOnlyAndSetterUnneeded()
         {
             await TestInRegularAndScript1Async(
