@@ -2455,13 +2455,13 @@ class Class
         public async Task TestPropertyIsReadOnlyAndSetterNeeded()
         {
             await TestInRegularAndScript1Async(
-@"class Class
+@"struct S
 {
     [|int i|];
     public readonly int P => i;
     public void SetP(int value) => i = value;
 }",
-@"class Class
+@"struct S
 {
     public int P { get; private set; }
     public void SetP(int value) => P = value;
@@ -2473,13 +2473,13 @@ class Class
         public async Task TestPropertyIsReadOnlyWithNoAccessModifierAndSetterNeeded()
         {
             await TestInRegularAndScript1Async(
-@"class Class
+@"struct S
 {
     [|int i|];
     readonly int P => i;
     public void SetP(int value) => i = value;
 }",
-@"class Class
+@"struct S
 {
     int P { get; set; }
     public void SetP(int value) => P = value;
@@ -2491,12 +2491,12 @@ class Class
         public async Task TestPropertyIsReadOnlyAndSetterUnneeded()
         {
             await TestInRegularAndScript1Async(
-@"class Class
+@"struct S
 {
     [|int i|];
     public readonly int P => i;
 }",
-@"class Class
+@"struct S
 {
     public readonly int P { get; }
 }");
