@@ -27,6 +27,26 @@
         <target state="translated">添加 “Shadows”</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="new">Apply file header preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object collection initialization preferences</source>
+        <target state="new">Apply object collection initialization preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_this_qualification_preferences">
+        <source>Apply Me qualification preferences</source>
+        <target state="new">Apply Me qualification preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply Imports directive placement preferences</source>
+        <target state="new">Apply Imports directive placement preferences</target>
+        <note>'Imports' is a VB keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">插入“{0}”。</target>
@@ -72,6 +92,11 @@
         <target state="translated">使 "{0}" 可继承</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_private_field_readonly_when_possible">
+        <source>Make private field readonly when possible</source>
+        <target state="new">Make private field readonly when possible</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">将“{0}”语句移动到第 {1} 行。</target>
@@ -85,6 +110,26 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;多种类型&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_Usings">
+        <source>Organize_Imports</source>
+        <target state="new">Organize_Imports</target>
+        <note>'Imports' is a VB keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="new">Remove unnecessary casts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unusedvariables</source>
+        <target state="new">Remove unusedvariables</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="new">Sort accessibility modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">

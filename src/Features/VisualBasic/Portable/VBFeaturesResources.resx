@@ -1239,4 +1239,33 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
   </data>
+  <data name="Apply_file_header_preferences" xml:space="preserve">
+    <value>Apply file header preferences</value>
+  </data>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object collection initialization preferences</value>
+  </data>
+  <data name="Apply_this_qualification_preferences" xml:space="preserve">
+    <value>Apply Me qualification preferences</value>
+  </data>
+  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
+    <value>Apply Imports directive placement preferences</value>
+    <comment>'Imports' is a VB keyword and should not be localized</comment>
+  </data>
+  <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
+    <value>Make private field readonly when possible</value>
+  </data>
+  <data name="Organize_Usings" xml:space="preserve">
+    <value>Organize_Imports</value>
+    <comment>'Imports' is a VB keyword and should not be localized</comment>
+  </data>
+  <data name="Remove_unnecessary_casts" xml:space="preserve">
+    <value>Remove unnecessary casts</value>
+  </data>
+  <data name="Sort_accessibility_modifiers" xml:space="preserve">
+    <value>Sort accessibility modifiers</value>
+  </data>
+  <data name="Remove_unused_variables" xml:space="preserve">
+    <value>Remove unusedvariables</value>
+  </data>
 </root>
