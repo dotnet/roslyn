@@ -183,6 +183,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 }", "partialtype");
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRecordWithPrimaryConstructorPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C(string S)
+{
+    partial void goo();
+}", "partialtype");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestPartialMethodInClass()
         {
