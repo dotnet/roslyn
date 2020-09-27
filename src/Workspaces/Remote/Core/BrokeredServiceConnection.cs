@@ -191,15 +191,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }, cancellationToken);
 
-            try
-            {
-                await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
-            }
-            catch (AggregateException aggregateException) when (cancellationToken.IsCancellationRequested)
-            {
-                aggregateException.Handle(e => e is OperationCanceledException);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
+            await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
             return readerTask.Result;
         }
