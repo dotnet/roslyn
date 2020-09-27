@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (initializer.InitializerOpt != null)
             {
-                return tryGetRawDataForArrayInit(initializer.InitializerOpt, elementType, out data);
+                return tryGetRawDataForArrayInitializer(initializer.InitializerOpt, elementType, out data);
             }
 
             var elementSize = elementType.SpecialType.SizeInBytes();
@@ -491,11 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return elementCountValue.Int32Value;
             }
 
-            /// <summary>
-            /// Generates a byte blob that matches serialized content of single array initializer.
-            /// </summary>
-            /// <returns>True if the blob is generated successfully, false otherwise</returns>
-            static bool tryGetRawDataForArrayInit(BoundArrayInitialization initializer, TypeSymbol elementType, out ImmutableArray<byte> data)
+            static bool tryGetRawDataForArrayInitializer(BoundArrayInitialization initializer, TypeSymbol elementType, out ImmutableArray<byte> data)
             {
                 data = default;
 
