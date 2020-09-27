@@ -458,6 +458,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
+            if (doesExceedBlobSizeLimit(elementCount, elementSize))
+            {
+                data = default;
+                return false;
+            }
+
             // Since we are dealing with zeroes, we do not care about endianness,
             // so we create just an array filled with zeroes.
             var arraySizeInBytes = elementCount * elementSize;
@@ -510,6 +516,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
+                if (doesExceedBlobSizeLimit(initializers.Length, elementSize))
+                {
+                    return false;
+                }
+
                 var writer = new BlobBuilder(initializers.Length * elementSize);
 
                 foreach (var init in initializer.Initializers)
@@ -519,6 +530,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 data = writer.ToImmutableArray();
                 return true;
+            }
+
+            static bool doesExceedBlobSizeLimit(int elementCount, int elementSize)
+            {
+                // Limit byte blob size generated with 128 KB
+                const int blobSizeLimit = 128 * 1024;
+                return blobSizeLimit / elementSize / elementCount == 0;
             }
         }
     }

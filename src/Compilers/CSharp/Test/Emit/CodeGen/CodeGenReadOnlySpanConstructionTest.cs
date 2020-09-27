@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1029,6 +1030,61 @@ public class Test
   IL_0001:  newarr     ""Test.CustomClass""
   IL_0006:  call       ""System.ReadOnlySpan<Test.CustomClass> System.ReadOnlySpan<Test.CustomClass>.op_Implicit(Test.CustomClass[])""
   IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(24621, "https://github.com/dotnet/roslyn/issues/24621")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromLargeArray_Bool_WithInitializer()
+        {
+            var boolValues = string.Join(", ", Enumerable.Repeat("false", 1024 * 1024));
+            var csharp = @"
+using System;
+
+public class Test
+{
+    public static ReadOnlySpan<bool> StaticData => new [] { " + boolValues + @" };
+
+    public static void Main()
+    {
+        Console.Write(StaticData.Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1048576", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldc.i4     0x100000
+  IL_0005:  newarr     ""bool""
+  IL_000a:  call       ""System.ReadOnlySpan<bool> System.ReadOnlySpan<bool>.op_Implicit(bool[])""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(33088, "https://github.com/dotnet/roslyn/issues/33088")]
+        public void StaticFieldIsNotUsedForSpanCreatedFromLargeArray_Bool_WithoutInitializer()
+        {
+            var csharp = @"
+using System;
+public class Test
+{
+    public static ReadOnlySpan<bool> StaticData => new bool[1024 * 1024];
+    public static void Main()
+    {
+        Console.Write(StaticData.Length);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1048576", verify: Verification.Skipped);
+            verifier.VerifyIL("Test.StaticData.get", @"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldc.i4     0x100000
+  IL_0005:  newarr     ""bool""
+  IL_000a:  call       ""System.ReadOnlySpan<bool> System.ReadOnlySpan<bool>.op_Implicit(bool[])""
+  IL_000f:  ret
 }");
         }
     }
