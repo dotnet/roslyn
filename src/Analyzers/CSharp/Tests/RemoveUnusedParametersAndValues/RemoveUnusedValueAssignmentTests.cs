@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 {
     public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
+        public RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         private protected override OptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));

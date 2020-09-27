@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
 {
@@ -20,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
     {
         private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3);
+
+        public MakeRefStructTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
 
         private const string SpanDeclarationSourceText = @"
 using System;

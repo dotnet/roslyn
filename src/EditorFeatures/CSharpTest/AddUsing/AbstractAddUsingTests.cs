@@ -11,11 +11,17 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     public abstract class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AbstractAddUsingTests(ITestOutputHelper logger = null)
+            : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
 
