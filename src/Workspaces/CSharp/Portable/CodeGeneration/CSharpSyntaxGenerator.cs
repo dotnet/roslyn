@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return Flatten(declaration.Kind() switch
             {
-                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).Members),
+                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).Members,
                 SyntaxKind.ClassDeclaration => ((ClassDeclarationSyntax)declaration).Members,
                 SyntaxKind.StructDeclaration => ((StructDeclarationSyntax)declaration).Members,
                 SyntaxKind.InterfaceDeclaration => ((InterfaceDeclarationSyntax)declaration).Members,
