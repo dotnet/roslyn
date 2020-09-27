@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return declaration;
                 default:
                     return null;
@@ -1194,6 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return Flatten(declaration.Kind() switch
             {
+                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).Members),
                 SyntaxKind.ClassDeclaration => ((ClassDeclarationSyntax)declaration).Members,
                 SyntaxKind.StructDeclaration => ((StructDeclarationSyntax)declaration).Members,
                 SyntaxKind.InterfaceDeclaration => ((InterfaceDeclarationSyntax)declaration).Members,
@@ -1289,6 +1291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 switch (declaration.Kind())
                 {
+                    case SyntaxKind.RecordDeclaration:
+                        var rd = (RecordDeclarationSyntax)declaration;
+                        return rd.WithMembers(rd.Members.AddRange(newMembers));
                     case SyntaxKind.ClassDeclaration:
                         var cd = (ClassDeclarationSyntax)declaration;
                         return cd.WithMembers(cd.Members.AddRange(newMembers));
@@ -1320,12 +1325,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             switch (declaration.Kind())
             {
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.ClassDeclaration:
-                    var cd = (ClassDeclarationSyntax)declaration;
-                    return this.AsClassMember(member, cd.Identifier.Text);
                 case SyntaxKind.StructDeclaration:
-                    var sd = (StructDeclarationSyntax)declaration;
-                    return this.AsClassMember(member, sd.Identifier.Text);
+                    var td = (TypeDeclarationSyntax)declaration;
+                    return this.AsClassMember(member, rd.Identifier.Text);
                 case SyntaxKind.InterfaceDeclaration:
                     return this.AsInterfaceMember(member);
                 case SyntaxKind.EnumDeclaration:
@@ -1433,6 +1437,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Static |
             DeclarationModifiers.Unsafe;
 
+        private static readonly DeclarationModifiers s_recordModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Unsafe;
+
         private static readonly DeclarationModifiers s_structModifiers =
             DeclarationModifiers.New |
             DeclarationModifiers.Partial |
@@ -1455,6 +1466,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             switch (kind)
             {
+                case SyntaxKind.RecordDeclaration:
+                    return s_recordModifiers;
                 case SyntaxKind.ClassDeclaration:
                     return s_classModifiers;
 
@@ -1662,6 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).WithTypeParameterList(typeParameters),
                 SyntaxKind.ClassDeclaration => ((ClassDeclarationSyntax)declaration).WithTypeParameterList(typeParameters),
+                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).WithTypeParameterList(typeParameters),
                 SyntaxKind.StructDeclaration => ((StructDeclarationSyntax)declaration).WithTypeParameterList(typeParameters),
                 SyntaxKind.InterfaceDeclaration => ((InterfaceDeclarationSyntax)declaration).WithTypeParameterList(typeParameters),
                 SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).WithTypeParameterList(typeParameters),
@@ -1692,6 +1706,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.ClassDeclaration:
                     var cls = (ClassDeclarationSyntax)declaration;
                     return cls.WithConstraintClauses(WithTypeConstraints(cls.ConstraintClauses, typeParameterName, kinds, types));
+
+                case SyntaxKind.RecordDeclaration:
+                    var rcd = (RecordDeclarationSyntax)declaration;
+                    return rcd.WithConstraintClauses(WithTypeConstraints(rcd.ConstraintClauses, typeParameterName, kinds, types));
 
                 case SyntaxKind.StructDeclaration:
                     var str = (StructDeclarationSyntax)declaration;
@@ -1761,6 +1779,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)declaration).Identifier.ValueText;
+                case SyntaxKind.RecordDeclaration:
+                    return ((RecordDeclarationSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.InterfaceDeclaration:
@@ -1825,6 +1845,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.ClassDeclaration:
                     return ReplaceWithTrivia(declaration, ((ClassDeclarationSyntax)declaration).Identifier, id);
+                case SyntaxKind.RecordDeclaration:
+                    return ReplaceWithTrivia(declaration, ((RecordDeclarationSyntax)declaration).Identifier, id);
                 case SyntaxKind.StructDeclaration:
                     return ReplaceWithTrivia(declaration, ((StructDeclarationSyntax)declaration).Identifier, id);
                 case SyntaxKind.InterfaceDeclaration:
@@ -2056,6 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (this.GetDeclarationKind(existingNode))
             {
                 case DeclarationKind.Class:
+                case DeclarationKind.Record:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
                 case DeclarationKind.Enum:
