@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                     var td = (TypeDeclarationSyntax)declaration;
-                    return this.AsClassMember(member, rd.Identifier.Text);
+                    return this.AsClassMember(member, td.Identifier.Text);
                 case SyntaxKind.InterfaceDeclaration:
                     return this.AsInterfaceMember(member);
                 case SyntaxKind.EnumDeclaration:
