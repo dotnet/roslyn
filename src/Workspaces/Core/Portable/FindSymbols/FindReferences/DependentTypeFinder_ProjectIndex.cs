@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> Delegates;
             public readonly MultiDictionary<string, (Document, DeclaredSymbolInfo)> NamedTypes;
 
-            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
+            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> classesAndRecordsThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
             {
-                ClassesAndRecordsThatMayDeriveFromSystemObject = ClassesAndRecordsThatMayDeriveFromSystemObject;
+                ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
                 ValueTypes = valueTypes;
                 Enums = enums;
                 Delegates = delegates;
