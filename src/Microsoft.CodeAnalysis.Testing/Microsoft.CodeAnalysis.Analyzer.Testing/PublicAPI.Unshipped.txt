@@ -137,6 +137,7 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Assemblies.get -> System.Coll
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AssemblyIdentityComparer.get -> Microsoft.CodeAnalysis.AssemblyIdentityComparer
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.FacadeAssemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.LanguageSpecificAssemblies.get -> System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>>
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20
@@ -217,13 +218,13 @@ static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError(string iden
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.IVerifierExtensions.EqualOrDiff(this Microsoft.CodeAnalysis.Testing.IVerifier verifier, string expected, string actual, string message = null) -> void
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net50.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp10.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp11.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp21.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp30.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp31.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
-static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp50.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
