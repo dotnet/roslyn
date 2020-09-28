@@ -4,9 +4,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class TypeParameterSymbolExtensions
