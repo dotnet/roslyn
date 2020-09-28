@@ -368,6 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.FixedStatement ||
                 node.Kind() == SyntaxKind.GetAccessorDeclaration ||
                 node.Kind() == SyntaxKind.SetAccessorDeclaration ||
+                node.Kind() == SyntaxKind.InitAccessorDeclaration ||
                 node.Kind() == SyntaxKind.AddAccessorDeclaration ||
                 node.Kind() == SyntaxKind.RemoveAccessorDeclaration;
         }
