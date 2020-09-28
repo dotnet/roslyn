@@ -75,14 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         ClassifyExteriorTrivia(t);
                         break;
 
-                    case SyntaxKind.WhitespaceTrivia:
-                        if (whitespaceClassificationType != null)
-                        {
-                            AddClassification(t, whitespaceClassificationType);
-                        }
-
-                        break;
-
                     case SyntaxKind.SkippedTokensTrivia:
                         AddClassification(t, ClassificationTypeNames.XmlDocCommentText);
                         break;
@@ -138,16 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void AddXmlClassification(SyntaxToken token, string classificationType)
         {
             if (token.HasLeadingTrivia)
-            {
                 ClassifyXmlTrivia(token.LeadingTrivia, classificationType);
-            }
 
             AddClassification(token, classificationType);
 
             if (token.HasTrailingTrivia)
-            {
                 ClassifyXmlTrivia(token.TrailingTrivia, classificationType);
-            }
         }
 
         private void ClassifyXmlTextTokens(SyntaxTokenList textTokens)
@@ -210,22 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var prefix = node.Prefix;
             if (prefix != null)
             {
-                AddXmlNameTokenClassification(prefix.Prefix, classificationType);
-                AddXmlNameTokenClassification(prefix.ColonToken, classificationType);
+                AddXmlClassification(prefix.Prefix, classificationType);
+                AddXmlClassification(prefix.ColonToken, classificationType);
             }
 
-            AddXmlNameTokenClassification(node.LocalName, classificationType);
-        }
-
-        private void AddXmlNameTokenClassification(SyntaxToken token, string classificationType)
-        {
-            if (token.HasLeadingTrivia)
-                ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: null);
-
-            AddClassification(token, classificationType);
-
-            if (token.HasTrailingTrivia)
-                ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: null);
+            AddXmlClassification(node.LocalName, classificationType);
         }
 
         private void ClassifyXmlElement(XmlElementSyntax node)
