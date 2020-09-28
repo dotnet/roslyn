@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration:
                     return true;
