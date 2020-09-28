@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
         [InlineData("abstract void M(object o = default($$object))", "abstract void M(object o = default(object))")]
         [InlineData("abstract void M(object o = $$default(object))", "abstract void M(object o = default(object))")]
+        [InlineData("public record C(int X, $$int Y)", "public record C(int X, int Y);"]
+        [InlineData("public record C(int X, int$$ Y)", "public record C(int X, int Y);"]
+        [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y);"]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"
