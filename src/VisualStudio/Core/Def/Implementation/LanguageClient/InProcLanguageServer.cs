@@ -111,7 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
             _shuttingDown = true;
-            // _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
             ShutdownRequestQueue();
 
@@ -264,34 +263,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task<DocumentOnAutoInsertResponseItem[]> GetDocumentOnAutoInsertAsync(DocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
             => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
-
-#if false
-
-        private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-        {
-            // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
-            if (e.DocumentId != null && e.Solution != null)
-            {
-                var document = e.Solution.GetDocument(e.DocumentId);
-                if (document == null || document.FilePath == null)
-                {
-                    return;
-                }
-
-                // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
-                {
-                    return;
-                }
-
-                // LSP does not currently support publishing diagnostics incrementally, so we re-publish all diagnostics.
-                var asyncToken = _listener.BeginAsyncOperation(nameof(PublishDiagnosticsAsync));
-                Task.Run(() => PublishDiagnosticsAsync(document))
-                    .CompletesAsyncOperation(asyncToken);
-            }
-        }
-
-#endif
 
         private void ShutdownRequestQueue()
         {
