@@ -5,15 +5,13 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
@@ -60,20 +58,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             result.AddRange(visibleDocuments);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project);
+            AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project);
+                AddDocumentsFromProject(doc.Project, isOpen: true);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project);
+                AddDocumentsFromProject(project, isOpen: false);
 
             return result.Distinct().ToImmutableArray();
 
-            void AddDocumentsFromProject(Project? project)
+            void AddDocumentsFromProject(Project? project, bool isOpen)
             {
-                if (project != null)
-                    result.AddRange(project.Documents);
+                if (project == null)
+                    return;
+
+                // if the project doesn't necessarily have an open file in it, then only include it if the user has full
+                // solution analysis on.
+                if (!isOpen)
+                {
+                    var analysisScope = solution.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
+                    if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                        return;
+                }
+
+                // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
+                // documents from it.
+                result.AddRange(project.Documents);
             }
         }
     }

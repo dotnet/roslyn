@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Message = diagnosticData.Message,
                 Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
                 Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
-                Tags = DiagnosticUtilities.ConvertTags(diagnosticData),
+                Tags = ConvertTags(diagnosticData),
                 DiagnosticType = diagnosticData.Category,
             };
         }
