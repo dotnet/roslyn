@@ -20,268 +20,292 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestFieldsWithoutInitializers1()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestFieldsWithoutInitializers1(string typeKind)
         {
             var initial =
-@"class C {
+$@"{typeKind} C {{
     int A;
     int B;
     int C;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     int A;
     int B;
     int C;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestFieldsWithoutInitializers2()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestFieldsWithoutInitializers2(string typeKind)
         {
             var initial =
-@"class C {
+$@"{typeKind} C {{
     int C;
     int B;
     int A;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     int A;
     int B;
     int C;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestFieldsWithInitializers1()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestFieldsWithInitializers1(string typeKind)
         {
             var initial =
-@"class C {
+$@"class C {
     int C = 0;
     int B;
     int A;
 }";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     int A;
     int B;
     int C = 0;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestFieldsWithInitializers2()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestFieldsWithInitializers2(string typeKind)
         {
             var initial =
-@"class C {
+$@"{typeKind} C {{
     int C = 0;
     int B = 0;
     int A;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     int A;
     int C = 0;
     int B = 0;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestEventFieldDeclaration()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestEventFieldDeclaration(string typeKind)
         {
             var initial =
-@"class C {
-    public void Goo() {}     
+$@"{typeKind} C {{
+    public void Goo() {{}}
     public event EventHandler MyEvent;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     public event EventHandler MyEvent;
-    public void Goo() {}     
-}";
+    public void Goo() {{}}
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestEventDeclaration()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestEventDeclaration(string typeKind)
         {
             var initial =
-@"class C  {
-    public void Goo() {}     
+$@"{typeKind} C  {{
+    public void Goo() {{}}
     public event EventHandler Event
-    {
-        remove { }
-        add { }
-    }
+    {{
+        remove {{ }}
+        add {{ }}
+    }}
 
-    public static int Property { get; set; }
-}";
+    public static int Property {{ get; set; }}
+}}";
 
             var final =
-@"class C  {
-    public static int Property { get; set; }
+$@"{typeKind} C  {{
+    public static int Property {{ get; set; }}
     public event EventHandler Event
-    {
-        remove { }
-        add { }
-    }
+    {{
+        remove {{ }}
+        add {{ }}
+    }}
 
-    public void Goo() {}     
-}";
+    public void Goo() {{}}
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestOperator()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestOperator(string typeKind)
         {
             var initial =
-@"class C  {
-    public void Goo() {}     
+$@"{typeKind} C  {{
+    public void Goo() {{}}
     public static int operator +(Goo<T> a, int b)
-    {
+    {{
         return 1;
-    }
-}";
+    }}
+}}";
 
             var final =
-@"class C  {
+$@"{typeKind} C  {{
     public static int operator +(Goo<T> a, int b)
-    {
+    {{
         return 1;
-    }
-    public void Goo() {}     
-}";
+    }}
+    public void Goo() {{}}
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestIndexer()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestIndexer(string typeKind)
         {
             var initial =
-@"class C  {
-    public void Goo() {}     
+$@"{typeKind} C  {{
+    public void Goo() {{}}
     public T this[int i]
-    {
+    {{
         get
-        {
+        {{
             return default(T);
-        }
-    }
+        }}
+    }}
 
-    C() {}
-}";
+    C() {{}}
+}}";
 
             var final =
-@"class C  {
-    C() {}
+$@"{typeKind} C  {{
+    C() {{}}
     public T this[int i]
-    {
+    {{
         get
-        {
+        {{
             return default(T);
-        }
-    }
+        }}
+    }}
 
-    public void Goo() {}     
-}";
+    public void Goo() {{}}
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestConstructorAndDestructors()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestConstructorAndDestructors(string typeKind)
         {
             var initial =
-@"class C  {
-    public ~Goo() {}        
-    enum Days {Sat, Sun};        
-    public Goo() {}  
-}";
+$@"class C  {{
+    public ~Goo() {{}}
+    enum Days {{Sat, Sun}};
+    public Goo() {{}}
+}}";
 
             var final =
-@"class C  {
-    public Goo() {}  
-    public ~Goo() {}        
-    enum Days {Sat, Sun};        
-}";
+$@"{typeKind} C  {{
+    public Goo() {{}}
+    public ~Goo() {{}}
+    enum Days {{Sat, Sun}};
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestInterface()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestInterface(string typeKind)
         {
             var initial =
-@"class C  {}
+$@"{typeKind} C  {{}}
 interface I
-{
+{{
    void Goo();
    int Property { get; set; }
    event EventHandler Event;
-}";
+}}";
 
             var final =
-@"class C  {}
+$@"{typeKind} C  {{}}
 interface I
-{
+{{
    event EventHandler Event;
-   int Property { get; set; }
+   int Property {{ get; set; }}
    void Goo();
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestStaticInstance()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestStaticInstance(string typeKind)
         {
             var initial =
-@"class C {
+$@"{typeKind} C {{
     int A;
     static int B;
     int C;
     static int D;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     static int B;
     static int D;
     int A;
     int C;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestAccessibility()
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestAccessibility(string typeKind)
         {
             var initial =
-@"class C {
+$@"{typeKind} C {{
     int A;
     private int B;
     internal int C;
     protected int D;
     public int E;
     protected internal int F;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     public int E;
     protected int D;
     protected internal int F;
     internal int C;
     int A;
     private int B;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
@@ -289,7 +313,7 @@ interface I
         public async Task TestStaticAccessibility()
         {
             var initial =
-@"class C {
+$@"{typeKind} C {{
     int A1;
     private int B1;
     internal int C1;
@@ -300,10 +324,10 @@ interface I
     static internal int C2;
     static protected int D2;
     static public int E2;
-}";
+}}";
 
             var final =
-@"class C {
+$@"{typeKind} C {{
     public static int E2;
     protected static int D2;
     internal static int C2;
@@ -314,7 +338,7 @@ interface I
     internal int C1;
     int A1;
     private int B1;
-}";
+}}";
             await CheckAsync(initial, final);
         }
 
