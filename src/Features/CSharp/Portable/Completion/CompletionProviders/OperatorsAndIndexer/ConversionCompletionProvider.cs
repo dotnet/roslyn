@@ -56,43 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return allExplicitConversions;
         }
 
-        /// <summary>
-        /// Returns the expression left to the passed dot <paramref name="token"/>.
-        /// </summary>
-        /// <example>
-        /// Given the expression a.b?.c.d. returns a.b?.c.d. for all dot tokens
-        /// </example>
-        /// <param name="token">A dot token.</param>
-        /// <returns>The root expression associated with the dot or null.</returns>
-        private static ExpressionSyntax? GetRootExpressionOfToken(SyntaxToken token)
-        {
-            var syntaxNode = token.Parent;
-            return syntaxNode switch
-            {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
-                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression(),
-                _ => null,
-            };
-        }
-
-        private static SyntaxNodeOrToken? FindNodeOrTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
-        {
-            return tokenAtCursor switch
-            {
-                { Parent: IdentifierNameSyntax identifierName } => identifierName,
-                var token when token.IsKeyword() => token,
-                _ => null,
-            };
-        }
-
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var normalizedToken = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
+            var (tokenAtPosition, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
             // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
             //                      ↓               | cursor position
             //                   ↓                  | normalizedToken (dot)
@@ -104,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //                   ↑                  | insert closing brace between White and dot (parentExpression.Span.End)
             // ((Black)white?.Black.White).?.White  | The result. Because we removed the identifier, the remainder after the identifier may be syntactically wrong 
             //                             ↑        | cursor after the manipulation is placed after the dot
-            var rootExpression = GetRootExpressionOfToken(normalizedToken);
-            var parentExpression = GetParentExpressionOfToken(normalizedToken);
+            var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
+            var parentExpression = GetParentExpressionOfToken(potentialDotTokenLeftOfCursor);
             var nodeOrTokenToRemove = FindNodeOrTokenToRemoveAtCursorPosition(tokenAtPosition);
             if (rootExpression is null || parentExpression is null)
             {

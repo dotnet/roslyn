@@ -65,15 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var position = context.Position;
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            token = token.GetPreviousTokenIfTouchingWord(position);
-            if (!token.IsKind(SyntaxKind.DotToken))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var (_, potentialDotToken) = FindTokensAtPosition(position, root);
+            if (!potentialDotToken.IsKind(SyntaxKind.DotToken))
             {
                 return;
             }
 
-            var expression = GetParentExpressionOfToken(token);
+            var expression = GetParentExpressionOfToken(potentialDotToken);
             if (expression is null)
             {
                 return;
@@ -88,6 +87,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var completionItems = GetCompletionItemsForTypeSymbol(container, semanticModel, position);
             context.AddItems(completionItems);
+        }
+
+        protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(int position, SyntaxNode root)
+        {
+            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
+            var potentialDotTokenLeftOfCursor = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
+            return (tokenAtPosition, potentialDotTokenLeftOfCursor);
+        }
+
+        protected static SyntaxNodeOrToken? FindNodeOrTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
+        {
+            return tokenAtCursor switch
+            {
+                { Parent: IdentifierNameSyntax identifierName } => identifierName,
+                var token when token.IsKeyword() => token,
+                _ => null,
+            };
         }
 
         /// <summary>
@@ -107,6 +123,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
                 MemberBindingExpressionSyntax memberBinding => memberBinding.GetParentConditionalAccessExpression()?.Expression,
+                _ => null,
+            };
+        }
+
+        /// <summary>
+        /// Returns the expression left to the passed dot <paramref name="token"/>.
+        /// </summary>
+        /// <example>
+        /// Given the expression a.b?.c.d. returns a.b?.c.d. for all dot tokens
+        /// </example>
+        /// <param name="token">A dot token.</param>
+        /// <returns>The root expression associated with the dot or null.</returns>
+        protected static ExpressionSyntax? GetRootExpressionOfToken(SyntaxToken token)
+        {
+            var syntaxNode = token.Parent;
+            return syntaxNode switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
+                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression(),
                 _ => null,
             };
         }
