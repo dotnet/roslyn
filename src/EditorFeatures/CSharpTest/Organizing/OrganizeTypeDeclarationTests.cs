@@ -763,7 +763,7 @@ $@"{typeKind} Program
 
             var final =
 $@"{typeKind} Program
-{
+{{
     void A()
     {{
     }}
