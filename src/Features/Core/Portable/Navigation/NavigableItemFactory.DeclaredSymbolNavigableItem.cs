@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Navigation
                 switch (kind)
                 {
                     case DeclaredSymbolInfoKind.Class: return Glyph.ClassPublic;
-                    //case DeclaredSymbolInfoKind.Record: return Glyph.RecordPublic; // I'm not sure what a Glyph is? this I add "RecordPublic" to the enum?
                     case DeclaredSymbolInfoKind.Constant: return Glyph.ConstantPublic;
                     case DeclaredSymbolInfoKind.Constructor: return Glyph.MethodPublic;
                     case DeclaredSymbolInfoKind.Delegate: return Glyph.DelegatePublic;
