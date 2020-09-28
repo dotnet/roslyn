@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ConversionCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ConversionCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(ConversionCompletionProvider);
 

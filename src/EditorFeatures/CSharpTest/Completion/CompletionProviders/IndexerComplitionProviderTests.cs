@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class IndexerComplitionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public IndexerComplitionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(IndexerCompletionProvider);
 
@@ -42,7 +38,7 @@ public class Program
         c.$$
     }
 }
-", "this", displayTextSuffix:"[]");
+", "this", displayTextSuffix: "[]");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
