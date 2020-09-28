@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             switch (syntax.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
- #if CODEANALYSIS_V3_OR_BETTER
+#if CODEANALYSIS_V3_OR_BETTER
                 case SyntaxKind.RecordDeclaration:
 #endif
                 case SyntaxKind.StructDeclaration:
