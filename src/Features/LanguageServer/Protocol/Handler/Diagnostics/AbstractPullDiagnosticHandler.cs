@@ -225,6 +225,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 result.Add(VSDiagnosticTags.HiddenInErrorList);
                 result.Add(VSDiagnosticTags.SuppressEditorToolTip);
             }
+            else
+            {
+                result.Add(VSDiagnosticTags.VisibleInErrorList);
+            }
 
             foreach (var tag in diagnosticData.CustomTags)
             {
