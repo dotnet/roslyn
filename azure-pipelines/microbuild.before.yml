@@ -1,5 +1,5 @@
 steps:
-- task: MicroBuildSigningPlugin@2
+- task: MicroBuildSigningPlugin@3
   inputs:
     signType: $(SignType)
     zipSources: false
