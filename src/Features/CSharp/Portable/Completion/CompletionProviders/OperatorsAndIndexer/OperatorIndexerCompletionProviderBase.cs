@@ -29,21 +29,13 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    [ExportCompletionProvider(nameof(OperatorIndexerCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
-    internal class OperatorIndexerCompletionProvider : LSPCompletionProvider
+    internal abstract class OperatorIndexerCompletionProviderBase : LSPCompletionProvider
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OperatorIndexerCompletionProvider()
-        {
-        }
-
-        private const string MinimalTypeNamePropertyName = "MinimalTypeName";
-        private const string CompletionHandlerPropertyName = "CompletionHandler";
-        private const string CompletionHandlerConversion = "Conversion";
-        private const string CompletionHandlerOperator = "Operator";
-        private const string CompletionHandlerIndexer = "Indexer";
+        protected const string MinimalTypeNamePropertyName = "MinimalTypeName";
+        protected const string CompletionHandlerPropertyName = "CompletionHandler";
+        protected const string CompletionHandlerConversion = "Conversion";
+        protected const string CompletionHandlerOperator = "Operator";
+        protected const string CompletionHandlerIndexer = "Indexer";
 
         // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of the type.
         // Identifier (of methods or properties) can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
@@ -52,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // and is also greater than surrogate pairs, if byte comparison is used. The "biggest" possible characters are 
         // \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\ud884\udf4a" and
         // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
-        private const string SortingPrefix = "\uFFFD";
+        protected const string SortingPrefix = "\uFFFD";
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -62,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation, params (string key, string value)[] additionalProperties)
+        protected static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation, params (string key, string value)[] additionalProperties)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder.Add(CompletionHandlerPropertyName, operation);
@@ -100,127 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var allMembers = container.GetMembers();
-            var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
-                                         where
-                                             m.IsConversion() && // MethodKind.Conversion
-                                             m.Name == WellKnownMemberNames.ExplicitConversionName && // op_Explicit
-                                             m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
-                                             container.Equals(m.Parameters[0].Type) // Convert from container type to other type
-                                         let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
-                                         select SymbolCompletionItem.CreateWithSymbolId(
-                                             displayText: $"({typeName})", // The type to convert to
-                                             filterText: typeName,
-                                             sortText: $"{SortingPrefix}{typeName}",
-                                             symbols: ImmutableList.Create(m),
-                                             rules: CompletionItemRules.Default,
-                                             contextPosition: position,
-                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion, (MinimalTypeNamePropertyName, typeName)));
-            context.AddItems(allExplicitConversions);
-
-            var indexers = allMembers.OfType<IPropertySymbol>().Where(p => p.IsIndexer).ToImmutableList();
-            if (!indexers.IsEmpty)
-            {
-                var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: "this[]",
-                    filterText: "this",
-                    sortText: $"{SortingPrefix}this",
-                    symbols: indexers,
-                    rules: CompletionItemRules.Default,
-                    contextPosition: position,
-                    properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
-                context.AddItem(indexerCompletion);
-            }
-
-            if (!IsExcludedFromOperators(semanticModel, container))
-            {
-                var operators = from m in allMembers.OfType<IMethodSymbol>()
-                                where m.IsUserDefinedOperator() && !IsExcludedOperator(m)
-                                let sign = m.GetOperatorSignOfOperator()
-                                select SymbolCompletionItem.CreateWithSymbolId(
-                                    displayText: sign,
-                                    filterText: "",
-                                    sortText: $"{SortingPrefix}{sign}",
-                                    symbols: ImmutableList.Create(m),
-                                    rules: CompletionItemRules.Default,
-                                    contextPosition: position,
-                                    properties: CreateCompletionHandlerProperty(CompletionHandlerOperator));
-                context.AddItems(operators);
-            }
+            var completionItems = GetCompletionItemsForTypeSymbol(container, semanticModel, position);
+            context.AddItems(completionItems);
         }
 
-        private static bool IsExcludedFromOperators(SemanticModel semanticModel, ITypeSymbol container)
-        {
-            if (container.IsSpecialType())
-            {
-                return true;
-            }
-            var unbound = container is INamedTypeSymbol named && named.IsGenericType
-                ? named.ConstructedFrom
-                : container;
-            return ExcludedTypes().Any(t => EqualityComparer<ITypeSymbol>.Default.Equals(unbound, t));
-
-            IEnumerable<ITypeSymbol?> ExcludedTypes()
-            {
-                // System
-                yield return GetTypeByMetadataName(typeof(DateTime));
-                yield return GetTypeByMetadataName(typeof(TimeSpan));
-                yield return GetTypeByMetadataName(typeof(DateTimeOffset));
-                yield return GetTypeByMetadataName(typeof(decimal));
-                yield return GetTypeByMetadataName(typeof(IntPtr));
-                yield return GetTypeByMetadataName(typeof(UIntPtr));
-                yield return GetTypeByMetadataName(typeof(Guid));
-                yield return GetTypeByMetadataName(typeof(Span<>));
-                // System.Numeric
-                yield return GetTypeByMetadataName(typeof(BigInteger));
-                yield return GetTypeByMetadataName(typeof(Complex));
-                yield return GetTypeByMetadataName(typeof(Matrix3x2));
-                yield return GetTypeByMetadataName(typeof(Matrix4x4));
-                yield return GetTypeByMetadataName(typeof(Plane));
-                yield return GetTypeByMetadataName(typeof(Quaternion));
-                yield return GetTypeByMetadataName(typeof(Vector<>));
-                yield return GetTypeByMetadataName(typeof(Vector2));
-                yield return GetTypeByMetadataName(typeof(Vector3));
-                yield return GetTypeByMetadataName(typeof(Vector4));
-                // System.Data.SqlTypes
-                yield return GetTypeByMetadataName(typeof(SqlBinary));
-                yield return GetTypeByMetadataName(typeof(SqlBoolean));
-                yield return GetTypeByMetadataName(typeof(SqlByte));
-                yield return GetTypeByMetadataName(typeof(SqlDateTime));
-                yield return GetTypeByMetadataName(typeof(SqlDecimal));
-                yield return GetTypeByMetadataName(typeof(SqlDouble));
-                yield return GetTypeByMetadataName(typeof(SqlGuid));
-                yield return GetTypeByMetadataName(typeof(SqlInt16));
-                yield return GetTypeByMetadataName(typeof(SqlInt32));
-                yield return GetTypeByMetadataName(typeof(SqlInt64));
-                yield return GetTypeByMetadataName(typeof(SqlMoney));
-                yield return GetTypeByMetadataName(typeof(SqlSingle));
-                yield return GetTypeByMetadataName(typeof(SqlString));
-
-                INamedTypeSymbol? GetTypeByMetadataName(Type type)
-                {
-                    var typeName = type.FullName;
-                    if (typeName is not null)
-                    {
-                        return semanticModel.Compilation.GetTypeByMetadataName(typeName);
-                    }
-
-                    return null;
-                }
-            }
-        }
-
-        private static bool IsExcludedOperator(IMethodSymbol m)
-        {
-            switch (m.Name)
-            {
-                case WellKnownMemberNames.FalseOperatorName:
-                case WellKnownMemberNames.TrueOperatorName:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+        protected abstract IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position);
 
         /// <summary>
         /// Returns the expression left to the passed dot <paramref name="token"/>.
@@ -303,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
                 var operatorPosition = symbol.GetOperatorPosition();
                 var operatorSign = symbol.GetOperatorSignOfOperator();
-                if (operatorPosition == OperatorSymbolExtensions.OperatorPosition.Infix)
+                if (operatorPosition == OperatorPosition.Infix)
                 {
                     return await ReplaceDotAndTokenAfterWithTextAsync(document, item, $" {operatorSign} ", 0, cancellationToken).ConfigureAwait(false);
                 }
@@ -377,93 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return null;
-        }
-    }
-
-    internal static class OperatorSymbolExtensions
-    {
-        internal static string GetOperatorSignOfOperator(this IMethodSymbol m)
-        {
-            return m.Name switch
-            {
-                // binary
-                WellKnownMemberNames.AdditionOperatorName => "+",
-                WellKnownMemberNames.BitwiseAndOperatorName => "&",
-                WellKnownMemberNames.BitwiseOrOperatorName => "|",
-                WellKnownMemberNames.DivisionOperatorName => "/",
-                WellKnownMemberNames.EqualityOperatorName => "==",
-                WellKnownMemberNames.ExclusiveOrOperatorName => "^",
-                WellKnownMemberNames.GreaterThanOperatorName => ">",
-                WellKnownMemberNames.GreaterThanOrEqualOperatorName => ">=",
-                WellKnownMemberNames.InequalityOperatorName => "!=",
-                WellKnownMemberNames.LeftShiftOperatorName => "<<",
-                WellKnownMemberNames.LessThanOperatorName => "<",
-                WellKnownMemberNames.LessThanOrEqualOperatorName => "<=",
-                WellKnownMemberNames.ModulusOperatorName => "%",
-                WellKnownMemberNames.MultiplyOperatorName => "*",
-                WellKnownMemberNames.RightShiftOperatorName => ">>",
-                WellKnownMemberNames.SubtractionOperatorName => "-",
-
-                // Unary
-                WellKnownMemberNames.DecrementOperatorName => "--",
-                WellKnownMemberNames.FalseOperatorName => "false",
-                WellKnownMemberNames.IncrementOperatorName => "++",
-                WellKnownMemberNames.LogicalNotOperatorName => "!",
-                WellKnownMemberNames.OnesComplementOperatorName => "~",
-                WellKnownMemberNames.TrueOperatorName => "true",
-                WellKnownMemberNames.UnaryNegationOperatorName => "-",
-                WellKnownMemberNames.UnaryPlusOperatorName => "+",
-
-                _ => throw ExceptionUtilities.UnexpectedValue(m.Name),
-            };
-        }
-
-        [Flags]
-        internal enum OperatorPosition
-        {
-            None = 0,
-            Prefix = 1,
-            Infix = 2,
-            Postfix = 4,
-        }
-
-        internal static OperatorPosition GetOperatorPosition(this IMethodSymbol m)
-        {
-            switch (m.Name)
-            {
-                // binary
-                case WellKnownMemberNames.AdditionOperatorName:
-                case WellKnownMemberNames.BitwiseAndOperatorName:
-                case WellKnownMemberNames.BitwiseOrOperatorName:
-                case WellKnownMemberNames.DivisionOperatorName:
-                case WellKnownMemberNames.EqualityOperatorName:
-                case WellKnownMemberNames.ExclusiveOrOperatorName:
-                case WellKnownMemberNames.GreaterThanOperatorName:
-                case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
-                case WellKnownMemberNames.InequalityOperatorName:
-                case WellKnownMemberNames.LeftShiftOperatorName:
-                case WellKnownMemberNames.LessThanOperatorName:
-                case WellKnownMemberNames.LessThanOrEqualOperatorName:
-                case WellKnownMemberNames.ModulusOperatorName:
-                case WellKnownMemberNames.MultiplyOperatorName:
-                case WellKnownMemberNames.RightShiftOperatorName:
-                case WellKnownMemberNames.SubtractionOperatorName:
-                    return OperatorPosition.Infix;
-                // Unary
-                case WellKnownMemberNames.DecrementOperatorName:
-                case WellKnownMemberNames.IncrementOperatorName:
-                    return OperatorPosition.Infix | OperatorPosition.Postfix;
-                case WellKnownMemberNames.FalseOperatorName:
-                case WellKnownMemberNames.TrueOperatorName:
-                    return OperatorPosition.None;
-                case WellKnownMemberNames.LogicalNotOperatorName:
-                case WellKnownMemberNames.OnesComplementOperatorName:
-                case WellKnownMemberNames.UnaryNegationOperatorName:
-                case WellKnownMemberNames.UnaryPlusOperatorName:
-                    return OperatorPosition.Prefix;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(m.Name);
-            }
         }
     }
 }

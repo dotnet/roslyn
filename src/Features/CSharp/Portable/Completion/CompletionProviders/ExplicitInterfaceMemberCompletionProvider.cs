@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(OperatorIndexerCompletionProvider))]
+    [ExtensionOrder(After = nameof(OperatorCompletionProvider))]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =

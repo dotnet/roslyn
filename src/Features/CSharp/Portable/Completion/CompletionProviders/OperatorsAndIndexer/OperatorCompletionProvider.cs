@@ -1,0 +1,126 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Data.SqlTypes;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+{
+    [ExportCompletionProvider(nameof(OperatorCompletionProvider), LanguageNames.CSharp), Shared]
+    [ExtensionOrder(After = nameof(IndexerCompletionProvider))]
+    internal class OperatorCompletionProvider : OperatorIndexerCompletionProviderBase
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public OperatorCompletionProvider()
+        {
+        }
+
+        protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
+        {
+            if (!IsExcludedFromOperators(semanticModel, container))
+            {
+                var allMembers = container.GetMembers();
+                var operators = from m in allMembers.OfType<IMethodSymbol>()
+                                where m.IsUserDefinedOperator() && !IsExcludedOperator(m)
+                                let sign = m.GetOperatorSignOfOperator()
+                                select SymbolCompletionItem.CreateWithSymbolId(
+                                    displayText: sign,
+                                    filterText: "",
+                                    sortText: $"{SortingPrefix}{sign}",
+                                    symbols: ImmutableList.Create(m),
+                                    rules: CompletionItemRules.Default,
+                                    contextPosition: position,
+                                    properties: CreateCompletionHandlerProperty(CompletionHandlerOperator));
+                return operators;
+            }
+
+            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+        }
+
+        private static bool IsExcludedOperator(IMethodSymbol m)
+        {
+            switch (m.Name)
+            {
+                case WellKnownMemberNames.FalseOperatorName:
+                case WellKnownMemberNames.TrueOperatorName:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsExcludedFromOperators(SemanticModel semanticModel, ITypeSymbol container)
+        {
+            if (container.IsSpecialType())
+            {
+                return true;
+            }
+            var unbound = container is INamedTypeSymbol named && named.IsGenericType
+                ? named.ConstructedFrom
+                : container;
+            return ExcludedTypes().Any(t => EqualityComparer<ITypeSymbol>.Default.Equals(unbound, t));
+
+            IEnumerable<ITypeSymbol?> ExcludedTypes()
+            {
+                // System
+                yield return GetTypeByMetadataName(typeof(DateTime));
+                yield return GetTypeByMetadataName(typeof(TimeSpan));
+                yield return GetTypeByMetadataName(typeof(DateTimeOffset));
+                yield return GetTypeByMetadataName(typeof(decimal));
+                yield return GetTypeByMetadataName(typeof(IntPtr));
+                yield return GetTypeByMetadataName(typeof(UIntPtr));
+                yield return GetTypeByMetadataName(typeof(Guid));
+                yield return GetTypeByMetadataName(typeof(Span<>));
+                // System.Numeric
+                yield return GetTypeByMetadataName(typeof(BigInteger));
+                yield return GetTypeByMetadataName(typeof(Complex));
+                yield return GetTypeByMetadataName(typeof(Matrix3x2));
+                yield return GetTypeByMetadataName(typeof(Matrix4x4));
+                yield return GetTypeByMetadataName(typeof(Plane));
+                yield return GetTypeByMetadataName(typeof(Quaternion));
+                yield return GetTypeByMetadataName(typeof(Vector<>));
+                yield return GetTypeByMetadataName(typeof(Vector2));
+                yield return GetTypeByMetadataName(typeof(Vector3));
+                yield return GetTypeByMetadataName(typeof(Vector4));
+                // System.Data.SqlTypes
+                yield return GetTypeByMetadataName(typeof(SqlBinary));
+                yield return GetTypeByMetadataName(typeof(SqlBoolean));
+                yield return GetTypeByMetadataName(typeof(SqlByte));
+                yield return GetTypeByMetadataName(typeof(SqlDateTime));
+                yield return GetTypeByMetadataName(typeof(SqlDecimal));
+                yield return GetTypeByMetadataName(typeof(SqlDouble));
+                yield return GetTypeByMetadataName(typeof(SqlGuid));
+                yield return GetTypeByMetadataName(typeof(SqlInt16));
+                yield return GetTypeByMetadataName(typeof(SqlInt32));
+                yield return GetTypeByMetadataName(typeof(SqlInt64));
+                yield return GetTypeByMetadataName(typeof(SqlMoney));
+                yield return GetTypeByMetadataName(typeof(SqlSingle));
+                yield return GetTypeByMetadataName(typeof(SqlString));
+
+                INamedTypeSymbol? GetTypeByMetadataName(Type type)
+                {
+                    var typeName = type.FullName;
+                    if (typeName is not null)
+                    {
+                        return semanticModel.Compilation.GetTypeByMetadataName(typeName);
+                    }
+
+                    return null;
+                }
+            }
+        }
+    }
+}
