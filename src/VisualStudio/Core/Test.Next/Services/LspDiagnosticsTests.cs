@@ -364,12 +364,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             jsonRpc.SynchronizationContext = new RpcOrderPreservingSynchronizationContext();
             jsonRpc.StartListening();
 
-            // Triggers language server to send notifications.
-            foreach (var document in documentsToPublish)
-            {
-                await languageServer.PublishDiagnosticsAsync(document).ConfigureAwait(false);
-            }
-
             // Waits for all notifications to be recieved.
             await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
 

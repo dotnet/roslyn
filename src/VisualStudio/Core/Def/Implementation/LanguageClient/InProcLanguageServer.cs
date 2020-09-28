@@ -102,20 +102,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public async Task InitializedAsync()
-        {
-            //// Publish diagnostics for all open documents immediately following initialization.
-            //var solution = _workspace.CurrentSolution;
-            //var openDocuments = _workspace.GetOpenDocumentIds();
-            //foreach (var documentId in openDocuments)
-            //{
-            //    var document = solution.GetDocument(documentId);
-            //    if (document != null)
-            //    {
-            //        await PublishDiagnosticsAsync(document).ConfigureAwait(false);
-            //    }
-            //}
-        }
+        public Task InitializedAsync()
+            => Task.CompletedTask;
 
         [JsonRpcMethod(Methods.ShutdownName)]
         public Task ShutdownAsync(CancellationToken _)
