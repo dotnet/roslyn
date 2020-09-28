@@ -1,0 +1,8 @@
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic
+
+# Installing mono makes `dotnet test` work without errors even for net472.
+# But installing it takes a long time, so it's excluded by default.
+#RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+#RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official-stable.list
+#RUN apt-get update
+#RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mono-devel

@@ -9,7 +9,9 @@
     "editorconfig.editorconfig",
     "pflannery.vscode-versionlens",
     "davidanson.vscode-markdownlint",
-    "dotjoshjohnson.xml"
+    "dotjoshjohnson.xml",
+    "ms-vscode-remote.remote-containers",
+    "ms-azuretools.vscode-docker"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []

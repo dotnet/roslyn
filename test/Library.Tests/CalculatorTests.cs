@@ -1,18 +1,13 @@
 ﻿// Copyright (c) COMPANY-PLACEHOLDER. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using Library;
 using Xunit;
-using Xunit.Abstractions;
 
 public class CalculatorTests
 {
-    private readonly ITestOutputHelper logger;
-
-    public CalculatorTests(ITestOutputHelper logger)
+    public CalculatorTests()
     {
-        this.logger = logger;
     }
 
     [Fact]
