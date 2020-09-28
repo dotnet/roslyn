@@ -96,8 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             context.AddItems(completionItems);
         }
 
-        protected abstract IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position);
-
         /// <summary>
         /// Returns the expression left to the passed dot <paramref name="token"/>.
         /// </summary>
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </example>
         /// <param name="token">A dot token.</param>
         /// <returns>The expression left to the dot token or null.</returns>
-        private static ExpressionSyntax? GetParentExpressionOfToken(SyntaxToken token)
+        protected static ExpressionSyntax? GetParentExpressionOfToken(SyntaxToken token)
         {
             var syntaxNode = token.Parent;
             return syntaxNode switch
@@ -119,127 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        /// <summary>
-        /// Returns the expression left to the passed dot <paramref name="token"/>.
-        /// </summary>
-        /// <example>
-        /// Given the expression a.b?.c.d. returns a.b?.c.d. for all dot tokens
-        /// </example>
-        /// <param name="token">A dot token.</param>
-        /// <returns>The root expression associated with the dot or null.</returns>
-        private static ExpressionSyntax? GetRootExpressionOfToken(SyntaxToken token)
-        {
-            var syntaxNode = token.Parent;
-            return syntaxNode switch
-            {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
-                MemberBindingExpressionSyntax memberBinding => memberBinding.GetRootConditionalAccessExpression(),
-                _ => null,
-            };
-        }
+        protected abstract IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position);
 
-        private static SyntaxNodeOrToken? FindNodeOrTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
-        {
-            return tokenAtCursor switch
-            {
-                { Parent: IdentifierNameSyntax identifierName } => identifierName,
-                var token when token.IsKeyword() => token,
-                _ => null,
-            };
-        }
-
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
-        {
-            if (item.Properties.TryGetValue(CompletionHandlerPropertyName, out var value))
-            {
-                var completionChange = value switch
-                {
-                    CompletionHandlerConversion => await HandleConversionChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
-                    CompletionHandlerIndexer => await HandleIndexerChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
-                    CompletionHandlerOperator => await HandleOperatorChangeAsync(document, item, cancellationToken).ConfigureAwait(false),
-                    _ => throw ExceptionUtilities.UnexpectedValue(value),
-                };
-                if (completionChange is not null)
-                {
-                    return completionChange;
-                }
-            }
-
-            return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<CompletionChange?> HandleOperatorChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            var symbol = symbols.Length == 1
-                ? symbols[0] as IMethodSymbol
-                : null;
-            if (symbol is not null)
-            {
-                Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
-                var operatorPosition = symbol.GetOperatorPosition();
-                var operatorSign = symbol.GetOperatorSignOfOperator();
-                if (operatorPosition == OperatorPosition.Infix)
-                {
-                    return await ReplaceDotAndTokenAfterWithTextAsync(document, item, $" {operatorSign} ", 0, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return null;
-        }
-
-        private static async Task<CompletionChange?> HandleConversionChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            var position = SymbolCompletionItem.GetContextPosition(item);
-            Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var normalizedToken = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
-            // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
-            //                      ↓               | cursor position
-            //                   ↓                  | normalizedToken (dot)
-            // white?.Black.White.Black?.White      | current user input
-            // white?.Black.White.Black?.White      | rootExpression (text manipulation starts with this)
-            //       .Black.White                   | parentExpression (needed to calculate the position to insert the closing brace)
-            //                    Black             | identifier at cursor position (gets removed, because the user typed the name of a type)
-            // |----------------------|             | part to replace (TextChange.Span), if identifier is not present: ends at rootExpression.End (after White.)
-            //                   ↑                  | insert closing brace between White and dot (parentExpression.Span.End)
-            // ((Black)white?.Black.White).?.White  | The result. Because we removed the identifier, the remainder after the identifier may be syntactically wrong 
-            //                             ↑        | cursor after the manipulation is placed after the dot
-            var rootExpression = GetRootExpressionOfToken(normalizedToken);
-            var parentExpression = GetParentExpressionOfToken(normalizedToken);
-            var nodeOrTokenToRemove = FindNodeOrTokenToRemoveAtCursorPosition(tokenAtPosition);
-            if (rootExpression is null || parentExpression is null)
-            {
-                // ProvideCompletionsAsync only adds CompletionItems, if GetParentExpressionOfToken returns an expression.
-                // if GetParentExpressionOfToken returns an Expression, then should GetRootExpressionOfToken return an Expression too.
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, nodeOrTokenToRemove.HasValue ? nodeOrTokenToRemove.Value.Span.End : rootExpression.Span.End);
-            var cursorPositionOffset = spanToReplace.End - position;
-            var fromRootToParent = rootExpression.ToString();
-            if (nodeOrTokenToRemove is SyntaxNodeOrToken nodeOrToken)
-            {
-                // Cut off the identifier
-                var length = nodeOrToken.Span.Start - rootExpression.SpanStart;
-                fromRootToParent = fromRootToParent.Substring(0, length);
-                // place cursor right behind ).
-                cursorPositionOffset = 0;
-            }
-            var fromRootToParentWithInsertedClosingBracket = fromRootToParent.Insert(parentExpression.Span.End - rootExpression.SpanStart, ")");
-            var conversion = $"(({typeName}){fromRootToParentWithInsertedClosingBracket}";
-            var newPosition = spanToReplace.Start + conversion.Length - cursorPositionOffset;
-            return CompletionChange.Create(new TextChange(spanToReplace, conversion), newPosition);
-        }
-
-        private static async Task<CompletionChange?> HandleIndexerChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return await ReplaceDotAndTokenAfterWithTextAsync(document, item, "[]", -1, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, int positionOffset, CancellationToken cancellationToken)
+        protected static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, int positionOffset, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);

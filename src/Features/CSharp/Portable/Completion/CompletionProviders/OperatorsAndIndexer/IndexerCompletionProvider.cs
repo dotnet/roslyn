@@ -10,9 +10,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -42,6 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
                 yield return indexerCompletion;
             }
+        }
+
+        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        {
+            return
+                (await ReplaceDotAndTokenAfterWithTextAsync(document, item, "[]", -1, cancellationToken).ConfigureAwait(false))
+                ?? await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
         }
     }
 }

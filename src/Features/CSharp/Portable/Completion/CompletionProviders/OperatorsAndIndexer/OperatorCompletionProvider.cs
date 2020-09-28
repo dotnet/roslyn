@@ -12,10 +12,13 @@ using System.Data.SqlTypes;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -123,6 +126,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
             }
+        }
+
+        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        {
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var symbol = symbols.Length == 1
+                ? symbols[0] as IMethodSymbol
+                : null;
+            if (symbol is not null)
+            {
+                Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
+                var operatorPosition = symbol.GetOperatorPosition();
+                var operatorSign = symbol.GetOperatorSignOfOperator();
+                if (operatorPosition == OperatorPosition.Infix)
+                {
+                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, $" {operatorSign} ", 0, cancellationToken).ConfigureAwait(false);
+                    if (change is not null)
+                    {
+                        return change;
+                    }
+                }
+            }
+
+            return await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
         }
     }
 }
