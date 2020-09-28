@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TParams request);
-        protected abstract TextDocumentIdentifier? GetTextDocument(Document? document);
-        protected abstract DiagnosticParams GetPreviousParams(TParams? diagnosticParams, Document? document);
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, ArrayBuilder<LspDiagnostic>? result, string? resultId);
+        protected abstract TextDocumentIdentifier? GetTextDocument(TParams? diagnosticParams, Document? document, RequestContext context);
+        protected abstract DiagnosticParams? GetPreviousDiagnosticParams(TParams? diagnosticParams, Document? document);
+        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, ArrayBuilder<LspDiagnostic>? diagnostics, string? resultId);
 
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
         {
@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var document = context.Document;
             var diagnosticReport = await GetDiagnosticReportAsync(
-                document, GetTextDocument(document), GetPreviousParams(diagnosticParams, document), cancellationToken).ConfigureAwait(false);
+                document,
+                GetTextDocument(diagnosticParams, document, context),
+                GetPreviousDiagnosticParams(diagnosticParams, document),
+                cancellationToken).ConfigureAwait(false);
 
             if (diagnosticReport == null)
             {
@@ -76,14 +79,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         protected async Task<TReport?> GetDiagnosticReportAsync(
-            Document? document, TextDocumentIdentifier? identifier, DiagnosticParams previousDiagnosticParams, CancellationToken cancellationToken)
+            Document? document, TextDocumentIdentifier? identifier, DiagnosticParams? previousDiagnosticParams, CancellationToken cancellationToken)
         {
             if (document == null)
             {
                 // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
                 // workspace).  In that case we need to return an actual diagnostic report with `null` for the
                 // diagnostics to let the client know to dump that file entirely.
-                return CreateReport(identifier: null, result: null, resultId: null);
+                return CreateReport(identifier: null, diagnostics: null, resultId: null);
             }
 
             var project = document.Project;
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // If the client has already asked for diagnostics for this document, see if we have actually recorded any
             // differences, or if they should just use the same diagnostics as before.
-            if (previousDiagnosticParams.PreviousResultId != null)
+            if (previousDiagnosticParams?.PreviousResultId != null)
             {
                 lock (_gate)
                 {

@@ -19,26 +19,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
-    internal class WorkspacePullDiagnosticHandler : IRequestHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
-        private readonly IDiagnosticService _diagnosticService;
         private readonly IDocumentTrackingService _documentTrackingService;
-
-        /// <summary>
-        /// Lock to product <see cref="_documentIdToLastResultId"/> and <see cref="_nextResultId"/>.
-        /// </summary>
-        private readonly object _gate = new object();
-
-        /// <summary>
-        /// Mapping of a document to the last result id we reported for it.
-        /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), string> _documentIdToLastResultId = new();
-
-        /// <summary>
-        /// The next available id to label results with.
-        /// </summary>
-        private long _nextResultId;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
