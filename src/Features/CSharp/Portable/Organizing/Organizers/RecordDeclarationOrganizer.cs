@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 syntax.Keyword,
                 syntax.Identifier,
                 syntax.TypeParameterList,
+                syntax.ParameterList,
                 syntax.BaseList,
                 syntax.ConstraintClauses,
                 syntax.OpenBraceToken,
