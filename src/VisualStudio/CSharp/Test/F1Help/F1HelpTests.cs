@@ -183,7 +183,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 }", "partialtype");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestRecordWithPrimaryConstructorPartialType()
         {
