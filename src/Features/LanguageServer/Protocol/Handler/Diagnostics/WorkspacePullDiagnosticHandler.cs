@@ -14,15 +14,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-
     [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
     internal class WorkspacePullDiagnosticHandler : IRequestHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>
     {
