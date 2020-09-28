@@ -8,20 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-
     [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
     {
@@ -34,16 +27,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams request)
-            => request.TextDocument;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.TextDocument;
 
-        protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, ArrayBuilder<LspDiagnostic>? diagnostics, string? resultId)
-            => new DiagnosticReport { Diagnostics = diagnostics?.ToArray(), ResultId = resultId };
+        protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new DiagnosticReport { Diagnostics = diagnostics, ResultId = resultId };
 
-        protected override DiagnosticParams? GetPreviousDiagnosticParams(DocumentDiagnosticsParams? diagnosticParams, Document? document)
-            => diagnosticParams;
+        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        {
+            // For the single document case, that is the one to process.
+            return context.Document == null ? ImmutableArray<Document>.Empty : ImmutableArray.Create(context.Document);
+        }
 
-        protected override TextDocumentIdentifier? GetTextDocument(DocumentDiagnosticsParams? diagnosticParams, Document? document, RequestContext context)
-            => diagnosticParams?.TextDocument;
+        protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
+            => new[] { diagnosticsParams };
+
+        protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PartialResultToken;
     }
 }

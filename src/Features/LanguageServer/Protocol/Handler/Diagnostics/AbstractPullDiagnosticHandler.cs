@@ -4,7 +4,9 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,11 +15,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-
-    internal abstract class AbstractPullDiagnosticHandler<TParams, TReport> : IRequestHandler<TParams, TReport[]?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
+        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IDiagnosticService _diagnosticService;
 
         /// <summary>
@@ -39,14 +40,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             ILspSolutionProvider solutionProvider,
             IDiagnosticService diagnosticService)
         {
+            _solutionProvider = solutionProvider;
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TParams request);
-        protected abstract TextDocumentIdentifier? GetTextDocument(TParams? diagnosticParams, Document? document, RequestContext context);
-        protected abstract DiagnosticParams? GetPreviousDiagnosticParams(TParams? diagnosticParams, Document? document);
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, ArrayBuilder<LspDiagnostic>? diagnostics, string? resultId);
+        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
+
+        /// <summary>
+        /// Gets the progress object to stream results to.
+        /// </summary>
+        protected abstract IProgress<TReport[]>? GetProgress(TDiagnosticsParams diagnosticsParams);
+
+        /// <summary>
+        /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
+        /// used so we can report which documents were removed and can have all their diagnostics cleared.
+        /// </summary>
+        protected abstract DiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+
+        /// <summary>
+        /// Returns all the documents that should be processed in the desired order to process them in.
+        /// </summary>
+        protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
+        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
 
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
         {
@@ -59,70 +75,126 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         public async Task<TReport[]?> HandleRequestAsync(
-            TParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
+            TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var diagnosticReport = await GetDiagnosticReportAsync(
-                document,
-                GetTextDocument(diagnosticParams, document, context),
-                GetPreviousDiagnosticParams(diagnosticParams, document),
-                cancellationToken).ConfigureAwait(false);
+            // The progress object we will stream reports to.
+            var progress = GetProgress(diagnosticsParams);
 
-            if (diagnosticReport == null)
+            // The buffer we will add results to if our client doesn't support streaming results.
+            using var _ = ArrayBuilder<TReport>.GetInstance(out var reports);
+
+            // Get the set of results the request said were previously reported.  We can use this to determine both
+            // what to skip, and what files we have to tell the client have been removed.
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<DiagnosticParams>();
+
+            var documentToPreviousResult = new Dictionary<Document, DiagnosticParams>();
+            foreach (var previousResult in previousResults)
+                AddPreviousResult(documentToPreviousResult, previousResult);
+
+            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
+            // the user from squiggles or error-list.
+            HandleRemovedDocuments(previousResults, progress, reports);
+
+            // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
+            // last time we notified the client.  Report back either to the client so they can update accordingly.
+            foreach (var document in GetOrderedDocuments(context))
             {
-                // Nothing changed between the last request and this one.  Report a null response to the client
-                // to know they don't need to do anything.
-                return null;
-            }
-
-            return new[] { diagnosticReport };
-        }
-
-        protected async Task<TReport?> GetDiagnosticReportAsync(
-            Document? document, TextDocumentIdentifier? identifier, DiagnosticParams? previousDiagnosticParams, CancellationToken cancellationToken)
-        {
-            if (document == null)
-            {
-                // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
-                // workspace).  In that case we need to return an actual diagnostic report with `null` for the
-                // diagnostics to let the client know to dump that file entirely.
-                return CreateReport(identifier: null, diagnostics: null, resultId: null);
-            }
-
-            var project = document.Project;
-            var solution = project.Solution;
-            var workspace = solution.Workspace;
-
-            // If the client has already asked for diagnostics for this document, see if we have actually recorded any
-            // differences, or if they should just use the same diagnostics as before.
-            if (previousDiagnosticParams?.PreviousResultId != null)
-            {
-                lock (_gate)
+                if (DiagnosticsAreUnchanged(documentToPreviousResult, document))
                 {
-                    if (_documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                        lastReportedResultId == previousDiagnosticParams.PreviousResultId)
-                    {
-                        // Nothing changed between the last request and this one.  Report a null response to the client
-                        // to know they don't need to do anything.
-                        return null;
-                    }
+                    // Nothing changed between the last request and this one.  Report a null-diagnostics, same-result-id
+                    // response to the client to know they don't need to do anything.
+                    var previousResult = documentToPreviousResult[document];
+                    Report(progress, reports,
+                        CreateReport(previousResult.TextDocument, diagnostics: null, previousResult.PreviousResultId));
+                }
+                else
+                {
+                    await ComputeAndReportCurrentDiagnosticsAsync(progress, reports, document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            // Being asked about this document for the first time.  Or being asked again and we have different diagnostics.
+            // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
+            // collecting and return that.
+            return progress != null ? null : reports.ToArray();
+        }
+
+        private async Task ComputeAndReportCurrentDiagnosticsAsync(
+            IProgress<TReport[]>? progress,
+            ArrayBuilder<TReport> reports,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            // Being asked about this document for the first time.  Or being asked again and we have different
+            // diagnostics.  Compute and report the current diagnostics info for this document.
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<LspDiagnostic>.GetInstance(out var result);
+            var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var diagnostics);
             foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
-                result.Add(DiagnosticUtilities.Convert(text, diagnostic));
+                diagnostics.Add(DiagnosticUtilities.Convert(text, diagnostic));
 
+            var report = RecordDiagnosticReport(document, diagnostics.ToArray());
+            Report(progress, reports, report);
+        }
+
+        private void HandleRemovedDocuments(DiagnosticParams[]? previousResults, IProgress<TReport[]>? progress, ArrayBuilder<TReport> reports)
+        {
+            if (previousResults == null)
+                return;
+
+            foreach (var previousResult in previousResults)
+            {
+                var textDocument = previousResult.TextDocument;
+                if (textDocument != null)
+                {
+                    var document = _solutionProvider.GetDocument(textDocument);
+                    if (document == null)
+                    {
+                        // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
+                        // workspace).  In that case we need to return an actual diagnostic report with `null` for the
+                        // diagnostics to let the client know to dump that file entirely.
+                        Report(progress, reports, CreateReport(textDocument, diagnostics: null, resultId: null));
+                    }
+                }
+            }
+        }
+
+        private static void Report(IProgress<TReport[]>? progress, ArrayBuilder<TReport> reports, TReport report)
+        {
+            progress?.Report(new[] { report });
+            reports.Add(report);
+        }
+
+        private bool DiagnosticsAreUnchanged(Dictionary<Document, DiagnosticParams> documentToPreviousResult, Document document)
+        {
+            lock (_gate)
+            {
+                var workspace = document.Project.Solution.Workspace;
+                return documentToPreviousResult.TryGetValue(document, out var previousResult) &&
+                       _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
+                       lastReportedResultId == previousResult.PreviousResultId;
+            }
+        }
+
+        private TReport RecordDiagnosticReport(Document document, VSDiagnostic[] diagnostics)
+        {
             lock (_gate)
             {
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
                 // the same diagnostic set in the future.
                 var resultId = _nextResultId++.ToString();
-                _documentIdToLastResultId[(workspace, document.Id)] = resultId;
-                return CreateReport(identifier, result, resultId);
+                _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
+                return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), diagnostics, resultId);
+            }
+        }
+
+        protected void AddPreviousResult(
+            Dictionary<Document, DiagnosticParams> documentToDiagnosticParams, DiagnosticParams previousResult)
+        {
+            if (previousResult.TextDocument != null && previousResult.PreviousResultId != null)
+            {
+                var document = _solutionProvider.GetDocument(previousResult.TextDocument);
+                if (document != null)
+                    documentToDiagnosticParams[document] = previousResult;
             }
         }
     }
