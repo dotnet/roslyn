@@ -67,11 +67,11 @@ $@"{typeKind} C {{
         public async Task TestFieldsWithInitializers1(string typeKind)
         {
             var initial =
-$@"class C {
+$@"{typeKind} C {{
     int C = 0;
     int B;
     int A;
-}";
+}}";
 
             var final =
 $@"{typeKind} C {{
@@ -219,7 +219,7 @@ $@"{typeKind} C  {{
         public async Task TestConstructorAndDestructors(string typeKind)
         {
             var initial =
-$@"class C  {{
+$@"{typeKind} C  {{
     public ~Goo() {{}}
     enum Days {{Sat, Sun}};
     public Goo() {{}}
@@ -244,7 +244,7 @@ $@"{typeKind} C  {{}}
 interface I
 {{
    void Goo();
-   int Property { get; set; }
+   int Property {{ get; set; }}
    event EventHandler Event;
 }}";
 
