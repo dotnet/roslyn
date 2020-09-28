@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InEEMethodBinder = 1 << 30,
 
+        /// <summary>
+        /// Assume '#nullable disable' context.
+        /// </summary>
+        IgnoreNullableContext = 1u << 31,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

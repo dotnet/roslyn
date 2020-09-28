@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -10,24 +9,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 {
     [UseExportProvider]
-    public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
+    public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected readonly TWorkspaceFixture fixture;
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
 
-        protected TypeInferrerTestBase(TWorkspaceFixture workspaceFixture)
-            => this.fixture = workspaceFixture;
-
-        public override void Dispose()
-        {
-            this.fixture.DisposeAfterTest();
-            base.Dispose();
-        }
+        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
+            => _fixtureHelper.GetOrCreateFixture();
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
@@ -56,14 +49,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
         protected async Task TestAsync(string text, string expectedType, TestMode mode,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
             MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out var textSpan);
 
-            var document = fixture.UpdateDocument(text, sourceCodeKind);
+            var document = workspaceFixture.Target.UpdateDocument(text, sourceCodeKind);
             await TestWorkerAsync(document, textSpan, expectedType, mode);
 
             if (await CanUseSpeculativeSemanticModelAsync(document, textSpan.Start))
             {
-                var document2 = fixture.UpdateDocument(text, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.Target.UpdateDocument(text, sourceCodeKind, cleanBeforeUpdate: false);
                 await TestWorkerAsync(document2, textSpan, expectedType, mode);
             }
         }

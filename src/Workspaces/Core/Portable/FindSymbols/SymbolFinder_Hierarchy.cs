@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                         var bestMember = sourceMember ?? m;
 
-                        if (IsOverride(solution, bestMember, symbol))
+                        if (await IsOverrideAsync(solution, bestMember, symbol, cancellationToken).ConfigureAwait(false))
                         {
                             results.Add(bestMember);
                         }
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol)
+        internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
             {
-                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution))
+                if (await OriginalSymbolsMatchAsync(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
                 {
                     return true;
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod ?? m;
 
-                                    var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
+                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(bestMethod, solution, cancellationToken).ConfigureAwait(false);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation != null &&
@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindDerivedClassesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.DerivedClasses, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindDerivedInterfacesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.DerivedInterfaces, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindImplementingTypesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.ImplementingTypes, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
             foreach (var t in allTypes)
             {
-                var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
+                var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
                 foreach (var implementation in implementations)
                 {
                     var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             => UnderlyingObject = underlyingObject;
 
         public static PythiaTypeInferenceServiceWrapper Create(Document document)
-            => new PythiaTypeInferenceServiceWrapper(document.GetRequiredLanguageService<ITypeInferenceService>());
+            => new(document.GetRequiredLanguageService<ITypeInferenceService>());
 
         public ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, string? name, CancellationToken cancellationToken)
             => UnderlyingObject.InferTypes(semanticModel, position, name, cancellationToken);

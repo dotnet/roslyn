@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Options
     internal readonly partial struct OptionKey2
     {
         public static explicit operator OptionKey(OptionKey2 optionKey)
-            => new OptionKey(optionKey.Option, optionKey.Language);
+            => new(optionKey.Option, optionKey.Language);
     }
 }

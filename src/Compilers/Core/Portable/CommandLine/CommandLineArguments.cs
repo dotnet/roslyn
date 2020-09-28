@@ -126,6 +126,11 @@ namespace Microsoft.CodeAnalysis
         public string? DocumentationPath { get; internal set; }
 
         /// <summary>
+        /// Absolute path of the directory to place generated files in, or <c>null</c> to not emit any generated files.
+        /// </summary>
+        public string? GeneratedFilesOutputDirectory { get; internal set; }
+
+        /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or
         /// analysis diagnostics, or null if no log file is desired.
         /// </summary>
@@ -177,6 +182,11 @@ namespace Microsoft.CodeAnalysis
         /// Report additional information related to analyzers, such as analyzer execution time.
         /// </value>
         public bool ReportAnalyzer { get; internal set; }
+
+        /// <value>
+        /// Skip execution of <see cref="DiagnosticAnalyzer"/>s.
+        /// </value>
+        public bool SkipAnalyzers { get; internal set; }
 
         /// <summary>
         /// If true, prepend the command line header logo during 
@@ -459,6 +469,7 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
+            bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
         {
@@ -516,7 +527,8 @@ namespace Microsoft.CodeAnalysis
             foreach (var resolvedReference in resolvedReferences)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
-                resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                if (!skipAnalyzers)
+                    resolvedReference.AddAnalyzers(analyzerBuilder, language);
                 resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }

@@ -219,6 +219,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return false;
                 }
 
+                // Ignore parameters of record primary constructors since they map to public properties
+                // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
+                if (method.IsConstructor() &&
+                    _compilationAnalyzer.IsRecordDeclaration(method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()))
+                {
+                    return false;
+                }
+
                 // Ignore event handler methods "Handler(object, MyEventArgs)"
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.

@@ -1337,9 +1337,9 @@ class Program
                 // (64,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(not null, null)' is not covered.
                 //         _ = t switch // 6 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(not null, null)").WithLocation(64, 15),
-                // (73,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                // (73,15): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         _ = o switch // 7 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(73, 15));
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("null").WithLocation(73, 15));
         }
 
         [Fact]

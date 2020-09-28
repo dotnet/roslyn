@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class OpenDocumentTracker<TItem>
         where TItem : TableItem
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map =
-            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>>();
+            new();
 
         private readonly Workspace _workspace;
 

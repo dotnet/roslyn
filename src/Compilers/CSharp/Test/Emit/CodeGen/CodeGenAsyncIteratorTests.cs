@@ -3399,7 +3399,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
 
@@ -6637,7 +6637,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
 
@@ -6920,7 +6920,7 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
-                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
 
@@ -7263,7 +7263,7 @@ class C
             {
                 foreach (var sourceToCancel in new[] { "source1", "source2" })
                 {
-                    var comp = CreateCompilationWithAsyncIterator(new[] { source.Replace("SOURCETOCANCEL", sourceToCancel), EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.RegularPreview);
+                    var comp = CreateCompilationWithAsyncIterator(new[] { source.Replace("SOURCETOCANCEL", sourceToCancel), EnumeratorCancellationAttributeType }, options: options, parseOptions: TestOptions.Regular9);
                     comp.VerifyDiagnostics();
                     CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
                 }
@@ -7356,7 +7356,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe, TestOptions.RegularPreview);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, TestOptions.DebugExe, TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (12,77): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
                 //         static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value) // 1
@@ -7764,7 +7764,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 

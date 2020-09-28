@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected class TypeParameterCollector : SymbolVisitor
         {
-            private readonly List<ITypeParameterSymbol> _typeParameters = new List<ITypeParameterSymbol>();
+            private readonly List<ITypeParameterSymbol> _typeParameters = new();
 
             public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
             {

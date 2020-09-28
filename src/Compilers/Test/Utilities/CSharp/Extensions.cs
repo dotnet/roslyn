@@ -354,6 +354,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     select a).ToList().First();
         }
 
+        public static bool HasAttribute(this Symbol @this, MethodSymbol m)
+        {
+            return (from a in @this.GetAttributes()
+                    where a.AttributeConstructor.Equals(m)
+                    select a).ToList().FirstOrDefault() != null;
+        }
+
         public static void VerifyValue<T>(this CSharpAttributeData attr, int i, TypedConstantKind kind, T v)
         {
             var arg = attr.CommonConstructorArguments[i];

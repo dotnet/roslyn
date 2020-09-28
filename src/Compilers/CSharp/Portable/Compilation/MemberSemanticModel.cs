@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureNullabilityAnalysisPerformedIfNecessary();
             if (_lazyRemappedSymbols is null) return originalSymbol;
 
-            if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
+            if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol? remappedSymbol))
             {
                 RoslynDebug.Assert(remappedSymbol is object);
                 return (T)remappedSymbol;
@@ -1931,29 +1931,28 @@ done:
             var bindableRoot = GetBindableSyntaxNode(Root);
             using var upgradeableLock = _nodeMapLock.DisposableUpgradeableRead();
 
-            if (_guardedNodeMap.ContainsKey(bindableRoot)
-#if DEBUG
-                // In DEBUG mode, we don't want to increase test run times, so if
-                // nullable analysis isn't enabled and some node has already been bound
-                // we assume we've already done this test binding and just return
-                || (!Compilation.NullableSemanticAnalysisEnabled && _guardedNodeMap.Count > 0)
-#endif
-                )
+            // If there are already nodes in the map, then we've already done work here. Since
+            // EnsureNullabilityAnalysis is guaranteed to have run first, that means we've
+            // already bound the root node and we can just exit. We can't just assert that Root
+            // is in the map, as there are some models for which there is no BoundNode for the
+            // Root elements (such as fields, where the root is a VariableDeclarator but the
+            // first BoundNode corresponds to the underlying EqualsValueSyntax of the initializer)
+            if (_guardedNodeMap.Count > 0)
             {
+                Debug.Assert(!Compilation.NullableSemanticAnalysisEnabled ||
+                             _guardedNodeMap.ContainsKey(bindableRoot) ||
+                             _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
                 return;
             }
-
-            Debug.Assert(_guardedNodeMap.Count == 0);
 
             upgradeableLock.EnterWrite();
 
             NullableWalker.SnapshotManager snapshotManager;
             var remappedSymbols = _parentRemappedSymbolsOpt;
-            BoundNode boundRoot;
             Binder binder;
             DiagnosticBag diagnosticBag = getDiagnosticBag();
 
-            bind(bindableRoot, diagnosticBag, out binder, out boundRoot);
+            BoundNode boundRoot = bind(bindableRoot, diagnosticBag, out binder);
 
             if (IsSpeculativeSemanticModel)
             {
@@ -1974,10 +1973,27 @@ done:
                 rewriteAndCache(diagnosticBag);
             }
 
-            void bind(CSharpSyntaxNode root, DiagnosticBag diagnosticBag, out Binder binder, out BoundNode boundRoot)
+            BoundNode bind(CSharpSyntaxNode root, DiagnosticBag diagnosticBag, out Binder binder)
             {
-                binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
-                boundRoot = Bind(binder, root, diagnosticBag);
+                if (root is CompilationUnitSyntax)
+                {
+                    // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
+                    // then that means the start of the span of the top-level statement is the same as the start of the local
+                    // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
+                    // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
+                    // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
+                    // GetTypeInfo, or GetSymbolInfo on. GetDeclaredSymbol(CompilationUnitSyntax) goes down another path that
+                    // does not need to do any binding whatsoever, so it also doesn't care about this behavior. The only place
+                    // that actually needs to get the enclosing binding for a CompilationUnitSyntax in such a scenario is this
+                    // method. So, if our root is the CompilationUnitSyntax, directly get the binder for it.
+                    binder = RootBinder.GetBinder(root);
+                    Debug.Assert(binder is SimpleProgramBinder);
+                }
+                else
+                {
+                    binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
+                }
+                return Bind(binder, root, diagnosticBag);
             }
 
             void rewriteAndCache(DiagnosticBag diagnosticBag)
@@ -2132,7 +2148,7 @@ done:
         }
 
         // some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does
-        internal protected virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
+        protected internal virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             switch (node.Kind())
             {
@@ -2321,6 +2337,11 @@ foundParent:;
             {
                 return symbol;
             }
+        }
+
+        internal sealed override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

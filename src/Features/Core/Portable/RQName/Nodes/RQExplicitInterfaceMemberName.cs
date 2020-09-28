@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         }
 
         public override SimpleGroupNode ToSimpleTree()
-            => new SimpleGroupNode(RQNameStrings.IntfExplName, InterfaceType.ToSimpleTree(), Name.ToSimpleTree());
+            => new(RQNameStrings.IntfExplName, InterfaceType.ToSimpleTree(), Name.ToSimpleTree());
     }
 }

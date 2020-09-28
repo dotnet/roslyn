@@ -488,16 +488,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
                 bool isNullableEnabled = AreNullableAnnotationsEnabled(questionToken);
+                bool isGeneratedCode = IsGeneratedCode(questionToken);
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                 if (typeArgument.HasType && !ShouldCheckConstraints)
                 {
-                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
+                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(
+                        isNullableEnabled,
+                        isGeneratedCode,
+                        typeArgument,
+                        location,
+                        diagnostics);
                 }
                 else
                 {
-                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(isNullableEnabled, typeArgument, location, diagnostics);
+                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
+                        isNullableEnabled,
+                        isGeneratedCode,
+                        typeArgument,
+                        location,
+                        diagnostics);
                 }
             }
 
@@ -903,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If the node is "nint" or "nuint", return the corresponding native integer symbol.
+        /// If the node is "nint" or "nuint" and not alone inside nameof, return the corresponding native integer symbol.
         /// Otherwise return null.
         /// </summary>
         private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, DiagnosticBag diagnostics)
@@ -920,6 +931,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return null;
             }
+
+            if (IsInsideNameof && node.Parent is ArgumentSyntax &&
+                node.Parent?.Parent?.Parent is InvocationExpressionSyntax invocation &&
+                (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword)
+            {
+                // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.
+                return null;
+            }
+
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
             return this.GetSpecialType(specialType, diagnostics, node).AsNativeInteger();
         }

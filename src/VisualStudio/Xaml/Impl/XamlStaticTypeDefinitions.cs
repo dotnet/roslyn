@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
         /// </summary>
         [Export]
         [Name(ContentTypeNames.XamlContentType)]
-        [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteContentTypeName)]
+        [BaseDefinition("code")]
         internal static readonly ContentTypeDefinition XamlContentType;
 
         // Associate .xaml as the Xaml content type.

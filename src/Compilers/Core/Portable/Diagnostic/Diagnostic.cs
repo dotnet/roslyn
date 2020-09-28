@@ -347,7 +347,6 @@ namespace Microsoft.CodeAnalysis
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             if (!suppressMessageState.IsDiagnosticSuppressed(
                     this,
-                    getSemanticModel: (compilation, tree) => compilation.GetSemanticModel(tree),
                     out attribute))
             {
                 attribute = null;

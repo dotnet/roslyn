@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : class? => true
         /// T where T : IComparable => true
         /// T where T : IComparable? => true
+        /// T where T : notnull => true
         /// </summary>
         /// <remarks>
         /// In C#9, annotations are allowed regardless of constraints.
@@ -1864,13 +1865,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsWellKnownCompilerServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
-            if (typeSymbol.Name != name || typeSymbol.ContainingType is object)
+            if (typeSymbol.Name != name)
             {
                 return false;
             }
 
-            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+            return IsCompilerServicesTopLevelType(typeSymbol);
         }
+
+        internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
 
         private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
         {

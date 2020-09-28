@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class EndToEndDeterminismTest : TestBase
     {
-        private string _flags = "/deterministic+ /nologo /t:library /pdb:none";
+        private readonly string _flags = "/deterministic+ /nologo /t:library /pdb:none";
 
         /// <summary>
         /// Compiles some source code and returns the bytes that were contained in the compiled DLL file.
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     {
                         AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
                     }
-                    await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+                    var listener = await serverData.Complete().ConfigureAwait(false);
+                    Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
                 }
                 var bytes = File.ReadAllBytes(outFile);
                 AssertEx.NotNull(bytes);

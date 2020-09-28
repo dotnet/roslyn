@@ -8,9 +8,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public partial class AddUsingTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestSimpleQuery()
         {
             await TestInRegularAndScriptAsync(
@@ -37,7 +38,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestSimpleWhere()
         {
             await TestInRegularAndScriptAsync(

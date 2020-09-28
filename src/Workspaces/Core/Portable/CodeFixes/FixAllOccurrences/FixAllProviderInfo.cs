@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code fix provider or suppression fix provider.
         /// </summary>
-        public static FixAllProviderInfo Create(object provider)
+        public static FixAllProviderInfo? Create(object provider)
         {
             if (provider is CodeFixProvider codeFixProvider)
             {
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithCodeFixer(CodeFixProvider provider)
+        private static FixAllProviderInfo? CreateWithCodeFixer(CodeFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given suppression fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithSuppressionFixer(IConfigurationFixProvider provider)
+        private static FixAllProviderInfo? CreateWithSuppressionFixer(IConfigurationFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)

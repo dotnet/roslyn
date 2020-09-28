@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);

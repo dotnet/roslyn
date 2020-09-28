@@ -7,14 +7,22 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateType
     Public Class GenerateTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+
+        ' TODO Requires Wpf due to IInlineRenameService dependency (https: //github.com/dotnet/roslyn/issues/46153)
+        Protected Overrides Function GetComposition() As TestComposition
+            Return EditorTestCompositions.EditorFeaturesWpf _
+                .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+                .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateTypeCodeFixProvider())

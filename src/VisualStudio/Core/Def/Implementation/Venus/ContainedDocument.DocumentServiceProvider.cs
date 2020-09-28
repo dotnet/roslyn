@@ -47,23 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return excerpter;
                 }
 
-                if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
-                {
-                    return documentPropertiesService;
-                }
-
                 // ask the default document service provider
                 return DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
             }
 
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
                 => sourceText.FindCorrespondingEditorTextSnapshot();
-
-            private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
-            {
-                public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
-                public override bool DesignTimeOnly => true;
-            }
 
             private class SpanMapper : ISpanMappingService
             {
@@ -304,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
 
                 private static TextSpan GetSpanOnContent(TextSpan targetSpan, TextSpan excerptSpan)
-                    => new TextSpan(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
+                    => new(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
             }
         }
     }

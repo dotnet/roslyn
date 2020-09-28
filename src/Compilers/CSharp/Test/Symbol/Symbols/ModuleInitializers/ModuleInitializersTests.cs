@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
     public sealed class ModuleInitializersTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 
         [Fact]
         public static void LastLanguageVersionNotSupportingModuleInitializersIs8()
@@ -35,9 +35,9 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
-                // (5,6): error CS8652: The feature 'module initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,6): error CS8400: Feature 'module initializers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ModuleInitializer").WithArguments("module initializers").WithLocation(5, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ModuleInitializer").WithArguments("module initializers", "9.0").WithLocation(5, 6)
                 );
         }
 
@@ -55,7 +55,7 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
 
             compilation.VerifyDiagnostics();
         }

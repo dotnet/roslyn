@@ -284,16 +284,16 @@ class G : F
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
                 // (41,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
-                // (8,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (8,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
-                // (17,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (17,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
-                // (25,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (25,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
 
                 // This is new in Roslyn.  It is reported because F.Finalize is now a runtime finalizer.
 
-                // (57,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (57,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"));
         }
 

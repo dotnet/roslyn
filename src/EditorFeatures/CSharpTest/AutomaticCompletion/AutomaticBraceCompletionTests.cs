@@ -46,6 +46,34 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
+        public void TypelessNewExpressionBracesSameLine()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = new() $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = new() { }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void WithExpressionBracesSameLine_Enter()
         {
             var code = @"
@@ -378,6 +406,47 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        public void WithExpression()
+        {
+            var code = @"
+record C
+{
+    void M()
+    {
+        _ = this with $$
+    }
+}";
+
+            var expectedBeforeReturn = @"
+record C
+{
+    void M()
+    {
+        _ = this with { }
+    }
+}";
+
+            var expectedAfterReturn = @"
+record C
+{
+    void M()
+    {
+        _ = this with
+        {
+
+        }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void RecursivePattern()
         {
             var code = @"
@@ -444,9 +513,9 @@ class C
     void M()
     {
         _ = this is { Name:
-            {
+        {
 
-            } }
+        } }
     }
 }";
             using var session = CreateSession(code);
@@ -454,7 +523,7 @@ class C
 
             CheckStart(session.Session);
             CheckText(session.Session, expectedBeforeReturn);
-            CheckReturn(session.Session, 16, expectedAfterReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

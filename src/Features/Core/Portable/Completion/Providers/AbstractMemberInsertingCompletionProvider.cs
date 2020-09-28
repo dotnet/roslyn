@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-        private readonly SyntaxAnnotation _otherAnnotation = new SyntaxAnnotation();
+        private readonly SyntaxAnnotation _annotation = new();
+        private readonly SyntaxAnnotation _otherAnnotation = new();
 
         protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 
@@ -120,7 +120,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // CodeGenerationOptions containing before and after
-            var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
+            var options = new CodeGenerationOptions(
+                contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)),
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
             var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
             generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);

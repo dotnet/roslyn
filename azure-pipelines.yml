@@ -230,7 +230,7 @@ jobs:
 - job: macOS_Test
   pool:
     vmImage: 'macOS-10.14'
-  timeoutInMinutes: 90
+  timeoutInMinutes: 120
 
   steps:
     - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr

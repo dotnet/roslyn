@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
         internal sealed class DocumentationProviderService : IDocumentationProviderService
         {
             private readonly ConcurrentDictionary<string, DocumentationProvider> _assemblyPathToDocumentationProviderMap =
-                new ConcurrentDictionary<string, DocumentationProvider>();
+                new();
 
             public DocumentationProvider GetDocumentationProvider(string assemblyPath)
             {

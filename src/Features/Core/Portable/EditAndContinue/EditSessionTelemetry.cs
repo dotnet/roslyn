@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public bool IsEmpty => !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         private readonly HashSet<(ushort, ushort)> _rudeEdits;
         private readonly HashSet<string> _emitErrorIds;

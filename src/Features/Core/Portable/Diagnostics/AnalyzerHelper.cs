@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
         {
-            internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
+            internal static readonly DiagnosticComparer Instance = new();
 
             public bool Equals(Diagnostic? x, Diagnostic? y)
             {

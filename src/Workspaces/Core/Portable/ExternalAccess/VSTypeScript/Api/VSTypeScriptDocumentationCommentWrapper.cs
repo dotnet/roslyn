@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptDocumentationCommentWrapper FromXmlFragment(string xml)
-            => new VSTypeScriptDocumentationCommentWrapper(DocumentationComment.FromXmlFragment(xml));
+            => new(DocumentationComment.FromXmlFragment(xml));
 
         public bool IsDefault
             => _underlyingObject == null;

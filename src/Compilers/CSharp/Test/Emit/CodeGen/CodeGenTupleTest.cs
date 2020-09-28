@@ -5407,7 +5407,7 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1001: Identifier expected
                 // using VT2 = (int, int);
@@ -10742,7 +10742,7 @@ CS0151ERR_IntegralTypeValueExpected}
                 // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7.0").WithLocation(6, 24),
-                // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // (8,36): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
@@ -15712,14 +15712,14 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 19),
-                // (6,24): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 19),
+                // (6,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 24),
                 // (6,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18)
@@ -15811,14 +15811,14 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(7, 19),
-                // (7,24): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 19),
+                // (7,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 24),
                 // (7,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18)
@@ -20630,10 +20630,10 @@ public class Derived : Base<(int a, int b)>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base class are not allowed
+                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator Derived(Base<(int, int)> x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Derived").WithArguments("Derived.explicit operator Derived(Base<(int, int)>)").WithLocation(9, 37),
-                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator Base<(int, int)>(Derived x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
                 );
@@ -24937,11 +24937,11 @@ class P
         var x1 = (1, 1) is (int, int a)?;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,29): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,29): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 29),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),

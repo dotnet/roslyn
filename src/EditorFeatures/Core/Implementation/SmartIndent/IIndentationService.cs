@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public static implicit operator Indentation.IndentationResult(IndentationResult result)
-            => new Indentation.IndentationResult(result.BasePosition, result.Offset);
+            => new(result.BasePosition, result.Offset);
     }
 
     // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872

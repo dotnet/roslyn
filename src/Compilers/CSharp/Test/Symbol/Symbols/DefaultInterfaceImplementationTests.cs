@@ -3555,7 +3555,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 36),
                 // (4,22): error CS1014: A get, set or init accessor expected
@@ -3592,7 +3592,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,33): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,33): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int this[int i] {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 33)
                 );
@@ -5125,7 +5125,7 @@ class Test1 : I1
 ";
             ValidateEventImplementation_101(source1,
                 new[] {
-                // (8,7): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (8,7): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     } => 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 7),
                 // (6,9): error CS1055: An add or remove accessor expected
@@ -9396,7 +9396,7 @@ interface I2
                 // (19,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
-                // (25,18): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                // (25,18): error CS0751: A partial method must be declared within a partial type
                 //     partial void M8();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M8").WithLocation(25, 18)
                 );
@@ -9463,7 +9463,7 @@ public partial interface I1
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial static void M4();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
                 );
@@ -19575,7 +19575,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,45): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,45): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     public virtual int this[int x] { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 45),
                 // (4,38): error CS0501: 'I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
@@ -19830,7 +19830,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (14,37): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (14,37): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     private int this[long x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(14, 37),
                 // (4,26): error CS0621: 'I1.this[byte]': virtual or abstract members cannot be private
@@ -20686,7 +20686,7 @@ class Test2 : I1, I2, I3
 {}
 ";
             ValidatePropertyModifiers_14(source1,
-                // (4,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     public sealed int this[int x] {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 42),
                 // (4,36): error CS0501: 'I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
@@ -21173,7 +21173,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
 {}
 ";
             ValidatePropertyModifiers_15(source1,
-                // (44,45): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (44,45): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract virtual int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(44, 45),
                 // (4,26): error CS0503: The abstract property 'I0.this[int]' cannot be marked virtual
@@ -21396,7 +21396,7 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidatePropertyModifiers_17(source1,
-                // (20,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (20,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     extern sealed int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(20, 42),
                 // (4,25): error CS0180: 'I1.this[int]' cannot be both extern and abstract
@@ -21475,7 +21475,7 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidatePropertyModifiers_18(source1,
-                // (20,44): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (20,44): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     override sealed int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(20, 44),
                 // (4,31): error CS0500: 'I1.this[int].get' cannot declare a body because it is marked abstract
@@ -23556,7 +23556,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (7,40): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (7,40): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int this[ushort x] {internal get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(7, 40),
                 // (4,42): error CS0442: 'I1.this[sbyte].get': abstract properties cannot have private accessors
@@ -37322,7 +37322,7 @@ class Test2 : I4
 ";
 
             ValidatePropertyImplementationInDerived_05(source1,
-                // (44,38): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (44,38): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int I3.this[short x] {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(44, 38),
                 // (10,12): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].set'
@@ -38724,10 +38724,10 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -38739,10 +38739,10 @@ interface I19
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -40781,6 +40781,7 @@ true
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetStandardLatest,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
@@ -41031,6 +41032,7 @@ class Test3 : I1
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetStandardLatest,
                                                  parseOptions: TestOptions.Regular7_3);
 
             var expected9 = new DiagnosticDescription[]
@@ -54364,7 +54366,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,47): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,47): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract int I1.this[int i] { get; set; } = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 47),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
@@ -54393,7 +54395,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract int I1.this[int i] { get; } = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 42),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
@@ -54422,7 +54424,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract int I1.this[int i] { set; } = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 42),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
@@ -57266,7 +57268,7 @@ public class CD : CD.ICD.CB
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (2,14): error CS0146: Circular base class dependency involving 'CD.ICD.CB' and 'CD'
+                // (2,14): error CS0146: Circular base type dependency involving 'CD.ICD.CB' and 'CD'
                 // public class CD : CD.ICD.CB
                 Diagnostic(ErrorCode.ERR_CircularBase, "CD").WithArguments("CD.ICD.CB", "CD").WithLocation(2, 14)
                 );
@@ -57354,7 +57356,7 @@ interface IB : CA.I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // (2,7): error CS0146: Circular base type dependency involving 'IB.CQ' and 'CA'
                 // class CA : IB.CQ
                 Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(2, 7),
                 // (8,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
@@ -57391,7 +57393,7 @@ class CA : IB.CQ
                 // (2,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
                 // interface IB : CA.I1
                 Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "CA.I1").WithLocation(2, 11),
-                // (8,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // (8,7): error CS0146: Circular base type dependency involving 'IB.CQ' and 'CA'
                 // class CA : IB.CQ
                 Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(8, 7)
                 );
@@ -59244,6 +59246,168 @@ interface I1<out T1, in T2>
                 //     private T2 M2() => default;
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2>.M2()", "T2", "contravariant", "covariantly").WithLocation(5, 13)
                 );
+        }
+
+        [Fact]
+        public void VarianceSafety_13()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.P1 = ""a"";
+        I2<string, string>.P2 = ""b"";
+        System.Console.WriteLine(I2<string, string>.P1);
+        System.Console.WriteLine(I2<string, string>.P2);
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 P1 { get; set; }
+    static T2 P2 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (15,12): error CS9100: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static T1 P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "preview").WithLocation(15, 12),
+                // (16,12): error CS9100: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static T2 P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "preview").WithLocation(16, 12)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
+        public void VarianceSafety_14()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(I2<string, string>.M1(""a""));
+        System.Console.WriteLine(I2<string, string>.M2(""b""));
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 M1(T1 x) => x;
+    static T2 M2(T2 x) => x;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static T1 M1(T1 x) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "preview").WithLocation(13, 18),
+                // (14,12): error CS9100: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static T2 M2(T2 x) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "preview").WithLocation(14, 12)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
+        public void VarianceSafety_15()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.E1 += Print1;
+        I2<string, string>.E2 += Print2;
+        I2<string, string>.Raise();
+    }
+
+    static void Print1(System.Func<string, string> x)
+    {
+        System.Console.WriteLine(x(""a""));
+    }
+
+    static void Print2(System.Func<string, string> x)
+    {
+        System.Console.WriteLine(x(""b""));
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static event System.Action<System.Func<T1, T1>> E1;
+    static event System.Action<System.Func<T2, T2>> E2;
+
+    static void Raise()
+    {
+        E1(Print);
+        E2(Print);
+    }
+
+    static T3 Print<T3>(T3 x)
+    {
+        return x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (24,53): error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static event System.Action<System.Func<T1, T1>> E1;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "preview").WithLocation(24, 53),
+                // (25,53): error CS9100: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static event System.Action<System.Func<T2, T2>> E2;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "preview").WithLocation(25, 53)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
         }
 
         [Fact]

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
-        private unsafe static MetadataBlock GetMetadataBlock(IntPtr ptr, uint size)
+        private static unsafe MetadataBlock GetMetadataBlock(IntPtr ptr, uint size)
         {
             var reader = new MetadataReader((byte*)ptr, (int)size);
             var moduleDef = reader.GetModuleDefinition();

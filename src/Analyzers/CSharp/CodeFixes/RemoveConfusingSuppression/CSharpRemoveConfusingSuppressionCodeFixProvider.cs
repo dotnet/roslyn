@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             bool negate, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

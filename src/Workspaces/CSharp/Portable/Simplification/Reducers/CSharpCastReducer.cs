@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpCastReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
         public CSharpCastReducer() : base(s_pool)

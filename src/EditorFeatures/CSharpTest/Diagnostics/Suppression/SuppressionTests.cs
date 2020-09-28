@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-
         #region "Pragma disable tests"
 
         public abstract partial class CSharpPragmaWarningDisableSuppressionTests : CSharpSuppressionTests
@@ -257,7 +254,8 @@ class Class
                     var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
                     workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-                    var diagnosticService = new TestDiagnosticAnalyzerService();
+                    Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.ExportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+                    var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
                     var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                     var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                     var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,

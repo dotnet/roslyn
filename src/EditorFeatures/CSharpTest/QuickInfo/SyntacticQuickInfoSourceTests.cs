@@ -276,7 +276,6 @@ if (true)
         protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
-            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null)
@@ -289,7 +288,7 @@ if (true)
             var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
             var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
-            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, threadingContext, streamingPresenter, CancellationToken.None);
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, document, threadingContext, streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
             var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
@@ -327,7 +326,6 @@ if (true)
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
 
             if (string.IsNullOrEmpty(expectedContent))
             {
@@ -335,7 +333,7 @@ if (true)
             }
             else
             {
-                await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
+                await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
             }
         }
     }

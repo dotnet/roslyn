@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForIndexersHelper :
         UseExpressionBodyHelper<IndexerDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForIndexersHelper Instance = new UseExpressionBodyForIndexersHelper();
+        public static readonly UseExpressionBodyForIndexersHelper Instance = new();
 
         private UseExpressionBodyForIndexersHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,

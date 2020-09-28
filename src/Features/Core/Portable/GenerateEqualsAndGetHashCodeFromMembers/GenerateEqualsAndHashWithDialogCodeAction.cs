@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _generateGetHashCode = generateGetHashCode;
             }
 
+            public override string EquivalenceKey => Title;
+
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
 Imports System.Threading
@@ -1598,5 +1599,38 @@ End Namespace
             Assert.Equal(additionalFile.Path, location.FilePath)
             Assert.Equal(expectedDiagnosticSpan, location.SourceSpan)
         End Sub
+
+        <Fact>
+        Public Sub TestSemanticModelProvider()
+            Dim tree = VisualBasicSyntaxTree.ParseText("
+Class C
+End Class")
+            Dim compilation As Compilation = CreateCompilation({tree})
+
+            Dim semanticModelProvider = New MySemanticModelProvider()
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider)
+
+            ' Verify semantic model provider is used by Compilation.GetSemanticModel API
+            Dim model = compilation.GetSemanticModel(tree)
+            semanticModelProvider.VerifyCachedModel(tree, model)
+
+            ' Verify semantic model provider is used by VisualBasicCompilation.GetSemanticModel API
+            model = CType(compilation, VisualBasicCompilation).GetSemanticModel(tree, ignoreAccessibility:=False)
+            semanticModelProvider.VerifyCachedModel(tree, model)
+        End Sub
+
+        Private NotInheritable Class MySemanticModelProvider
+            Inherits SemanticModelProvider
+
+            Private ReadOnly _cache As New ConcurrentDictionary(Of SyntaxTree, SemanticModel)()
+
+            Public Overrides Function GetSemanticModel(tree As SyntaxTree, compilation As Compilation, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+                Return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility))
+            End Function
+
+            Public Sub VerifyCachedModel(tree As SyntaxTree, model As SemanticModel)
+                Assert.Same(model, _cache(tree))
+            End Sub
+        End Class
     End Class
 End Namespace

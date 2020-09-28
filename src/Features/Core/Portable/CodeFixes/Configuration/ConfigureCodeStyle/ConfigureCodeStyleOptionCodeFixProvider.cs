@@ -64,11 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
-            {
-                return ImmutableArray<CodeFix>.Empty;
-            }
-
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
@@ -168,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             new SolutionChangeAction(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, isPerLanguage, project, cancellationToken)));
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken)));
                     }
                 }
             }

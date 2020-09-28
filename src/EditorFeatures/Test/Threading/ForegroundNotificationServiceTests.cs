@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             {
                 if (_service is null)
                 {
-                    var threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IThreadingContext>();
+                    var threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue<IThreadingContext>();
                     _service = new ForegroundNotificationService(threadingContext);
                 }
 

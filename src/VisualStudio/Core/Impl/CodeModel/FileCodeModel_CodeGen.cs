@@ -375,12 +375,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
+            var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
             var propertyType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
-            var newProperty = CreatePropertyDeclaration(containerNode,
-                                                        CodeModelService.GetUnescapedName(isGetterPresent ? getterName : putterName),
-                                                        isGetterPresent,
-                                                        isPutterPresent,
-                                                        access, propertyType);
+            var newProperty = CreatePropertyDeclaration(
+                containerNode,
+                CodeModelService.GetUnescapedName(isGetterPresent ? getterName : putterName),
+                isGetterPresent,
+                isPutterPresent,
+                access,
+                propertyType,
+                options);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newProperty = InsertMember(containerNode, newProperty, insertionIndex);

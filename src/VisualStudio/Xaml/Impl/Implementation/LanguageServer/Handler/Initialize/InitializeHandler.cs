@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.InitializeName, StringConstants.XamlLanguageName)]
+    [ExportLspMethod(Methods.InitializeName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
         [ImportingConstructor]
@@ -25,16 +25,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(InitializeParams request) => null;
+
+        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
 
             return Task.FromResult(new InitializeResult
             {
-                Capabilities = new ServerCapabilities
+                Capabilities = new VSServerCapabilities
                 {
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
                     HoverProvider = true,
                     FoldingRangeProvider = new FoldingRangeProviderOptions { },
+                    DocumentFormattingProvider = true,
+                    DocumentRangeFormattingProvider = true,
+                    DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
+                    OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
                     TextDocumentSync = new TextDocumentSyncOptions
                     {
                         Change = TextDocumentSyncKind.None

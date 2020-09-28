@@ -12,19 +12,19 @@ namespace Microsoft.CodeAnalysis.Options
     internal static class EditorConfigStorageLocation
     {
         public static EditorConfigStorageLocation<bool> ForBoolOption(string keyName)
-            => new EditorConfigStorageLocation<bool>(keyName, s_parseBool, s_getBoolEditorConfigStringForValue);
+            => new(keyName, s_parseBool, s_getBoolEditorConfigStringForValue);
 
         public static EditorConfigStorageLocation<int> ForInt32Option(string keyName)
-            => new EditorConfigStorageLocation<int>(keyName, s_parseInt32, s_getInt32EditorConfigStringForValue);
+            => new(keyName, s_parseInt32, s_getInt32EditorConfigStringForValue);
 
         public static EditorConfigStorageLocation<string> ForStringOption(string keyName, string emptyStringRepresentation)
-            => new EditorConfigStorageLocation<string>(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_getStringEditorConfigStringForValue(value));
+            => new(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_getStringEditorConfigStringForValue(value));
 
         public static EditorConfigStorageLocation<CodeStyleOption2<bool>> ForBoolCodeStyleOption(string keyName)
-            => new EditorConfigStorageLocation<CodeStyleOption2<bool>>(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
+            => new(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
 
         public static EditorConfigStorageLocation<CodeStyleOption2<string>> ForStringCodeStyleOption(string keyName)
-            => new EditorConfigStorageLocation<CodeStyleOption2<string>>(keyName, s_parseStringCodeStyleOption, s_getStringCodeStyleOptionEditorConfigStringForValue);
+            => new(keyName, s_parseStringCodeStyleOption, s_getStringCodeStyleOptionEditorConfigStringForValue);
 
         private static readonly Func<string, Optional<bool>> s_parseBool = ParseBool;
         private static Optional<bool> ParseBool(string str)

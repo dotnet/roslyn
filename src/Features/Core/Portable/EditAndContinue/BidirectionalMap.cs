@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static BidirectionalMap<T> FromMatch(Match<T> match)
-            => new BidirectionalMap<T>(match.Matches, match.ReverseMatches);
+            => new(match.Matches, match.ReverseMatches);
 
         public bool IsDefaultOrEmpty => Forward == null || Forward.Count == 0;
     }

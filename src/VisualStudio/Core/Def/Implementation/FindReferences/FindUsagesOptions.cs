@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// and we want to restore the value back to its original state when the user does the
         /// next FindReferences call.
         /// </summary>
-        public static readonly Option<int> DefinitionGroupingPriority = new Option<int>(
+        public static readonly Option<int> DefinitionGroupingPriority = new(
             nameof(FindUsagesOptions), nameof(DefinitionGroupingPriority), defaultValue: -1,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(DefinitionGroupingPriority)));
     }

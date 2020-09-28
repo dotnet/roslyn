@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis
             => _id = id;
 
         internal static BranchId GetNextId()
-            => new BranchId(Interlocked.Increment(ref s_nextId));
+            => new(Interlocked.Increment(ref s_nextId));
     }
 }

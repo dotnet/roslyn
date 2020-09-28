@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (!IsFirstStatementOfIfOrElseIf(syntaxFacts, ifGenerator, ifOrElseIf, out outerIfOrElseIf))
-                return Task.FromResult(false);
+                return SpecializedTasks.False;
 
             return CanBeMergedAsync(document, syntaxFacts, ifGenerator, outerIfOrElseIf, ifOrElseIf, cancellationToken);
         }
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (!IsFirstStatementIfStatement(syntaxFacts, ifGenerator, ifOrElseIf, out innerIfStatement))
-                return Task.FromResult(false);
+                return SpecializedTasks.False;
 
             return CanBeMergedAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, innerIfStatement, cancellationToken);
         }

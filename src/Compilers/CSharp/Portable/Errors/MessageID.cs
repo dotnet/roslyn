@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
 
-        // available
+        IDS_FeatureDiscards = MessageBase + 12688,
 
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
@@ -210,7 +210,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
         IDS_FeatureModuleInitializers = MessageBase + 12784,
         IDS_FeatureTargetTypedConditional = MessageBase + 12785,
-        IDS_FeatureConstantInterpolatedStrings = MessageBase + 12786,
+        IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12786,
+        IDS_FeatureExtensionGetEnumerator = MessageBase + 12787,
+        IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
+        IDS_Parameter = MessageBase + 12789,
+        IDS_Return = MessageBase + 12790,
+        IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
+        IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -317,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // C# preview features.
+                // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
@@ -330,15 +336,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureParenthesizedPattern:
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
+                case MessageID.IDS_FeatureExtensionGetEnumerator: // semantic check
+                case MessageID.IDS_FeatureExtensionGetAsyncEnumerator: // semantic check
                 case MessageID.IDS_FeatureNativeInt:
                 case MessageID.IDS_FeatureExtendedPartialMethods: // semantic check
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
                 case MessageID.IDS_FeatureTargetTypedConditional:  // semantic check
+                case MessageID.IDS_FeatureCovariantReturnsForOverrides: // semantic check
                 case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
+                    return LanguageVersion.CSharp9;
+
+                case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
                     return LanguageVersion.Preview;
 
@@ -411,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureOutVar:
                 case MessageID.IDS_FeatureExpressionBodiedAccessor:
                 case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
+                case MessageID.IDS_FeatureDiscards:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.

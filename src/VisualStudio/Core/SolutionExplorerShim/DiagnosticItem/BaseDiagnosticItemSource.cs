@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private BulkObservableCollection<BaseDiagnosticItem> _diagnosticItems;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
-        private ImmutableDictionary<string, ReportDiagnostic> _analyzerConfigSpecificDiagnosticOptions;
+        private AnalyzerConfigOptionsResult? _analyzerConfigOptions;
 
         public BaseDiagnosticItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
@@ -72,10 +72,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var project = Workspace.CurrentSolution.GetProject(ProjectId);
                     _generalDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
                     _specificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
-                    _analyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+                    _analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
                     _diagnosticItems = new BulkObservableCollection<BaseDiagnosticItem>();
-                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions, _analyzerConfigSpecificDiagnosticOptions));
+                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions, _analyzerConfigOptions));
 
                     Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
                 }
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private IEnumerable<BaseDiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options, ImmutableDictionary<string, ReportDiagnostic> analyzerConfigSpecificDiagnosticOptions)
+        private IEnumerable<BaseDiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 .Select(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigSpecificDiagnosticOptions);
+                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions);
                     return CreateItem(selectedDiagnostic, effectiveSeverity, language);
                 });
         }
@@ -151,19 +151,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 var project = e.NewSolution.GetProject(ProjectId);
                 var newGeneralDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
                 var newSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
-                var newAnalyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+                var newAnalyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
                 if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
                     !object.ReferenceEquals(newSpecificDiagnosticOptions, _specificDiagnosticOptions) ||
-                    !object.ReferenceEquals(newAnalyzerConfigSpecificDiagnosticOptions, _analyzerConfigSpecificDiagnosticOptions))
+                    !object.ReferenceEquals(newAnalyzerConfigOptions?.TreeOptions, _analyzerConfigOptions?.TreeOptions) ||
+                    !object.ReferenceEquals(newAnalyzerConfigOptions?.AnalyzerOptions, _analyzerConfigOptions?.AnalyzerOptions))
                 {
                     _generalDiagnosticOption = newGeneralDiagnosticOption;
                     _specificDiagnosticOptions = newSpecificDiagnosticOptions;
-                    _analyzerConfigSpecificDiagnosticOptions = newAnalyzerConfigSpecificDiagnosticOptions;
+                    _analyzerConfigOptions = newAnalyzerConfigOptions;
 
                     foreach (var item in _diagnosticItems)
                     {
-                        var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigSpecificDiagnosticOptions);
+                        var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions);
                         item.UpdateEffectiveSeverity(effectiveSeverity);
                     }
                 }

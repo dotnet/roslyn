@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
     internal sealed class WeakSet<T>
         where T : class?
     {
-        private readonly HashSet<ReferenceHolder<T>> _values = new HashSet<ReferenceHolder<T>>();
+        private readonly HashSet<ReferenceHolder<T>> _values = new();
 
         public WeakSet()
         {

@@ -140,15 +140,25 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
 
                 // Not supported if this is "new { ... }" (as there are no parameters at all.
-                var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
+                var typeNode = syntaxFacts.IsImplicitObjectCreationExpression(node)
+                    ? node
+                    : syntaxFacts.GetObjectCreationType(objectCreation);
                 if (typeNode == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
                 }
 
+                var symbol = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol();
+                var type = symbol switch
+                {
+                    IMethodSymbol methodSymbol => methodSymbol.ContainingType, // Implicit object creation expressions
+                    INamedTypeSymbol namedTypeSymbol => namedTypeSymbol, // Standard object creation expressions
+                    _ => null,
+                };
+
                 // If we can't figure out the type being created, or the type isn't in source,
                 // then there's nothing we can do.
-                if (!(semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() is INamedTypeSymbol type))
+                if (type == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
                 }
@@ -407,7 +417,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static readonly SymbolDisplayFormat SimpleFormat =
-                    new SymbolDisplayFormat(
+                    new(
                         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                         parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,

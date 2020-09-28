@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +9,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
@@ -33,12 +31,12 @@ namespace RunTests
             ExtraArguments = extraArguments;
         }
 
-        internal AssemblyInfo(string assemblyPath, string targetFrameworkMoniker, string architecture, bool useHmtl)
+        internal AssemblyInfo(string assemblyPath, string targetFrameworkMoniker, string architecture, bool includeHtml)
         {
             AssemblyPath = assemblyPath;
             DisplayName = Path.GetFileName(assemblyPath);
 
-            var suffix = useHmtl ? "html" : "xml";
+            var suffix = includeHtml ? "html" : "xml";
             ResultsFileName = $"{DisplayName}_{targetFrameworkMoniker}_{architecture}.{suffix}";
             ExtraArguments = string.Empty;
         }
@@ -91,23 +89,23 @@ namespace RunTests
             private readonly StringBuilder _builder = new StringBuilder();
             private readonly string _assemblyPath;
             private readonly int _methodLimit;
-            private readonly bool _useHtml;
+            private readonly bool _includeHtml;
             private readonly bool _hasEventListenerGuard;
             private int _currentId;
             private List<TypeInfo> _currentTypeInfoList = new List<TypeInfo>();
 
-            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool useHtml, bool hasEventListenerGuard)
+            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool includeHtml, bool hasEventListenerGuard)
             {
                 _assemblyPath = assemblyPath;
-                _useHtml = useHtml;
+                _includeHtml = includeHtml;
                 _methodLimit = methodLimit;
                 _hasEventListenerGuard = hasEventListenerGuard;
             }
 
-            internal static void Build(string assemblyPath, int methodLimit, bool useHtml, List<TypeInfo> typeInfoList, out List<Partition> partitionList, out List<AssemblyInfo> assemblyInfoList)
+            internal static void Build(string assemblyPath, int methodLimit, bool includeHtml, List<TypeInfo> typeInfoList, out List<Partition> partitionList, out List<AssemblyInfo> assemblyInfoList)
             {
                 var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
-                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, useHtml, hasEventListenerGuard);
+                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, includeHtml, hasEventListenerGuard);
                 builder.Build(typeInfoList);
                 partitionList = builder._partitionList;
                 assemblyInfoList = builder._assemblyInfoList;
@@ -169,7 +167,7 @@ namespace RunTests
             {
                 var assemblyName = Path.GetFileName(_assemblyPath);
                 var displayName = $"{assemblyName}.{_currentId}";
-                var suffix = _useHtml ? "html" : "xml";
+                var suffix = _includeHtml ? "html" : "xml";
                 var resultsFileName = $"{assemblyName}.{_currentId}.{suffix}";
                 var assemblyInfo = new AssemblyInfo(
                     _assemblyPath,
@@ -206,7 +204,7 @@ namespace RunTests
             var typeInfoList = GetTypeInfoList(assemblyPath);
             var assemblyInfoList = new List<AssemblyInfo>();
             var partitionList = new List<Partition>();
-            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, _options.UseHtml, typeInfoList, out partitionList, out assemblyInfoList);
+            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, _options.IncludeHtml, typeInfoList, out partitionList, out assemblyInfoList);
 
             // If the scheduling didn't actually produce multiple partition then send back an unpartitioned
             // representation.
@@ -233,7 +231,7 @@ namespace RunTests
 
         public AssemblyInfo CreateAssemblyInfo(string assemblyPath)
         {
-            return new AssemblyInfo(assemblyPath, _options.TargetFrameworkMoniker, _options.Test64 ? "x64" : "x86", _options.UseHtml);
+            return new AssemblyInfo(assemblyPath, _options.TargetFrameworkMoniker, _options.Test64 ? "x64" : "x86", _options.IncludeHtml);
         }
 
         private static List<TypeInfo> GetTypeInfoList(string assemblyPath)

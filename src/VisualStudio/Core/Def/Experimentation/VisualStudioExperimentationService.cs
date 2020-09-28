@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         /// lifetime of the session, so it's fine for us to cache things to avoid the heavy cost of querying for them
         /// over and over.
         /// </summary>
-        private readonly Dictionary<string, bool> _experimentEnabledMap = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> _experimentEnabledMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

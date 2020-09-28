@@ -115,14 +115,14 @@ class D : B<D>
             AssertSame(1, D_MofV.OverriddenOrHiddenMembers.OverriddenMembers.Length);
             Assert.Equal(D_MofV.OverriddenMethod, BofD_MofU);
             // ... but the "original" overridden method of D.M<V> is B<D>.M<V>
-            Assert.Equal(D_MofV.GetConstructedLeastOverriddenMethod(D), BofD_MofV);
+            Assert.Equal(D_MofV.GetConstructedLeastOverriddenMethod(D, requireSameReturnType: false), BofD_MofV);
 
             // D.M<D> overrides nothing, since it is constructed...
             Assert.Null(D_MofD.OverriddenMethod);
             // ... and the overridden members count is zero if the overridden method is null...
             AssertSame(0, D_MofD.OverriddenOrHiddenMembers.OverriddenMembers.Length);
             // ... but the original overridden method is B<D>.M<D>
-            Assert.Equal(D_MofD.GetConstructedLeastOverriddenMethod(D), BofD_MofD);
+            Assert.Equal(D_MofD.GetConstructedLeastOverriddenMethod(D, requireSameReturnType: false), BofD_MofD);
         }
 
         [Fact]
@@ -271,22 +271,18 @@ interface DerivedInterface2 : BaseInterface2, BaseInterface1
 
             var derivedInterface1MethodOverriddenOrHidden = derivedInterface1Method.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1MethodOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1MethodOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface1MethodOverriddenOrHidden.HiddenMembers, baseInterface1Method, baseInterface2Method);
 
             var derivedInterface1PropertyOverriddenOrHidden = derivedInterface1Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface1PropertyOverriddenOrHidden.HiddenMembers, baseInterface1Property, baseInterface2Property);
 
             var derivedInterface2MethodOverriddenOrHidden = derivedInterface2Method.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2MethodOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2MethodOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface2MethodOverriddenOrHidden.HiddenMembers, baseInterface1Method, baseInterface2Method);
 
             var derivedInterface2PropertyOverriddenOrHidden = derivedInterface2Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface2PropertyOverriddenOrHidden.HiddenMembers, baseInterface1Property, baseInterface2Property);
 
             Assert.Null(baseInterface1Method.OverriddenMethod);
@@ -370,22 +366,18 @@ interface DerivedInterface2 : BaseInterface2<int>, BaseInterface1<int>
 
             var derivedInterface1MethodIntOverriddenOrHidden = derivedInterface1MethodInt.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1MethodIntOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1MethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(4, derivedInterface1MethodIntOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedInterface1PropertyOverriddenOrHidden = derivedInterface1Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(2, derivedInterface1PropertyOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedInterface2MethodIntOverriddenOrHidden = derivedInterface2MethodInt.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2MethodIntOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2MethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(4, derivedInterface2MethodIntOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedInterface2PropertyOverriddenOrHidden = derivedInterface2Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(2, derivedInterface2PropertyOverriddenOrHidden.HiddenMembers.Length);
 
             Assert.Null(baseInterface1MethodT.OverriddenMethod);
@@ -437,12 +429,10 @@ class DerivedClass : BaseClass
 
             var derivedClassMethodOverriddenOrHidden = derivedClassMethod.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassMethodOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Same(baseClassMethod, derivedClassMethodOverriddenOrHidden.HiddenMembers.Single());
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.HiddenMembers.Single());
 
             Assert.Null(baseClassMethod.OverriddenMethod);
@@ -492,12 +482,10 @@ class DerivedClass : BaseClass<int>
 
             var derivedClassMethodIntOverriddenOrHidden = derivedClassMethodInt.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodIntOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassMethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(2, derivedClassMethodIntOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(1, derivedClassPropertyOverriddenOrHidden.HiddenMembers.Length);
 
             Assert.Null(baseClassMethodT.OverriddenMethod);
@@ -559,27 +547,22 @@ class DerivedClass : BaseClass
             var derivedClassMethodOverriddenOrHidden = derivedClassMethod.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassMethod, derivedClassMethodOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassMethod, derivedClassMethodOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassRefMethodOverriddenOrHidden = derivedClassRefMethod.OverriddenOrHiddenMembers;
             Assert.False(derivedClassRefMethodOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassRefMethod, derivedClassRefMethodOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassRefMethod, derivedClassRefMethodOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassRefPropertyOverriddenOrHidden = derivedClassRefProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassRefPropertyOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassRefProperty, derivedClassRefPropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassRefProperty, derivedClassRefPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassRefIndexerOverriddenOrHidden = derivedClassRefIndexer.OverriddenOrHiddenMembers;
             Assert.False(derivedClassRefIndexerOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassRefIndexer, derivedClassRefIndexerOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassRefIndexer, derivedClassRefIndexerOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             Assert.Null(baseClassMethod.OverriddenMethod);
             Assert.Null(baseClassProperty.OverriddenProperty);
@@ -636,22 +619,18 @@ abstract class DerivedClass : BaseClass<int, long>
             var baseClassToStringOverriddenOrHidden = baseClassToString.OverriddenOrHiddenMembers;
             Assert.False(baseClassToStringOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, baseClassToStringOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, baseClassToStringOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var baseClassGetHashCodeOverriddenOrHidden = baseClassGetHashCode.OverriddenOrHiddenMembers;
             Assert.False(baseClassGetHashCodeOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, baseClassGetHashCodeOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, baseClassGetHashCodeOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var derivedClassEqualsOverriddenOrHidden = derivedClassEquals.OverriddenOrHiddenMembers;
             Assert.False(derivedClassEqualsOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, derivedClassEqualsOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, derivedClassEqualsOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var derivedClassGetHashCodeOverriddenOrHidden = derivedClassGetHashCode.OverriddenOrHiddenMembers;
             Assert.False(derivedClassGetHashCodeOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, derivedClassGetHashCodeOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, derivedClassGetHashCodeOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             Assert.Same(objectToString, baseClassToString.OverriddenMethod);
             Assert.Same(objectGetHashCode, baseClassGetHashCode.OverriddenMethod);
@@ -704,11 +683,9 @@ class DerivedClass : BaseClass<int, long>
             var derivedClassMethodIntOverriddenOrHidden = derivedClassMethodParams.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodIntOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(2, derivedClassMethodIntOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(3, derivedClassMethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.HiddenMembers.Any());
-            Assert.Equal(1, derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(1, derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Length);
 
             Assert.Null(baseClassMethod1.OverriddenMethod);
@@ -785,7 +762,6 @@ class OverridingClass : HidingClass
 
             var overridingClassMethod1OverriddenOrHidden = overridingClassMethod1.OverriddenOrHiddenMembers;
             Assert.False(overridingClassMethod1OverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(overridingClassMethod1OverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Same(hidingClassMethod1, overridingClassMethod1OverriddenOrHidden.HiddenMembers.Single());
             Assert.Null(overridingClassMethod1.OverriddenMethod);
 
@@ -793,19 +769,16 @@ class OverridingClass : HidingClass
             var overridingClassMethod2OverriddenOrHidden = overridingClassMethod2.OverriddenOrHiddenMembers;
             Assert.False(overridingClassMethod2OverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(hidingClassMethod2, overridingClassMethod2OverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(hidingClassMethod2, overridingClassMethod2OverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Null(overridingClassMethod2.OverriddenMethod);
 
             var overridingClassProperty1OverriddenOrHidden = overridingClassProperty1.OverriddenOrHiddenMembers;
             Assert.False(overridingClassProperty1OverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(overridingClassProperty1OverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Null(overridingClassProperty1.OverriddenProperty);
 
             //counts as overriding even though the overridden property isn't virtual - we'll check for that later
             var overridingClassProperty2OverriddenOrHidden = overridingClassProperty2.OverriddenOrHiddenMembers;
             Assert.False(overridingClassProperty2OverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(hidingClassProperty2, overridingClassProperty2OverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(hidingClassProperty2, overridingClassProperty2OverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Null(overridingClassProperty2.OverriddenProperty);
         }
 
@@ -970,7 +943,6 @@ class CustomModifierOverridingE : CustomModifierOverridingD
             var classEMethod1OverriddenOrHiddenMembers = classEMethod1.OverriddenOrHiddenMembers;
             Assert.False(classEMethod1OverriddenOrHiddenMembers.HiddenMembers.Any());
             Assert.Same(classDMethod1, classEMethod1OverriddenOrHiddenMembers.OverriddenMembers.Single());
-            Assert.Same(classDMethod1, classEMethod1OverriddenOrHiddenMembers.RuntimeOverriddenMembers.Single());
 
             //no match, so apply tie breakers:
             // 1) prefer more derived (leaves classDMethod2)
@@ -979,7 +951,6 @@ class CustomModifierOverridingE : CustomModifierOverridingD
             var classEMethod2OverriddenOrHiddenMembers = classEMethod2.OverriddenOrHiddenMembers;
             Assert.False(classEMethod2OverriddenOrHiddenMembers.HiddenMembers.Any());
             Assert.Same(classDMethod2, classEMethod2OverriddenOrHiddenMembers.OverriddenMembers.Single());
-            Assert.Same(classDMethod2, classEMethod2OverriddenOrHiddenMembers.RuntimeOverriddenMembers.Single());
         }
 
         /// <summary>
@@ -1035,7 +1006,6 @@ class Derived : Base
 
             var overriddenOrHidden = derivedMethod.OverriddenOrHiddenMembers;
             Assert.Equal(baseMethod1, overriddenOrHidden.OverriddenMembers.Single());
-            Assert.Equal(baseMethod1, overriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Equal(0, overriddenOrHidden.HiddenMembers.Length);
         }
 
@@ -1106,12 +1076,10 @@ class Derived : Base
 
             var overriddenOrHidden1 = derivedMethod1.OverriddenOrHiddenMembers;
             Assert.Equal(firstBaseMethod1, overriddenOrHidden1.OverriddenMembers.Single());
-            Assert.Equal(firstBaseMethod1, overriddenOrHidden1.RuntimeOverriddenMembers.Single());
             Assert.Equal(0, overriddenOrHidden1.HiddenMembers.Length);
 
             var overriddenOrHidden2 = derivedMethod2.OverriddenOrHiddenMembers;
             Assert.Equal(firstBaseMethod2, overriddenOrHidden2.OverriddenMembers.Single());
-            Assert.Equal(firstBaseMethod2, overriddenOrHidden2.RuntimeOverriddenMembers.Single());
             Assert.Equal(0, overriddenOrHidden2.HiddenMembers.Length);
         }
 

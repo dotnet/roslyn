@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
@@ -394,6 +395,111 @@ class C
         }}
     }}
 }}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
+        public async Task TestMissingIfAnotherLocalFunctionCalled()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void [||]A()
+        {
+            B();
+        }
+
+        void B()
+        {
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestCallingStaticLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        void [||]A()
+        {
+            B();
+        }
+
+        static void B()
+        {
+        }
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static void A()
+        {
+            B();
+        }
+
+        static void B()
+        {
+        }
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestCallingNestedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        void [||]A()
+        {
+            B();
+
+            void B()
+            {
+            }
+        }
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static void A()
+        {
+            B();
+
+            void B()
+            {
+            }
+        }
+    }
+}",
 parseOptions: CSharp8ParseOptions);
         }
     }

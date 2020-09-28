@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly Workspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
-            new HashSet<AbstractTableDataSourceFindUsagesContext>();
+            new();
         private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
 
         [ImportingConstructor]

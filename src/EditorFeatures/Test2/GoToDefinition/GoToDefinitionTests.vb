@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 workspaceDefinition As XElement,
                 expectedResult As Boolean,
                 executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
-            Using workspace = TestWorkspace.Create(
-                    workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -372,6 +371,38 @@ end class
                 }
 
                 partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionExtendedPartialMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial void M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    t.M$$();
+                }
+
+                public partial void [|M|]()
                 {
                     throw new NotImplementedException();
                 }

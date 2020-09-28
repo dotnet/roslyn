@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </remarks>
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
-        private static readonly Guid s_IID_IMetaDataImport = new Guid("7DAC8207-D3AE-4c75-9B67-92801A497D44");
-        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
+        private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
+        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
         private readonly MetadataCache _metadataCache;
         private readonly ImmutableArray<string> _runtimeDirectories;
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal IVsFileChangeEx FileChangeService { get; }
 
-        private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
         internal VisualStudioMetadataReferenceManager(IServiceProvider serviceProvider, ITemporaryStorageService temporaryStorageService)
         {

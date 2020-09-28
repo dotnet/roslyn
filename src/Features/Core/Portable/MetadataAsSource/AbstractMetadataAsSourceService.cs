@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -31,12 +32,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var rootNamespace = newSemanticModel.GetEnclosingNamespace(0, cancellationToken);
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
+                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), options),
                 cancellationToken).ConfigureAwait(false);
 
             document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -97,14 +100,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     new[] { wrappedType });
         }
 
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation)
+        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, OptionSet options)
         {
             return new CodeGenerationOptions(
                 contextLocation: contextLocation,
                 generateMethodBodies: false,
                 generateDocumentationComments: true,
                 mergeAttributes: false,
-                autoInsertionLocation: false);
+                autoInsertionLocation: false,
+                options: options);
         }
     }
 }

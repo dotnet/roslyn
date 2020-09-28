@@ -1215,18 +1215,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If block Is Nothing Then
                         compilation.SymbolDeclaredEvent(sourceMethod)
                     Else
-                        'create a compilation event that caches the already-computed bound tree
-                        Dim lazySemanticModel = New Lazy(Of SemanticModel)(
-                            Function()
-                                Dim syntax = block.Syntax
-                                Dim semanticModel = CType(compilation.GetSemanticModel(syntax.SyntaxTree), SyntaxTreeSemanticModel)
-                                Dim memberModel = CType(semanticModel.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
-                                If memberModel IsNot Nothing Then
-                                    memberModel.CacheBoundNodes(block, syntax)
-                                End If
-                                Return semanticModel
-                            End Function)
-                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, lazySemanticModel))
+                        ' If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                        ' onto the semantic model and store it on the event.
+                        Dim semanticModelWithCachedBoundNodes As SyntaxTreeSemanticModel = Nothing
+                        Dim cachingSemanticModelProvider = TryCast(compilation.SemanticModelProvider, CachingSemanticModelProvider)
+                        If cachingSemanticModelProvider IsNot Nothing Then
+                            Dim syntax = block.Syntax
+                            semanticModelWithCachedBoundNodes = CType(cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, compilation), SyntaxTreeSemanticModel)
+                            Dim memberModel = CType(semanticModelWithCachedBoundNodes.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
+                            If memberModel IsNot Nothing Then
+                                memberModel.CacheBoundNodes(block, syntax)
+                            End If
+                        End If
+
+                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, semanticModelWithCachedBoundNodes))
                     End If
                 End If
             End If

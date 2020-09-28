@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
     {
-        public ReferenceDirectiveCompletionProviderTests(InteractiveCSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(ReferenceDirectiveCompletionProvider);
 

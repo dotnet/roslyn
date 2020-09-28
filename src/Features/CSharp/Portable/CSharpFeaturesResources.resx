@@ -619,4 +619,7 @@
     <value>Remove 'in' keyword</value>
     <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Apply_file_header_preferences" xml:space="preserve">
+    <value>Apply file header preferences</value>
+  </data>
 </root>
