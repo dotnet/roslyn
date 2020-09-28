@@ -103,10 +103,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' based on both command line options And pragmas. The diagnostic options
         ''' have precedence in the following order:
         '''     1. Warning level
-        '''     1. Command line options (/nowarn, /warnaserror)
-        '''     2. Editor config options (syntax tree level)
-        '''     3. Global analyzer config options (compilation level)
-        '''     4. Global warning level
+        '''     2. Command line options (/nowarn, /warnaserror)
+        '''     3. Editor config options (syntax tree level)
+        '''     4. Global analyzer config options (compilation level)
+        '''     5. Global warning level
         '''
         ''' Global overrides are complicated. Global options never override suppression.
         ''' Even if you have generalDiagnosticOption = ReportDiagnostic.Error, a

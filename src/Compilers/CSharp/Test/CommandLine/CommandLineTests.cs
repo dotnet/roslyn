@@ -13143,8 +13143,6 @@ dotnet_diagnostic.Warning01.severity = error;
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
 
-
-
         [Theory]
         // "/warnaserror" tests
         [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
