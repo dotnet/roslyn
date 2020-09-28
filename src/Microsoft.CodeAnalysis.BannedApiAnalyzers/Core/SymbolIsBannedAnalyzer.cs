@@ -274,9 +274,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 type.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return false;
@@ -332,9 +331,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 currentSymbol.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return;

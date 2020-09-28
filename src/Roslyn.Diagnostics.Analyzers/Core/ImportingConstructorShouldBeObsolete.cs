@@ -120,19 +120,19 @@ namespace Roslyn.Diagnostics.Analyzers
                         if (attributeData.ConstructorArguments.IsEmpty)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingDescription, namedType.Name));
+                            context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.MissingDescription, context.CancellationToken, namedType.Name));
                             break;
                         }
                         else if (attributeData.ConstructorArguments.Length == 1)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingError, namedType.Name));
+                            context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.MissingError, context.CancellationToken, namedType.Name));
                             break;
                         }
                         else
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), namedType.Name));
+                            context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
                             break;
                         }
                     }
@@ -140,14 +140,14 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (!Equals(attributeData.ConstructorArguments[0].Value, "This exported object must be obtained through the MEF export provider."))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.IncorrectDescription, namedType.Name));
+                        context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.IncorrectDescription, context.CancellationToken, namedType.Name));
                         break;
                     }
 
                     if (!Equals(attributeData.ConstructorArguments[1].Value, true))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.ErrorSetToFalse, namedType.Name));
+                        context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.ErrorSetToFalse, context.CancellationToken, namedType.Name));
                         break;
                     }
 
@@ -158,7 +158,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     importingConstructorAttributeData.ApplicationSyntaxReference != null)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, importingConstructorAttributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingAttribute, namedType.Name));
+                    context.ReportDiagnostic(importingConstructorAttributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.MissingAttribute, context.CancellationToken, namedType.Name));
                     break;
                 }
             }
@@ -175,11 +175,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static class ScenarioProperties
         {
-            public static readonly ImmutableDictionary<string, string> MissingAttribute = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingAttribute));
-            public static readonly ImmutableDictionary<string, string> MissingDescription = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingDescription));
-            public static readonly ImmutableDictionary<string, string> IncorrectDescription = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(IncorrectDescription));
-            public static readonly ImmutableDictionary<string, string> MissingError = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingError));
-            public static readonly ImmutableDictionary<string, string> ErrorSetToFalse = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(ErrorSetToFalse));
+            public static readonly ImmutableDictionary<string, string?> MissingAttribute = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingAttribute));
+            public static readonly ImmutableDictionary<string, string?> MissingDescription = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingDescription));
+            public static readonly ImmutableDictionary<string, string?> IncorrectDescription = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(IncorrectDescription));
+            public static readonly ImmutableDictionary<string, string?> MissingError = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingError));
+            public static readonly ImmutableDictionary<string, string?> ErrorSetToFalse = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(ErrorSetToFalse));
         }
     }
 }
