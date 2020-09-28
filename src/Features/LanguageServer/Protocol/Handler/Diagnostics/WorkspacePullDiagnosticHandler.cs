@@ -1,4 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿#if false
+
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -25,6 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
     internal class DocumentPullDiagnosticHandler : IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]?>
     {
+        private static readonly DiagnosticTag[] s_unnecessaryTags = new[] { DiagnosticTag.Unnecessary };
+
         private readonly IDiagnosticService _diagnosticService;
 
         /// <summary>
@@ -116,46 +120,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private static VSDiagnostic Convert(SourceText text, DiagnosticData diagnosticData)
+        private static LspDiagnostic Convert(SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
 
-            return new VSDiagnostic
+            return new LspDiagnostic
             {
                 Code = diagnosticData.Id,
                 Message = diagnosticData.Message,
                 Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
                 Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
-                Tags = ConvertTags(diagnosticData),
-                DiagnosticType = diagnosticData.Category,
+                // Only the unnecessary diagnostic tag is currently supported via LSP.
+                Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
+                    ? s_unnecessaryTags
+                    : Array.Empty<DiagnosticTag>()
             };
-        }
-
-        private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-        {
-            using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
-
-            if (diagnosticData.Severity == DiagnosticSeverity.Hidden)
-            {
-                result.Add(VSDiagnosticTags.HiddenInEditor);
-                result.Add(VSDiagnosticTags.HiddenInErrorList);
-            }
-
-            foreach (var tag in diagnosticData.CustomTags)
-            {
-                switch (tag)
-                {
-                    case WellKnownDiagnosticTags.Unnecessary:
-                        result.Add(DiagnosticTag.Unnecessary);
-                        break;
-                    case WellKnownDiagnosticTags.Build:
-                        result.Add(VSDiagnosticTags.BuildError);
-                        break;
-                }
-            }
-
-            return result.ToArray();
         }
     }
 }
+
+#endif
