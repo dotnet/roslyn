@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 result.Add(VSDiagnosticTags.HiddenInEditor);
                 result.Add(VSDiagnosticTags.HiddenInErrorList);
+                result.Add(VSDiagnosticTags.SuppressEditorToolTip);
             }
 
             foreach (var tag in diagnosticData.CustomTags)
