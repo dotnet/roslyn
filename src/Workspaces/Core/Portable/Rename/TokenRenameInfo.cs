@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Rename
             };
         }
 
-        public static TokenRenameInfo NoSymbolsTokenInfo = new TokenRenameInfo
+        public static TokenRenameInfo NoSymbolsTokenInfo = new()
         {
             HasSymbols = false,
             IsMemberGroup = false,

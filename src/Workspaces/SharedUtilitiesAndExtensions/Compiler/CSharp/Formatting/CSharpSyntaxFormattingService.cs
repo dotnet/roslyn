@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private readonly ImmutableList<AbstractFormattingRule> _rules;
 
 #if CODE_STYLE
-        public static readonly CSharpSyntaxFormattingService Instance = new CSharpSyntaxFormattingService();
+        public static readonly CSharpSyntaxFormattingService Instance = new();
 
 #else
         [ImportingConstructor]

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
     internal abstract class AbstractCallFinder
     {
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationSource = new();
         private readonly ProjectId _projectId;
         private readonly SymbolKey _symbolKey;
 

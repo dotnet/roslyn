@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal SolutionInfo WithTelemetryId(Guid telemetryId)
-            => new SolutionInfo(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
+            => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
 
         /// <summary>
         /// type that contains information regarding this solution itself but

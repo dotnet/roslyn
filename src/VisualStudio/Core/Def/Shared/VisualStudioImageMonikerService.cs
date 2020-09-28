@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         private readonly IVsImageService2 _imageService;
 
         // We have to keep the image handles around to keep the compound glyph alive.
-        private readonly List<CompositeImage> _compositeImages = new List<CompositeImage>();
+        private readonly List<CompositeImage> _compositeImages = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

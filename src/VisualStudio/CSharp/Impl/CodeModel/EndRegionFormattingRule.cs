@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     internal sealed class EndRegionFormattingRule : AbstractFormattingRule
     {
-        public static readonly EndRegionFormattingRule Instance = new EndRegionFormattingRule();
+        public static readonly EndRegionFormattingRule Instance = new();
 
         private EndRegionFormattingRule()
         {

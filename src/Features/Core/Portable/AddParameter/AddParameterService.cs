@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
         }
 
-        public static AddParameterService Instance = new AddParameterService();
+        public static AddParameterService Instance = new();
 
         public bool HasCascadingDeclarations(IMethodSymbol method)
         {

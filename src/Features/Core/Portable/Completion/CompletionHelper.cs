@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
+             new();
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)

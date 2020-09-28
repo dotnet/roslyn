@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static SymbolUsageInfo Create(ValueUsageInfo valueUsageInfo)
-            => new SymbolUsageInfo(valueUsageInfo, typeOrNamespaceUsageInfoOpt: null);
+            => new(valueUsageInfo, typeOrNamespaceUsageInfoOpt: null);
 
         public static SymbolUsageInfo Create(TypeOrNamespaceUsageInfo typeOrNamespaceUsageInfo)
-            => new SymbolUsageInfo(valueUsageInfoOpt: null, typeOrNamespaceUsageInfo);
+            => new(valueUsageInfoOpt: null, typeOrNamespaceUsageInfo);
 
         public bool IsReadFrom()
             => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsReadFrom();

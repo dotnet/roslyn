@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
         private ImmutableDictionary<Type, Data> _analyzerInfoMap;
 
         public DiagnosticAnalyzerTelemetry()

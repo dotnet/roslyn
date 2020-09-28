@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// <summary>
         /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
-        private readonly object _gate = new object();
-        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>>();
+        private readonly object _gate = new();
+        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new();
 
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay? _delay;

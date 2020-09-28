@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         // Note: A remote engine is disposable as it maintains a connection with ServiceHub,
         // but we want to keep it alive until the VS is closed, so we don't dispose it.

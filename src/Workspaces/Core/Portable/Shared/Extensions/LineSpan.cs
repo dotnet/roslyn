@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public int End { get; private set; }
 
         public static LineSpan FromBounds(int start, int end)
-            => new LineSpan
+            => new LineSpan()
             {
                 Start = start,
                 End = end

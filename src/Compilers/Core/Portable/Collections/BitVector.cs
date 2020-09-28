@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // and might become not null/empty, unless we restrict access to it.
         private static Word[] s_emptyArray => Array.Empty<Word>();
         private static readonly BitVector s_nullValue = default;
-        private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
+        private static readonly BitVector s_emptyValue = new(0, s_emptyArray, 0);
 
         private Word _bits0;
         private Word[] _bits;

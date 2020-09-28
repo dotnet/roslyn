@@ -21,11 +21,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// <summary>
             /// The set of projects that are referencing this metadata-index.  When this becomes empty we can dump the
             /// index from memory.
-            /// <para/>
-            /// Note: the Incremental-Analyzer infrastructure guarantees that it will call all the
-            /// methods on <see cref="SymbolTreeInfoIncrementalAnalyzer"/> in a serial fashion.  As that is the only
-            /// type that reads/writes these <see cref="MetadataInfo"/> objects, we don't need to lock this.
             /// </summary>
+            /// <remarks>
+            /// <para>Accesses to this collection must lock the set.</para>
+            /// </remarks>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
             public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)

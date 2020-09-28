@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="WorkspaceChangeKind.SolutionChanged"/> if we can't give a more precise type.
         /// </summary>
         private WorkspaceChangeKind? _workspaceChangeKind;
-        private readonly List<DocumentId> _documentIdsRemoved = new List<DocumentId>();
+        private readonly List<DocumentId> _documentIdsRemoved = new();
 
         public SolutionChangeAccumulator(Solution startingSolution)
             => Solution = startingSolution;

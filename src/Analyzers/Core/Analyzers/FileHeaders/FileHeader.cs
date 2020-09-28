@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// A <see cref="FileHeader"/> instance representing a missing file header.
         /// </returns>
         internal static FileHeader MissingFileHeader(int fileHeaderStart)
-            => new FileHeader(fileHeaderStart, isMissing: true);
+            => new(fileHeaderStart, isMissing: true);
 
         /// <summary>
         /// Gets the location representing the start of the file header.

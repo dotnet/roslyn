@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     // TODO : this can be all moved down to compiler side.
     internal static class FindReferenceCache
     {
-        private static readonly ReaderWriterLockSlim s_gate = new ReaderWriterLockSlim();
-        private static readonly Dictionary<SemanticModel, Entry> s_cache = new Dictionary<SemanticModel, Entry>();
+        private static readonly ReaderWriterLockSlim s_gate = new();
+        private static readonly Dictionary<SemanticModel, Entry> s_cache = new();
 
         public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableHashSet<string> AliasNameSet;
             public List<SyntaxToken> ConstructorInitializerCache;
 
-            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>();
-            public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new ConcurrentDictionary<SyntaxNode, SymbolInfo>();
+            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
+            public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
         }
     }
 }

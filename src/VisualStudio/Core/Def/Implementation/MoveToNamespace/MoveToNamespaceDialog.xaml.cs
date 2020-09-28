@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         private void Cancel_Click(object sender, RoutedEventArgs e)
             => DialogResult = false;
 
-        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {

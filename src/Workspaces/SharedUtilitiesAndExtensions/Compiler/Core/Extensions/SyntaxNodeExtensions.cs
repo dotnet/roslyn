@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Gets a list of ancestor nodes (including this node) 
         /// </summary>
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
-            => new ValueAncestorsAndSelfEnumerable(syntaxNode, ascendOutOfTrivia);
+            => new(syntaxNode, ascendOutOfTrivia);
 
         public struct ValueAncestorsAndSelfEnumerable
         {
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public Enumerator GetEnumerator()
-                => new Enumerator(_syntaxNode, _ascendOutOfTrivia);
+                => new(_syntaxNode, _ascendOutOfTrivia);
 
             public struct Enumerator
             {

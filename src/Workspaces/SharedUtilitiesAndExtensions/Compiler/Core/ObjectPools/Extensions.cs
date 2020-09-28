@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool) where T : class
-            => new PooledObject<T>(pool, p => p.Allocate(), (p, o) => p.Free(o));
+            => new(pool, p => p.Allocate(), (p, o) => p.Free(o));
 
         public static StringBuilder AllocateAndClear(this ObjectPool<StringBuilder> pool)
         {

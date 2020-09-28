@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class TableEntriesFactory<TItem, TData> : ITableEntriesSnapshotFactory
         where TItem : TableItem
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         private readonly AbstractTableDataSource<TItem, TData> _tableSource;
         private readonly AggregatedEntriesSource _entriesSources;
-        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new WeakReference<ITableEntriesSnapshot>(null);
+        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new(null);
 
         private int _lastVersion = 0;
 

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// brought in by.
             /// </summary>
             private readonly MultiDictionary<(string name, int arity), INamespaceSymbol> _importedTypes
-                = new MultiDictionary<(string name, int arity), INamespaceSymbol>();
+                = new();
 
             /// <summary>
             /// A mapping containing the simple names of all imported extension methods, mapped to the import that
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// more complexity than we need currently.  But it is always something we can do in the future.
             /// </remarks>
             private readonly MultiDictionary<string, INamespaceSymbol> _importedExtensionMethods
-                = new MultiDictionary<string, INamespaceSymbol>();
+                = new();
 
             private readonly HashSet<INamespaceSymbol> _conflictNamespaces;
 

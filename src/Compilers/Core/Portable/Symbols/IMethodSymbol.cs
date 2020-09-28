@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         /// and the <see cref="CallingConvention"/> is <see cref="SignatureCallingConvention.Unmanaged"/>. If this is not a function pointer signature or the calling convention is
         /// not unmanaged, this is an empty array. Order and duplication of these modifiers reflect source/metadata order and duplication, whichever this symbol came from.
         /// </summary>
-        ImmutableArray<INamedTypeSymbol> CallingConventionTypes { get; }
+        ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes { get; }
 
         /// <summary>
         /// Returns a symbol (e.g. property, event, etc.) associated with the method.

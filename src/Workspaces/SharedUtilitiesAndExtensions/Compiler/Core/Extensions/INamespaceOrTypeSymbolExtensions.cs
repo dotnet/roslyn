@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class INamespaceOrTypeSymbolExtensions
     {
         private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>> s_namespaceOrTypeToNameMap =
-            new ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>>();
+            new();
         public static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>>.CreateValueCallback s_getNamePartsCallBack =
             namespaceSymbol =>
             {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return result;
             };
 
-        private static readonly SymbolDisplayFormat s_shortNameFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_shortNameFormat = new(
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.ExpandNullable);
 
         public static string GetShortName(this INamespaceOrTypeSymbol symbol)

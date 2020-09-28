@@ -12,10 +12,10 @@ namespace Roslyn.Utilities
 {
     internal class EventMap
     {
-        private readonly NonReentrantLock _guard = new NonReentrantLock();
+        private readonly NonReentrantLock _guard = new();
 
         private readonly Dictionary<string, object> _eventNameToRegistries =
-            new Dictionary<string, object>();
+            new();
 
         public EventMap()
         {

@@ -27,7 +27,7 @@ namespace Roslyn.Collections.Immutable
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     internal sealed class ImmutableHashMap<TKey, TValue> : IImmutableDictionary<TKey, TValue>
     {
-        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new ImmutableHashMap<TKey, TValue>();
+        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new();
 
         /// <summary>
         /// The root node of the tree that stores this map.

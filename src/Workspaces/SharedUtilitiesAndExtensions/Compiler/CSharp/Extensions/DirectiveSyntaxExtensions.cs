@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class DirectiveSyntaxExtensions
     {
         private static readonly ConditionalWeakTable<SyntaxNode, DirectiveInfo> s_rootToDirectiveInfo =
-            new ConditionalWeakTable<SyntaxNode, DirectiveInfo>();
+            new();
 
         private static SyntaxNode GetAbsoluteRoot(this SyntaxNode node)
         {

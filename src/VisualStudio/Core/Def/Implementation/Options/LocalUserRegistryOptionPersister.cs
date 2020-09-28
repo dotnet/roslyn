@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly RegistryKey _registryKey;
 
         [ImportingConstructor]

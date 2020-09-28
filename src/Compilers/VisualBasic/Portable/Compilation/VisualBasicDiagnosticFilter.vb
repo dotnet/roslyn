@@ -145,6 +145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, report) Then
                 ' 4. Global analyzer config level
                 isSpecified = True
+
+                ' '/warnaserror' should promote warnings configured in global analyzer config to error.
+                If report = ReportDiagnostic.Warn AndAlso generalDiagnosticOption = ReportDiagnostic.Error Then
+                    report = ReportDiagnostic.Error
+                End If
             Else
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
             End If
