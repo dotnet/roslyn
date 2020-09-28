@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<LspDiagnostic>.GetInstance(out var result);
             foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
-                result.Add(Convert(text, diagnostic));
+                result.Add(DiagnosticUtilities.Convert(text, diagnostic));
 
             lock (_gate)
             {
@@ -114,48 +114,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 _documentIdToLastResultId[(workspace, document.Id)] = resultId;
                 return new[] { new DiagnosticReport { ResultId = resultId, Diagnostics = result.ToArray() } };
             }
-        }
-
-        private static VSDiagnostic Convert(SourceText text, DiagnosticData diagnosticData)
-        {
-            Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
-            Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
-
-            return new VSDiagnostic
-            {
-                Code = diagnosticData.Id,
-                Message = diagnosticData.Message,
-                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
-                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
-                Tags = ConvertTags(diagnosticData),
-                DiagnosticType = diagnosticData.Category,
-            };
-        }
-
-        private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-        {
-            using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
-
-            if (diagnosticData.Severity == DiagnosticSeverity.Hidden)
-            {
-                result.Add(VSDiagnosticTags.HiddenInEditor);
-                result.Add(VSDiagnosticTags.HiddenInErrorList);
-            }
-
-            foreach (var tag in diagnosticData.CustomTags)
-            {
-                switch (tag)
-                {
-                    case WellKnownDiagnosticTags.Unnecessary:
-                        result.Add(DiagnosticTag.Unnecessary);
-                        break;
-                    case WellKnownDiagnosticTags.Build:
-                        result.Add(VSDiagnosticTags.BuildError);
-                        break;
-                }
-            }
-
-            return result.ToArray();
         }
     }
 }

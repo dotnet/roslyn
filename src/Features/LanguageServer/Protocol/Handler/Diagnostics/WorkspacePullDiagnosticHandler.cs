@@ -1,6 +1,4 @@
-﻿#if false
-
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -24,12 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
-    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
-    internal class DocumentPullDiagnosticHandler : IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]?>
+    [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
+    internal class WorkspacePullDiagnosticHandler : IRequestHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>
     {
-        private static readonly DiagnosticTag[] s_unnecessaryTags = new[] { DiagnosticTag.Unnecessary };
-
+        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IDiagnosticService _diagnosticService;
+        private readonly IDocumentTrackingService _documentTrackingService;
 
         /// <summary>
         /// Lock to product <see cref="_documentIdToLastResultId"/> and <see cref="_nextResultId"/>.
@@ -48,11 +47,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentPullDiagnosticHandler(
+        public WorkspacePullDiagnosticHandler(
             ILspSolutionProvider solutionProvider,
-            IDiagnosticService diagnosticService)
+            IDiagnosticService diagnosticService,
+            IDocumentTrackingService documentTrackingService)
         {
+            _solutionProvider = solutionProvider;
             _diagnosticService = diagnosticService;
+            _documentTrackingService = documentTrackingService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
@@ -66,78 +68,144 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams request)
-            => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request)
+            => null;
 
-        public async Task<DiagnosticReport[]?> HandleRequestAsync(
-            DocumentDiagnosticsParams documentDiagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<WorkspaceDiagnosticReport[]?> HandleRequestAsync(
+            WorkspaceDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(documentDiagnosticsParams.TextDocument, $"Got a DocumentPullDiagnostic request that did not specify a {nameof(documentDiagnosticsParams.TextDocument)}");
+            var solution = context.Solution;
 
-            var document = context.Document;
-            if (document == null)
+            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
+            // the user from squiggles or error-list.
+            NotifyClientOfRemovedDocuments(diagnosticsParams);
+
+            // Now, process all our actual documents and report if diagnostics did or didn't change for every document.
+            var requestDocumentToDiagnosticParams = GetDocumentToDiagnosticParams(diagnosticsParams);
+            foreach (var document in GetOrderedDocuments(solution))
             {
-                // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
-                // workspace).  In that case we need to return an actual diagnostic report with `null` for the
-                // diagnostics to let the client know to dump that file entirely.
-                return new[] { new DiagnosticReport { ResultId = null, Diagnostics = null } };
-            }
-
-            var project = document.Project;
-            var solution = project.Solution;
-            var workspace = solution.Workspace;
-
-            // If the client has already asked for diagnostics for this document, see if we have actually recorded any
-            // differences, or if they should just use the same diagnostics as before.
-            if (documentDiagnosticsParams.PreviousResultId != null)
-            {
-                lock (_gate)
+                // If the client has already asked for diagnostics for this document, see if we have actually recorded any
+                // differences, or if they should just use the same diagnostics as before.
+                if (DiagnosticsAreUnchanged(requestDocumentToDiagnosticParams, document))
                 {
-                    if (_documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                        lastReportedResultId == documentDiagnosticsParams.PreviousResultId)
+                    // Nothing changed between the last request and this one.  Report a null response to the client
+                    // to know they don't need to do anything.
+                    diagnosticsParams.PartialResultToken!.Report(new[]
                     {
-                        // Nothing changed between the last request and this one.  Report a null response to the client
-                        // to know they don't need to do anything.
-                        return null;
-                    }
+                        new WorkspaceDiagnosticReport
+                        {
+                            TextDocument = requestDocumentToDiagnosticParams[document].TextDocument,
+                            Diagnostics = null,
+                        },
+                    });
                 }
+
+                // Being asked about this document for the first time.  Or being asked again and we have different diagnostics.
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var diagnostics);
+                foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
+                    diagnostics.Add(DiagnosticUtilities.Convert(text, diagnostic));
+
+                var report = RecordDiagnosticReport(document, diagnostics);
+                diagnosticsParams.PartialResultToken!.Report(new[] { report });
             }
 
-            // Being asked about this document for the first time.  Or being asked again and we have different diagnostics.
+            return null;
+        }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<LspDiagnostic>.GetInstance(out var result);
-            foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
-                result.Add(Convert(text, diagnostic));
-
+        private WorkspaceDiagnosticReport RecordDiagnosticReport(Document document, ArrayBuilder<VSDiagnostic> diagnostics)
+        {
             lock (_gate)
             {
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
                 // the same diagnostic set in the future.
                 var resultId = _nextResultId++.ToString();
-                _documentIdToLastResultId[(workspace, document.Id)] = resultId;
-                return new[] { new DiagnosticReport { ResultId = resultId, Diagnostics = result.ToArray() } };
+                _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
+                return new WorkspaceDiagnosticReport { ResultId = resultId, Diagnostics = diagnostics.ToArray() };
             }
         }
 
-        private static LspDiagnostic Convert(SourceText text, DiagnosticData diagnosticData)
+        private bool DiagnosticsAreUnchanged(Dictionary<Document, DiagnosticParams> requestDocumentToDiagnosticParams, Document document)
         {
-            Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
-            Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
-
-            return new LspDiagnostic
+            lock (_gate)
             {
-                Code = diagnosticData.Id,
-                Message = diagnosticData.Message,
-                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
-                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
-                // Only the unnecessary diagnostic tag is currently supported via LSP.
-                Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
-                    ? s_unnecessaryTags
-                    : Array.Empty<DiagnosticTag>()
-            };
+                var workspace = document.Project.Solution.Workspace;
+                return requestDocumentToDiagnosticParams.TryGetValue(document, out var previousDocDiagnosticParams) &&
+                       _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
+                       lastReportedResultId == previousDocDiagnosticParams.PreviousResultId;
+            }
+        }
+
+        private void NotifyClientOfRemovedDocuments(WorkspaceDocumentDiagnosticsParams documentDiagnosticsParams)
+        {
+            if (documentDiagnosticsParams.PreviousResults != null)
+            {
+                foreach (var previousResult in documentDiagnosticsParams.PreviousResults)
+                {
+                    var textDocument = previousResult.TextDocument;
+                    if (textDocument != null)
+                    {
+                        var document = _solutionProvider.GetDocument(textDocument);
+                        if (document == null)
+                        {
+                            // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
+                            // workspace).  In that case we need to return an actual diagnostic report with `null` for the
+                            // diagnostics to let the client know to dump that file entirely.
+                            documentDiagnosticsParams.PartialResultToken!.Report(new[] { new WorkspaceDiagnosticReport { TextDocument = textDocument, ResultId = null, Diagnostics = null } });
+                        }
+                    }
+                }
+            }
+        }
+
+        private Dictionary<Document, DiagnosticParams> GetDocumentToDiagnosticParams(WorkspaceDocumentDiagnosticsParams documentDiagnosticsParams)
+        {
+            var requestDocumentToTextDocumentIdentifier = new Dictionary<Document, DiagnosticParams>();
+
+            if (documentDiagnosticsParams.PreviousResults != null)
+            {
+                foreach (var previousResult in documentDiagnosticsParams.PreviousResults)
+                {
+                    if (previousResult.TextDocument != null && previousResult.PreviousResultId != null)
+                    {
+                        var document = _solutionProvider.GetDocument(previousResult.TextDocument);
+                        if (document != null)
+                            requestDocumentToTextDocumentIdentifier[document] = previousResult;
+                    }
+                }
+            }
+
+            return requestDocumentToTextDocumentIdentifier;
+        }
+
+        private ImmutableArray<Document> GetOrderedDocuments(Solution solution)
+        {
+            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+
+            // The active and visible docs always get priority in terms or results.
+            var activeDocument = _documentTrackingService.GetActiveDocument(solution);
+            var visibleDocuments = _documentTrackingService.GetVisibleDocuments(solution);
+
+            result.AddIfNotNull(activeDocument);
+            result.AddRange(visibleDocuments);
+
+            // Now, prioritize the projects related to the active/visible files.
+            AddDocumentsFromProject(activeDocument?.Project);
+            foreach (var doc in visibleDocuments)
+                AddDocumentsFromProject(doc.Project);
+
+            // finally, add the remainder of all documents.
+            foreach (var project in solution.Projects)
+                AddDocumentsFromProject(project);
+
+            return result.Distinct().ToImmutableArray();
+
+            void AddDocumentsFromProject(Project? project)
+            {
+                if (project != null)
+                    result.AddRange(project.Documents);
+            }
         }
     }
 }
-
-#endif
