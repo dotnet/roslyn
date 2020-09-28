@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
 
         private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData)
+            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
             .WithResolver(CompositeResolver.Create(
                 MessagePackFormatters.GetFormatters(),
                 new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));
