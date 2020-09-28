@@ -20,7 +20,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.Completion.CommonCompletionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -116,13 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
@@ -144,6 +146,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return s_defaultRules;
+        }
+
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        {
+            var insertionText = SymbolCompletionItem.GetInsertionText(item);
+            if (commitKey == ';')
+            {
+                var endOfInsertionText = item.Span.Start + insertionText.Length;
+                var textChange = new TextChange(item.Span,insertionText + "();");
+                var completionChange = CompletionChange.Create(textChange,
+                    SymbolCompletionItem.GetShouldPutCaretBetweenParenthesis(item)
+                     ? endOfInsertionText + 1
+                     : endOfInsertionText + 3, includesCommitCharacter: true);
+                return Task.FromResult(completionChange);
+            }
+
+            var insertionTextChange = new TextChange(item.Span, insertionText);
+            return Task.FromResult(CompletionChange.Create(insertionTextChange));
+        }
+
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            List<ISymbol> symbols,
+            SyntaxContext context,
+            bool preselect,
+            SupportedPlatformData supportedPlatformData)
+        {
+            var item = base.CreateItem(completionContext,
+               displayText, displayTextSuffix, insertionText, symbols,
+               context, preselect,
+               supportedPlatformData);
+
+            return SymbolCompletionItem.AddShouldPutCaretBetweenParenthesis(
+                item,
+                symbols.All(ShouldPutCaretBetweenParenthesis));
         }
     }
 }

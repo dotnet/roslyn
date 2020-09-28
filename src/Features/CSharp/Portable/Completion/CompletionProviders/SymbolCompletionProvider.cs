@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -20,7 +21,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.Completion.CommonCompletionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -259,5 +262,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
+
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            List<ISymbol> symbols,
+            SyntaxContext context,
+            bool preselect,
+            SupportedPlatformData supportedPlatformData)
+        {
+            var item = base.CreateItem(
+                completionContext,
+                displayText,
+                displayTextSuffix,
+                insertionText,
+                symbols,
+                context,
+                preselect,
+                supportedPlatformData);
+
+            var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
+            var isObjectCreationTypeContext = context switch
+            {
+                CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
+                _ => false
+            };
+
+            var shouldProvideParenthesisCompletion = symbols.All(symbol => symbol switch
+            {
+                IMethodSymbol => !isInferredTypeDelegate,
+                ITypeSymbol => isObjectCreationTypeContext,
+                IAliasSymbol => isObjectCreationTypeContext,
+                _ => false
+            });
+
+            if (!shouldProvideParenthesisCompletion)
+            {
+                return item;
+            }
+
+            item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, true);
+            var hasParameter = symbols.All(ShouldPutCaretBetweenParenthesis);
+            return SymbolCompletionItem.AddShouldPutCaretBetweenParenthesis(item, hasParameter);
+        }
+
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        {
+            var insertionText = SymbolCompletionItem.GetInsertionText(item);
+            if (commitKey == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            {
+                var textChange = new TextChange(item.Span,insertionText + "();");
+                var endOfInsertionText = item.Span.Start + insertionText.Length;
+                return Task.FromResult(CompletionChange.Create(textChange,
+                    SymbolCompletionItem.GetShouldPutCaretBetweenParenthesis(item) ? endOfInsertionText + 1 : endOfInsertionText + 3,
+                    includesCommitCharacter: true));
+            }
+
+            var insertionTextChange = new TextChange(item.Span, insertionText);
+            return Task.FromResult(CompletionChange.Create(insertionTextChange));
+        }
     }
 }

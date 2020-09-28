@@ -67,12 +67,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
-
             item = item
                 .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
                 .AddProperty("SymbolName", symbol.Name);
 
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
+        }
+
+        public static CompletionItem AddShouldPutCaretBetweenParenthesis(CompletionItem item, bool hasParameter)
+            => item.AddProperty("ShouldPutCaretBetweenParenthesis", hasParameter.ToString());
+
+        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item, bool shouldProvideParenthesisCompletion)
+            => item.AddProperty("ShouldProvideParenthesisCompletion", shouldProvideParenthesisCompletion.ToString());
+
+        public static bool GetShouldPutCaretBetweenParenthesis(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("ShouldPutCaretBetweenParenthesis", out var value)
+                && bool.TryParse(value, out var result))
+            {
+                return result;
+            }
+
+            return false;
+        }
+
+        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out var value)
+                && bool.TryParse(value, out var result))
+            {
+                return result;
+            }
+
+            return false;
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)

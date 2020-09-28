@@ -241,5 +241,31 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return true;
         }
+
+        public static bool ShouldPutCaretBetweenParenthesis(ISymbol symbol)
+            => symbol switch
+            {
+                IAliasSymbol => ShouldPutCaretBetweenParenthesisForConstructor(symbol),
+                ITypeSymbol => ShouldPutCaretBetweenParenthesisForConstructor(symbol),
+                IMethodSymbol methodSymbol => methodSymbol.Parameters.Length > 0,
+                _ => false
+            };
+
+        private static bool ShouldPutCaretBetweenParenthesisForConstructor(ISymbol symbol)
+        {
+            if (symbol is IAliasSymbol aliasSymbol)
+            {
+                symbol = aliasSymbol.Target;
+            }
+
+            if (symbol is ITypeSymbol typeSymbol)
+            {
+                return typeSymbol.GetMembers()
+                    .Where(member => member.IsConstructor())
+                    .All(constructor => ((IMethodSymbol)constructor).Parameters.Length > 0);
+            }
+
+            return false;
+        }
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             // Get the actual description provided by whatever subclass we are.
-            // Then, if we would commit text that could be expanded as a snippet, 
+            // Then, if we would commit text that could be expanded as a snippet,
             // put that information in the description so that the user knows.
             var description = await GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             var parts = await TryAddSnippetInvocationPartAsync(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
