@@ -104,6 +104,22 @@ public abstract class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestPropertyInit()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Foo
+{
+    public abstract object P { [|init|]; }
+}",
+@"
+public abstract class Foo
+{
+    public abstract object P { init; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task TestIndexerGetter()
         {
             await TestInRegularAndScript1Async(
@@ -132,6 +148,22 @@ public class Foo
 public abstract class Foo
 {
     public abstract object this[object o] { set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestIndexerInit()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public class Foo
+{
+    public abstract object this[object o] { [|init|]; }
+}",
+@"
+public abstract class Foo
+{
+    public abstract object this[object o] { init; }
 }");
         }
 
