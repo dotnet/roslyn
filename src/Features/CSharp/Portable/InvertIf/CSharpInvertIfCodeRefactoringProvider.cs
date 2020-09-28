@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 case SyntaxKind.SwitchSection:
                 case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
                 case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
