@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList, string? whitespaceClassificationType = null)
+        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList)
         {
             foreach (var t in triviaList)
             {
@@ -130,12 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void AddXmlClassification(SyntaxToken token, string classificationType)
         {
             if (token.HasLeadingTrivia)
-                ClassifyXmlTrivia(token.LeadingTrivia, classificationType);
+                ClassifyXmlTrivia(token.LeadingTrivia);
 
             AddClassification(token, classificationType);
 
             if (token.HasTrailingTrivia)
-                ClassifyXmlTrivia(token.TrailingTrivia, classificationType);
+                ClassifyXmlTrivia(token.TrailingTrivia);
         }
 
         private void ClassifyXmlTextTokens(SyntaxTokenList textTokens)
@@ -143,16 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var token in textTokens)
             {
                 if (token.HasLeadingTrivia)
-                {
-                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
-                }
+                    ClassifyXmlTrivia(token.LeadingTrivia);
 
                 ClassifyXmlTextToken(token);
 
                 if (token.HasTrailingTrivia)
-                {
-                    ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
-                }
+                    ClassifyXmlTrivia(token.TrailingTrivia);
             }
         }
 
