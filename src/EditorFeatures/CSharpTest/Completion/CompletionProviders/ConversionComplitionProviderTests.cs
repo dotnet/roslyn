@@ -20,9 +20,9 @@ using System.Numerics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public class OperatorIndexerCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class ConversionComplitionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public OperatorIndexerCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public ConversionComplitionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
