@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal abstract class OperatorIndexerCompletionProviderBase : LSPCompletionProvider
     {
-
         // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of the type.
         // Identifier (of methods or properties) can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
         // Sorting is done via StringComparer.OrdinalIgnoreCase which compares the utf-16 bytes after converting to uppercase.

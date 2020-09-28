@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var allMembers = container.GetMembers();
             var indexers = allMembers.OfType<IPropertySymbol>().Where(p => p.IsIndexer).ToImmutableList();
-            if (!indexers.IsEmpty)
+            if (indexers.Any())
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: "this",
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
             return
-                (await ReplaceDotAndTokenAfterWithTextAsync(document, item, "[]", -1, cancellationToken).ConfigureAwait(false))
-                ?? await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+                await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: "[]", positionOffset: -1, cancellationToken).ConfigureAwait(false) ??
+                await base.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
         }
     }
 }

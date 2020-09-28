@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // place cursor right behind ).
                 cursorPositionOffset = 0;
             }
+
             var fromRootToParentWithInsertedClosingBracket = fromRootToParent.Insert(parentExpression.Span.End - rootExpression.SpanStart, ")");
             var conversion = $"(({typeName}){fromRootToParentWithInsertedClosingBracket}";
             var newPosition = spanToReplace.Start + conversion.Length - cursorPositionOffset;
