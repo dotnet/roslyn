@@ -11,7 +11,6 @@ using System.Composition;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
