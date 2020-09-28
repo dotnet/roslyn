@@ -10088,7 +10088,7 @@ dotnet_diagnostic.BC42024.severity = warning;
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:42024", globalOption})
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={globalOption, specificOption})
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=0, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
         End Sub
 
         <Theory, CombinatorialData>
