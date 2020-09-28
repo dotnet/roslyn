@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SignatureHelpPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
     {
-        private static readonly object s_augmentSessionKey = new object();
+        private static readonly object s_augmentSessionKey = new();
 
         private readonly ISignatureHelpBroker _sigHelpBroker;
 

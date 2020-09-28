@@ -330,6 +330,10 @@ namespace Roslyn.Test.Utilities
                     {
                         module.Image.WriteToFile(pePath);
                     }
+                    catch (ArgumentException e)
+                    {
+                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
+                    }
                     catch (IOException e)
                     {
                         pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
@@ -343,6 +347,10 @@ namespace Roslyn.Test.Utilities
                         try
                         {
                             module.Pdb.WriteToFile(pdbPath);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
                         }
                         catch (IOException e)
                         {

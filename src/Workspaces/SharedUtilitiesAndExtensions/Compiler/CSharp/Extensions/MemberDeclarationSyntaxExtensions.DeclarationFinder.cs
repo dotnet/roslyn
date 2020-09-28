@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private sealed class DeclarationFinder : CSharpSyntaxWalker
         {
-            private readonly Dictionary<string, List<SyntaxToken>> _map = new Dictionary<string, List<SyntaxToken>>();
+            private readonly Dictionary<string, List<SyntaxToken>> _map = new();
 
             private DeclarationFinder()
                 : base(SyntaxWalkerDepth.Node)

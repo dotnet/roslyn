@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -125,19 +124,20 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                     match.MemberAccessExpression.SpanStart, end));
 
-                RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
-
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        Descriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations,
+                        additionalUnnecessaryLocations: ImmutableArray.Create(
+                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
+                }
+                else
+                {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            match.Initializer.FullSpan.End,
-                            match.Statement.Span.End)),
-                        additionalLocations: locations));
+                        Descriptor, location1, additionalLocations: locations));
                 }
             }
         }

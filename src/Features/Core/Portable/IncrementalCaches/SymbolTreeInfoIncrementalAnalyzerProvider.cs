@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         // We always  keep around the latest computed information produced by the incremental analyzer.  That way the
         // values are hopefully ready when someone calls on them for the current solution.
 
-        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new ConcurrentDictionary<ProjectId, SymbolTreeInfo>();
-        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new ConcurrentDictionary<MetadataId, MetadataInfo>();
+        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
+        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

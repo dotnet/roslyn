@@ -93,6 +93,7 @@ dotnet_remove_unnecessary_suppression_exclusions = none
 visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator:silent
 
 # Expression-level preferences
+visual_basic_style_prefer_isnot_expression = true:suggestion
 visual_basic_style_unused_value_assignment_preference = unused_local_variable:suggestion
 visual_basic_style_unused_value_expression_statement_preference = unused_local_variable:silent
 
@@ -224,6 +225,7 @@ dotnet_remove_unnecessary_suppression_exclusions = none
 visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator:silent
 
 # Expression-level preferences
+visual_basic_style_prefer_isnot_expression = true:suggestion
 visual_basic_style_unused_value_assignment_preference = unused_local_variable:suggestion
 visual_basic_style_unused_value_expression_statement_preference = unused_local_variable:silent
 

@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
 
 #pragma warning disable IDE0052 // Remove unread private members - Can this field be removed?
         private readonly string _featureName;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new();
         private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
-        private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
+        private List<DiagnosticAsyncToken> _diagnosticTokenList = new();
         private int _counter;
         private bool _trackActiveTokens;
 
@@ -42,7 +42,15 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            if (expeditedDelayCancellationToken.IsCancellationRequested)
+            {
+                // The operation is already being expedited
+                return false;
+            }
+
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
 
             try

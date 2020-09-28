@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<OperatorDeclarationSyntax, OperatorDeclarationStructureProvider>();
             builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionStructureProvider>();
             builder.Add<PropertyDeclarationSyntax, PropertyDeclarationStructureProvider>();
+            builder.Add<RecordDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
             builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider>();

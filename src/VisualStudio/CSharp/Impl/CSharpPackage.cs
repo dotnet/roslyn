@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         protected override CSharpLanguageService CreateLanguageService()
-            => new CSharpLanguageService(this);
+            => new(this);
 
         protected override void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace)
         {

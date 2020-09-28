@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     {
-        public static readonly CSharpUseImplicitTypeHelper Instance = new CSharpUseImplicitTypeHelper();
+        public static readonly CSharpUseImplicitTypeHelper Instance = new();
 
         private CSharpUseImplicitTypeHelper()
         {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 typeName, semanticModel, optionSet, cancellationToken);
         }
 
-        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             var type = variableDeclaration.Type.StripRefIfNeeded();
             if (type.IsVar)
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // The base analyzer may impose further limitations
-            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken);
         }
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -282,6 +283,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // var cannot be assigned null
             if (expression.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                return false;
+            }
+
+            // var cannot be used with target typed new
+            if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return false;
             }

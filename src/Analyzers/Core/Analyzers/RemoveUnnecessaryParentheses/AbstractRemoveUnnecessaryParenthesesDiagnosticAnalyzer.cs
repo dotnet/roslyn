@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -33,14 +32,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                 new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                 isUnnecessary: true);
-
-        /// <summary>
-        /// This analyzer inserts the fade locations into indices 1 and 2 inside additional locations.
-        /// </summary>
-        private static readonly ImmutableDictionary<string, IEnumerable<int>> s_fadeLocations = new Dictionary<string, IEnumerable<int>>
-        {
-            { nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 1, 2 } },
-        }.ToImmutableDictionary();
 
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor))
@@ -122,7 +113,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var severity = preference.Notification.Severity;
 
             var additionalLocations = ImmutableArray.Create(
-                parenthesizedExpression.GetLocation(),
+                parenthesizedExpression.GetLocation());
+            var additionalUnnecessaryLocations = ImmutableArray.Create(
                 parenthesizedExpression.GetFirstToken().GetLocation(),
                 parenthesizedExpression.GetLastToken().GetLocation());
 
@@ -131,7 +123,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
                 severity,
                 additionalLocations,
-                s_fadeLocations));
+                additionalUnnecessaryLocations));
         }
 
         /// <summary>

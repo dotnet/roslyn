@@ -434,6 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.ObsoleteAttributeData; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+            => _reducedFrom.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
         public override Accessibility DeclaredAccessibility
         {
             get { return _reducedFrom.DeclaredAccessibility; }

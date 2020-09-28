@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -42,7 +44,7 @@ namespace ResetInteractiveTestsDocument
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public async Task TestResetREPLWithProjectContext()
         {
-            using var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider());
+            using var workspace = TestWorkspace.Create(WorkspaceXmlStr, composition: EditorTestCompositions.InteractiveWindow);
 
             var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
             var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
@@ -69,7 +71,7 @@ namespace ResetInteractiveTestsDocument
             expectedReferences ??= new List<string>();
             expectedUsings ??= new List<string>();
 
-            var testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
+            var testHost = new InteractiveWindowTestHost(workspace.ExportProvider.GetExportedValue<IInteractiveWindowFactoryService>());
             var executedSubmissionCalls = new List<string>();
 
             void executeSubmission(object _, string code) => executedSubmissionCalls.Add(code);

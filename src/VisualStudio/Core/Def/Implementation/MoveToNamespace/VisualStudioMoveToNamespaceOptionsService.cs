@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
     {
         private const int HistorySize = 3;
 
-        public readonly LinkedList<string> History = new LinkedList<string>();
+        public readonly LinkedList<string> History = new();
         private readonly Func<MoveToNamespaceDialogViewModel, bool?> _showDialog;
 
         [ImportingConstructor]

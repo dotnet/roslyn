@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitWhileStatement(node);
         }
 
-        override protected void EnterRegion()
+        protected override void EnterRegion()
         {
             base.EnterRegion();
         }
 
-        override protected void LeaveRegion()
+        protected override void LeaveRegion()
         {
             foreach (var pending in PendingBranches)
             {

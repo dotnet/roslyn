@@ -77,14 +77,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         internal static DkmTextSpan ToDebuggerSpan(this LinePositionSpan span, int lineDelta = 0)
-            => new DkmTextSpan(
+            => new(
                 StartLine: span.Start.Line + lineDelta + 1,
                 EndLine: span.End.Line + lineDelta + 1,
                 StartColumn: span.Start.Character + 1,
                 EndColumn: span.End.Character + 1);
 
         internal static EnC.ActiveStatementDebugInfo ToActiveStatementDebugInfo(this ActiveStatementDebugInfo info)
-            => new EnC.ActiveStatementDebugInfo(
+            => new(
                 new EnC.ActiveInstructionId(info.InstructionId.MethodId.ModuleId, info.InstructionId.MethodId.Token, info.InstructionId.MethodId.Version, info.InstructionId.ILOffset),
                 info.DocumentNameOpt,
                 info.TextSpan.ToLinePositionSpan(),
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         internal static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this ImmutableArray<T> array)
-            => new ReadOnlyCollection<T>(array.DangerousGetUnderlyingArray());
+            => new(array.DangerousGetUnderlyingArray());
 
         internal static ManagedModuleUpdateStatus ToModuleUpdateStatus(this EnC.SolutionUpdateStatus status)
             => status switch

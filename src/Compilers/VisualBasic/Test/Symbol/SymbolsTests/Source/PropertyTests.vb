@@ -4931,7 +4931,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics()
 
             ' Dev10 errors:
-            ' error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            ' error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             ' error CS0570: 'A.Goo' is not supported by the language
         End Sub
 

@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                               IDiagnosticService diagnosticService,
                                               ITableManagerProvider tableManagerProvider,
                                               IThreadingContext threadingContext)
-            : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.AnyCodeRoslynWorkspace)
+            : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
 
         {
             _serviceProvider = serviceProvider;
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             if (fileExtension == ".cs")
             {
-                return StringConstants.CSharpLspLanguageName;
+                return LanguageNames.CSharp;
             }
             else if (fileExtension == ".ts" || fileExtension == ".js")
             {
@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
             else if (fileExtension == ".vb")
             {
-                return StringConstants.VBLspLanguageName;
+                return LanguageNames.VisualBasic;
             }
 
             return null;
@@ -491,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     // The edits would get sent by the co-authoring service to the owner.
                     // The invisible editor saves the file on being disposed, which should get reflected  on the owner's side.
-                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath, hierarchyOpt: null,
+                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath!, hierarchy: null,
                                                  needsSave: true, needsUndoDisabled: false))
                     {
                         UpdateText(invisibleEditor.TextBuffer, text);

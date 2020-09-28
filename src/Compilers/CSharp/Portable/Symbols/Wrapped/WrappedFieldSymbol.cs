@@ -118,6 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsFixedSizeBuffer
+        {
+            get
+            {
+                return _underlyingField.IsFixedSizeBuffer;
+            }
+        }
+
         internal override int? TypeLayoutOffset
         {
             get

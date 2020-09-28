@@ -13,10 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// <summary>
         /// Component id as specified in ManagedEditAndContinueService.vsdconfigxml.
         /// </summary>
-        private static readonly Guid ManagedEditAndContinueServiceId = new Guid("A96BBE03-0408-41E3-8613-6086FD494B43");
+        private static readonly Guid ManagedEditAndContinueServiceId = new("A96BBE03-0408-41E3-8613-6086FD494B43");
 
         public static ThreadInitializer ManagedEditAndContinueService()
-            => new ThreadInitializer(ManagedEditAndContinueServiceId);
+            => new(ManagedEditAndContinueServiceId);
 
         public struct ThreadInitializer : IDisposable
         {

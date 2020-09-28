@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         public PatternMatch WithMatchedSpans(ImmutableArray<TextSpan> matchedSpans)
-            => new PatternMatch(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
+            => new(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
 
         public int CompareTo(PatternMatch other)
             => CompareTo(other, ignoreCase: false);

@@ -16,13 +16,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a single EditorConfig file, see http://editorconfig.org for details about the format.
+    /// Represents a single EditorConfig file, see https://editorconfig.org for details about the format.
     /// </summary>
     public sealed partial class AnalyzerConfig
     {
-        // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
+        // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
-        // Matches EditorConfig property such as "indent_style = space", see http://editorconfig.org for details
+        // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
         private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
-        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string? val) && val == "true";
 
         /// <summary>
         /// Gets whether this editorconfig is a global editorconfig.

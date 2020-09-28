@@ -14,9 +14,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -35,13 +35,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerTelemetry _telemetry;
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+        private readonly IDocumentTrackingService? _documentTrackingService;
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal IPersistentStorageService PersistentStorageService { get; }
-        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
@@ -52,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
 
             _correlationId = correlationId;
 
@@ -61,12 +62,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, workspace, analyzerService.Listener);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
-        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
-            => DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation) == true;
+        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
+
+        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
+            => await DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false) == true;
 
         public bool ContainsDiagnostics(ProjectId projectId)
         {
@@ -86,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
                    e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption ||
-#pragma warning disable CS0618 // Type or member is obsolete - TypeScript and F# are still on the older ClosedFileDiagnostic option.
-                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic;
+#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
+                   e.Option == SolutionCrawlerOptions.ClosedFileDiagnostic;
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 

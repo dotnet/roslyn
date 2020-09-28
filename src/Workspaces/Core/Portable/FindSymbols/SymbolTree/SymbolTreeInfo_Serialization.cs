@@ -181,14 +181,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
-            ObjectReader reader, Checksum checksum)
-        {
-            return TryReadSymbolTreeInfo(reader, checksum,
-                (names, nodes) => Task.FromResult(
-                    new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
-        }
-
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
             Checksum checksum,
@@ -261,6 +253,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return null;
+        }
+
+        internal readonly partial struct TestAccessor
+        {
+            internal static SymbolTreeInfo ReadSymbolTreeInfo(
+                ObjectReader reader, Checksum checksum)
+            {
+                return TryReadSymbolTreeInfo(reader, checksum,
+                    (names, nodes) => Task.FromResult(
+                        new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+            }
         }
     }
 }

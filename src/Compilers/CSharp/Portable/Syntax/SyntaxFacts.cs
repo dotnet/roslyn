@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((RefTypeSyntax)parent).Type == node;
 
                     case Parameter:
-                        return ((ParameterSyntax)parent).Type == node;
+                    case FunctionPointerParameter:
+                        return ((BaseParameterSyntax)parent).Type == node;
 
                     case TypeConstraint:
                         return ((TypeConstraintSyntax)parent).Type == node;
@@ -550,7 +552,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Do not descend into functions and expressions
             return node is object &&
-                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).Any(n => n is YieldStatementSyntax);
+                   node.DescendantNodesAndSelf(child =>
+                   {
+                       Debug.Assert(ReferenceEquals(node, child) || child is not (MemberDeclarationSyntax or TypeDeclarationSyntax));
+                       return !IsNestedFunction(child) && !(node is ExpressionSyntax);
+                   }).Any(n => n is YieldStatementSyntax);
         }
 
         internal static bool HasReturnWithExpression(SyntaxNode? node)

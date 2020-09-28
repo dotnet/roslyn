@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForPropertiesHelper :
         UseExpressionBodyHelper<PropertyDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForPropertiesHelper Instance = new UseExpressionBodyForPropertiesHelper();
+        public static readonly UseExpressionBodyForPropertiesHelper Instance = new();
 
         private UseExpressionBodyForPropertiesHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,

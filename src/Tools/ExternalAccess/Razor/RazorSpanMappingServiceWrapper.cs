@@ -28,7 +28,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             for (var i = 0; i < razorSpans.Length; i++)
             {
                 var razorSpan = razorSpans[i];
-                roslynSpans[i] = new MappedSpanResult(razorSpan.FilePath, razorSpan.LinePositionSpan, razorSpan.Span);
+                if (razorSpan.IsDefault)
+                {
+                    // Unmapped location
+                    roslynSpans[i] = default;
+                }
+                else
+                {
+                    roslynSpans[i] = new MappedSpanResult(razorSpan.FilePath, razorSpan.LinePositionSpan, razorSpan.Span);
+                }
             }
 
             return roslynSpans.ToImmutableArray();

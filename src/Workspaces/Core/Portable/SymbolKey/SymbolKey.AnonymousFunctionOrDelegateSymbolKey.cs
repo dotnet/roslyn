@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
@@ -28,13 +31,13 @@ namespace Microsoft.CodeAnalysis
                 // the anonymous-function, then use that anonymous-functoin to get at
                 // the synthesized anonymous delegate.
                 visitor.WriteBoolean(symbol.IsAnonymousDelegateType());
-                visitor.WriteLocation(FirstOrDefault(symbol.Locations));
+                visitor.WriteLocation(symbol.Locations.First());
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var isAnonymousDelegateType = reader.ReadBoolean();
-                var location = reader.ReadLocation(out var locationFailureReason);
+                var location = reader.ReadLocation(out var locationFailureReason)!;
 
                 if (locationFailureReason != null)
                 {
@@ -59,9 +62,9 @@ namespace Microsoft.CodeAnalysis
                 // If this was a key for an anonymous delegate type, then go find the
                 // associated delegate for this lambda and return that instead of the 
                 // lambda function symbol itself.
-                if (isAnonymousDelegateType)
+                if (isAnonymousDelegateType && symbol != null)
                 {
-                    var anonymousDelegate = (symbol as IMethodSymbol).AssociatedAnonymousDelegate;
+                    var anonymousDelegate = ((IMethodSymbol)symbol).AssociatedAnonymousDelegate;
                     symbol = anonymousDelegate;
                 }
 

@@ -2,27 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition
-Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.GeneratedCodeRecognition
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Module GoToTestHelpers
-        Public ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
+        Public ReadOnly Composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
                         GetType(MockDocumentNavigationServiceFactory),
-                        GetType(MockSymbolNavigationServiceFactory),
-                        GetType(DefaultSymbolNavigationServiceFactory),
-                        GetType(CSharpGoToDefinitionSymbolService),
-                        GetType(VisualBasicGoToDefinitionSymbolService),
-                        GetType(CSharpGeneratedCodeRecognitionService),
-                        GetType(VisualBasicGeneratedCodeRecognitionService))
-
-        Public ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(Catalog)
+                        GetType(MockSymbolNavigationServiceFactory))
     End Module
 
     Friend Structure FilePathAndSpan

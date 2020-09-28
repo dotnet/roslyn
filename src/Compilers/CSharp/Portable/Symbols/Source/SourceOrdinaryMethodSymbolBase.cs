@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int ParameterCount
+        internal sealed override int ParameterCount
         {
             get
             {
@@ -542,10 +542,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
             }
-            else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
+            else if (_lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType.Type);
+                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), location, _lazyReturnType.Type);
             }
             else if (IsAbstract && IsExtern)
             {
@@ -576,12 +576,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
-                // '{0}' is abstract but it is contained in non-abstract class '{1}'
+                // '{0}' is abstract but it is contained in non-abstract type '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
             }
             else if (IsVirtual && ContainingType.IsSealed)
             {
-                // '{0}' is a new virtual member in sealed class '{1}'
+                // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
             else if (!hasBody && IsAsync)

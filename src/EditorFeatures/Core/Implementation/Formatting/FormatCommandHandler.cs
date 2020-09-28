@@ -188,6 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
-            => new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
+            => new(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
     }
 }

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal static class SimplificationHelpers
     {
-        public static readonly SyntaxAnnotation DontSimplifyAnnotation = new SyntaxAnnotation();
-        public static readonly SyntaxAnnotation SimplifyModuleNameAnnotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation DontSimplifyAnnotation = new();
+        public static readonly SyntaxAnnotation SimplifyModuleNameAnnotation = new();
 
         public static TNode CopyAnnotations<TNode>(SyntaxNode from, TNode to) where TNode : SyntaxNode
         {

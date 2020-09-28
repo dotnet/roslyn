@@ -16,12 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
-        Private Function GetHostOptions(host As TestHost) As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {
-                {RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess}
-                }
-        End Function
-
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestEncapsulatePrivateFieldAndUpdateReferences(host As TestHost) As Task
             Dim text = <File>
@@ -56,7 +50,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -88,7 +82,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
 
         End Function
 
@@ -121,7 +115,7 @@ Class C(Of T)
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
 
         End Function
 
@@ -154,7 +148,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -186,7 +180,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -229,7 +223,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -274,7 +268,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -295,7 +289,7 @@ Class Program
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
 
         End Function
 
@@ -320,7 +314,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
 
         End Function
 
@@ -348,9 +342,8 @@ End Class</File>.ConvertTestSourceTag()
             Await TestInRegularAndScriptAsync(
                 text, expected,
                 options:=New OptionsCollection(GetLanguage()) From {
-                    {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error},
-                    {RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess}
-                })
+                    {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error}
+                }, testHost:=host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -374,7 +367,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
 
         End Function
 
@@ -401,7 +394,7 @@ Class D
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
@@ -428,7 +421,7 @@ Class AA
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
@@ -471,7 +464,7 @@ Class AA
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
@@ -482,7 +475,7 @@ Class C
     Private [||] ReadOnly x As Integer
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestActionCountAsync(text, 2, New TestParameters(options:=GetHostOptions(host)))
+            Await TestActionCountAsync(text, 2, New TestParameters(testHost:=host))
         End Function
 
         <WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
@@ -507,7 +500,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
@@ -541,7 +534,7 @@ Public Class Class1
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -595,7 +588,7 @@ Class D
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetHostOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>
@@ -604,21 +597,21 @@ End Class</File>.ConvertTestSourceTag()
             Dim globalField = <File>
 Dim [|x|] = 1
 </File>.ConvertTestSourceTag()
-            Await TestMissingInRegularAndScriptAsync(globalField, New TestParameters(options:=GetHostOptions(host)))
+            Await TestMissingInRegularAndScriptAsync(globalField, New TestParameters(testHost:=host))
 
             Dim namespaceField = <File>
 Namespace N
     Dim [|x|] = 1
 End Namespace            
 </File>.ConvertTestSourceTag()
-            Await TestMissingInRegularAndScriptAsync(namespaceField, New TestParameters(options:=GetHostOptions(host)))
+            Await TestMissingInRegularAndScriptAsync(namespaceField, New TestParameters(testHost:=host))
 
             Dim enumField = <File>
 Enum E
      [|x|] = 1
 End Enum
 </File>.ConvertTestSourceTag()
-            Await TestMissingInRegularAndScriptAsync(enumField, New TestParameters(options:=GetHostOptions(host)))
+            Await TestMissingInRegularAndScriptAsync(enumField, New TestParameters(testHost:=host))
 
         End Function
 
@@ -644,9 +637,8 @@ Class C
 End Class
 ",
 options:=New OptionsCollection(GetLanguage()) From {
-    {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error},
-    {RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess}
-})
+    {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error}
+}, testHost:=host)
         End Function
     End Class
 End Namespace

@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public partial class SmartIndenterTests : CSharpFormatterTestsBase
     {
+        private static readonly TestComposition s_compositionWithTestFormattingRules = EditorTestCompositions.EditorFeatures
+            .AddParts(typeof(TestFormattingRuleFactoryServiceFactory));
+
         public SmartIndenterTests(ITestOutputHelper output) : base(output) { }
 
         [WpfFact]
@@ -2903,7 +2907,7 @@ return;
 
             foreach (var option in optionsSet)
             {
-                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option);
+                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                     .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
@@ -2913,11 +2917,9 @@ return;
                 var projectedDocument =
                     workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents);
 
-                if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
-                {
-                    provider.BaseIndentation = BaseIndentationOfNugget;
-                    provider.TextSpan = subjectDocument.SelectedSpans.Single();
-                }
+                var provider = (TestFormattingRuleFactoryServiceFactory.Factory)workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+                provider.BaseIndentation = BaseIndentationOfNugget;
+                provider.TextSpan = subjectDocument.SelectedSpans.Single();
 
                 var indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
                 var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor);

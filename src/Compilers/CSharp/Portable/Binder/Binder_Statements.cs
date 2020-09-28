@@ -1302,6 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            initializerOpt = BindToNaturalType(initializerOpt, diagnostics, reportNoTargetType: false);
             initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);
             return true;
         }
@@ -1947,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (delegateParameters[i].TypeWithAnnotations.IsStatic)
                     {
                         // {0}: Static types cannot be used as parameter
-                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, anonymousFunction.ParameterLocation(i), delegateParameters[i].Type);
+                        Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), anonymousFunction.ParameterLocation(i), delegateParameters[i].Type);
                     }
                 }
                 return;

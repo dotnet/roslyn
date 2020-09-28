@@ -3,8 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
@@ -12,12 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class ObjectCreationExpressionSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New ObjectCreationExpressionSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(ObjectCreationExpressionSignatureHelpProvider)
         End Function
 
 #Region "Regular tests"

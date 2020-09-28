@@ -220,7 +220,7 @@ class Bad : Bad
             // All declaration errors are reported regardless of what member do we emit.
 
             diff.EmitResult.Diagnostics.Verify(
-                // (10,7): error CS0146: Circular base class dependency involving 'Bad' and 'Bad'
+                // (10,7): error CS0146: Circular base type dependency involving 'Bad' and 'Bad'
                 // class Bad : Bad
                 Diagnostic(ErrorCode.ERR_CircularBase, "Bad").WithArguments("Bad", "Bad").WithLocation(10, 7));
         }

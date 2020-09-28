@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var service = updatedDocument.GetRequiredLanguageService<IReplacePropertyWithMethodsService>();
 
-            var root = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
 

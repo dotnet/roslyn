@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         TypeDeclarationSyntax,
         VariableDeclaratorSyntax>
     {
-        public static readonly CSharpSelectedMembers Instance = new CSharpSelectedMembers();
+        public static readonly CSharpSelectedMembers Instance = new();
 
         private CSharpSelectedMembers()
         {

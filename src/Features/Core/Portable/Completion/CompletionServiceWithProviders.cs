@@ -31,17 +31,17 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap
-             = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>>();
+             = new();
 
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider> _analyzerReferenceToCompletionProvidersMap
-            = new ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>();
+            = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback _createProjectCompletionProvidersProvider
-            = new ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback(r => new ProjectCompletionProvider(r));
+            = new(r => new ProjectCompletionProvider(r));
 
-        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
+        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new();
         private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
         private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
         private readonly Func<string, CompletionProvider> _getProviderByName;
@@ -593,12 +593,16 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(
-            Document document, CompletionItem item, TextSpan completionListSpan,
-            char? commitKey, CancellationToken cancellationToken)
+            Document document,
+            CompletionItem item,
+            TextSpan completionListSpan,
+            char? commitKey,
+            bool disallowAddingImports,
+            CancellationToken cancellationToken)
         {
             var provider = GetProvider(item);
             return provider != null
-                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, cancellationToken).ConfigureAwait(false)
+                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false)
                 : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
         }
 
@@ -637,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

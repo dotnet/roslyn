@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     {
         private abstract class StringSplitter
         {
-            protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
+            protected static readonly SyntaxAnnotation RightNodeAnnotation = new();
 
             protected static readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
                 leading: default,

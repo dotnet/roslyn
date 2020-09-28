@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#if !CODE_STYLE
-using System.Diagnostics;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -676,8 +673,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.SimpleMemberAccessExpression);
         }
 
-#if !CODE_STYLE
-
         public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node)
         {
             if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
@@ -746,14 +741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return precedence < parentPrecedence;
         }
 
-#endif
-
         public static OperatorPrecedence GetOperatorPrecedence(this PatternSyntax pattern)
         {
-#if CODE_STYLE
-            return OperatorPrecedence.None;
-#else
-
             switch (pattern)
             {
                 case ConstantPatternSyntax _:
@@ -780,8 +769,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             Debug.Fail("Unhandled pattern type");
             return OperatorPrecedence.None;
-
-#endif
         }
     }
 }

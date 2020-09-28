@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal partial class ExtensionManagerOptions
     {
-        public static readonly Option<bool> DisableCrashingExtensions = new Option<bool>(nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
+        public static readonly Option<bool> DisableCrashingExtensions = new(nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
     }
 
     [ExportOptionProvider, Shared]

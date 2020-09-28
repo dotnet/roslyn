@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public new static CSharpDiagnosticFormatter Instance { get; } = new CSharpDiagnosticFormatter();
+        public static new CSharpDiagnosticFormatter Instance { get; } = new CSharpDiagnosticFormatter();
     }
 }

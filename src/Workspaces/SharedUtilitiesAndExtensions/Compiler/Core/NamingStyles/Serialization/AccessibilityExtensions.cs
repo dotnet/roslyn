@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => GetAccessibility(symbol) == accessibility;
 
         internal static XElement CreateXElement(this Accessibility accessibility)
-            => new XElement("AccessibilityKind", accessibility);
+            => new("AccessibilityKind", accessibility);
 
         internal static Accessibility FromXElement(XElement accessibilityElement)
             => (Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value);

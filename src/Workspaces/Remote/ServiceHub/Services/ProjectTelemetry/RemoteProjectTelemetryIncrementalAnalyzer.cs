@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -17,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteEndPoint _endPoint;
+        private readonly RemoteCallback<IProjectTelemetryListener> _callback;
 
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteEndPoint endPoint)
-            => _endPoint = endPoint;
+        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteCallback<IProjectTelemetryListener> callback)
+            => _callback = callback;
 
         /// <summary>
         /// Collects data from <paramref name="project"/> and reports it to the telemetry service.
@@ -45,16 +46,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var documentsCount = project.DocumentIds.Count;
             var additionalDocumentsCount = project.AdditionalDocumentIds.Count;
 
-            var info = new ProjectTelemetryData
-            {
-                ProjectId = projectId,
-                Language = language,
-                AnalyzerReferencesCount = analyzerReferencesCount,
-                ProjectReferencesCount = projectReferencesCount,
-                MetadataReferencesCount = metadataReferencesCount,
-                DocumentsCount = documentsCount,
-                AdditionalDocumentsCount = additionalDocumentsCount,
-            };
+            var info = new ProjectTelemetryData(
+                projectId: projectId,
+                language: language,
+                analyzerReferencesCount: analyzerReferencesCount,
+                projectReferencesCount: projectReferencesCount,
+                metadataReferencesCount: metadataReferencesCount,
+                documentsCount: documentsCount,
+                additionalDocumentsCount: additionalDocumentsCount);
 
             lock (_gate)
             {
@@ -68,10 +67,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 _projectToData[projectId] = info;
             }
 
-            await _endPoint.InvokeAsync(
-                nameof(IProjectTelemetryListener.ReportProjectTelemetryDataAsync),
-                new object[] { info },
-                cancellationToken).ConfigureAwait(false);
+            // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
+            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
+
+            await _callback.InvokeAsync(
+                (callback, cancellationToken) => callback.ReportProjectTelemetryDataAsync(info, cancellationToken),
+                linkedSource.Token).ConfigureAwait(false);
         }
 
         public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)

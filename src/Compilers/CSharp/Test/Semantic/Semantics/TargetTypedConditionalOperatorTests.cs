@@ -416,5 +416,42 @@ public class Program {
                 .VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(46231, "https://github.com/dotnet/roslyn/issues/46231")]
+        public void TestFixedConditional()
+        {
+            var source = @"
+public class Program {
+    public unsafe static void Test(bool b, int i)
+    {
+        fixed (byte * p = b ? new byte[i] : null)
+        {
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugDll.WithAllowUnsafe(true))
+                .VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), options: TestOptions.DebugDll.WithAllowUnsafe(true))
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsingConditional()
+        {
+            var source = @"
+using System;
+public class Program {
+    public static void Test(bool b, IDisposable d)
+    {
+        using (IDisposable x = b ? d : null)
+        {
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugDll)
+                .VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), options: TestOptions.DebugDll)
+                .VerifyEmitDiagnostics();
+        }
     }
 }

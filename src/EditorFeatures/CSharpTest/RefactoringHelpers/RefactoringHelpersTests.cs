@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RefactoringHelpers
 {
     public partial class RefactoringHelpersTests : RefactoringHelpersTestBase<CSharpTestWorkspaceFixture>
     {
-        public RefactoringHelpersTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         #region Locations
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]

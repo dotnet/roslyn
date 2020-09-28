@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForLocalFunctionHelper :
         UseExpressionBodyHelper<LocalFunctionStatementSyntax>
     {
-        public static readonly UseExpressionBodyForLocalFunctionHelper Instance = new UseExpressionBodyForLocalFunctionHelper();
+        public static readonly UseExpressionBodyForLocalFunctionHelper Instance = new();
 
         private UseExpressionBodyForLocalFunctionHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId,

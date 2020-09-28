@@ -105,11 +105,7 @@ class TestClass {{
 
                     if (_nested)
                     {
-#if NETCOREAPP2_0 || NET472
                         fixes = new List<CodeAction> { CodeAction.Create("Container", fixes.ToImmutableArray(), isInlinable: false) };
-#else
-                        throw new NotSupportedException("Nested code actions are not supported on this framework.");
-#endif
                     }
 
                     foreach (var fix in fixes)

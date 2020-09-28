@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return map;
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
 

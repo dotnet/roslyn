@@ -348,18 +348,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Location location in locations)
             {
                 // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
-                if (location == null)
+                if (location == null || !location.IsInSource)
                 {
                     continue;
                 }
-                if (location.IsInSource)
+
+                if (location.SourceSpan.Length != 0)
                 {
-                    SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
+                    SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
                     if (token.Kind() != SyntaxKind.None)
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)
+                        {
                             builder.Add(node.GetReference());
+                        }
+                    }
+                }
+                else
+                {
+                    // Since the location we're interested in can't contain a token, we'll inspect the whole tree,
+                    // pruning away branches that don't contain that location. We'll pick the narrowest node of the type
+                    // we're looking for.
+                    // eg: finding the ParameterSyntax from the empty location of a blank identifier
+                    SyntaxNode parent = location.SourceTree.GetRoot();
+                    SyntaxNode found = null;
+                    foreach (var descendant in parent.DescendantNodesAndSelf(c => c.Location.SourceSpan.Contains(location.SourceSpan)))
+                    {
+                        if (descendant is TNode && descendant.Location.SourceSpan.Contains(location.SourceSpan))
+                        {
+                            found = descendant;
+                        }
+                    }
+
+                    if (found is object)
+                    {
+                        builder.Add(found.GetReference());
                     }
                 }
             }
@@ -1008,13 +1032,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             UseSiteInfo<AssemblySymbol> info = type.GetUseSiteInfo();
             if (info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType)
             {
-                GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ref info);
+                GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ref info);
             }
 
             return MergeUseSiteInfo(ref result, info);
         }
 
-        private void GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ref UseSiteInfo<AssemblySymbol> info)
+        private void GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ref UseSiteInfo<AssemblySymbol> info)
         {
             switch (this.Kind)
             {
@@ -1036,8 +1060,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
-            return DeriveUseSiteInfoFromType(ref result, type.Type) ||
-                   DeriveUseSiteInfoFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
+            return (type.DefaultType.TypeKind != TypeKind.TypeParameter && DeriveUseSiteDiagnosticFromType(ref result, type.Type)) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 
         internal bool DeriveUseSiteInfoFromParameter(ref UseSiteInfo<AssemblySymbol> result, ParameterSymbol param)
@@ -1110,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (current == AllowedRequiredModifierType.None ||
                         (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
                     {
-                        if (MergeUseSiteInfo(ref result, GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo()))
+                        if (MergeUseSiteInfo(ref result, GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()))
                         {
                             return true;
                         }

@@ -40,8 +40,8 @@ namespace Roslyn.Utilities
         /// </summary>
         private bool _substringsAreSimilar;
 
-        private static readonly object s_poolGate = new object();
-        private static readonly Stack<WordSimilarityChecker> s_pool = new Stack<WordSimilarityChecker>();
+        private static readonly object s_poolGate = new();
+        private static readonly Stack<WordSimilarityChecker> s_pool = new();
 
         public static WordSimilarityChecker Allocate(string text, bool substringsAreSimilar)
         {

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var typeArgument in result)
             {
-                typeArgument.Type.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+                AddDefinitionUseSiteDiagnostics(typeArgument, ref useSiteInfo);
             }
 
             return result;
@@ -72,8 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            result.Type.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
+            AddDefinitionUseSiteDiagnostics(result, ref useSiteInfo);
             return result;
+        }
+
+        private static void AddDefinitionUseSiteDiagnostics(TypeWithAnnotations type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            type.DefaultType.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
         }
 
         /// <summary>
@@ -1172,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed TypeSymbol OriginalTypeSymbolDefinition
+        protected sealed override TypeSymbol OriginalTypeSymbolDefinition
         {
             get
             {

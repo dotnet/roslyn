@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.InitKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1125,6 +1125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WithKeyword:
                 case SyntaxKind.InitKeyword:
                 case SyntaxKind.RecordKeyword:
+                case SyntaxKind.ManagedKeyword:
+                case SyntaxKind.UnmanagedKeyword:
                     return true;
                 default:
                     return false;
@@ -1242,6 +1244,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.InitKeyword;
                 case "record":
                     return SyntaxKind.RecordKeyword;
+                case "managed":
+                    return SyntaxKind.ManagedKeyword;
+                case "unmanaged":
+                    return SyntaxKind.UnmanagedKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1675,6 +1681,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "init";
                 case SyntaxKind.RecordKeyword:
                     return "record";
+                case SyntaxKind.ManagedKeyword:
+                    return "managed";
+                case SyntaxKind.UnmanagedKeyword:
+                    return "unmanaged";
                 default:
                     return string.Empty;
             }

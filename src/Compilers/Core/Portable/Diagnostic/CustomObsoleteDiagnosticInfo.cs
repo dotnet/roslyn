@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis
             Data = data;
         }
 
+        private CustomObsoleteDiagnosticInfo(CustomObsoleteDiagnosticInfo baseInfo, DiagnosticSeverity effectiveSeverity)
+            : base(baseInfo, effectiveSeverity)
+        {
+            Data = baseInfo.Data;
+        }
+
         public override string MessageIdentifier
         {
             get
@@ -48,6 +54,11 @@ namespace Microsoft.CodeAnalysis
 
                 return _descriptor;
             }
+        }
+
+        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new CustomObsoleteDiagnosticInfo(this, severity);
         }
 
         private DiagnosticDescriptor CreateDescriptor()

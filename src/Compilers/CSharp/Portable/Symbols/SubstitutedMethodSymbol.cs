@@ -210,6 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.OriginalDefinition.GetReturnTypeAttributes();
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+            => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
         public sealed override Symbol AssociatedSymbol
         {
             get

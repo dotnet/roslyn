@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new LoadKeywordRecommender(),
                 new LockKeywordRecommender(),
                 new LongKeywordRecommender(),
+                new ManagedKeywordRecommender(),
                 new MethodKeywordRecommender(),
                 new ModuleKeywordRecommender(),
                 new NameOfKeywordRecommender(),

@@ -10,14 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
+        [WpfFact]
         public async Task TestCodeActionResolveHandlerAsync()
         {
             var initialMarkup =
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestCodeActionResolveHandlerAsync_NestedAction()
         {
             var initialMarkup =
@@ -111,7 +110,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             VSCodeAction unresolvedCodeAction,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(
+            var queue = CreateRequestQueue(solution);
+            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(queue,
                 LSP.MSLSPMethods.TextDocumentCodeActionResolveName, unresolvedCodeAction,
                 clientCapabilities, null, CancellationToken.None);
             return result;

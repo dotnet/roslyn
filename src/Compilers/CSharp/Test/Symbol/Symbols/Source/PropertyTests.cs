@@ -293,10 +293,10 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-// (4,20): error CS8034: Auto-implemented properties must have get accessors.
+// (4,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int Q { set; } = 0;
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
-// (5,20): error CS8034: Auto-implemented properties must have get accessors.
+// (5,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int R { set; }
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
         }
@@ -1163,7 +1163,7 @@ class B {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
     //     B y = A.Goo; 
     Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
     // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
@@ -1171,7 +1171,7 @@ class B {
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
                 );
             // Dev10 errors:
-            // error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            // error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             // error CS0570: 'A.Goo' is not supported by the language
         }
 

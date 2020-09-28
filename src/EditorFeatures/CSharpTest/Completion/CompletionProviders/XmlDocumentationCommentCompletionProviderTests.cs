@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public XmlDocumentationCommentCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(XmlDocCommentCompletionProvider);
 

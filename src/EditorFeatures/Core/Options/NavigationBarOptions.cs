@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal static class NavigationBarOptions
     {
-        public static readonly PerLanguageOption<bool> ShowNavigationBar = new PerLanguageOption<bool>(nameof(NavigationBarOptions), nameof(ShowNavigationBar), defaultValue: true);
+        public static readonly PerLanguageOption<bool> ShowNavigationBar = new(nameof(NavigationBarOptions), nameof(ShowNavigationBar), defaultValue: true);
     }
 
     [ExportOptionProvider, Shared]

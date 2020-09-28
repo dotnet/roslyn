@@ -1289,7 +1289,7 @@ unsafe class C
 }
 ";
 
-            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
@@ -1329,7 +1329,7 @@ unsafe class C
     delegate*<C, {return2}> f1;
 }}";
 
-            var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             var compilation1 = compilation0.WithSource(source2);
 
             var matcher = new CSharpSymbolMatcher(
@@ -1386,7 +1386,7 @@ unsafe class C
 
             static void verify(string source1, string source2)
             {
-                var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+                var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
                 var compilation1 = compilation0.WithSource(source2);
 
                 var matcher = new CSharpSymbolMatcher(

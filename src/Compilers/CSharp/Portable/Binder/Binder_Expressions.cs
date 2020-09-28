@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal TypeSymbol CreateErrorType(string name = "")
+        internal NamedTypeSymbol CreateErrorType(string name = "")
         {
             return new ExtendedErrorTypeSymbol(this.Compilation, name, arity: 0, errorInfo: null, unreported: false);
         }
@@ -1533,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
             if (isDiscard)
             {
-                CheckFeatureAvailability(node, MessageID.IDS_FeatureTuples, diagnostics);
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureDiscards, diagnostics);
             }
 
             return isDiscard;
@@ -4320,7 +4320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!conv.IsExtensionMethod);
                         Debug.Assert(conv.IsValid); // i.e. if it exists, then it is valid.
 
-                        if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, type, diagnostics))
+                        if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, isAddressOf: false, type, diagnostics))
                         {
                             // we do not place the "Invoke" method in the node, indicating that it did not appear in source.
                             return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, type: type);
@@ -6604,7 +6604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private MethodGroupResolution BindExtensionMethod(
+        protected MethodGroupResolution BindExtensionMethod(
             SyntaxNode expression,
             string methodName,
             AnalyzedArguments analyzedArguments,
@@ -8047,12 +8047,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
         {
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteInfo,
                 inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConventionInfo: callingConventionInfo);
         }
 
         internal MethodGroupResolution ResolveMethodGroup(
@@ -8067,13 +8067,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
         {
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteInfo,
                 inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
                 returnRefKind: returnRefKind, returnType: returnType,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConventionInfo);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);
@@ -8093,7 +8093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             TypeSymbol returnType,
             RefKind returnRefKind,
-            Cci.CallingConvention callingConvention,
+            in CallingConventionInfo callingConventionInfo,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             return ResolveDefaultMethodGroup(
@@ -8106,7 +8106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind,
                 returnType,
                 isFunctionPointerResolution: true,
-                callingConvention);
+                callingConventionInfo);
         }
 
         private MethodGroupResolution ResolveMethodGroupInternal(
@@ -8121,7 +8121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConvention = default)
         {
             var methodResolution = ResolveDefaultMethodGroup(
                 methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteInfo,
@@ -8193,7 +8193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConvention = default)
         {
             var methods = node.Methods;
             if (methods.Length == 0)

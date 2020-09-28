@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -168,12 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// This instance is used to check whether one property or event overrides another, according to the C# definition.
         /// <para>NOTE: C# ignores accessor member names.</para>
-        /// <para>CAVEAT: considers return types so that getters and setters will be treated the same.</para>
         /// </summary>
         public static readonly MemberSignatureComparer CSharpAccessorOverrideComparer = new MemberSignatureComparer(
             considerName: false,
             considerExplicitlyImplementedInterfaces: false, //Bug: DevDiv #15775
-            considerReturnType: true,
+            considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefKindDifferences: true,

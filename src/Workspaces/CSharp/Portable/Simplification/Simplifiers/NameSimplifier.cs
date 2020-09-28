@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     {
-        public static readonly NameSimplifier Instance = new NameSimplifier();
+        public static readonly NameSimplifier Instance = new();
 
         private NameSimplifier()
         {

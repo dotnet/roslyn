@@ -464,18 +464,10 @@ namespace Microsoft.Cci
 
         private void CreateMethodBodyReferenceIndex()
         {
-            int count;
-            var referencesInIL = module.ReferencesInIL(out count);
+            var referencesInIL = module.ReferencesInIL();
 
-            _pseudoSymbolTokenToTokenMap = new EntityHandle[count];
-            _pseudoSymbolTokenToReferenceMap = new object[count];
-
-            int cur = 0;
-            foreach (object o in referencesInIL)
-            {
-                _pseudoSymbolTokenToReferenceMap[cur] = o;
-                cur++;
-            }
+            _pseudoSymbolTokenToTokenMap = new EntityHandle[referencesInIL.Length];
+            _pseudoSymbolTokenToReferenceMap = referencesInIL.ToArray();
         }
 
         private void CreateIndices()
@@ -3662,13 +3654,14 @@ namespace Microsoft.Cci
             else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
                 Debug.Assert(!signature.ReturnValueIsByRef);
+                Debug.Assert(signature.RefCustomModifiers.IsEmpty);
                 SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
 
                 returnTypeEncoder.Void();
             }
             else
             {
-                Debug.Assert(signature.RefCustomModifiers.Length == 0 || signature.ReturnValueIsByRef);
+                Debug.Assert(signature.RefCustomModifiers.IsEmpty || signature.ReturnValueIsByRef);
                 SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.RefCustomModifiers);
 
                 var typeEncoder = returnTypeEncoder.Type(signature.ReturnValueIsByRef);

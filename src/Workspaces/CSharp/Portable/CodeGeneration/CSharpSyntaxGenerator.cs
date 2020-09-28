@@ -194,25 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.Parameter(
                 default,
-                GetParameterModifiers(refKind),
+                CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind),
                 (TypeSyntax)type,
                 name.ToIdentifierToken(),
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
-
-        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
-            => refKind switch
-            {
-                RefKind.None => new SyntaxTokenList(),
-                RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
-                RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
-                // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
-                // ref kind syntax when generating for the return parameter vs other parameters.
-                // The return parameter must use ref readonly, like regular methods.
-                RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
-                RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
-                _ => throw ExceptionUtilities.UnexpectedValue(refKind),
-            };
 
         internal static SyntaxToken GetArgumentModifiers(RefKind refKind)
         {
@@ -964,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes
-            = new ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>>();
+            = new();
 
         public override IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration)
         {
@@ -978,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declReturnAttributes
-            = new ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>>();
+            = new();
 
         public override IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration)
         {
@@ -1462,6 +1448,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Static |
             DeclarationModifiers.Extern;
 
+        private static readonly DeclarationModifiers s_lambdaModifiers =
+            DeclarationModifiers.Async;
+
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
             switch (kind)
@@ -1515,6 +1504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.LocalFunctionStatement:
                     return s_localFunctionModifiers;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                    return s_lambdaModifiers;
 
                 case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.Parameter:
@@ -1564,6 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 LocalDeclarationStatementSyntax localDecl => localDecl.WithModifiers(modifiers),
                 LocalFunctionStatementSyntax localFunc => localFunc.WithModifiers(modifiers),
                 AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                LambdaExpressionSyntax lambda => lambda.WithModifiers(modifiers),
                 _ => declaration,
             };
 
@@ -2494,14 +2488,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return WithAccessorList(declaration, newList);
         }
 
-        private static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
-            => declaration.Kind() switch
-            {
-                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).AccessorList,
-                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).AccessorList,
-                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).AccessorList,
-                _ => null,
-            };
+        internal static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
+            => (declaration as BasePropertyDeclarationSyntax)?.AccessorList;
 
         private static bool CanHaveAccessors(SyntaxNode declaration)
             => declaration.Kind() switch
@@ -2513,11 +2501,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static SyntaxNode WithAccessorList(SyntaxNode declaration, AccessorListSyntax accessorList)
-            => declaration.Kind() switch
+            => declaration switch
             {
-                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
-                SyntaxKind.IndexerDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
-                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithAccessorList(accessorList),
+                BasePropertyDeclarationSyntax baseProperty => baseProperty.WithAccessorList(accessorList),
                 _ => declaration,
             };
 
@@ -3140,7 +3126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements)
         {
-            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()));
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(
+                SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList((ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
             var initializer = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, AsExpressionList(elements));
             return SyntaxFactory.ArrayCreationExpression(arrayType, initializer);
         }
@@ -3597,42 +3584,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode ParseExpression(string stringToParse)
             => SyntaxFactory.ParseExpression(stringToParse);
-
-        #endregion
-
-        #region Patterns
-
-        internal override bool SupportsPatterns(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
-
-        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isKeyword, SyntaxNode pattern)
-            => SyntaxFactory.IsPatternExpression(
-                (ExpressionSyntax)expression,
-                isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
-                (PatternSyntax)pattern);
-
-        internal override SyntaxNode ConstantPattern(SyntaxNode expression)
-            => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
-
-        internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
-            => SyntaxFactory.DeclarationPattern(
-                type.GenerateTypeSyntax(),
-                SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
-
-        internal override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.BinaryPattern(SyntaxKind.AndPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
-
-        internal override SyntaxNode NotPattern(SyntaxNode pattern)
-            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), (PatternSyntax)Parenthesize(pattern));
-
-        internal override SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
-
-        internal override SyntaxNode ParenthesizedPattern(SyntaxNode pattern)
-            => Parenthesize(pattern);
-
-        internal override SyntaxNode TypePattern(SyntaxNode type)
-            => SyntaxFactory.TypePattern((TypeSyntax)type);
 
         #endregion
     }

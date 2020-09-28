@@ -9608,7 +9608,7 @@ class Program
     };
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
             compVerifier.VerifyIL("Program.M2", @"
@@ -9673,7 +9673,7 @@ class Program
       IL_004b:  ret
     }
 ");
-            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics();
             compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
             compVerifier.VerifyIL("Program.M2", @"
