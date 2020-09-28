@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        protected override int SortingGroupIndex => 3;
+
         protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
             if (!IsExcludedFromOperators(semanticModel, container))
@@ -43,9 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 let sign = m.GetOperatorSignOfOperator()
                                 select SymbolCompletionItem.CreateWithSymbolId(
                                     displayText: sign,
-                                    displayTextSuffix: m.GetOperatorName(),
                                     filterText: "",
-                                    sortText: $"{SortingPrefix}{sign}{m.Name}", // Some operators have the same sign, but different methods (e.g. +a and a + b)
+                                    sortText: SortText($"{sign}{m.Name}"),
                                     symbols: ImmutableList.Create(m),
                                     rules: CompletionItemRules.Default,
                                     contextPosition: position);

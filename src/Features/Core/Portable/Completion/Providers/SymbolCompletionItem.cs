@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            string displayTextPrefix = null)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 rules: rules,
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
                 sortText: sortText ?? firstSymbol.Name,
@@ -286,6 +288,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
+        }
+
+        public static CompletionItem CreateWithSymbolId(
+            string displayText,
+            string displayTextSuffix,
+            string displayTextPrefix,
+            IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
+            int contextPosition,
+            string sortText = null,
+            string insertionText = null,
+            string filterText = null,
+            SupportedPlatformData supportedPlatforms = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default)
+        {
+            return CreateWorker(
+                displayText, displayTextSuffix, symbols, rules, contextPosition,
+                s_addSymbolEncoding, sortText, insertionText,
+                filterText, supportedPlatforms, properties, tags, displayTextPrefix);
         }
 
         public static CompletionItem CreateWithNameAndKind(

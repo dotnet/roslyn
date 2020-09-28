@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        protected override int SortingGroupIndex => 1;
+
         protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
             var allMembers = container.GetMembers();
@@ -36,9 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (!indexers.IsEmpty)
             {
                 var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: "this[]",
+                    displayText: "this",
+                    displayTextSuffix: "[]",
                     filterText: "this",
-                    sortText: $"{SortingPrefix}this",
+                    sortText: SortText(),
                     symbols: indexers,
                     rules: CompletionItemRules.Default,
                     contextPosition: position);

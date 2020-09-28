@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        protected override int SortingGroupIndex => 2;
+
         protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
             var allMembers = container.GetMembers();
@@ -46,9 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              container.Equals(m.Parameters[0].Type) // Convert from container type to other type
                                          let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
                                          select SymbolCompletionItem.CreateWithSymbolId(
-                                             displayText: $"({typeName})", // The type to convert to
+                                             displayTextPrefix: "(",
+                                             displayText: typeName, // The type to convert to
+                                             displayTextSuffix: ")",
                                              filterText: typeName,
-                                             sortText: $"{SortingPrefix}{typeName}",
+                                             sortText: SortText(typeName),
                                              symbols: ImmutableList.Create(m),
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,

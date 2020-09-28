@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
         protected const string SortingPrefix = "\uFFFD";
 
+        protected abstract int SortingGroupIndex { get; } // Indexer, operators and conversion should be listed grouped together.
+
+        protected string SortText(string? sortTextSymbolPart = null)
+            => $"{SortingPrefix}{SortingGroupIndex:000}{sortTextSymbolPart}";
+
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)

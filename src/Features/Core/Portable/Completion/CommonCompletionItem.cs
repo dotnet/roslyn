@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Completion
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            string displayTextPrefix = null)
         {
             tags = tags.NullToEmpty();
 
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
