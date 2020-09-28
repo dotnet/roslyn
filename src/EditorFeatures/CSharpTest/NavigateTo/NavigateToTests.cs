@@ -57,6 +57,20 @@ testHost, @"class Goo
 
         [Theory]
         [CombinatorialData]
+        public async Task FindClass(TestHost testHost)
+        {
+            await TestAsync(
+testHost, @"record Goo
+{
+}", async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Record, Glyph.ClassInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task FindVerbatimClass(TestHost testHost)
         {
             await TestAsync(
