@@ -25,13 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(ConversionCompletionProvider);
 
-        protected override string? ItemPartiallyWritten(string? expectedItemOrNull) =>
-            expectedItemOrNull switch
-            {
-                { Length: >= 2 } s when s.StartsWith("(") => expectedItemOrNull.Substring(1, 1),
-                _ => base.ItemPartiallyWritten(expectedItemOrNull)
-            };
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIndexerCompletionItemsShouldBePlacedLastInCompletionList()
