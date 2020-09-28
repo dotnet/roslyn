@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 3;
 
-        protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
             if (!IsExcludedFromOperators(semanticModel, container))
             {
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                     symbols: ImmutableList.Create(m),
                                     rules: CompletionItemRules.Default,
                                     contextPosition: position);
-                return operators;
+                return operators.ToImmutableArray();
             }
 
-            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            return ImmutableArray<CompletionItem>.Empty;
         }
 
         private static bool IsExcludedOperator(IMethodSymbol m)

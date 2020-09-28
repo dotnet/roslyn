@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 2;
 
-        protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
             var allMembers = container.GetMembers();
             var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
                                              properties: CreatePropertiesBag((MinimalTypeNamePropertyName, typeName)));
-            return allExplicitConversions;
+            return allExplicitConversions.ToImmutableArray();
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)

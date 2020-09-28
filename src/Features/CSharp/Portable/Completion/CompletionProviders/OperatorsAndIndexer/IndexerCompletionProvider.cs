@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 1;
 
-        protected override IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
             var allMembers = container.GetMembers();
             var indexers = allMembers.OfType<IPropertySymbol>().Where(p => p.IsIndexer).ToImmutableList();
@@ -44,8 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     symbols: indexers,
                     rules: CompletionItemRules.Default,
                     contextPosition: position);
-                yield return indexerCompletion;
+                return ImmutableArray.Create(indexerCompletion);
             }
+
+            return ImmutableArray<CompletionItem>.Empty;
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)

@@ -28,12 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // and is also greater than surrogate pairs, if byte comparison is used. The "biggest" possible characters are 
         // \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\ud884\udf4a" and
         // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
-        protected const string SortingPrefix = "\uFFFD";
+        private const string SortingPrefix = "\uFFFD";
 
         protected abstract int SortingGroupIndex { get; } // Indexer, operators and conversion should be listed grouped together.
 
-        protected string SortText(string? sortTextSymbolPart = null)
-            => $"{SortingPrefix}{SortingGroupIndex:000}{sortTextSymbolPart}";
+        protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position);
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -52,6 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return builder.ToImmutable();
+        }
+
+        protected string SortText(string? sortTextSymbolPart = null)
+            => $"{SortingPrefix}{SortingGroupIndex:000}{sortTextSymbolPart}";
+
+        protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(int position, SyntaxNode root)
+        {
+            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
+            var potentialDotTokenLeftOfCursor = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
+            return (tokenAtPosition, potentialDotTokenLeftOfCursor);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -81,13 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var completionItems = GetCompletionItemsForTypeSymbol(container, semanticModel, position);
             context.AddItems(completionItems);
-        }
-
-        protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(int position, SyntaxNode root)
-        {
-            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var potentialDotTokenLeftOfCursor = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
-            return (tokenAtPosition, potentialDotTokenLeftOfCursor);
         }
 
         protected static SyntaxNodeOrToken? FindNodeOrTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
@@ -139,8 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 _ => null,
             };
         }
-
-        protected abstract IEnumerable<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position);
 
         protected static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, int positionOffset, CancellationToken cancellationToken)
         {
