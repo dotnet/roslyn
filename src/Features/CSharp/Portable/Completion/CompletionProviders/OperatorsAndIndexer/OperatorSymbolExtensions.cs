@@ -56,6 +56,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
+        public static string GetOperatorName(this IMethodSymbol m)
+        {
+            return m.Name switch
+            {
+                // binary
+                WellKnownMemberNames.AdditionOperatorName => "a + b",
+                WellKnownMemberNames.BitwiseAndOperatorName => "a & b",
+                WellKnownMemberNames.BitwiseOrOperatorName => "a | b",
+                WellKnownMemberNames.DivisionOperatorName => "a / b",
+                WellKnownMemberNames.EqualityOperatorName => "a == b",
+                WellKnownMemberNames.ExclusiveOrOperatorName => "a ^ b",
+                WellKnownMemberNames.GreaterThanOperatorName => "a > b",
+                WellKnownMemberNames.GreaterThanOrEqualOperatorName => "a >= b",
+                WellKnownMemberNames.InequalityOperatorName => "a != b",
+                WellKnownMemberNames.LeftShiftOperatorName => "a << b",
+                WellKnownMemberNames.LessThanOperatorName => "a < b",
+                WellKnownMemberNames.LessThanOrEqualOperatorName => "a <= b",
+                WellKnownMemberNames.ModulusOperatorName => "a % b",
+                WellKnownMemberNames.MultiplyOperatorName => "a * b",
+                WellKnownMemberNames.RightShiftOperatorName => "a >> b",
+                WellKnownMemberNames.SubtractionOperatorName => "a - b",
+
+                // Unary
+                WellKnownMemberNames.DecrementOperatorName => "a--",
+                WellKnownMemberNames.FalseOperatorName => "false",
+                WellKnownMemberNames.IncrementOperatorName => "a++",
+                WellKnownMemberNames.LogicalNotOperatorName => "!a",
+                WellKnownMemberNames.OnesComplementOperatorName => "~a",
+                WellKnownMemberNames.TrueOperatorName => "true",
+                WellKnownMemberNames.UnaryNegationOperatorName => "-a",
+                WellKnownMemberNames.UnaryPlusOperatorName => "+a",
+
+                _ => throw ExceptionUtilities.UnexpectedValue(m.Name),
+            };
+        }
+
         internal static OperatorPosition GetOperatorPosition(this IMethodSymbol m)
         {
             switch (m.Name)

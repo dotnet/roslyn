@@ -255,5 +255,113 @@ public class Program
 }}
 ");
         }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(PrefixOperators))]
+        public async Task OperatorPrefixIsCompleted(string prefixOperator)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static C operator {prefixOperator}(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c.$$
+    }}
+}}
+", prefixOperator, @$"
+public class C
+{{
+    public static C operator {prefixOperator}(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        {prefixOperator}c.$$
+    }}
+}}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(PrefixOperators))]
+        public async Task OperatorDuplicateOperatorsAreListedBoth()
+        {
+            var items = await GetCompletionItemsAsync($@"
+public class C
+{{
+    public static C operator +(C _, C_) => default;
+    public static C operator +(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c.$$
+    }}
+}}
+", SourceCodeKind.Regular);
+            Assert.Collection(items,
+                i =>
+                {
+                    Assert.Equal("+", i.DisplayText);
+                    Assert.Equal("a + b", i.DisplayTextSuffix);
+                },
+                i =>
+                {
+                    Assert.Equal("+", i.DisplayText);
+                    Assert.Equal("+a", i.DisplayTextSuffix);
+                });
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(PrefixOperators))]
+        public async Task OperatorDuplicateOperatorsAreCompleted()
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static C operator +(C _, C_) => default;
+    public static C operator +(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c.$$
+    }}
+}}
+", "+", @$"
+public class C
+{{
+    public static C operator +(C _, C_) => default;
+    public static C operator +(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c + $$
+    }}
+}}
+");
+        }
     }
 }
