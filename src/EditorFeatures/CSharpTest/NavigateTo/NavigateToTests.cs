@@ -65,7 +65,7 @@ testHost, @"record Goo
 }", async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
-                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, "Record", Glyph.ClassInternal);
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
             });
         }
 
