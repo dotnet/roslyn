@@ -641,33 +641,6 @@ class Other
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void InitOnlyPropertyAssignmentAllowedInWithInitializer_Evaluation()
-        {
-            string source = @"
-record C
-{
-    private int field;
-    public int Property { get { return field; } init { field = value; System.Console.Write(""set ""); } }
-
-    public C Clone() { System.Console.Write(""clone ""); return this; }
-}
-
-class Other
-{
-    public static void Main()
-    {
-        var c = new C() with { Property = 42 };
-        System.Console.Write($""{c.Property}"");
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "clone set 42");
-        }
-
         [Fact]
         public void EvaluationInitOnlySetter()
         {
