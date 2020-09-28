@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private bool IsPropertyAccessorNameConflict(SyntaxToken token)
                 => IsGetPropertyAccessorNameConflict(token)
                 || IsSetPropertyAccessorNameConflict(token)
-                || IsSetPropertyAccessorNameConflict(token);
+                || IsInitPropertyAccessorNameConflict(token);
 
             private bool IsGetPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.GetKeyword)
