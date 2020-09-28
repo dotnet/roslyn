@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private bool IsPropertyAccessorNameConflict(SyntaxToken token)
                 => IsGetPropertyAccessorNameConflict(token)
+                || IsSetPropertyAccessorNameConflict(token)
                 || IsSetPropertyAccessorNameConflict(token);
 
             private bool IsGetPropertyAccessorNameConflict(SyntaxToken token)
@@ -268,6 +269,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private bool IsSetPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.SetKeyword)
                 && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
+
+            private bool IsInitPropertyAccessorNameConflict(SyntaxToken token)
+                => token.IsKind(SyntaxKind.InitKeyword)
+                && IsNameConflictWithProperty("init", token.Parent as AccessorDeclarationSyntax);
 
             private bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor)
                 => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
