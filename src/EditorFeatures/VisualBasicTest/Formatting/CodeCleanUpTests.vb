@@ -16,9 +16,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
     Public Class CodeCleanUpTests
 
+        ' Format Document tests are handled by Format Document Test
+
+        ' TESTS NEEDED but not found in C#
+        'Apply object preference initialization preferences
+        'Apply file header preferences
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
-        Public Function VisualBasicRemoveImports() As Task
+        Public Function VisualBasicRemoveUnusedImports() As Task
             Dim code = "Imports System.Collections.Generic
 Imports System
 Friend Class Program
@@ -68,9 +74,10 @@ End Class
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
-        <Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicGroupUsings() As Task
+            'Apply imports directive placement preference
             Dim code As String = "Imports M
 Imports System.IO
 Friend NotInheritable Class Program
@@ -114,9 +121,10 @@ End Namespace
             Return AssertCodeCleanupResultAsync(expected, code, systemImportsFirst:=False, separateImportsGroups:=True)
         End Function
 
-        <Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicSortAndGroupUsings() As Task
+            'Apply imports directive placement preference
             Dim code As String = "Imports M
 
 Imports System.IO
@@ -164,6 +172,7 @@ End Namespace
         <Fact(Skip:="IFixAllGetFixesService is missing")>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemoveUnusedVariable() As Task
+            'Remove unused variables
             Dim code As String = "Public Class Program
     Public Shared Sub Method()
         Dim i as integer
@@ -180,9 +189,9 @@ End Class
 
         <Fact(Skip:="Not implemented")>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
-        Public Function VisualBasicRemoveUnusedMember() As Task
+        Public Function VisualBasicRemovePrivateMemberIfUnused() As Task
             Dim code As String = "Friend Class Program
-    Private Sub Method()
+    Private Shared Sub Method()
     End Sub
 End Class
 "
@@ -194,7 +203,7 @@ End Class
 
         <Fact(Skip:="Not implemented")>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
-        Public Function VisualBasicFixAccessibilityModifiers() As Task
+        Public Function VisualBasicAddAccessibilityModifiers() As Task
             Dim code As String = "Class Program
     Public Shared Sub Method()
         Console.WriteLine(""Hello"")
@@ -206,6 +215,102 @@ End Class
             Console.WriteLine(""Hello"")
         End Sub
     End Class
+"
+            Return AssertCodeCleanupResultAsync(expected, code)
+        End Function
+
+        <Fact(Skip:="Not implemented")>
+        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
+        Public Function VisualBasicRemoveUnnecessaryCast() As Task
+            Dim code As String = "Public Class Program
+    Public Shared Sub Method()
+        Dim s as string = CStr(""Hello"")
+        Console.WriteLine(sX)
+    End Sub
+End Class
+"
+            Dim expected As String = "Public Class Program
+    Public Shared Sub Method()
+        Dim s as string = ""Hello""
+        Console.WriteLine(s)
+        End Sub
+    End Class
+"
+            Return AssertCodeCleanupResultAsync(expected, code)
+        End Function
+
+        <Fact(Skip:="Not implemented")>
+        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
+        Public Shared Function VisualBasicSortAccessibilityModifiers() As Task
+            Dim code As String = "Public Class Program
+    Shared Public Sub Method()
+        Console.WriteLine(""Hello"")
+    End Sub
+End Class
+"
+            Dim expected As String = "Public Class Program
+        Public Shared Sub Method()
+            Console.WriteLine(""Hello"")
+        End Sub
+    End Class
+"
+            Return AssertCodeCleanupResultAsync(expected, code)
+        End Function
+
+        <Fact(Skip:="Not implemented")>
+        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
+        Public Function VisualBasicMakePrivateFieldReadOnly() As Task
+            Dim code = "Friend Class Program
+    Private _a() As String
+
+    Public Sub New(args() As String)
+        If _a.Length = 0 Then Throw New ArgumentException(NameOf(_a))
+        _a = args
+    End Sub
+End Class"
+
+            Dim expected = "Friend Class Program
+    Private ReadOnly _a() As String
+
+    Public Sub New(args() As String)
+        If _a.Length = 0 Then Throw New ArgumentException(NameOf(_a))
+        _a = args
+    End Sub
+End Class"
+            Return AssertCodeCleanupResultAsync(expected, code)
+        End Function
+
+        ' TODO This test needs a way to set preference it currently does nothing
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
+        Public Shared Function VisualBasicApplyMeQualification() As Task
+            Dim code As String = "Public Class Program
+    Private _value As String
+
+    Public Sub Method()
+        _value = ""Hello""
+        Me.PrintHello()
+        PrintHello()
+    End Sub
+
+    Private Sub PrintHello()
+        Console.WriteLine(_value)
+    End Sub
+End Class
+"
+            Dim expected As String = "Public Class Program
+    Private _value As String
+
+    Public Sub Method()
+        _value = ""Hello""
+        Me.PrintHello()
+        PrintHello()
+    End Sub
+
+    Private Sub PrintHello()
+        Console.WriteLine(_value)
+    End Sub
+End Class
 "
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
@@ -225,11 +330,16 @@ End Class
             Dim workspace = TestWorkspace.CreateVisualBasic(code)
 
             Dim solution = workspace.CurrentSolution _
-            .WithOptions(workspace.Options _
-            .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst) _
-            .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)) _
-            .WithAnalyzerReferences({
-            New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)})
+                .WithOptions(workspace.Options _
+                .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
+                                   LanguageNames.VisualBasic,
+                                   systemImportsFirst) _
+                .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups,
+                                   LanguageNames.VisualBasic,
+                                   separateImportsGroups)) _
+                .WithAnalyzerReferences({
+                    New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
+                                        })
 
             workspace.TryApplyChanges(solution)
 
@@ -244,8 +354,10 @@ End Class
 
             Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
-            Dim newDoc = Await codeCleanupService.CleanupAsync(
-        document, enabledDiagnostics, New ProgressTracker, CancellationToken.None)
+            Dim newDoc = Await codeCleanupService.CleanupAsync(document,
+                                                               enabledDiagnostics,
+                                                               New ProgressTracker,
+                                                               CancellationToken.None)
 
             Dim actual = Await newDoc.GetTextAsync()
 
@@ -253,5 +365,4 @@ End Class
         End Function
 
     End Class
-
 End Namespace

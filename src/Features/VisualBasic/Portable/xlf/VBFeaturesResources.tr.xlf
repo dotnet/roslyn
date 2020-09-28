@@ -115,7 +115,7 @@
       <trans-unit id="Organize_Usings">
         <source>Organize_Imports</source>
         <target state="new">Organize_Imports</target>
-        <note>'Imports' is a VB keyword and should not be localized</note>
+        <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
-        <source>Remove unusedvariables</source>
-        <target state="new">Remove unusedvariables</target>
+        <source>Remove unused variables</source>
+        <target state="new">Remove unused variables</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">

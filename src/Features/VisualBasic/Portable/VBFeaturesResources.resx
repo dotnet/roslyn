@@ -1257,7 +1257,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize_Imports</value>
-    <comment>'Imports' is a VB keyword and should not be localized</comment>
+    <comment>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Remove_unnecessary_casts" xml:space="preserve">
     <value>Remove unnecessary casts</value>
@@ -1266,6 +1266,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Sort accessibility modifiers</value>
   </data>
   <data name="Remove_unused_variables" xml:space="preserve">
-    <value>Remove unusedvariables</value>
+    <value>Remove unused variables</value>
   </data>
 </root>
