@@ -15,13 +15,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    [ExportCompletionProvider(nameof(ConversionComplitionProvider), LanguageNames.CSharp), Shared]
+    [ExportCompletionProvider(nameof(ConversionCompletionProvider), LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
-    internal class ConversionComplitionProvider : OperatorIndexerCompletionProviderBase
+    internal class ConversionCompletionProvider : OperatorIndexerCompletionProviderBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConversionComplitionProvider()
+        public ConversionCompletionProvider()
         {
         }
 

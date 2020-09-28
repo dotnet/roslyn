@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(IndexerCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(ConversionComplitionProvider))]
+    [ExtensionOrder(After = nameof(ConversionCompletionProvider))]
     internal class IndexerCompletionProvider : OperatorIndexerCompletionProviderBase
     {
         [ImportingConstructor]

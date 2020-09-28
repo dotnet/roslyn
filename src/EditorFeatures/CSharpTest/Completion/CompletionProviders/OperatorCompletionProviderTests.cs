@@ -20,14 +20,14 @@ using System.Numerics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public class ConversionComplitionProviderTests : AbstractCSharpCompletionProviderTests
+    public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ConversionComplitionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public OperatorCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
         internal override Type GetCompletionProviderType()
-            => typeof(ConversionComplitionProvider);
+            => typeof(OperatorCompletionProvider);
 
         protected override string? ItemPartiallyWritten(string? expectedItemOrNull) =>
             expectedItemOrNull switch
