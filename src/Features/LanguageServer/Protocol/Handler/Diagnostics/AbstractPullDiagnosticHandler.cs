@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var diagnostics);
             foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
-                diagnostics.Add(ConvertDiagnostic(text, diagnostic));
+                diagnostics.Add(ConvertDiagnostic(document, text, diagnostic));
 
             var report = RecordDiagnosticReport(document, diagnostics.ToArray());
             Report(progress, reports, report);
@@ -199,11 +199,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documentToDiagnosticParams[document] = previousResult;
             }
         }
-        public static VSDiagnostic ConvertDiagnostic(SourceText text, DiagnosticData diagnosticData)
+        public static VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
 
+            var project = document.Project;
             return new VSDiagnostic
             {
                 Code = diagnosticData.Id,
@@ -212,6 +213,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
                 Tags = ConvertTags(diagnosticData),
                 DiagnosticType = diagnosticData.Category,
+                Projects = new[]
+                {
+                    new ProjectAndContext
+                    {
+                        ProjectIdentifier = project.Id.Id.ToString(),
+                        ProjectName = project.Name,
+                    },
+                },
             };
         }
 
