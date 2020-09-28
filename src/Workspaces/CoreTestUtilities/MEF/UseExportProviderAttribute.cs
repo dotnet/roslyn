@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
@@ -58,6 +59,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
         private MefHostServices? _hostServices;
+
+        static UseExportProviderAttribute()
+        {
+            // Make sure we run the module initializer for Roslyn.Test.Utilities. C# projects do this via a
+            // build-injected module initializer, but VB projects can ensure initialization occurs by applying the
+            // UseExportProviderAttribute to test classes that rely on it.
+            RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
+        }
 
         public override void Before(MethodInfo methodUnderTest)
         {

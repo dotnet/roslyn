@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9640,6 +9641,66 @@ class C
 }";
 
             await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}", changedOptionSet: changingOptions);
         }
     }
 }

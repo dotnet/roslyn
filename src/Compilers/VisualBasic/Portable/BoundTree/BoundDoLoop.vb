@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class BoundDoLoopStatement
+    Partial Friend Class BoundDoLoopStatement
         Implements IBoundConditionalLoop
 
         ''' <summary>

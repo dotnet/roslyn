@@ -4229,6 +4229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     consequenceConversion,
                     resultTypeWithAnnotations,
                     consequenceRValue,
+                    consequenceState,
                     consequenceEndReachable);
 
                 TypeWithState convertedAlternativeResult = convertResult(
@@ -4237,6 +4238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     alternativeConversion,
                     resultTypeWithAnnotations,
                     alternativeRValue,
+                    alternativeState,
                     alternativeEndReachable);
 
                 resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
@@ -4272,8 +4274,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion conversion,
                 TypeWithAnnotations targetType,
                 TypeWithState operandType,
+                LocalState state,
                 bool isReachable)
             {
+                var savedState = this.State;
+                this.State = state;
+
                 bool previousDisabledDiagnostics = _disableDiagnostics;
                 // If the node is not reachable, then we're only visiting to get
                 // nullability information for the public API, and not to produce diagnostics.
@@ -4301,6 +4307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = default;
                     _disableDiagnostics = previousDisabledDiagnostics;
                 }
+                this.State = savedState;
 
                 return resultType;
             }

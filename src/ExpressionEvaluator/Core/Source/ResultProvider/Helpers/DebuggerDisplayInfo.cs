@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly DebuggerDisplayItemInfo m_value;
         private readonly DebuggerDisplayItemInfo m_simpleValue;
 
-        private bool m_hasFavoritesInfo = false;
+        private readonly bool m_hasFavoritesInfo = false;
 
         public readonly DebuggerDisplayItemInfo Name;
         public readonly DebuggerDisplayItemInfo TypeName;

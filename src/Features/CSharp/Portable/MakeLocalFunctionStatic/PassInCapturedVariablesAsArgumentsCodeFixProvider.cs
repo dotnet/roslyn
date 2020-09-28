@@ -101,8 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             foreach (var localFunction in localFunctions)
             {
-
-                if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbolsAndCheckApplicability(localFunction, semanticModel, out var captures))
+                if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
                 {
                     await fixer(document, localFunction, captures).ConfigureAwait(false);
                 }

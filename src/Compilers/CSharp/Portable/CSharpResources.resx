@@ -6526,4 +6526,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
+  <data name="IDS_FeatureDiscards" xml:space="preserve">
+    <value>discards</value>
+  </data>
 </root>

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class SpecialMembers
     {
-        private readonly static ImmutableArray<MemberDescriptor> s_descriptors;
+        private static readonly ImmutableArray<MemberDescriptor> s_descriptors;
 
         static SpecialMembers()
         {

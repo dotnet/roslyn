@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class FieldSymbol
+    Partial Friend Class FieldSymbol
         Implements IFieldReference
         Implements IFieldDefinition
         Implements ITypeMemberReference

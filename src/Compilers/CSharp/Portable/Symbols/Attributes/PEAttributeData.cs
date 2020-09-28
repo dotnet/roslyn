@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal protected override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get
             {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get
             {

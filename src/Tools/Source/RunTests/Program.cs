@@ -21,6 +21,7 @@ namespace RunTests
         private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
             StringComparer.OrdinalIgnoreCase,
             "devenv",
+            "xunit.console",
             "xunit.console.x86");
 
         internal const int ExitSuccess = 0;
