@@ -199,6 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documentToDiagnosticParams[document] = previousResult;
             }
         }
+
         public static VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
