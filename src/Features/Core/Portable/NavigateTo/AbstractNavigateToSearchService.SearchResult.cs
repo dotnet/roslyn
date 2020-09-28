@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     switch (declaredSymbolInfo.Kind)
                     {
                         case DeclaredSymbolInfoKind.Class:
+                        case DeclaredSymbolInfoKind.Record:
                         case DeclaredSymbolInfoKind.Enum:
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:

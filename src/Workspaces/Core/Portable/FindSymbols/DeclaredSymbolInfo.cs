@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Module,
         Property,
         Struct,
+        Record,
     }
 
     internal readonly struct DeclaredSymbolInfo : IEquatable<DeclaredSymbolInfo>

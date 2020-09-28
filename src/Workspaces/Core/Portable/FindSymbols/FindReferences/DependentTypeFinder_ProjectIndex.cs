@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         switch (info.Kind)
                         {
+                            // TODO: Not sure what is the correct action for records.
                             case DeclaredSymbolInfoKind.Class:
                                 classesThatMayDeriveFromSystemObject.Add(document, info);
                                 break;
