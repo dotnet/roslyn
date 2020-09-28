@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="tr" original="../CodeFixesResources.resx">
     <body>
       <trans-unit id="AvoidAllocationByUsingArrayEmpty">
-        <source>Avoid allocation by using Array.Empty&lt;&gt;()</source>
-        <target state="new">Avoid allocation by using Array.Empty&lt;&gt;()</target>
+        <source>Avoid allocation by using 'Array.Empty&lt;T&gt;()'</source>
+        <target state="new">Avoid allocation by using 'Array.Empty&lt;T&gt;()'</target>
         <note />
       </trans-unit>
     </body>

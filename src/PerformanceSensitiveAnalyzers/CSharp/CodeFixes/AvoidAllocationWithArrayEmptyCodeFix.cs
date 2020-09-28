@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -57,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         private async Task TryToRegisterCodeFixesForReturnStatement(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-
             if (IsInsideMemberReturningEnumerable(node, semanticModel))
             {
                 TryRegisterCodeFix(context, node, diagnostic, node, semanticModel);
@@ -70,15 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             {
                 case ObjectCreationExpressionSyntax objectCreation:
                     {
-                        if (CanBeReplaceWithEnumerableEmpty(objectCreation, semanticModel))
+                        if (CanBeReplaceWithEnumerableEmpty(objectCreation, semanticModel) &&
+                            objectCreation.Type is GenericNameSyntax genericName)
                         {
-                            if (objectCreation.Type is GenericNameSyntax genericName)
-                            {
-                                var codeAction = CodeAction.Create(_title,
-                                    token => Transform(context.Document, node, genericName.TypeArgumentList.Arguments[0], token),
-                                    _title);
-                                context.RegisterCodeFix(codeAction, diagnostic);
-                            }
+                            var codeAction = CodeAction.Create(_title,
+                                token => Transform(context.Document, node, genericName.TypeArgumentList.Arguments[0], token),
+                                _title);
+                            context.RegisterCodeFix(codeAction, diagnostic);
                         }
                     }
                     break;
@@ -99,16 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         private static bool IsMethodInvocationParameter(SyntaxNode node) => node is ArgumentSyntax;
 
         private static bool IsReturnStatement(SyntaxNode node)
-        {
-            return node.Parent is ReturnStatementSyntax or YieldStatementSyntax or ArrowExpressionClauseSyntax;
-        }
+            => node.Parent is ReturnStatementSyntax or YieldStatementSyntax or ArrowExpressionClauseSyntax;
 
         private static bool IsInsideMemberReturningEnumerable(SyntaxNode node, SemanticModel semanticModel)
-        {
-            return IsInsideMethodReturningEnumerable(node, semanticModel) ||
-                   IsInsidePropertyDeclaration(node, semanticModel);
-
-        }
+            => IsInsideMethodReturningEnumerable(node, semanticModel) || IsInsidePropertyDeclaration(node, semanticModel);
 
         private static bool IsInsidePropertyDeclaration(SyntaxNode node, SemanticModel semanticModel)
         {
@@ -125,21 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         }
 
         private static bool IsArrowExpression(SyntaxNode node)
-        {
-            return node.FirstAncestorOrSelf<ArrowExpressionClauseSyntax>() != null;
-        }
+            => node.FirstAncestorOrSelf<ArrowExpressionClauseSyntax>() != null;
 
         private static bool CanBeReplaceWithEnumerableEmpty(ArrayCreationExpressionSyntax arrayCreation)
-        {
-            return IsInitializationBlockEmpty(arrayCreation.Initializer);
-        }
+            => IsInitializationBlockEmpty(arrayCreation.Initializer);
 
         private static bool CanBeReplaceWithEnumerableEmpty(ObjectCreationExpressionSyntax objectCreation, SemanticModel semanticModel)
-        {
-            return IsCollectionType(semanticModel, objectCreation) &&
-                   IsInitializationBlockEmpty(objectCreation.Initializer) &&
-                   IsCopyConstructor(semanticModel, objectCreation) == false;
-        }
+            => IsCollectionType(semanticModel, objectCreation) &&
+               IsInitializationBlockEmpty(objectCreation.Initializer) &&
+               IsCopyConstructor(semanticModel, objectCreation) == false;
 
         private static bool IsInsideMethodReturningEnumerable(SyntaxNode node, SemanticModel semanticModel)
         {
@@ -155,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             {
                 return contextDocument;
             }
+
             var syntaxRootAsync = await contextDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newSyntaxRoot = syntaxRootAsync.ReplaceNode(node.Parent, newNode);
             return contextDocument.WithSyntaxRoot(newSyntaxRoot);
@@ -177,64 +164,41 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         }
 
         private static bool IsCopyConstructor(SemanticModel semanticModel, ObjectCreationExpressionSyntax objectCreation)
-        {
-            if (objectCreation.ArgumentList == null || objectCreation.ArgumentList.Arguments.Count == 0)
-            {
-                return false;
-            }
-
-            if (semanticModel.GetSymbolInfo(objectCreation).Symbol is IMethodSymbol methodSymbol)
-            {
-                if (methodSymbol.Parameters.Any(x => x.Type is INamedTypeSymbol namedType && IsCollectionType(namedType)))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+            => objectCreation.ArgumentList?.Arguments.Count > 0 &&
+               semanticModel.GetSymbolInfo(objectCreation).Symbol is IMethodSymbol methodSymbol &&
+               methodSymbol.Parameters.Any(x => x.Type is INamedTypeSymbol namedType && ImplementsGenericICollectionInterface(namedType, semanticModel));
 
         private static bool IsInitializationBlockEmpty(InitializerExpressionSyntax initializer)
-        {
-            return initializer == null || initializer.Expressions.Count == 0;
-        }
+            => initializer == null || initializer.Expressions.Count == 0;
 
         private static bool IsCollectionType(SemanticModel semanticModel, ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
-        {
-            return semanticModel.GetTypeInfo(objectCreationExpressionSyntax).Type is INamedTypeSymbol createdType &&
-                   (createdType.TypeKind == TypeKind.Array || IsCollectionType(createdType));
-        }
+            => semanticModel.GetTypeInfo(objectCreationExpressionSyntax).Type is INamedTypeSymbol createdType &&
+               (createdType.TypeKind == TypeKind.Array || ImplementsGenericICollectionInterface(createdType, semanticModel));
 
-        private static bool IsCollectionType(INamedTypeSymbol typeSymbol)
+        private static bool ImplementsGenericICollectionInterface(INamedTypeSymbol typeSymbol, SemanticModel semanticModel)
         {
-            return typeSymbol.ConstructedFrom.Interfaces.Any(x =>
-                x.IsGenericType && x.ToString().StartsWith("System.Collections.Generic.ICollection", System.StringComparison.Ordinal));
+            var genericICollectionType = semanticModel.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
+            return typeSymbol.ConstructedFrom.Interfaces.Any(x => x.ConstructedFrom.Equals(genericICollectionType));
         }
 
         private static bool IsPropertyTypeReadonlySequence(SemanticModel semanticModel, PropertyDeclarationSyntax propertyDeclaration)
-        {
-            return IsTypeReadonlySequence(semanticModel, propertyDeclaration.Type);
-        }
+            => IsTypeReadonlySequence(semanticModel, propertyDeclaration.Type);
 
         private static bool IsReturnTypeReadonlySequence(SemanticModel semanticModel, MethodDeclarationSyntax methodDeclarationSyntax)
-        {
-            var typeSyntax = methodDeclarationSyntax.ReturnType;
-            return IsTypeReadonlySequence(semanticModel, typeSyntax);
-        }
+            => IsTypeReadonlySequence(semanticModel, methodDeclarationSyntax.ReturnType);
 
         private static bool IsExpectedParameterReadonlySequence(SyntaxNode node, SemanticModel semanticModel)
         {
             if (node is ArgumentSyntax argument && node.Parent is ArgumentListSyntax argumentList)
             {
                 var argumentIndex = argumentList.Arguments.IndexOf(argument);
-                if (semanticModel.GetSymbolInfo(argumentList.Parent).Symbol is IMethodSymbol methodSymbol)
+                if (semanticModel.GetSymbolInfo(argumentList.Parent).Symbol is IMethodSymbol methodSymbol &&
+                    methodSymbol.Parameters.Length > argumentIndex)
                 {
-                    if (methodSymbol.Parameters.Length > argumentIndex)
+                    var parameterType = methodSymbol.Parameters[argumentIndex].Type;
+                    if (IsTypeReadonlySequence(semanticModel, parameterType))
                     {
-                        var parameterType = methodSymbol.Parameters[argumentIndex].Type;
-                        if (IsTypeReadonlySequence(semanticModel, parameterType))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -255,18 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                 return true;
             }
 
-            if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
-            {
-                foreach (var readonlySequence in GetReadonlySequenceTypes(semanticModel))
-                {
-                    if (namedType.ConstructedFrom.Equals(readonlySequence))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return type is INamedTypeSymbol namedType &&
+                namedType.IsGenericType &&
+                GetReadonlySequenceTypes(semanticModel).Any(readonlySequence => namedType.ConstructedFrom.Equals(readonlySequence));
         }
 
         private static readonly ImmutableArray<string> _readonlySequenceTypeNames = ImmutableArray.Create(
@@ -275,9 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
 
         private static IEnumerable<INamedTypeSymbol?> GetReadonlySequenceTypes(SemanticModel semanticModel)
-        {
-            var provider = WellKnownTypeProvider.GetOrCreate(semanticModel.Compilation);
-            return _readonlySequenceTypeNames.Select(name => provider.GetOrCreateTypeByMetadataName(name));
-        }
+            => _readonlySequenceTypeNames.Select(name => semanticModel.Compilation.GetOrCreateTypeByMetadataName(name));
     }
 }
