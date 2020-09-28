@@ -41,24 +41,24 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return EqualsSlow(x, y);
+            return false; //EqualsSlow(x, y);
         }
 
-        private static bool EqualsSlow(object x, object y)
-        {
-            if (x is ISymbolInternal sx && y is ISymbolInternal sy)
-            {
-                return sx.Equals(sy, TypeCompareKind.ConsiderEverything);
-            }
-            else if (x is ISymbolCompareKindComparableInternal cx && y is ISymbolCompareKindComparableInternal cy)
-            {
-                return cx.Equals(cy, TypeCompareKind.ConsiderEverything);
-            }
-            else
-            {
-                return x.Equals(y);
-            }
-        }
+        //private static bool EqualsSlow(object x, object y)
+        //{
+        //    if (x is ISymbolInternal sx && y is ISymbolInternal sy)
+        //    {
+        //        return sx.Equals(sy, TypeCompareKind.ConsiderEverything);
+        //    }
+        //    else if (x is ISymbolCompareKindComparableInternal cx && y is ISymbolCompareKindComparableInternal cy)
+        //    {
+        //        return cx.Equals(cy, TypeCompareKind.ConsiderEverything);
+        //    }
+        //    else
+        //    {
+        //        return x.Equals(y);
+        //    }
+        //}
 
         public override bool Equals(object? obj) => false;
 
