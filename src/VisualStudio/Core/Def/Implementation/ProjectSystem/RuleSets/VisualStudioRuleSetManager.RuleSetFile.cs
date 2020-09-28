@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RuleSetFile : IRuleSetFile, IDisposable
         {
             private readonly VisualStudioRuleSetManager _ruleSetManager;
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             private FileChangeWatcher.IContext _fileChangeContext;
 

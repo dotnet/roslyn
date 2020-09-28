@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     {
-        internal static readonly CSharpSyntaxFacts Instance = new CSharpSyntaxFacts();
+        internal static readonly CSharpSyntaxFacts Instance = new();
 
         protected CSharpSyntaxFacts()
         {
@@ -571,6 +571,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
+
+        public SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
+            => ((MemberBindingExpressionSyntax)node).Name;
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;

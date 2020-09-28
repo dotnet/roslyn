@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 => Symbol.GetHashCode();
 
             public SymbolResult WithSymbol(INamespaceOrTypeSymbol other)
-                => new SymbolResult(other, Weight);
+                => new(other, Weight);
 
             public int CompareTo(SymbolResult other)
             {

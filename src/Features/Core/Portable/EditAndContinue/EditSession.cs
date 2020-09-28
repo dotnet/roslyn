@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed class EditSession : IDisposable
     {
-        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationSource = new();
 
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
@@ -51,15 +51,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private readonly Dictionary<DocumentId, (Document Document, AsyncLazy<DocumentAnalysisResults> Results)> _analyses
             = new Dictionary<DocumentId, (Document, AsyncLazy<DocumentAnalysisResults>)>();
-        private readonly object _analysesGuard = new object();
+        private readonly object _analysesGuard = new();
 
         /// <summary>
         /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
         /// the documents to clean up the diagnostics.
         /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new HashSet<DocumentId>();
-        private readonly object _documentsWithReportedDiagnosticsGuard = new object();
+        private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new();
+        private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
         private PendingSolutionUpdate? _pendingUpdate;
         private bool _changesApplied;

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         public RelatedLocation WithType(RelatedLocationType type)
-            => new RelatedLocation(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
+            => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
 
         public override bool Equals(object obj)
             => obj is RelatedLocation location && Equals(location);

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
 
                 private static readonly ConcurrentDictionary<string, PersistentNames> s_analyzerStateNameCache
-                    = new ConcurrentDictionary<string, PersistentNames>(concurrencyLevel: 2, capacity: 10);
+                    = new(concurrencyLevel: 2, capacity: 10);
 
                 private PersistentNames(string assemblyQualifiedName)
                 {

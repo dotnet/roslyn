@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     internal struct DiagnosticAnalysisResultMap<TKey, TValue>
         where TKey : notnull
     {
-        public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new DiagnosticAnalysisResultMap<TKey, TValue>(
+        public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(
             ImmutableDictionary<TKey, TValue>.Empty,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
 

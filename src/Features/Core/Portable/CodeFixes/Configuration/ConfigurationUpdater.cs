@@ -46,18 +46,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         //              "[*.{vb,cs}]"
         //              "[*]    ; Optional comment"
         //              "[ConsoleApp/Program.cs]"
-        private static readonly Regex s_headerPattern = new Regex(@"\[(\*|[^ #;\[\]]+\.({[^ #;{}\.\[\]]+}|[^ #;{}\.\[\]]+))\]\s*([#;].*)?");
+        private static readonly Regex s_headerPattern = new(@"\[(\*|[^ #;\[\]]+\.({[^ #;{}\.\[\]]+}|[^ #;{}\.\[\]]+))\]\s*([#;].*)?");
 
         // Regular expression for .editorconfig code style option entry.
         // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
-        private static readonly Regex s_optionBasedEntryPattern = new Regex(@"([\w ]+)=([\w, ]+):[ ]*([\w]+)([ ]*[;#].*)?");
+        private static readonly Regex s_optionBasedEntryPattern = new(@"([\w ]+)=([\w, ]+):[ ]*([\w]+)([ ]*[;#].*)?");
 
         // Regular expression for .editorconfig diagnostic severity configuration entry.
         // For example:
         //  1. "dotnet_diagnostic.CA2000.severity = suggestion   # Optional comment"
         //  2. "dotnet_analyzer_diagnostic.category-Security.severity = suggestion   # Optional comment"
         //  3. "dotnet_analyzer_diagnostic.severity = suggestion   # Optional comment"
-        private static readonly Regex s_severityBasedEntryPattern = new Regex(@"([\w- \.]+)=[ ]*([\w]+)([ ]*[;#].*)?");
+        private static readonly Regex s_severityBasedEntryPattern = new(@"([\w- \.]+)=[ ]*([\w]+)([ ]*[;#].*)?");
 
         private readonly string? _optionNameOpt;
         private readonly string? _newOptionValueOpt;

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private Task<NavigationBarModel> _modelTask;
         private NavigationBarModel _lastCompletedModel;
-        private CancellationTokenSource _modelTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _modelTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         }
 
         private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
-        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute what item should be selected.

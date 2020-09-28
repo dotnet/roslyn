@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        private SerializerService(HostWorkspaceServices workspaceServices)
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        private protected SerializerService(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
 

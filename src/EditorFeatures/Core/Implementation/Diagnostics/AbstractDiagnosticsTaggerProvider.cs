@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// we're tagging.
         /// </summary>
         private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot =
-            new ConditionalWeakTable<object, ITextSnapshot>();
+            new();
 
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,

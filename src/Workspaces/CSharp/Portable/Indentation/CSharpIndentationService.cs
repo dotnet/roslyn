@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     [ExportLanguageService(typeof(IIndentationService), LanguageNames.CSharp), Shared]
     internal sealed partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
-        public static readonly CSharpIndentationService Instance = new CSharpIndentationService();
+        public static readonly CSharpIndentationService Instance = new();
 
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 

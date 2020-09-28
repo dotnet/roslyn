@@ -553,6 +553,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
+        Public Function GetNameOfMemberBindingExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfMemberBindingExpression
+            ' Member bindings are a C# concept.
+            Return Nothing
+        End Function
+
         Public Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfElementAccessExpression
             Dim invocation = TryCast(node, InvocationExpressionSyntax)
             If invocation IsNot Nothing Then

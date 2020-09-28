@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForOperatorsHelper :
         UseExpressionBodyHelper<OperatorDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForOperatorsHelper Instance = new UseExpressionBodyForOperatorsHelper();
+        public static readonly UseExpressionBodyForOperatorsHelper Instance = new();
 
         private UseExpressionBodyForOperatorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,

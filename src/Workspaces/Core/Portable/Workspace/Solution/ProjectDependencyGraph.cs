@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
         // guards lazy computed data
-        private readonly NonReentrantLock _dataLock = new NonReentrantLock();
+        private readonly NonReentrantLock _dataLock = new();
 
         /// <summary>
         /// The lazily-initialized map of projects to projects which reference them. This field is either null, or
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
-        internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
+        internal static readonly ProjectDependencyGraph Empty = new(
             ImmutableHashSet<ProjectId>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

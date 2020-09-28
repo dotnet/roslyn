@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis
             public ArrayBuilder<T>.Enumerator GetEnumerator() => Builder.GetEnumerator();
 
             public static PooledArrayBuilder<T> GetInstance()
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance());
+                => new(ArrayBuilder<T>.GetInstance());
 
             public static PooledArrayBuilder<T> GetInstance(int capacity)
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance(capacity));
+                => new(ArrayBuilder<T>.GetInstance(capacity));
 
             public void AddValuesIfNotNull(IEnumerable<T> values)
             {

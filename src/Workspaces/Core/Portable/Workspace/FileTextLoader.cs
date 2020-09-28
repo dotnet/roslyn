@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// User can override default value by setting DWORD value on FileLengthThreshold in 
         /// "[VS HIVE]\Roslyn\Internal\Performance\Text"
         /// </summary>
-        internal static readonly Option<long> FileLengthThreshold = new Option<long>(nameof(FileTextLoaderOptions), nameof(FileLengthThreshold), defaultValue: 100 * 1024 * 1024,
+        internal static readonly Option<long> FileLengthThreshold = new(nameof(FileTextLoaderOptions), nameof(FileLengthThreshold), defaultValue: 100 * 1024 * 1024,
             storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\Text\FileLengthThreshold"));
     }
 

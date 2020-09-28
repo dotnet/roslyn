@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private class CompletionClosedEventSource : AbstractTaggerEventSource
         {
             private readonly IIntellisenseSessionStack _sessionStack;
-            private readonly HashSet<ICompletionSession> _trackedSessions = new HashSet<ICompletionSession>();
+            private readonly HashSet<ICompletionSession> _trackedSessions = new();
 
             public CompletionClosedEventSource(
                 IIntellisenseSessionStack sessionStack,

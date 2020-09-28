@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Simplification
             => annotation.Data;
 
         public static SyntaxAnnotation Create(string aliasName)
-            => new SyntaxAnnotation(Kind, aliasName);
+            => new(Kind, aliasName);
     }
 }

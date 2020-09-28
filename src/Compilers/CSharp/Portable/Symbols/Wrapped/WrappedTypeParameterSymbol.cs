@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal override void EnsureAllConstraintsAreResolved()
+        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
         {
-            _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
+            _underlyingTypeParameter.EnsureAllConstraintsAreResolved(canIgnoreNullableContext);
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

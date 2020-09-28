@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gate to guard all mutable fields in this class.
         /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// A hashed checksum of the last command line we were set to.  We use this

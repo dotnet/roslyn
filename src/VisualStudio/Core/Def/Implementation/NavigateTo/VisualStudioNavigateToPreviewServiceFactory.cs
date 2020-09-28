@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
     internal sealed class VisualStudioNavigateToPreviewServiceFactory : IWorkspaceServiceFactory
     {
         private readonly Lazy<INavigateToPreviewService> _singleton =
-            new Lazy<INavigateToPreviewService>(() => new VisualStudioNavigateToPreviewService());
+            new(() => new VisualStudioNavigateToPreviewService());
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

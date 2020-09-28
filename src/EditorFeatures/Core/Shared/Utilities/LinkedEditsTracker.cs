@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal class LinkedEditsTracker
     {
-        private static readonly object s_propagateSpansEditTag = new object();
+        private static readonly object s_propagateSpansEditTag = new();
 
         private readonly ITextBuffer _subjectBuffer;
 

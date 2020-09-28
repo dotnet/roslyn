@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class QualifiedCrefSimplifier : AbstractCSharpSimplifier<QualifiedCrefSyntax, CrefSyntax>
     {
-        public static readonly QualifiedCrefSimplifier Instance = new QualifiedCrefSimplifier();
+        public static readonly QualifiedCrefSimplifier Instance = new();
 
         private QualifiedCrefSimplifier()
         {

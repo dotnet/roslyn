@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal class ResettableDelay
     {
-        public static readonly ResettableDelay CompletedDelay = new ResettableDelay();
+        public static readonly ResettableDelay CompletedDelay = new();
 
         private readonly int _delayInMilliseconds;
         private readonly IExpeditableDelaySource _expeditableDelaySource;

@@ -620,4 +620,7 @@
   <data name="Edit_color_scheme" xml:space="preserve">
     <value>Edit color scheme</value>
   </data>
+  <data name="Prefer_implicit_object_creation_when_type_is_apparent" xml:space="preserve">
+    <value>Prefer implicit object creation when type is apparent</value>
+  </data>
 </root>

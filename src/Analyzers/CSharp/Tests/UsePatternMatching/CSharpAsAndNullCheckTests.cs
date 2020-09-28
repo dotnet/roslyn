@@ -1601,5 +1601,41 @@ class Program
     }
 }");
         }
+
+        [WorkItem(45596, "https://github.com/dotnet/roslyn/issues/45596")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingInUsingDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        using [|var|] x = o as IDisposable;
+        if (x != null)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(45596, "https://github.com/dotnet/roslyn/issues/45596")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingInUsingStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        using ([|var|] x = o as IDisposable)
+        {
+            if (x != null)
+            {
+            }
+        }
+    }
+}");
+        }
     }
 }

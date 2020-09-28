@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property CallingConventionTypes As ImmutableArray(Of INamedTypeSymbol) Implements IMethodSymbol.CallingConventionTypes
+        Private ReadOnly Property IMethodSymbol_UnmanagedCallingConventionTypes As ImmutableArray(Of INamedTypeSymbol) Implements IMethodSymbol.UnmanagedCallingConventionTypes
             Get
                 Return ImmutableArray(Of INamedTypeSymbol).Empty
             End Get

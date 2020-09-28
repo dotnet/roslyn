@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationNamespaceInfo
     {
         private static readonly ConditionalWeakTable<INamespaceSymbol, CodeGenerationNamespaceInfo> s_namespaceToInfoMap =
-            new ConditionalWeakTable<INamespaceSymbol, CodeGenerationNamespaceInfo>();
+            new();
 
         private readonly IList<ISymbol> _imports;
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private readonly IAsynchronousOperationListener _listener;
         private readonly ClassificationTypeMap _typeMap;
 
-        private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new ConditionalWeakTable<ITextBuffer, TagComputer>();
+        private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new();
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

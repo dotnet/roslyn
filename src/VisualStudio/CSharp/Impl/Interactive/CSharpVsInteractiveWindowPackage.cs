@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     internal sealed partial class CSharpVsInteractiveWindowPackage : VsInteractiveWindowPackage<CSharpVsInteractiveWindowProvider>
     {
         private const string IdString = "CA8CC5C7-0231-406A-95CD-AA5ED6AC0190";
-        internal static readonly Guid Id = new Guid(IdString);
+        internal static readonly Guid Id = new(IdString);
 
         protected override Guid ToolWindowId
         {
