@@ -415,11 +415,20 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
-        public async Task ResolveReferenceAssemblies_NetCoreApp50()
+        public async Task ResolveReferenceAssemblies_Net50()
         {
-            var referenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp50;
+#if NETCOREAPP1_1 || NET46
+            Assert.False(ReferenceAssemblies.TestAccessor.IsPackageBased("net5.0"));
+            Assert.ThrowsAny<NotSupportedException>(() => ReferenceAssemblies.Net.Net50);
+
+            // Avoid a warning for 'async' operator
+            await Task.Yield();
+#else
+            Assert.True(ReferenceAssemblies.TestAccessor.IsPackageBased("net5.0"));
+            var referenceAssemblies = ReferenceAssemblies.Net.Net50;
             var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
             Assert.NotEmpty(resolved);
+#endif
         }
 
         [Theory]
@@ -440,7 +449,9 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("netcoreapp2.1")]
         [InlineData("netcoreapp3.0")]
         [InlineData("netcoreapp3.1")]
-        [InlineData("netcoreapp5.0")]
+#if !(NETCOREAPP1_1 || NET46)
+        [InlineData("net5.0")]
+#endif
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
         [InlineData("netstandard1.2")]
@@ -489,7 +500,7 @@ class TestClass {
                 "netcoreapp2.1" => ReferenceAssemblies.NetCore.NetCoreApp21,
                 "netcoreapp3.0" => ReferenceAssemblies.NetCore.NetCoreApp30,
                 "netcoreapp3.1" => ReferenceAssemblies.NetCore.NetCoreApp31,
-                "netcoreapp5.0" => ReferenceAssemblies.NetCore.NetCoreApp50,
+                "net5.0" => ReferenceAssemblies.Net.Net50,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
