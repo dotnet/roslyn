@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     var accessor = (AccessorDeclarationSyntax)node;
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
