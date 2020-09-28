@@ -57,7 +57,7 @@ testHost, @"class Goo
 
         [Theory]
         [CombinatorialData]
-        public async Task FindClass(TestHost testHost)
+        public async Task FindRecord(TestHost testHost)
         {
             await TestAsync(
 testHost, @"record Goo
