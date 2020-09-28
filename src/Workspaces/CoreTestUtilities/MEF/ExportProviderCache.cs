@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -23,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
 
-        private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty.AddAssemblies(MefHostServices.DefaultAssemblies);
+        private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
+            .AddAssemblies(MefHostServices.DefaultAssemblies)
+            .AddParts(typeof(TestSerializerService.Factory));
 
         private static bool _enabled;
 
