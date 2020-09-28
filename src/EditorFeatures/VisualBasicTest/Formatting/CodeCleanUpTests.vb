@@ -320,8 +320,8 @@ End Class
         ''' </summary>
         ''' <param name="expected">The actual processed code to verify against.</param>
         ''' <param name="code">The input code to be processed and tested.</param>
-        ''' <param name="systemImportsFirst">Indicates whether <c><see cref="System"/>.*</c> '<c>using</c>' directives should preceded others. Default is <c>true</c>.</param>
-        ''' <param name="separateImportsGroups">Indicates whether '<c>using</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
+        ''' <param name="systemImportsFirst">Indicates whether <c><see cref="System"/>.*</c> '<c>Imports</c>' directives should preceded others. Default is <c>true</c>.</param>
+        ''' <param name="separateImportsGroups">Indicates whether '<c>Imports</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
         ''' <returns>The <see cref="Task"/> to test code cleanup.</returns>
         Private Protected Shared Async Function AssertCodeCleanupResultAsync(expected As String,
                                                                              code As String,
