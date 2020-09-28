@@ -26011,7 +26011,6 @@ public class Outer
         {
             var src = @"
 using System;
-using System.Text;
 
 public record R
 {
