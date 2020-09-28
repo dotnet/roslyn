@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                     sortText: $"{SortingPrefix}{sign}",
                                     symbols: ImmutableList.Create(m),
                                     rules: CompletionItemRules.Default,
-                                    contextPosition: position,
-                                    properties: CreateCompletionHandlerProperty(CompletionHandlerOperator));
+                                    contextPosition: position);
                 return operators;
             }
 

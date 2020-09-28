@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     sortText: $"{SortingPrefix}this",
                     symbols: indexers,
                     rules: CompletionItemRules.Default,
-                    contextPosition: position,
-                    properties: CreateCompletionHandlerProperty(CompletionHandlerIndexer));
+                    contextPosition: position);
                 yield return indexerCompletion;
             }
         }

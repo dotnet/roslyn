@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal abstract class OperatorIndexerCompletionProviderBase : LSPCompletionProvider
     {
-        protected const string MinimalTypeNamePropertyName = "MinimalTypeName";
-        protected const string CompletionHandlerPropertyName = "CompletionHandler";
-        protected const string CompletionHandlerConversion = "Conversion";
-        protected const string CompletionHandlerOperator = "Operator";
-        protected const string CompletionHandlerIndexer = "Indexer";
 
         // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of the type.
         // Identifier (of methods or properties) can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
@@ -54,11 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        protected static ImmutableDictionary<string, string> CreateCompletionHandlerProperty(string operation, params (string key, string value)[] additionalProperties)
+        protected static ImmutableDictionary<string, string> CreatePropertiesBag(params (string key, string value)[] properties)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder.Add(CompletionHandlerPropertyName, operation);
-            foreach (var (key, value) in additionalProperties)
+            foreach (var (key, value) in properties)
             {
                 builder.Add(key, value);
             }

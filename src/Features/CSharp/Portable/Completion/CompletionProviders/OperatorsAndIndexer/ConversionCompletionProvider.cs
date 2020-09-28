@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
     internal class ConversionCompletionProvider : OperatorIndexerCompletionProviderBase
     {
+        private const string MinimalTypeNamePropertyName = "MinimalTypeName";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ConversionCompletionProvider()
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              symbols: ImmutableList.Create(m),
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
-                                             properties: CreateCompletionHandlerProperty(CompletionHandlerConversion, (MinimalTypeNamePropertyName, typeName)));
+                                             properties: CreatePropertiesBag((MinimalTypeNamePropertyName, typeName)));
             return allExplicitConversions;
         }
 
