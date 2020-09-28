@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Unary
                 case WellKnownMemberNames.DecrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
-                    return OperatorPosition.Infix | OperatorPosition.Postfix;
+                    return OperatorPosition.Prefix | OperatorPosition.Postfix;
                 case WellKnownMemberNames.FalseOperatorName:
                 case WellKnownMemberNames.TrueOperatorName:
                     return OperatorPosition.None;

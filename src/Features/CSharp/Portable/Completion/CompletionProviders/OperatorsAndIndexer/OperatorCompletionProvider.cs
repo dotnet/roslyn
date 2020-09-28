@@ -138,12 +138,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Contract.ThrowIfFalse(symbol.IsUserDefinedOperator());
                 var operatorPosition = symbol.GetOperatorPosition();
                 var operatorSign = symbol.GetOperatorSignOfOperator();
-                if (operatorPosition == OperatorPosition.Infix)
+                if (operatorPosition.HasFlag(OperatorPosition.Infix))
                 {
                     var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, $" {operatorSign} ", 0, cancellationToken).ConfigureAwait(false);
                     if (change is not null)
                     {
                         return change;
+                    }
+                }
+                if (operatorPosition.HasFlag(OperatorPosition.Postfix))
+                {
+                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, $"{operatorSign} ", 0, cancellationToken).ConfigureAwait(false);
+                    if (change is not null)
+                    {
+                        return change;
+                    }
+                }
+                if (operatorPosition.HasFlag(OperatorPosition.Prefix))
+                {
+                    var position = SymbolCompletionItem.GetContextPosition(item);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
+                    var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
+                    if (rootExpression is not null)
+                    {
+                        var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, rootExpression.Span.End);
+                        var cursorPositionOffset = spanToReplace.End - position;
+                        var fromRootToParent = rootExpression.ToString();
+                        var prefixed = $"{operatorSign}{fromRootToParent}";
+                        var newPosition = spanToReplace.Start + prefixed.Length - cursorPositionOffset;
+                        return CompletionChange.Create(new TextChange(spanToReplace, prefixed), newPosition);
                     }
                 }
             }

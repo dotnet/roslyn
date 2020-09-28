@@ -51,6 +51,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "-" };
         }
 
+        private static IEnumerable<string[]> PostfixOperators()
+        {
+            yield return new[] { "++" };
+            yield return new[] { "--" };
+        }
+
+        private static IEnumerable<string[]> PrefixOperators()
+        {
+            yield return new[] { "!" };
+            yield return new[] { "~" };
+            yield return new[] { "-" };
+            yield return new[] { "+" };
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsSuggestedAfterDot()
@@ -201,6 +215,42 @@ public class Program
     {{
         var c = new C();
         c {binaryOperator} $$
+    }}
+}}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(PostfixOperators))]
+        public async Task OperatorPostfixIsCompleted(string postfixOperator)
+        {
+            await VerifyCustomCommitProviderAsync($@"
+public class C
+{{
+    public static C operator {postfixOperator}(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c.$$
+    }}
+}}
+", postfixOperator, @$"
+public class C
+{{
+    public static C operator {postfixOperator}(C _) => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        var c = new C();
+        c{postfixOperator} $$
     }}
 }}
 ");
