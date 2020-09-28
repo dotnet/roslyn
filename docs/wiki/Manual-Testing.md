@@ -131,6 +131,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Deconstruct tuple declaration** [Visual Studio 2017 version 15.4] | | | N/A |
 
 ### IDE Features
+
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
 | --- | --- | --- | --- | --- |
 | **General** | **Signature Help**<br />- Overloads shown with appropriate, colorized signature | | | |
@@ -142,7 +143,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | :mag: **Navigation Bars**<br />- Open some existing source files, make sure you can navigate around the file choosing classes or methods.<br />- Switch between project contexts<br />- In VB, the NavBar can do code generation for events and for New/Finalize methods | | | |
 | | **Metadata As Source**<br />- Press F12 on a predefined type and expect the cursor to move the predefined type definition inside a Metadata-As-Source Generated document.<br />- Expect to see the xml doc comments collapsed above the method. | | | N/A |
 | | **Navigate to Decompiled Source** [Visual Studio 2017 version 15.6 Preview 2]<br />- Set the option at `Tools -> Options -> Text Editor -> C# -> Advanced -> Enable navigation to decompiled sources (experimental)` <br />- F12 on a type defined in metadata<br />- You should see decompiled method bodies, not just declarations | | | N/A |
-| | :mag: **Navigate To**<br />- Place caret on a user defined Type reference and press "ctrl + ,"<br />- This should list the User Defined Type in the drop down on the Upper Right corner of the editor and selecting this item will move the cursor to the User Reference Definition<br />- Filters per kind of symbol [Visual Studio 2017]<br />- Results should be sorted as follows: [Visual Studio 2017 version 15.6 Preview 4]<br /><details><summary>Expand for details</summary>TODO</details> | | | |
+| | :mag: **Navigate To**<br />- Place caret on a user defined Type reference and press "ctrl + ,"<br />- This should list the User Defined Type in the drop down on the Upper Right corner of the editor and selecting this item will move the cursor to the User Reference Definition<br />- Filters per kind of symbol [Visual Studio 2017]<br />- Results should be sorted as follows: [Visual Studio 2017 version 15.6 Preview 4]<br /><details><summary>Expand for details</summary>TODO</details><br />- Records support in navigate to | | | |
 | | **Go to Next/Previous Method**<br />- `Edit.NextMethod` and `Edit.PreviousMethod` should work<br />- You may need to set up keyboard bindings for these commands under `Tools > Options > Environment > Keyboard` | | | N/A |
 | | **Solution Explorer Pivots**<br />- Define a Type and some members in a sample Document.<br />- Expand the Document listed in the Solution Explorer window and expect to see the Type and Members defined<br />- Right-click types and try Base Types / Derived Types / Is Used By / Implements<br /> - Right-click methods and try Calls / Is Called By / Is Used By / Implements | | | N/A |
 | | **Call Hierarchy**<br />- Place the caret over a method, right click & select View Hierarchy<br />- This should open the "Call Hierarchy window" listing the methods that call the original method and also the callsites within each calling method. | | | N/A |
