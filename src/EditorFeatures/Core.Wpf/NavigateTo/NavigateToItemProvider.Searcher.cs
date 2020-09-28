@@ -269,8 +269,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     _ => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
 
-
-
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
                 => matchKind switch
                 {
