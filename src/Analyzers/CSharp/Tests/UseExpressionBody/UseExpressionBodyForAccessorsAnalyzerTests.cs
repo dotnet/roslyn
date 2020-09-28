@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestAccessorListFormatting_FixAll/2()
+        public async Task TestAccessorListFormatting_FixAll2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
