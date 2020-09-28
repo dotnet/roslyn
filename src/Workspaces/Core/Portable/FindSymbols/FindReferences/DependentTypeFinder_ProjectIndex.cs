@@ -20,15 +20,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static readonly ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>> s_projectToIndex =
                 new();
 
-            public readonly MultiDictionary<Document, DeclaredSymbolInfo> ClassesThatMayDeriveFromSystemObject;
+            public readonly MultiDictionary<Document, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> ValueTypes;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> Enums;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> Delegates;
             public readonly MultiDictionary<string, (Document, DeclaredSymbolInfo)> NamedTypes;
 
-            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> classesThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
+            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
             {
-                ClassesThatMayDeriveFromSystemObject = classesThatMayDeriveFromSystemObject;
+                ClassesAndRecordsThatMayDeriveFromSystemObject = ClassesAndRecordsThatMayDeriveFromSystemObject;
                 ValueTypes = valueTypes;
                 Enums = enums;
                 Delegates = delegates;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private static async Task<ProjectIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
             {
-                var classesThatMayDeriveFromSystemObject = new MultiDictionary<Document, DeclaredSymbolInfo>();
+                var classesAndRecordsThatMayDeriveFromSystemObject = new MultiDictionary<Document, DeclaredSymbolInfo>();
                 var valueTypes = new MultiDictionary<Document, DeclaredSymbolInfo>();
                 var enums = new MultiDictionary<Document, DeclaredSymbolInfo>();
                 var delegates = new MultiDictionary<Document, DeclaredSymbolInfo>();
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         switch (info.Kind)
                         {
-                            // TODO: Not sure what is the correct action for records.
                             case DeclaredSymbolInfoKind.Class:
-                                classesThatMayDeriveFromSystemObject.Add(document, info);
+                            case DeclaredSymbolInfoKind.Record:
+                                classesAndRecordsThatMayDeriveFromSystemObject.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Enum:
                                 enums.Add(document, info);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                return new ProjectIndex(classesThatMayDeriveFromSystemObject, valueTypes, enums, delegates, namedTypes);
+                return new ProjectIndex(classesAndRecordsThatMayDeriveFromSystemObject, valueTypes, enums, delegates, namedTypes);
             }
         }
     }

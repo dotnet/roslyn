@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Method,
         Module,
         Property,
-        Struct,
         Record,
+        Struct,
     }
 
     internal readonly struct DeclaredSymbolInfo : IEquatable<DeclaredSymbolInfo>
