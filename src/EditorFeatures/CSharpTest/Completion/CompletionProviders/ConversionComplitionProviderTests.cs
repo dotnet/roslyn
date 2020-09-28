@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-            => typeof(OperatorIndexerCompletionProvider);
+            => typeof(ConversionComplitionProvider);
 
         protected override string? ItemPartiallyWritten(string? expectedItemOrNull) =>
             expectedItemOrNull switch
