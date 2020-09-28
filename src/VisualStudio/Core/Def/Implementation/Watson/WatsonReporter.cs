@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     {
         private static Dictionary<string, string>? s_capturedFileContent;
 
-        private static readonly object _guard = new object();
+        private static readonly object _guard = new();
         private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
         private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
 

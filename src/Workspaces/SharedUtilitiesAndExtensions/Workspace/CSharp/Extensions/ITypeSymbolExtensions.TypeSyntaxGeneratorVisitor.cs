@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             private readonly bool _nameOnly;
 
-            private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: true);
-            private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
+            private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
+            private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
 
             private TypeSyntaxGeneratorVisitor(bool nameOnly)
                 => _nameOnly = nameOnly;
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         System.Reflection.Metadata.SignatureCallingConvention.Unmanaged =>
                             // All types that come from CallingConventionTypes start with "CallConv". We don't want the prefix for the actual
                             // syntax, so strip it off
-                            symbol.Signature.CallingConventionTypes.IsEmpty
-                                ? null : symbol.Signature.CallingConventionTypes.Select(type => GetConventionForString(type.Name["CallConv".Length..])),
+                            symbol.Signature.UnmanagedCallingConventionTypes.IsEmpty
+                                ? null : symbol.Signature.UnmanagedCallingConventionTypes.Select(type => GetConventionForString(type.Name["CallConv".Length..])),
 
                         _ => throw ExceptionUtilities.UnexpectedValue(symbol.Signature.CallingConvention),
                     };

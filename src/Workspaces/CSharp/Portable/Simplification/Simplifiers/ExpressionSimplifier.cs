@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
     internal class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
     {
-        public static readonly ExpressionSimplifier Instance = new ExpressionSimplifier();
+        public static readonly ExpressionSimplifier Instance = new();
 
         private ExpressionSimplifier()
         {

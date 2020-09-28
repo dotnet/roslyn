@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private class ProjectIndex
         {
             private static readonly ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>> s_projectToIndex =
-                new ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>>();
+                new();
 
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> ClassesThatMayDeriveFromSystemObject;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> ValueTypes;

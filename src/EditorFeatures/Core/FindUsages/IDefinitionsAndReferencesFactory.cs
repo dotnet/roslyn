@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         public static DefinitionItem ToNonClassifiedDefinitionItem(

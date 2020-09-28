@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     {
-        internal static readonly CSharpSemanticFacts Instance = new CSharpSemanticFacts();
+        internal static readonly CSharpSemanticFacts Instance = new();
 
         private CSharpSemanticFacts()
         {

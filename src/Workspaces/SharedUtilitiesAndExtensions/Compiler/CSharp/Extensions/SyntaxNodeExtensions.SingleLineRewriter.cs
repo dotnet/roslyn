@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         internal class SingleLineRewriter : CSharpSyntaxRewriter
         {
-            private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
+            private static readonly Regex s_newlinePattern = new(@"[\r\n]+");
 
             private readonly bool _useElasticTrivia;
             private bool _lastTokenEndedInWhitespace;

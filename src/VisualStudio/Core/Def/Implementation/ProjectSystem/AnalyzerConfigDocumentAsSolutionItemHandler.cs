@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class AnalyzerConfigDocumentAsSolutionItemHandler : IDisposable
     {
         private static readonly string LocalRegistryPath = $@"Roslyn\Internal\{nameof(AnalyzerConfigDocumentAsSolutionItemHandler)}\";
-        private static readonly Option<bool> NeverShowAgain = new Option<bool>(nameof(AnalyzerConfigDocumentAsSolutionItemHandler), nameof(NeverShowAgain),
+        private static readonly Option<bool> NeverShowAgain = new(nameof(AnalyzerConfigDocumentAsSolutionItemHandler), nameof(NeverShowAgain),
             defaultValue: false, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
 
         private readonly VisualStudioWorkspace _workspace;

@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     caretPoint.Value.Position,
                     context.OperationContext.UserCancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
-                HandleResult(result, workspace, context);
+                HandleResult(result, document.Project.Solution, workspace, context);
 
                 return true;
             }
         }
 
-        private static void HandleResult(ChangeSignatureResult result, Workspace workspace, CommandExecutionContext context)
+        private static void HandleResult(ChangeSignatureResult result, Solution oldSolution, Workspace workspace, CommandExecutionContext context)
         {
             var notificationService = workspace.Services.GetRequiredService<INotificationService>();
             if (!result.Succeeded)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     result.Name,
                     result.Glyph.GetValueOrDefault(),
                     result.UpdatedSolution,
-                    document.Project.Solution);
+                    oldSolution);
             }
 
             if (finalSolution == null)

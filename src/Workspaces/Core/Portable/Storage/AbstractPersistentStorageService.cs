@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// This lock guards all mutable fields in this type.
         /// </summary>
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
         private SolutionId? _currentPersistentStorageSolutionId;
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

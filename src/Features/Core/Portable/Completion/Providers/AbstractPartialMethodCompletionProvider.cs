@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractPartialMethodCompletionProvider : AbstractMemberInsertingCompletionProvider
     {
         protected static readonly SymbolDisplayFormat SignatureDisplayFormat =
-                new SymbolDisplayFormat(
+                new(
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeParameters,

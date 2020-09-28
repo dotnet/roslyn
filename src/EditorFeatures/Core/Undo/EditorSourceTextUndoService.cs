@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
     [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
     internal sealed class EditorSourceTextUndoService : ISourceTextUndoService
     {
-        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new Dictionary<SourceText, SourceTextUndoTransaction>();
+        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new();
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 

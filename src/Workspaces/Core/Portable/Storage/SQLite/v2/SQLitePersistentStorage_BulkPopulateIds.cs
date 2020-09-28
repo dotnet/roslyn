@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<ProjectId, object> _projectBulkPopulatedLock = new ConcurrentDictionary<ProjectId, object>();
-        private readonly HashSet<ProjectId> _projectBulkPopulatedMap = new HashSet<ProjectId>();
+        private readonly ConcurrentDictionary<ProjectId, object> _projectBulkPopulatedLock = new();
+        private readonly HashSet<ProjectId> _projectBulkPopulatedMap = new();
 
         /// <remarks>
         /// We have a lot of ID information to put into the DB. IDs for all strings we intend to 

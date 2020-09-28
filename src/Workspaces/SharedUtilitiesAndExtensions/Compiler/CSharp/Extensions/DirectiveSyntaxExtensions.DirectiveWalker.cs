@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private readonly IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> _conditionalMap;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new Stack<DirectiveTriviaSyntax>();
-            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new Stack<DirectiveTriviaSyntax>();
+            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new();
+            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new();
 
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,

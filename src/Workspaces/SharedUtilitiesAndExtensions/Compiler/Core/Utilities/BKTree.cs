@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal partial class BKTree
     {
-        public static readonly BKTree Empty = new BKTree(
+        public static readonly BKTree Empty = new(
             Array.Empty<char>(),
             ImmutableArray<Node>.Empty,
             ImmutableArray<Edge>.Empty);

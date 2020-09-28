@@ -722,21 +722,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {
-            return provider?.IsGenerated(this, cancellationToken) ?? isGeneratedHeuristic();
+            return provider?.IsGenerated(this, cancellationToken) switch
+            {
+                null or GeneratedKind.Unknown => isGeneratedHeuristic(),
+                GeneratedKind kind => kind != GeneratedKind.NotGenerated
+            };
 
             bool isGeneratedHeuristic()
             {
-                if (_lazyIsGeneratedCode == ThreeState.Unknown)
+                if (_lazyIsGeneratedCode == GeneratedKind.Unknown)
                 {
                     // Create the generated code status on demand
                     bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
                             this,
                             isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
                             cancellationToken: default);
-                    _lazyIsGeneratedCode = isGenerated.ToThreeState();
+                    _lazyIsGeneratedCode = isGenerated ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
                 }
 
-                return _lazyIsGeneratedCode == ThreeState.True;
+                return _lazyIsGeneratedCode == GeneratedKind.MarkedGenerated;
             }
         }
 
@@ -744,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private CSharpPragmaWarningStateMap? _lazyPragmaWarningStateMap;
         private StrongBox<NullableContextStateMap>? _lazyNullableContextStateMap;
 
-        private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
+        private GeneratedKind _lazyIsGeneratedCode = GeneratedKind.Unknown;
 
         private LinePosition GetLinePosition(int position)
         {

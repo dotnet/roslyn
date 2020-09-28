@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxKinds : ISyntaxKinds
     {
-        public static readonly CSharpSyntaxKinds Instance = new CSharpSyntaxKinds();
+        public static readonly CSharpSyntaxKinds Instance = new();
 
         protected CSharpSyntaxKinds()
         {

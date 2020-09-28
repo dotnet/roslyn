@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     {
         internal const string TagId = "RenameTrackingTag";
 
-        public static readonly RenameTrackingTag Instance = new RenameTrackingTag();
+        public static readonly RenameTrackingTag Instance = new();
 
         private RenameTrackingTag()
             : base(TagId)

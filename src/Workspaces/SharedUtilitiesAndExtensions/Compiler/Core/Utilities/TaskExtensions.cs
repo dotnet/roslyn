@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
     internal static partial class TaskExtensions
     {
 #if DEBUG
-        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new Lazy<Func<Thread, bool>>(
+        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new(
             () =>
             {
                 var property = typeof(Thread).GetTypeInfo().GetDeclaredProperty("IsThreadPoolThread");

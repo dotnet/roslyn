@@ -963,17 +963,64 @@ namespace Microsoft.CodeAnalysis
                     // We pass it to the generators, which will realize any symbols they require. 
                     compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
-                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
-                    if (Arguments.AnalyzerConfigPaths.Length > 0)
-                    {
-                        var generatedSourceFileAnalyzerConfigOptions = generatedSyntaxTrees.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
-                        analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
-                            analyzerConfigProvider,
-                            generatedSyntaxTrees,
-                            generatedSourceFileAnalyzerConfigOptions);
-                    }
+                    bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
+                    bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
 
-                    embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
+                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
+
+                    var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
+                    var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
+                    try
+                    {
+                        foreach (var tree in generatedSyntaxTrees)
+                        {
+                            Debug.Assert(!string.IsNullOrWhiteSpace(tree.FilePath));
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var sourceText = tree.GetText(cancellationToken);
+
+                            // embed the generated text and get analyzer options for it if needed
+                            embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
+                            if (hasAnalyzerConfigs)
+                            {
+                                analyzerOptionsBuilder.Add(analyzerConfigSet.GetOptionsForSourcePath(tree.FilePath));
+                            }
+
+                            // write out the file if we have an output path
+                            if (hasGeneratedOutputPath)
+                            {
+                                var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory, tree.FilePath);
+                                if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+                                {
+                                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                                }
+
+                                var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                if (fileStream is object)
+                                {
+                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
+
+                                    sourceText.Write(writer, cancellationToken);
+                                    touchedFilesLogger?.AddWritten(path);
+                                }
+                            }
+                        }
+
+                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
+                        if (hasAnalyzerConfigs)
+                        {
+                            analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                               analyzerConfigProvider,
+                               generatedSyntaxTrees,
+                               analyzerOptionsBuilder.ToImmutable());
+                        }
+                    }
+                    finally
+                    {
+                        analyzerOptionsBuilder?.Free();
+                        embeddedTextBuilder.Free();
+                    }
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(

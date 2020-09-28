@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal sealed class LinkedFilesSymbolEquivalenceComparer : IEqualityComparer<ISymbol>
     {
-        public static readonly LinkedFilesSymbolEquivalenceComparer Instance = new LinkedFilesSymbolEquivalenceComparer();
+        public static readonly LinkedFilesSymbolEquivalenceComparer Instance = new();
 
         bool IEqualityComparer<ISymbol>.Equals(ISymbol x, ISymbol y)
             => x.Name == y.Name;

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const _VSFILECHANGEFLAGS DefaultFileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
-        private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(value: null);
+        private static readonly AsyncLazy<uint?> s_none = new(value: null);
 
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly string _filePath;
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// and easy to delete if this lock has contention itself. Given we tend to call <see cref="StartFileChangeListeningAsync"/> on the UI
         /// thread, I don't expect to see contention.
         /// </summary>
-        private static readonly object s_lastBackgroundTaskGate = new object();
+        private static readonly object s_lastBackgroundTaskGate = new();
 
         public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath, _VSFILECHANGEFLAGS fileChangeFlags = DefaultFileChangeFlags)
         {

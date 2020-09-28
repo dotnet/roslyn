@@ -6039,8 +6039,8 @@ namespace Nested
         {
             var xmlString = @"
 <Workspace>
-    <Project Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
-        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+    <Project Language=""C#"" LanguageVersion=""7.2"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""7.2"" CommonReferences=""true"">
             <Document FilePath=""ReferencedDocument"">
 public ref struct TestRef
 {

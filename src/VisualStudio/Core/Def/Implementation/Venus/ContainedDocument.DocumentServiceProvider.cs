@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
 
                 private static TextSpan GetSpanOnContent(TextSpan targetSpan, TextSpan excerptSpan)
-                    => new TextSpan(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
+                    => new(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
             }
         }
     }

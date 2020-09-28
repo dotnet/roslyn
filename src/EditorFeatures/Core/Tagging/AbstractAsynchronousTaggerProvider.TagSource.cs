@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
             /// set of tags for our view/buffer.
             /// </summary>
-            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new();
 
             public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
             public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;

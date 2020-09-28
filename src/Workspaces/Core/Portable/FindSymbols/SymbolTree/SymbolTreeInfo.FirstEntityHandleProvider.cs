@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private class FirstEntityHandleProvider : ISignatureTypeProvider<EntityHandle, object>
         {
-            public static readonly FirstEntityHandleProvider Instance = new FirstEntityHandleProvider();
+            public static readonly FirstEntityHandleProvider Instance = new();
 
             public EntityHandle GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle)
             {

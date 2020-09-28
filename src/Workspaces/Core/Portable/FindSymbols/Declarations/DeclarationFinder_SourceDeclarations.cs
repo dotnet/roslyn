@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static readonly SymbolDisplayFormat DottedNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 delegateStyle: SymbolDisplayDelegateStyle.NameOnly,

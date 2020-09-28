@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationConstructorInfo
     {
         private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo> s_constructorToInfoMap =
-            new ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo>();
+            new();
 
         private readonly bool _isUnsafe;
         private readonly string _typeName;

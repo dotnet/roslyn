@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ConsList<T> : IEnumerable<T>
     {
-        public static readonly ConsList<T> Empty = new ConsList<T>();
+        public static readonly ConsList<T> Empty = new();
 
         private readonly T? _head;
         private readonly ConsList<T>? _tail;

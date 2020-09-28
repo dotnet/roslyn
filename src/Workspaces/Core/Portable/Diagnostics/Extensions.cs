@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class Extensions
     {
-        public static readonly CultureInfo USCultureInfo = new CultureInfo("en-US");
+        public static readonly CultureInfo USCultureInfo = new("en-US");
 
         public static string? GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
         {

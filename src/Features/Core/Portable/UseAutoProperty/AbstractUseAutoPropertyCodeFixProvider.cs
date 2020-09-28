@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         where TConstructorDeclaration : SyntaxNode
         where TExpression : SyntaxNode
     {
-        protected static SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
+        protected static SyntaxAnnotation SpecializedFormattingAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseAutoPropertyDiagnosticId);

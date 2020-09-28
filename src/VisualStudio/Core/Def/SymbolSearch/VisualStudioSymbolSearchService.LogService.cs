@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private class LogService : ForegroundThreadAffinitizedObject, ISymbolSearchLogService
         {
-            private static readonly LinkedList<string> s_log = new LinkedList<string>();
+            private static readonly LinkedList<string> s_log = new();
 
             private readonly IVsActivityLog _activityLog;
 

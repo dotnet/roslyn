@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         private static readonly ChangeSignatureResult s_ChangeSignatureResultFailure = new ChangeSignatureResult(succeeded: false);
 
-        protected SyntaxAnnotation changeSignatureFormattingAnnotation = new SyntaxAnnotation("ChangeSignatureFormatting");
+        protected SyntaxAnnotation changeSignatureFormattingAnnotation = new("ChangeSignatureFormatting");
 
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
