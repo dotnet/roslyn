@@ -26004,5 +26004,38 @@ public class Outer
             CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
             compRelease.VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(48100, "https://github.com/dotnet/roslyn/issues/48100")]
+        public void Issue48100()
+        {
+            var src = @"
+using System;
+using System.Text;
+
+public record R
+{
+    public static R MyR { get; } = new();
+}
+    
+class Program
+{
+    public static R MyR2 = R.MyR;
+
+	static void Main(string[] args)
+    {
+	    Console.WriteLine(MyR2.ToString());
+	}
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "R { }", verify: Verification.Skipped /* init-only */);
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "R { }", verify: Verification.Skipped /* init-only */);
+            compRelease.VerifyEmitDiagnostics();
+        }
     }
 }
