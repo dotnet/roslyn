@@ -76,8 +76,8 @@ public class Program
                 c =>
                 {
                     Assert.Same(c, castCompletionItem);
-                    Assert.Equal("(float)", c.DisplayText);
-                    Assert.Equal("\uFFFDfloat", c.SortText);
+                    Assert.Equal("float", c.DisplayText);
+                    Assert.Equal("\uFFFD002float", c.SortText);
                     Assert.Equal("float", c.FilterText);
                 });
         }
@@ -100,7 +100,7 @@ public class Program
         c.$$
     }
 }
-", "(float)");
+", "float", displayTextSuffix: ")");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -122,7 +122,7 @@ public class Program
         c.fl$$
     }
 }
-", "(float)");
+", "float", displayTextSuffix: ")");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -141,7 +141,7 @@ public class Program
         public async Task ExplicitUserDefinedConversionDifferentExpressions(string expression, bool shouldSuggestConversion)
         {
             Func<string, string, Task> verifyFunc = shouldSuggestConversion
-                ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem)
+                ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: ")")
                 : (markup, expectedItem) => VerifyItemIsAbsentAsync(markup, expectedItem);
 
             await verifyFunc(@$"
@@ -158,15 +158,15 @@ public class Program
         {expression}
     }}
 }}
-", "(float)");
+", "float");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("", "(Nested1.C)", "(Nested2.C)")]
-        [InlineData("using N1.Nested1;", "(C)", "(Nested2.C)")]
-        [InlineData("using N1.Nested2;", "(C)", "(Nested1.C)")]
-        [InlineData("using N1.Nested1;using N1.Nested2;", "(Nested1.C)", "(Nested2.C)")]
+        [InlineData("", "Nested1.C", "Nested2.C")]
+        [InlineData("using N1.Nested1;", "C", "Nested2.C")]
+        [InlineData("using N1.Nested2;", "C", "Nested1.C")]
+        [InlineData("using N1.Nested1;using N1.Nested2;", "Nested1.C", "Nested2.C")]
         public async Task ExplicitUserDefinedConversionTypeDisplayStringIsMinimal(string usingDirective, string displayText1, string displayText2)
         {
             var items = await GetCompletionItemsAsync(@$"
@@ -234,8 +234,8 @@ public class Program
 }
 ", SourceCodeKind.Regular);
             Assert.Collection(items,
-                i => Assert.Equal("(float)", i.DisplayText),
-                i => Assert.Equal("(int)", i.DisplayText));
+                i => Assert.Equal("float", i.DisplayText),
+                i => Assert.Equal("int", i.DisplayText));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -319,7 +319,7 @@ public class Program
         c.$$
     }
 }
-", "(float)", @"
+", "float", @"
 public class C
 {
     public static explicit operator float(C c) => 0;
@@ -338,43 +338,43 @@ public class Program
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("white.$$", "(Black)",
+        [InlineData("white.$$", "Black",
            "((Black)white).$$")]
-        [InlineData("white.$$;", "(Black)",
+        [InlineData("white.$$;", "Black",
            "((Black)white).$$;")]
-        [InlineData("white.Bl$$", "(Black)",
+        [InlineData("white.Bl$$", "Black",
            "((Black)white).$$")]
-        [InlineData("white.Bl$$;", "(Black)",
+        [InlineData("white.Bl$$;", "Black",
            "((Black)white).$$;")]
-        [InlineData("white?.Bl$$;", "(Black)",
+        [InlineData("white?.Bl$$;", "Black",
            "((Black)white)?.$$;")]
-        [InlineData("white.$$Bl;", "(Black)",
+        [InlineData("white.$$Bl;", "Black",
            "((Black)white).$$Bl;")]
-        [InlineData("var f = white.$$;", "(Black)",
+        [InlineData("var f = white.$$;", "Black",
            "var f = ((Black)white).$$;")]
-        [InlineData("white?.$$", "(Black)",
+        [InlineData("white?.$$", "Black",
            "((Black)white)?.$$")]
-        [InlineData("white?.$$b", "(Black)",
+        [InlineData("white?.$$b", "Black",
            "((Black)white)?.$$b")]
-        [InlineData("white?.$$b.c()", "(Black)",
+        [InlineData("white?.$$b.c()", "Black",
            "((Black)white)?.$$b.c()")]
-        [InlineData("white?.$$b()", "(Black)",
+        [InlineData("white?.$$b()", "Black",
            "((Black)white)?.$$b()")]
-        [InlineData("white.Black?.$$", "(White)",
+        [InlineData("white.Black?.$$", "White",
            "((White)white.Black)?.$$")]
-        [InlineData("white.Black.$$", "(White)",
+        [InlineData("white.Black.$$", "White",
            "((White)white.Black).$$")]
-        [InlineData("white?.Black?.$$", "(White)",
+        [InlineData("white?.Black?.$$", "White",
            "((White)white?.Black)?.$$")]
-        [InlineData("white?.Black?.fl$$", "(White)",
+        [InlineData("white?.Black?.fl$$", "White",
            "((White)white?.Black)?.$$")]
-        [InlineData("white?.Black.fl$$", "(White)",
+        [InlineData("white?.Black.fl$$", "White",
            "((White)white?.Black).$$")]
-        [InlineData("white?.Black.White.Bl$$ack?.White", "(Black)",
+        [InlineData("white?.Black.White.Bl$$ack?.White", "Black",
            "((Black)white?.Black.White).$$?.White")]
-        [InlineData("((White)white).$$", "(Black)",
+        [InlineData("((White)white).$$", "Black",
            "((Black)((White)white)).$$")]
-        [InlineData("(true ? white : white).$$", "(Black)",
+        [InlineData("(true ? white : white).$$", "Black",
            "((Black)(true ? white : white)).$$")]
         public async Task ExplicitUserDefinedConversionIsAppliedForDifferentExpressions(string expression, string conversionOffering, string fixedCode)
         {
@@ -465,7 +465,7 @@ namespace N
         }}
     }}
 }}
-", $"({builtinType})", @$"
+", $"{builtinType}", @$"
 namespace N
 {{
     public class C
@@ -618,7 +618,7 @@ namespace N
         }}
     }}
 }}
-", $"({keyword}Class)", @$"
+", $"{keyword}Class", @$"
 namespace N
 {{
     public class {keyword}Class
@@ -664,7 +664,7 @@ public class Program
         }
     }
 }
-", "(D<int>)",
+", "D<int>",
 @"
 public class C<T>
 {
@@ -707,7 +707,7 @@ public class Program
         }
     }
 }
-", "(int[])",
+", "int[]",
 @"
 public class C
 {
@@ -750,7 +750,7 @@ public class Program
         {expression}
     }}
 }}
-", "(float)", @$"
+", "float", @$"
 public class C
 {{
     public static explicit operator float(C c) => 0;

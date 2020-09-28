@@ -317,12 +317,12 @@ public class Program
                 i =>
                 {
                     Assert.Equal("+", i.DisplayText);
-                    Assert.Equal("a + b", i.DisplayTextSuffix);
+                    Assert.EndsWith("+op_Addition", i.SortText);
                 },
                 i =>
                 {
                     Assert.Equal("+", i.DisplayText);
-                    Assert.Equal("+a", i.DisplayTextSuffix);
+                    Assert.EndsWith("+op_UnaryPlus", i.SortText);
                 });
         }
 

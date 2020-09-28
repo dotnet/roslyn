@@ -54,7 +54,7 @@ public class Program
         c.$$
     }
 }
-", "this[]");
+", "this", displayTextSuffix:"[]");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -75,7 +75,7 @@ public class Program
         c.$$
     }
 }
-", "this[]", @"
+", "this", @"
 public class C
 {
     public int this[int i] => i;
@@ -110,7 +110,7 @@ public class Program
         c.$$
     }
 }
-", "this[]", @"
+", "this", @"
 public class C
 {
     public int this[int x, int y] => i;
@@ -157,7 +157,7 @@ public class Program
         {expression}
     }}
 }}
-", "this[]", @$"
+", "this", @$"
 public class C
 {{
     public int this[int i] => i;
@@ -196,7 +196,7 @@ public class Program
 ", SourceCodeKind.Regular);
             Assert.Equal(1, completionItems.Length);
             var indexerCompletionItem = completionItems.Single();
-            Assert.Equal("this[]", indexerCompletionItem.DisplayText);
+            Assert.Equal("this", indexerCompletionItem.DisplayText);
             Assert.True(indexerCompletionItem.Properties.TryGetValue("Symbols", out var symbols));
             var symbolSplitted = symbols!.Split('|');
             Assert.Equal(2, symbolSplitted.Length);
