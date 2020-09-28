@@ -855,7 +855,7 @@ outerDefault:
             }
             else if (containingTypeMapOpt == null)
             {
-                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteDiagnostics))
+                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteInfo))
                 {
                     // Don't even add it to the result set.  We'll add only the most-overriding members.
                     return;
@@ -881,7 +881,7 @@ outerDefault:
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
-                        if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteDiagnostics))
+                        if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteInfo))
                         {
                             // Don't even add it to the result set.  We'll add only the most-overriding members.
                             return;
@@ -1040,10 +1040,10 @@ outerDefault:
             Symbol member,
             Symbol moreDerivedOverride,
             bool checkOverrideContainingType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (!moreDerivedOverride.IsOverride ||
-                checkOverrideContainingType && !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) ||
+                checkOverrideContainingType && !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref useSiteInfo) ||
                 !MemberSignatureComparer.SloppyOverrideComparer.Equals(member, moreDerivedOverride))
             {
                 // Easy out.
@@ -1069,7 +1069,7 @@ outerDefault:
             ArrayBuilder<TMember> members,
             TMember member,
             bool checkOverrideContainingType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
             if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
@@ -1084,7 +1084,7 @@ outerDefault:
 
             for (var i = 0; i < members.Count; ++i)
             {
-                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i], checkOverrideContainingType: checkOverrideContainingType, ref useSiteDiagnostics))
+                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i], checkOverrideContainingType: checkOverrideContainingType, ref useSiteInfo))
                 {
                     return true;
                 }

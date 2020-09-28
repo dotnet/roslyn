@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
                 ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                ReportUseSiteDiagnostics(bestMethod, diagnostics, node);
+                ReportUseSite(bestMethod, diagnostics, node);
             }
 
             result.Free();
@@ -1287,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
                 ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                ReportUseSiteDiagnostics(bestMethod, diagnostics, node);
+                ReportUseSite(bestMethod, diagnostics, node);
             }
 
             result.Free();
@@ -4012,7 +4012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             switch (operatorKind & BinaryOperatorKind.TypeMask)
             {
@@ -4023,7 +4023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             switch (operatorKind & UnaryOperatorKind.TypeMask)
             {

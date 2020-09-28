@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypedConstant value,
             bool isField,
             Location? location,
-            DiagnosticBag? diagnostics)
+            BindingDiagnosticBag? diagnostics)
         {
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
 
@@ -1010,20 +1010,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// bag if it is not null. <paramref name="location"/> and <paramref name="diagnostics"/> should both be null, or 
         /// neither should be null. If an error would be reported (whether or not diagnostics is null), true is returned.
         /// </summary>
-        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, DiagnosticBag? diagnostics)
+        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, BindingDiagnosticBag? diagnostics)
         {
             Debug.Assert((location == null) == (diagnostics == null));
 
             if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location!);
                 return true;
             }
 
             if (isGenericMethod(this) || ContainingType.IsGenericType)
             {
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location!);
                 return true;
             }
 

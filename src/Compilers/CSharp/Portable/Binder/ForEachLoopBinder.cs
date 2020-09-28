@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return EnumeratorResult.FailedNotReported;
 
-            EnumeratorResult createPatternBasedEnumeratorResult(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, bool isAsync, bool viaExtensionMethod, DiagnosticBag diagnostics)
+            EnumeratorResult createPatternBasedEnumeratorResult(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, bool isAsync, bool viaExtensionMethod, BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert((object)builder.GetEnumeratorMethod != null);
 
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private MethodSymbol FindForEachPatternMethodViaExtension(BoundExpression collectionExpr, string methodName, DiagnosticBag diagnostics)
+        private MethodSymbol FindForEachPatternMethodViaExtension(BoundExpression collectionExpr, string methodName, BindingDiagnosticBag diagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
@@ -1166,7 +1166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeArgumentsWithAnnotations: default,
                 isMethodGroupConversion: false,
                 returnRefKind: default,
-                returnType: null);
+                returnType: null,
+                withDependencies: diagnostics.AccumulatesDependencies);
 
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);
 

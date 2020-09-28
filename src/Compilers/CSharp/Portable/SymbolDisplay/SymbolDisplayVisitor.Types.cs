@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Copy of <see cref="SynthesizedRecordClone.FindValidCloneMethod(TypeSymbol, ref HashSet{DiagnosticInfo}?)"/>
+        /// Copy of <see cref="SynthesizedRecordClone.FindValidCloneMethod(TypeSymbol, ref CompoundUseSiteInfo{AssemblySymbol})"/>
         /// </summary>
         private static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
         {

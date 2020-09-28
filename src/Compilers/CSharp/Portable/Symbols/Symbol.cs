@@ -1051,17 +1051,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UseSiteInfo<AssemblySymbol> GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo()
+        private UseSiteInfo<AssemblySymbol> GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()
         {
             var useSiteInfo = new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty));
-            GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ref useSiteInfo);
+            GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ref useSiteInfo);
             return useSiteInfo;
         }
 
         internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
-            return (type.DefaultType.TypeKind != TypeKind.TypeParameter && DeriveUseSiteDiagnosticFromType(ref result, type.Type)) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
+            return (type.DefaultType.TypeKind != TypeKind.TypeParameter && DeriveUseSiteInfoFromType(ref result, type.Type)) ||
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 
         internal bool DeriveUseSiteInfoFromParameter(ref UseSiteInfo<AssemblySymbol> result, ParameterSymbol param)

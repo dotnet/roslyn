@@ -1940,7 +1940,7 @@ done:
             {
                 Debug.Assert(!Compilation.NullableSemanticAnalysisEnabled ||
                              _guardedNodeMap.ContainsKey(bindableRoot) ||
-                             _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
+                             _guardedNodeMap.ContainsKey(bind(bindableRoot, out _).Syntax));
                 return;
             }
 
