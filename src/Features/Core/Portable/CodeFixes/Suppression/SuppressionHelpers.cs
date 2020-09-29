@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal static class SuppressionHelpers
     {
         private const string SynthesizedExternalSourceDiagnosticTag = "SynthesizedExternalSourceDiagnostic";
-        public static readonly string[] SynthesizedExternalSourceDiagnosticCustomTags = new string[] { SynthesizedExternalSourceDiagnosticTag };
+        public static readonly ImmutableArray<string> SynthesizedExternalSourceDiagnosticCustomTags = ImmutableArray.Create(SynthesizedExternalSourceDiagnosticTag);
 
         public static bool CanBeSuppressed(Diagnostic diagnostic)
             => CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);

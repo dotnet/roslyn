@@ -427,7 +427,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),
-                    null,
+                    additionalLocations: default,
                     document.Project.Language,
                     diagnostic.Descriptor.Title.ToString(),
                     diagnostic.Descriptor.Description.ToString(),
