@@ -227,6 +227,11 @@
         <target state="translated">Удалить ненужное приведение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="new">Remove redundant equality</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
         <target state="translated">Удалить ненужные круглые скобки</target>

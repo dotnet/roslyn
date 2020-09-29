@@ -147,6 +147,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 
+        public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
