@@ -383,12 +383,12 @@ public class Program
                 i =>
                 {
                     Assert.Equal("+", i.DisplayText);
-                    Assert.EndsWith("+op_Addition", i.SortText);
+                    Assert.EndsWith("003007", i.SortText); // Addition
                 },
                 i =>
                 {
                     Assert.Equal("+", i.DisplayText);
-                    Assert.EndsWith("+op_UnaryPlus", i.SortText);
+                    Assert.EndsWith("003014", i.SortText); // unary plus
                 });
         }
 
