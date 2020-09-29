@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:

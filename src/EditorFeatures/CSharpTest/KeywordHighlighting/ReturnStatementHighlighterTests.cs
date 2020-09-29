@@ -322,6 +322,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestInInit()
+        {
+            await TestAsync(
+@"class C
+{
+    int P
+    {
+        get
+        {
+            return 0;
+            return 0;
+        }
+        init
+        {
+            {|Cursor:[|return|]|};
+            [|return|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestInAdder()
         {
             await TestAsync(
