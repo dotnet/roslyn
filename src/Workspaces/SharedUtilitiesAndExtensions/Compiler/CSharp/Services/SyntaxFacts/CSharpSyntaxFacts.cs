@@ -2012,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
-                    return DeclarationKind.SetAccessor;:
+                    return DeclarationKind.SetAccessor;
                 case SyntaxKind.AddAccessorDeclaration:
                     return DeclarationKind.AddAccessor;
                 case SyntaxKind.RemoveAccessorDeclaration:
