@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        public static VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
+        private static VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
