@@ -2008,7 +2008,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                         return DeclarationKind.Attribute;
                     }
                     break;
-                // Add InitAccessor once https://github.com/dotnet/roslyn/issues/48136 is resolved
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
