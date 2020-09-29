@@ -206,6 +206,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Do not treat this as a critical failure of the service for now and only fail in debug build.
                 Debug.Assert(cancellationToken.IsCancellationRequested);
 
+                // TODO: Workaround to avoid unexpected OCEs in tests (https://github.com/dotnet/roslyn/issues/48177)
+                if (cancellationToken == CancellationToken.None)
+                {
+                    return true;
+                }
+
                 return false;
             }
 
@@ -235,6 +241,12 @@ namespace Microsoft.CodeAnalysis.Remote
             // Throw cancellation exception if the cancellation token is signaled.
             // If it is not then show info to the user that the service is not available dure to shutdown.
             cancellationToken.ThrowIfCancellationRequested();
+
+            // TODO: Workaround to avoid unexpected OCEs in tests (https://github.com/dotnet/roslyn/issues/48177)
+            if (cancellationToken == CancellationToken.None)
+            {
+                return;
+            }
 
             if (_errorReportingService == null)
             {
