@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
-            // For the single document case, that is the one to process.
+            // For the single document case, that is the only doc we want to process.
+            //
+            // Note: context.Document may be null in the case where the client is asking about a document that we have
+            // since removed from the workspace.  In this case, we don't really have anything to process.
+            // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
             return context.Document == null ? ImmutableArray<Document>.Empty : ImmutableArray.Create(context.Document);
         }
 
