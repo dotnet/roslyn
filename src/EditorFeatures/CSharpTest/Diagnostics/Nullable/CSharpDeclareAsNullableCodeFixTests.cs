@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -380,6 +382,22 @@ partial class Program
     partial void M(out string x);
 
     partial void M(out string x)
+    {
+        x = [|null|];
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task CannotFixParameterOfExtendedPartialMethod_FromAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+partial class Program
+{
+    public partial void M(out string x);
+
+    public partial void M(out string x)
     {
         x = [|null|];
     }

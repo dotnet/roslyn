@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundTernaryConditionalExpression
+    Partial Friend Class BoundTernaryConditionalExpression
         Implements IBoundConditional
 
         Private ReadOnly Property IBoundConditional_Condition As BoundExpression Implements IBoundConditional.Condition

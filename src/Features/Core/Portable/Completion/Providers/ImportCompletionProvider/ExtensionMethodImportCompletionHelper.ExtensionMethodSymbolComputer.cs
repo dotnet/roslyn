@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -131,7 +129,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     symbols.AddRange(result);
                 }
 
-                return (symbols.ToImmutable(), isPartialResult);
+                var browsableSymbols = symbols.ToImmutable()
+                    .FilterToVisibleAndBrowsableSymbols(_originatingDocument.ShouldHideAdvancedMembers(), _originatingSemanticModel.Compilation);
+
+                return (browsableSymbols, isPartialResult);
             }
 
             // Returns all referenced projects and originating project itself.

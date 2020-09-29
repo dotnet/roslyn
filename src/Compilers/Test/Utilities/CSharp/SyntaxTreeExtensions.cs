@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private class CSharpSyntaxPrinter : CSharpSyntaxWalker
         {
-            PooledStringBuilder builder;
+            readonly PooledStringBuilder builder;
             int indent = 0;
 
             internal CSharpSyntaxPrinter()

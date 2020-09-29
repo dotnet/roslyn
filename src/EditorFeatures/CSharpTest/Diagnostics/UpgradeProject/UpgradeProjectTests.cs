@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -501,7 +503,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""800"">
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
 </Workspace>",
                 new[]
@@ -607,7 +609,7 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""800"">
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
@@ -878,7 +880,7 @@ class Test<T> where T : [|notnull|]
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test&lt;T&gt; where T : [|notnull|]
@@ -908,7 +910,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test
@@ -935,7 +937,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 delegate void D&lt;T&gt;() where T : [| notnull |];
@@ -966,7 +968,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test
@@ -980,6 +982,20 @@ class Test
     </Project>
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS9100()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+interface I2<out T1>
+{
+    static T1 M1([|T1|] x) => x;
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }

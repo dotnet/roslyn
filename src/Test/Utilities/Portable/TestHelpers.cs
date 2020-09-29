@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -96,7 +98,8 @@ namespace Roslyn.Test.Utilities
             object[] arguments = null,
             LinePosition? startLocation = null,
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
-            bool argumentOrderDoesNotMatter = false)
+            bool argumentOrderDoesNotMatter = false,
+            bool isSuppressed = false)
         {
             Debug.Assert(code is Microsoft.CodeAnalysis.CSharp.ErrorCode ||
                          code is Microsoft.CodeAnalysis.VisualBasic.ERRID ||
@@ -111,7 +114,8 @@ namespace Roslyn.Test.Utilities
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter,
-                code.GetType());
+                code.GetType(),
+                isSuppressed: isSuppressed);
         }
 
         internal static DiagnosticDescription Diagnostic(
@@ -120,7 +124,8 @@ namespace Roslyn.Test.Utilities
            object[] arguments = null,
            LinePosition? startLocation = null,
            Func<SyntaxNode, bool> syntaxNodePredicate = null,
-           bool argumentOrderDoesNotMatter = false)
+           bool argumentOrderDoesNotMatter = false,
+           bool isSuppressed = false)
         {
             return Diagnostic(
                 code,
@@ -128,7 +133,8 @@ namespace Roslyn.Test.Utilities
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter);
+                argumentOrderDoesNotMatter,
+                isSuppressed: isSuppressed);
         }
 
         public static string NormalizeNewLines(XCData data)

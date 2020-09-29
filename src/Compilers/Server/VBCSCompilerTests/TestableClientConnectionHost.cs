@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections.Generic;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         private readonly object _guard = new object();
         private TaskCompletionSource<IClientConnection>? _finalTaskCompletionSource;
-        private Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
+        private readonly Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
 
         public bool IsListening { get; set; }
 

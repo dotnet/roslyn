@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.Cci;
 using Roslyn.Utilities;
 using System;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _baseType = baseType;
         }
 
-        public abstract new ImmutableArray<MethodSymbol> Constructors { get; }
+        public new abstract ImmutableArray<MethodSymbol> Constructors { get; }
 
         public override int Arity => 0;
 

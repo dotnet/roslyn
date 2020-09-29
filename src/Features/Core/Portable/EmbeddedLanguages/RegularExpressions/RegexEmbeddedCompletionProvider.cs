@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -258,21 +260,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // we're providing the set of unicode categories that are legal there.
 
             var index = tree.Text.IndexOf(previousVirtualChar);
-            if (index >= 2 &&
-                tree.Text[index - 2] == '\\' &&
-                tree.Text[index - 1] == 'p')
+            if (index >= 2 && tree.Text[index - 2] == '\\')
             {
-                var slashChar = tree.Text[index - 1];
-                var result = FindToken(tree.Root, slashChar);
-                if (result == null)
+                var escapeChar = tree.Text[index - 1];
+                if (escapeChar == 'p' || escapeChar == 'P')
                 {
-                    return;
-                }
-
-                var (parent, _) = result.Value;
-                if (parent is RegexEscapeNode)
-                {
-                    ProvideEscapeCategoryCompletions(context);
+                    var token = FindToken(tree.Root, escapeChar);
+                    if (token?.parent is RegexEscapeNode)
+                        ProvideEscapeCategoryCompletions(context);
                 }
             }
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
 
-        private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
+        private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new(NonBlockingCompletion);
 
         // Use CWT to cache data needed to create VSCompletionItem, so the table would be cleared when Roslyn completion item cache is cleared.
         private static readonly ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>> s_roslynItemToVsItemData =
-            new ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>>();
+            new();
 
         private readonly ITextView _textView;
         private readonly bool _isDebuggerTextView;
@@ -220,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
+            session.Properties[TriggerLocation] = triggerLocation;
             return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, isExpanded: false, cancellationToken);
         }
 
@@ -306,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 foreach (var roslynItem in completionList.Items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var item = Convert(document, roslynItem, filterSet, triggerLocation);
+                    var item = Convert(document, roslynItem, filterSet);
                     itemsBuilder.Add(item);
                 }
 
@@ -435,8 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private VSCompletionItem Convert(
             Document document,
             RoslynCompletionItem roslynItem,
-            FilterSet filterSet,
-            SnapshotPoint triggerLocation)
+            FilterSet filterSet)
         {
             VSCompletionItemData itemData;
 
@@ -490,7 +492,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: itemData.AttributeIcons);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
-            item.Properties.AddProperty(TriggerLocation, triggerLocation);
 
             return item;
         }

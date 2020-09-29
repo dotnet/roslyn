@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,13 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(), triggerCharacter: "\0", triggerKind: LSP.CompletionTriggerKind.Invoked);
-            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, commitCharacters: new string[]
-                {
-                    " ", "{", "}", "[", "]", "(", ")", ".", ",", ":",
-                    ";", "+", "-", "*", "/", "%", "&", "|", "^", "!",
-                    "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\"
-                });
+            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, completionParams);
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -98,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(locations["caret"].Single(), triggerCharacter: "\0", LSP.CompletionTriggerKind.Invoked);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, preselect: true, commitCharacters: new string[] { "", "(", "[", "{" });
+                completionParams, preselect: true);
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -134,7 +130,8 @@ namespace M
         private static async Task<LSP.CompletionList> RunGetCompletionsAsync(Solution solution, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(queue, LSP.Methods.TextDocumentCompletionName,
                 completionParams, clientCapabilities, null, CancellationToken.None);
         }
     }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -1397,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
         /// </summary>
-        public Compilation? Compilation => _semanticModel?.Compilation;
+        public Compilation Compilation => _semanticModel?.Compilation ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Options specified for the analysis.

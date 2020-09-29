@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundInterpolatedStringExpression
+    Partial Friend Class BoundInterpolatedStringExpression
 
         Public ReadOnly Property HasInterpolations As Boolean
             Get

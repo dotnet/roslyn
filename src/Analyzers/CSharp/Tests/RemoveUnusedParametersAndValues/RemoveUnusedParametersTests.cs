@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -1529,6 +1531,50 @@ class C
     }
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_PrimaryConstructorParameter()
+        {
+            await TestMissingAsync(
+@"record A(int [|X|]);"
+);
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_NonPrimaryConstructorParameter()
+        {
+            await TestDiagnosticsAsync(
+@"record A
+{
+    public A(int [|X|])
+    {
+    }
+}
+",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_DelegatingPrimaryConstructorParameter()
+        {
+            await TestDiagnosticMissingAsync(
+@"record A(int X);
+record B(int X, int [|Y|]) : A(X);
+");
+        }
+
+        [WorkItem(47174, "https://github.com/dotnet/roslyn/issues/47174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RecordPrimaryConstructorParameter_PublicRecord()
+        {
+            await TestDiagnosticMissingAsync(
+@"public record Base(int I) { }
+public record Derived(string [|S|]) : Base(42) { }
+");
         }
     }
 }

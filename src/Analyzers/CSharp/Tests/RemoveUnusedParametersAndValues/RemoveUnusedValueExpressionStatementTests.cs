@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -446,8 +448,8 @@ $@"class C
 
     void M(int unused1, int unused2)
     {{
-        {fix2} = M2();
-        {fix3} = M2();           // Another instance in same code block
+        {fix3} = M2();
+        {fix2} = M2();           // Another instance in same code block
         _ = M2();       // Already fixed
         var x = M2();   // Different unused value diagnostic
     }}

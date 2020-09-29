@@ -2087,15 +2087,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Embedded trees shouldn't have any errors, let's avoid making decision if they should be added too early.
                 ' Otherwise IDE performance might be affect.
                 If Options.ConcurrentBuild Then
-                    Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                    Parallel.For(0, SyntaxTrees.Length, options, UICultureUtilities.WithCurrentUICulture(
-                        Sub(i As Integer)
-                            Try
+                    RoslynParallel.For(
+                        0,
+                        SyntaxTrees.Length,
+                        UICultureUtilities.WithCurrentUICulture(
+                            Sub(i As Integer)
                                 builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))
-                            Catch e As Exception When FatalError.ReportUnlessCanceled(e)
-                                Throw ExceptionUtilities.Unreachable
-                            End Try
-                        End Sub))
+                            End Sub),
+                        cancellationToken)
                 Else
                     For Each tree In SyntaxTrees
                         cancellationToken.ThrowIfCancellationRequested()

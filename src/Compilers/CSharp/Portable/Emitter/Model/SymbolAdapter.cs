@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Checks if this symbol is a definition and its containing module is a SourceModuleSymbol.
         /// </summary>
         [Conditional("DEBUG")]
-        internal protected void CheckDefinitionInvariant()
+        protected internal void CheckDefinitionInvariant()
         {
             // can't be generic instantiation
             Debug.Assert(this.IsDefinition);

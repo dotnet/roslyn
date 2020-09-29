@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 var accessorReferences = propertyReferences.WhereAsArray(
                     loc =>

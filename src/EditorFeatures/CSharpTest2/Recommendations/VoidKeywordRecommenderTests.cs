@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -771,6 +773,26 @@ class C
 class C
 {
     delegate*$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        public async Task TestAfterReadonlyInStruct()
+        {
+            await VerifyKeywordAsync(@"
+struct S
+{
+    public readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        public async Task TestNotAfterReadonlyInClass()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    public readonly $$");
         }
     }
 }

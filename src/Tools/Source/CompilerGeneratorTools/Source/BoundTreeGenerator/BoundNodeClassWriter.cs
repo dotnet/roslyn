@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -308,7 +310,7 @@ namespace BoundTreeGenerator
                             abstr = "MustInherit ";
                         else if (CanBeSealed(node))
                             abstr = "NotInheritable ";
-                        WriteLine("Friend {1}Partial Class {0}", node.Name, abstr);
+                        WriteLine("Partial Friend {1}Class {0}", node.Name, abstr);
                         Indent();
                         WriteLine("Inherits {0}", node.Base);
                         Blank();

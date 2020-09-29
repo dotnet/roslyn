@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -13,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Storage
         private const string Kind = nameof(Kind);
         private const string Reason = nameof(Reason);
 
-        private static readonly StorageDatabaseLogger Instance = new StorageDatabaseLogger();
+        private static readonly StorageDatabaseLogger Instance = new();
 
 #pragma warning disable IDE0052 // Remove unread private members - hold onto last exception to make investigation easier
         private Exception _reportedException;
         private string _reportedExceptionMessage;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        private readonly ConcurrentDictionary<Type, Exception> _set = new ConcurrentDictionary<Type, Exception>(concurrencyLevel: 2, capacity: 10);
+        private readonly ConcurrentDictionary<Type, Exception> _set = new(concurrencyLevel: 2, capacity: 10);
 
         internal static void LogException(Exception ex)
             => Instance.LogExceptionWorker(ex);

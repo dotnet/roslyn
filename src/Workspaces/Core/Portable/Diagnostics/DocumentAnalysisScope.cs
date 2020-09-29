@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public DocumentAnalysisScope WithSpan(TextSpan? span)
-            => new DocumentAnalysisScope(TextDocument, span, Analyzers, Kind);
+            => new(TextDocument, span, Analyzers, Kind);
 
         public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
-            => new DocumentAnalysisScope(TextDocument, Span, analyzers, Kind);
+            => new(TextDocument, Span, analyzers, Kind);
     }
 }

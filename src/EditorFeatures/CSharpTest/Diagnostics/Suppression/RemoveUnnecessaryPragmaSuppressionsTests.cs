@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -412,6 +410,33 @@ class Class
 |]", new TestParameters(options: options));
             }
 
+            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
+            {
+                var options = new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, "category: ExcludedCategory" }
+                };
+
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableAssignedButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+        int y;
+        y = 1;
+
+        int z = 1;
+        z++;
+    }}
+}}
+|]", new TestParameters(options: options));
+            }
+
             [Fact]
             public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
             {
@@ -493,9 +518,6 @@ class Class
             [Fact]
             public async Task TestRemoveDiagnosticSuppression_Attribute_Trivia()
             {
-                // This test should not remove Comment1 and DocComment.
-                // TODO: File a bug for SyntaxEditor.RemoveNode API removing doc comment and its preceeeding trivia.
-
                 await TestInRegularAndScript1Async(
         $@"
 class Class
@@ -516,6 +538,11 @@ class Class
         @"
 class Class
 {
+    // Comment1
+    /// <summary>
+    /// DocComment
+    /// </summary>
+    // Comment2
     // Comment4
     void M()
     {

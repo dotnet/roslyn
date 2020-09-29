@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11210,6 +11212,87 @@ switch (e)
                 }
                 EOF();
             }
+        }
+
+        [Fact, WorkItem(47614, "https://github.com/dotnet/roslyn/issues/47614")]
+        public void GenericTypeAsTypePatternInSwitchExpression()
+        {
+            UsingStatement(@"_ = e switch { List<X> => 1, List<Y> => 2, };",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Y");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
     }
 }

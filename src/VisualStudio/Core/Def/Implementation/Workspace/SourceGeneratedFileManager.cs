@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -20,6 +18,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -41,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsynchronousOperationListener _listener;
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+        private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Map of currently open generated files; the key is the generated full file path.
         /// </summary>
-        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new Dictionary<string, OpenSourceGeneratedFile>();
+        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new();
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
         [ImportingConstructor]
@@ -63,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace visualStudioWorkspace,
+            VisualStudioDocumentNavigationService visualStudioDocumentNavigationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = serviceProvider;
@@ -70,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _textDocumentFactoryService = textDocumentFactoryService;
             _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VisualStudioSourceGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
+            _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
             Directory.CreateDirectory(_temporaryDirectory);
 
@@ -98,8 +100,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // The file name we generate here is chosen to match the compiler's choice, so the debugger can recognize the files should match.
             // This can only be changed if the compiler changes the algorithm as well.
-            var temporaryFilePath = Path.Combine(projectDirectory, $"{generatorType.Module.ModuleVersionId}_{generatorType.FullName}_{generatedSourceHintName}");
-            File.WriteAllText(temporaryFilePath, "");
+            var temporaryFilePath = Path.Combine(projectDirectory, generatorType.Assembly.GetName().Name ?? string.Empty, generatorType.FullName, generatedSourceHintName);
+
+            // Don't write to the file if it's already there, as that potentially triggers a file reload
+            if (!File.Exists(temporaryFilePath))
+            {
+                File.WriteAllText(temporaryFilePath, "");
+            }
 
             var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
             var hr = openDocumentService.OpenDocumentViaProject(
@@ -114,41 +121,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 windowFrame.Show();
             }
+
+            // We should have the file now, so navigate to the right span
+            if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
+            {
+                openFile.NavigateToSpan(sourceSpan);
+            }
         }
 
         public bool TryParseGeneratedFilePath(
             string filePath,
             [NotNullWhen(true)] out ProjectId? projectId,
             [NotNullWhen(true)] out string? generatorTypeName,
+            [NotNullWhen(true)] out string? generatorAssemblyName,
             [NotNullWhen(true)] out string? generatedSourceHintName)
         {
             if (!filePath.StartsWith(_temporaryDirectory))
             {
                 projectId = null;
                 generatorTypeName = null;
+                generatorAssemblyName = null;
                 generatedSourceHintName = null;
                 return false;
             }
 
-            string fileName = Path.GetFileName(filePath);
-            string[] parts = fileName.Split(new[] { '_' }, count: 3);
+            var fileInfo = new FileInfo(filePath);
+            var generatorDir = fileInfo.Directory;
+            var assemblyDir = generatorDir.Parent;
+            var projectDir = assemblyDir.Parent;
 
-            generatorTypeName = parts[1];
-            generatedSourceHintName = parts[2];
+            generatorTypeName = generatorDir.Name;
+            generatorAssemblyName = assemblyDir.Name;
+            generatedSourceHintName = fileInfo.Name;
 
-            projectId = ProjectId.CreateFromSerialized(Guid.Parse(new FileInfo(filePath).Directory.Name));
+            projectId = ProjectId.CreateFromSerialized(Guid.Parse(projectDir.Name));
 
             return true;
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame)
         {
-            if (TryParseGeneratedFilePath(moniker, out var projectId, out var generatorTypeName, out var generatedSourceHintName))
+            if (TryParseGeneratedFilePath(moniker, out var projectId, out var generatorTypeName, out var generatorAssemblyName, out var generatedSourceHintName))
             {
                 // Attach to the text buffer if we haven't already
                 if (!_openFiles.TryGetValue(moniker, out OpenSourceGeneratedFile openFile))
                 {
-                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, projectId, generatorTypeName, generatedSourceHintName, _threadingContext);
+                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, projectId, generatorTypeName, generatorAssemblyName, generatedSourceHintName, _threadingContext);
                     _openFiles.Add(moniker, openFile);
                     _threadingContext.JoinableTaskFactory.Run(() => openFile.UpdateBufferContentsAsync(CancellationToken.None));
 
@@ -188,6 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly Workspace _workspace;
             private readonly ProjectId _projectId;
             private readonly string _generatorTypeName;
+            private readonly string _generatorAssemblyName;
             private readonly string _generatedSourceHintName;
 
             /// <summary>
@@ -201,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// A cancellation token used for any background updating of this file; this is cancelled on the UI thread
             /// when the file is closed.
             /// </summary>
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             /// <summary>
             /// A queue used to batch updates to the file.
@@ -220,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private ImageMoniker _currentWindowFrameImageMoniker = default;
             private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
 
-            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, ProjectId projectId, string generatorTypeName, string generatedSourceHintName, IThreadingContext threadingContext)
+            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, ProjectId projectId, string generatorTypeName, string generatorAssemblyName, string generatedSourceHintName, IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: true)
             {
                 _fileManager = fileManager;
@@ -228,6 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _workspace = workspace;
                 _projectId = projectId;
                 _generatorTypeName = generatorTypeName;
+                _generatorAssemblyName = generatorAssemblyName;
                 _generatedSourceHintName = generatedSourceHintName;
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
@@ -285,7 +305,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
 
                     var generatorDriverRunResults = await project.GetGeneratorDriverRunResultAsync(cancellationToken).ConfigureAwait(false);
-                    var generatorRunResult = generatorDriverRunResults?.Results.SingleOrNull(r => r.Generator.GetType().FullName == _generatorTypeName);
+                    var generatorRunResult = generatorDriverRunResults?.Results.SingleOrNull(r =>
+                                r.Generator.GetType().FullName.Equals(_generatorTypeName, StringComparison.OrdinalIgnoreCase) &&
+                                r.Generator.GetType().Assembly.GetName().Name.Equals(_generatorAssemblyName));
 
                     if (generatorRunResult == null)
                     {
@@ -424,6 +446,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameMessage = _windowFrameMessageToShow;
                 _currentWindowFrameImageMoniker = _windowFrameImageMonikerToShow;
                 _currentWindowFrameInfoBarElement = infoBarUI;
+            }
+
+            public void NavigateToSpan(TextSpan sourceSpan)
+            {
+                var sourceText = _textBuffer.CurrentSnapshot.AsText();
+                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan));
             }
         }
     }

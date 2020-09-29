@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 results.Add((responseChecksum, result));
             }
 
-            return results.ToImmutable();
+            return new(results.ToImmutable());
         }
     }
 }

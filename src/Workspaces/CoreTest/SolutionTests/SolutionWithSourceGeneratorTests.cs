@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -33,8 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     VersionStamp.Default,
                     name: "TestProject",
                     assemblyName: "TestProject",
-                    language: LanguageNames.CSharp,
-                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview))).Projects.Single();
+                    language: LanguageNames.CSharp)).Projects.Single();
         }
 
         [Theory]
@@ -62,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(originalCompilation, newCompilation);
             var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
-            Assert.Equal($"{typeof(GenerateFileForEachAdditionalFileWithContentsCommented).Module.ModuleVersionId}_{typeof(GenerateFileForEachAdditionalFileWithContentsCommented).FullName}_Test.generated.cs", Path.GetFileName(generatedTree.FilePath));
+            Assert.Equal("Microsoft.CodeAnalysis.Workspaces.UnitTests\\Microsoft.CodeAnalysis.UnitTests.SolutionWithSourceGeneratorTests+GenerateFileForEachAdditionalFileWithContentsCommented\\Test.generated.cs", generatedTree.FilePath);
         }
 
         [Fact]

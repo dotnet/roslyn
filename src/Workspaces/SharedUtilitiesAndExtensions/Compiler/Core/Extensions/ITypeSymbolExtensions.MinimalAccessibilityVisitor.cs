@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 // CallingConvention types are currently specced to always be public, but if that spec ever changes
                 // or the runtime creates special private types for it's own use, we'll be ready.
-                foreach (var callingConventionType in symbol.Signature.CallingConventionTypes)
+                foreach (var callingConventionType in symbol.Signature.UnmanagedCallingConventionTypes)
                 {
                     accessibility = AccessibilityUtilities.Minimum(accessibility, callingConventionType.Accept(this));
                 }

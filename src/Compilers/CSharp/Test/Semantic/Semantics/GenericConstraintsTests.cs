@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1827,7 +1829,7 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,39): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
+                // (1,39): error CS0449: The 'unmanaged' constraint cannot be combined with the 'class' constraint
                 // public class Test<T> where T : class, unmanaged {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 39));
 
@@ -1845,7 +1847,7 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
+                // (1,40): error CS0449: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
                 // public class Test<T> where T : struct, unmanaged {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 40));
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -339,6 +337,13 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = (TestWorkspace)solution.Workspace;
             return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+        }
+
+        private protected static RequestExecutionQueue CreateRequestQueue(Solution solution)
+        {
+            var workspace = (TestWorkspace)solution.Workspace;
+            var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
+            return new RequestExecutionQueue(solutionProvider);
         }
 
         private static string GetDocumentFilePathFromName(string documentName)
