@@ -117,6 +117,7 @@ class Bar
         #region "CompletionItem tests"
 
         [InlineData("class", (int)Glyph.ClassPublic)]
+        [InlineData("record", (int)Glyph.ClassPublic)]
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("enum", (int)Glyph.EnumPublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
@@ -145,6 +146,7 @@ namespace Baz
         }
 
         [InlineData("class", (int)Glyph.ClassPublic)]
+        [InlineData("record", (int)Glyph.ClassPublic)]
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("enum", (int)Glyph.EnumPublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
@@ -168,11 +170,12 @@ $$
         }
 
         [InlineData("class")]
+        [InlineData("record")]
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task DoNotShow_TopLevel_SmaeNamespace_InProject(string typeKind)
+        public async Task DoNotShow_TopLevel_SameNamespace_InProject(string typeKind)
         {
             var file1 = $@"
 namespace Foo
@@ -195,6 +198,7 @@ namespace Foo
         }
 
         [InlineData("class", (int)Glyph.ClassPublic)]
+        [InlineData("record", (int)Glyph.ClassPublic)]
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -227,6 +231,7 @@ namespace Baz
         }
 
         [InlineData("class")]
+        [InlineData("record")]
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
@@ -256,6 +261,7 @@ namespace Baz
         }
 
         [InlineData("class")]
+        [InlineData("record")]
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
@@ -293,6 +299,9 @@ namespace Foo
 {{
     public class Bar
     {{}}
+
+    public record Bar2
+    {{}}
 }}";
             var file2 = @"
 namespace Baz
@@ -304,6 +313,7 @@ namespace Baz
 }";
             var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar2", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -315,6 +325,9 @@ namespace Baz
 namespace Foo
 {{
     public class Bar
+    {{}}
+
+    public record Bar2
     {{}}
 }}";
             var file2 = @"
@@ -328,6 +341,7 @@ namespace Baz
 }";
             var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -340,6 +354,9 @@ namespace Foo
 {{
     internal class Bar
     {{}}
+
+    internal record Bar2
+    {{}}
 }}";
             var file2 = @"
 namespace Baz
@@ -351,6 +368,7 @@ namespace Baz
 }";
             var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
