@@ -10,12 +10,18 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveInKeyword
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveInKeyword)]
     public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveInKeywordCodeFixProviderTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new RemoveInKeywordCodeFixProvider());
 
