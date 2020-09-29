@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             internal bool CanGenerateParameter()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return ContainingMethod != null && !IsInMemberContext && !IsConstant;
+                return ContainingMethod != null && !ContainingMethod.IsImplicitlyDeclared && !IsInMemberContext && !IsConstant;
             }
 
             private bool TryInitializeExplicitInterface(
