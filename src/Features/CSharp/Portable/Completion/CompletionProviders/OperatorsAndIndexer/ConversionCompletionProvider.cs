@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -58,7 +57,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
                                              properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}")));
-            return allExplicitConversions.ToImmutableArray();
+            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
+            builder.AddRange(allExplicitConversions);
+            builder.AddRange(GetBuiltInNumericConversions(semanticModel, container, containerIsNullable, position));
+            return builder.ToImmutable();
+        }
+
+        private ImmutableArray<CompletionItem> GetBuiltInNumericConversions(SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
+        {
+            if (container.SpecialType == SpecialType.System_Decimal)
+            {
+                // Decimal is defined in the spec with integrated conversions, but is the only type that reports it's conversions as normal method symbols
+                return ImmutableArray<CompletionItem>.Empty;
+            }
+            var numericConversions = container.GetBuiltInNumericConversions();
+            if (numericConversions is not null)
+            {
+                var optionalNullableQuestionmark = containerIsNullable ? "?" : "";
+                var builtInNumericConversions = from specialType in numericConversions
+                                                let typeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
+                                                let typeName = typeSymbol.ToMinimalDisplayString(semanticModel, position)
+                                                select CommonCompletionItem.Create(
+                                                    displayTextPrefix: "(",
+                                                    displayText: typeName,
+                                                    displayTextSuffix: $"{optionalNullableQuestionmark})",
+                                                    filterText: typeName,
+                                                    sortText: SortText(typeName),
+                                                    glyph: typeSymbol.GetGlyph(),
+                                                    rules: CompletionItemRules.Default,
+                                                    properties: CreatePropertiesBag(
+                                                        (MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}"),
+                                                        ("ContextPosition", position.ToString())));
+                return builtInNumericConversions.ToImmutableArray();
+            }
+
+            return ImmutableArray<CompletionItem>.Empty;
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)

@@ -812,7 +812,7 @@ public class Program
 ");
         }
 
-        [WpfFact(Skip = "Built-in conversions are not returned by ITypeSymbol.GetAllMembers()"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         // built-in numeric conversions:
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
@@ -827,13 +827,71 @@ public class Program
         l.$$
     }
 }
-", "(int)", @"
+", "int", @"
 public class Program
 {
     public void Main()
     {
         long l = 0;
         ((int)l).$$
+    }
+}
+");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in numeric conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
+        [InlineData("sbyte", "byte", "char", "uint", "ulong", "ushort")]
+        [InlineData("byte", "char", "sbyte")]
+        [InlineData("short", "byte", "char", "sbyte", "uint", "ulong", "ushort")]
+        [InlineData("ushort", "byte", "char", "sbyte", "short")]
+        [InlineData("int", "byte", "char", "sbyte", "short", "uint", "ulong", "ushort")]
+        [InlineData("uint", "byte", "char", "int", "sbyte", "short", "ushort")]
+        [InlineData("long", "byte", "char", "int", "sbyte", "short", "uint", "ulong", "ushort")]
+        [InlineData("ulong", "byte", "char", "int", "long", "sbyte", "short", "uint", "ushort")]
+        [InlineData("char", "byte", "sbyte", "short")]
+        [InlineData("float", "byte", "char", "decimal", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
+        [InlineData("double", "byte", "char", "decimal", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
+        [InlineData("decimal", "byte", "char", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
+        public async Task ExplicitBuildInconversionsAreOfferedAcordingToSpec(string fromType, params string[] toTypes)
+        {
+            var items = await GetCompletionItemsAsync(@$"
+public class Program
+{{
+    public void Main()
+    {{
+        {fromType} i = default({fromType});
+        i.$$
+    }}
+}}
+", SourceCodeKind.Regular);
+            AssertEx.SetEqual(items.Select(i => i.DisplayText), toTypes);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in numeric conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
+        public async Task ExplicitBuildInconversionsAreLifted()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public class Program
+{
+    public void Main()
+    {
+        long? l = 0;
+        l.$$
+    }
+}
+", "int", @"
+public class Program
+{
+    public void Main()
+    {
+        long? l = 0;
+        ((int?)l).$$
     }
 }
 ");
