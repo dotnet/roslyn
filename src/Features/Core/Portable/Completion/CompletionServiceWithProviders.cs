@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     if (ShouldTriggerCompletion(document.Project, text, caretPosition, trigger, roles, options))
                     {
                         triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                        Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition));
+                        Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
                         if (triggeredProviders.Length == 0)
                         {
                             triggeredProviders = providers.ToImmutableArray();
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
-            Document document, SourceText text, int caretPosition)
+            Document document, SourceText text, int caretPosition, OptionSet optionSet)
         {
             // Only validate on insertion triggers.
             if (completionTriggerKind != CompletionTriggerKind.Insertion)
@@ -388,10 +388,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 // Only verify against built in providers.  3rd party ones do not necessarily implement the possible trigger characters API.
                 foreach (var provider in triggeredProviders)
                 {
-                    if (provider is LSPCompletionProvider lspProvider)
+                    if (provider is LSPCompletionProvider lspProvider && lspProvider.IsInsertionTrigger(text, caretPosition, optionSet))
                     {
-                        Debug.Assert(lspProvider.TriggerCharacters.Contains(character),
+                        if (!lspProvider.TriggerCharacters.Contains(character))
+                        {
+                            Debug.Assert(lspProvider.TriggerCharacters.Contains(character),
                             $"the character {character} is not a valid trigger character for {lspProvider.Name}");
+                        }
                     }
                 }
             }
