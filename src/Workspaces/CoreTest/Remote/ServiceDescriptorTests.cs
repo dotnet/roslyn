@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     public class ServiceDescriptorTests
     {
+        public static IEnumerable<object[]> ServiceTypes
+            => ServiceDescriptors.Descriptors.Select(descriptor => new object[] { descriptor.Key });
+
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
@@ -154,13 +157,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             AssertEx.Empty(errors, "Types are not MessagePack-serializable");
         }
 
-        [Fact]
-        public void GetFeatureName()
+        [Theory]
+        [MemberData(nameof(ServiceTypes))]
+        public void GetFeatureName(Type serviceType)
         {
-            foreach (var (serviceType, _) in ServiceDescriptors.Descriptors)
-            {
-                Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
-            }
+            Assert.NotEmpty(ServiceDescriptors.GetFeatureName(serviceType));
         }
     }
 }

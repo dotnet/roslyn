@@ -37,6 +37,11 @@
         <target state="new">Encapsulate field refactoring</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ErrorResponse">
+        <source>Error response</source>
+        <target state="new">Error response</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
         <target state="new">Extension method import completion</target>

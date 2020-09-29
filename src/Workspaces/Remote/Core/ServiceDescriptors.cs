@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
             CreateDescriptors(typeof(IRemoteDocumentHighlightsService)),
             CreateDescriptors(typeof(IRemoteEncapsulateFieldService)),
+            CreateDescriptors(typeof(IRemoteErrorResponseService)),
             CreateDescriptors(typeof(IRemoteRenamerService)),
             CreateDescriptors(typeof(IRemoteConvertTupleToStructCodeRefactoringService)),
             CreateDescriptors(typeof(IRemoteSymbolFinderService), callbackInterface: typeof(IRemoteSymbolFinderService.ICallback)),

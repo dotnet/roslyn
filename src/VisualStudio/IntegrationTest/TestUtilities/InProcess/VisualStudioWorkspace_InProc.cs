@@ -7,10 +7,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OperationProgress;
@@ -149,7 +151,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     messageBuilder.AppendLine().Append($"  {token}");
                 }
 
-                Environment.FailFast("Terminating test process due to unrecoverable timeout.", new TimeoutException(messageBuilder.ToString(), e));
+                // Instruct OOP to fail, then fail devenv
+                var workspace = GetComponentModel().DefaultExportProvider.GetExportedValue<VisualStudioWorkspace>();
+                var remoteHostClientProvider = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
+                var remoteHostClient = remoteHostClientProvider.TryGetRemoteHostClientAsync(CancellationToken.None).Result;
+                try
+                {
+                    remoteHostClient.TryInvokeAsync<IRemoteErrorResponseService>(
+                        (service, cancellationToken) => service.FailFastAsync("Terminating test process due to unrecoverable timeout.", cancellationToken),
+                        callbackTarget: null,
+                        CancellationToken.None).AsTask().Wait();
+                }
+                finally
+                {
+                    Environment.FailFast("Terminating test process due to unrecoverable timeout.", new TimeoutException(messageBuilder.ToString(), e));
+                }
             }
         }
 
