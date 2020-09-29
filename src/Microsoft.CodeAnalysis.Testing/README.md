@@ -4,7 +4,7 @@
 
 Separate packages are provided for each language and test framework.
 
-### MyGet feed for prerelease packages
+### Azure Packages feed for prerelease packages
 
 To reference prerelease packages, add a **NuGet.Config** file to your solution directory containing the following:
 
@@ -12,7 +12,7 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
-    <add key="roslyn-analyzers" value="https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json" />
+    <add key="dotnet5" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json" />
   </packageSources>
 </configuration>
 ```
@@ -107,7 +107,7 @@ properties:
 * `ExpectedDiagnostics`: the diagnostics expected to appear in the input source file
 * `FixedCode`: (code fix tests only) the single output source file produced by applying a code fix to the input
 * Other properties are set to their default values
- 
+
 #### Analyzer with no diagnostics
 
 ```csharp
