@@ -2359,7 +2359,24 @@ class C
     }
 }");
         }
-
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        public async Task TestRefactorRetainsComments()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||]int FooBar() //Vital Comment
+    {
+      return 1;
+    }
+}",
+@"class C
+{
+    //Vital Comment
+    int FooBar => 1;
+}");
+        }
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)

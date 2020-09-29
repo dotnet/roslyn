@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
-
+        int ParameterList { get; }
         #endregion
 
         #region other

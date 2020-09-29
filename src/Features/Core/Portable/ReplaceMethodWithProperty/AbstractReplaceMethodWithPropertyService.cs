@@ -47,12 +47,16 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration;
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
+            var finalLeadingTrivia = getAndSetMethods.GetMethodDeclaration.GetLeadingTrivia().ToList();
+
             if (setMethodDeclaration == null)
             {
-                return property.WithLeadingTrivia(getMethodDeclaration.GetLeadingTrivia());
+                if (getMethodDeclaration.ChildNodes().Any(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList && n.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t))))
+                {
+                    finalLeadingTrivia.AddRange(getMethodDeclaration.ChildNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList).First().GetTrailingTrivia());
+                }
+                return property.WithLeadingTrivia(finalLeadingTrivia);
             }
-
-            var finalLeadingTrivia = getAndSetMethods.GetMethodDeclaration.GetLeadingTrivia().ToList();
 
             finalLeadingTrivia.AddRange(
                 setMethodDeclaration.GetLeadingTrivia()
