@@ -1212,29 +1212,6 @@ Block[B2] - Exit
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr4()
-        {
-            var src = @"
-class B
-{
-    public B Clone() => null;
-}
-record C(int X) : B
-{
-    public static void Main()
-    {
-        var c = new C(0);
-        c = c with { };
-    }
-
-    public new C Clone() => null;
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
-        }
-
         [Fact]
         public void WithExpr6()
         {
@@ -1509,58 +1486,6 @@ record C(int X, int Y)
                 // (8,26): error CS1525: Invalid expression term '}'
                 //         c = c with { X = };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(8, 26)
-            );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr17()
-        {
-            var src = @"
-record B
-{
-    public int X { get; }
-    private B Clone() => null;
-}
-record C(int X) : B
-{
-    public static void Main()
-    {
-        var b = new B();
-        b = b with { };
-    }
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "Clone".
-                //         b = b with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
-            );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr18()
-        {
-            var src = @"
-class B
-{
-    public int X { get; }
-    protected B Clone() => null;
-}
-record C(int X) : B
-{
-    public static void Main()
-    {
-        var b = new B();
-        b = b with { };
-    }
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (12,13): error CS8803: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         b = b with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
             );
         }
 
@@ -7524,37 +7449,6 @@ class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExprStaticWithMethod2()
-        {
-            var src = @"
-class B
-{
-    public B Clone() => null;
-}
-class C : B
-{
-    public int X = 0;
-    public static new C Clone() => null; // static
-    public static void Main()
-    {
-        var c = new C();
-        c = c with { };
-        c = c with { X = 11 };
-    }
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (13,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
-                //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(13, 13),
-                // (14,22): error CS0117: 'B' does not contain a definition for 'X'
-                //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("B", "X").WithLocation(14, 22)
-            );
-        }
-
         [Fact]
         public void WithExprBadMemberBadType()
         {
@@ -7574,28 +7468,6 @@ record C
                 //         c = c with { X = "a" };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(8, 26)
             );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExprCloneReturnDifferent()
-        {
-            var src = @"
-class B
-{
-    public int X { get; init; }
-}
-class C : B
-{
-    public B Clone() => new B();
-    public static void Main()
-    {
-        var c = new C();
-        var b = c with { X = 0 };
-    }
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -8369,115 +8241,6 @@ record B(string? X) : A
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
             );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr_NullableAnalysis_NullableClone()
-        {
-            var src = @"
-#nullable enable
-
-record B(string? X)
-{
-    public B? Clone() => new B(X);
-
-    static void M1(B b1)
-    {
-        _ = b1 with { X = null }; // 1
-        (b1 with { X = null }).ToString(); // 2
-    }
-}
-";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (10,21): warning CS8602: Dereference of a possibly null reference.
-                //         _ = b1 with { X = null }; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(10, 21),
-                // (11,18): warning CS8602: Dereference of a possibly null reference.
-                //         (b1 with { X = null }).ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(11, 18));
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr_NullableAnalysis_MaybeNullClone()
-        {
-            var src = @"
-#nullable enable
-using System.Diagnostics.CodeAnalysis;
-
-record B(string? X)
-{
-    [return: MaybeNull]
-    public B Clone() => new B(X);
-
-    static void M1(B b1)
-    {
-        _ = b1 with { };
-        _ = b1 with { X = null }; // 1
-        (b1 with { X = null }).ToString(); // 2
-    }
-}
-";
-            var comp = CreateCompilation(new[] { src, MaybeNullAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (13,21): warning CS8602: Dereference of a possibly null reference.
-                //         _ = b1 with { X = null }; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(13, 21),
-                // (14,18): warning CS8602: Dereference of a possibly null reference.
-                //         (b1 with { X = null }).ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(14, 18));
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr_NullableAnalysis_NotNullClone()
-        {
-            var src = @"
-#nullable enable
-using System.Diagnostics.CodeAnalysis;
-
-record B(string? X)
-{
-    [return: NotNull]
-    public B? Clone() => new B(X);
-
-    static void M1(B b1)
-    {
-        _ = b1 with { };
-        _ = b1 with { X = null };
-        (b1 with { X = null }).ToString();
-    }
-}
-";
-            var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
-        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
-        public void WithExpr_NullableAnalysis_NullableClone_NoInitializers()
-        {
-            var src = @"
-#nullable enable
-
-record B(string? X)
-{
-    public B? Clone() => new B(X);
-
-    static void M1(B b1)
-    {
-        _ = b1 with { };
-        (b1 with { }).ToString(); // 1
-    }
-}
-";
-            var comp = CreateCompilation(src);
-            // Note: we expect to give a warning on `// 1`, but do not currently
-            // due to limitations of object initializer analysis.
-            // Tracking in https://github.com/dotnet/roslyn/issues/44759
-            comp.VerifyDiagnostics();
         }
 
         [Fact]
