@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -50,6 +51,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+        }
+
+        [Fact]
+        public async Task TestDiagnosticsRemovedAfterErrorIsFixed()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            // Calling GetTextBuffer will effectively open the file.
+            var buffer = workspace.Documents.Single().GetTextBuffer();
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+
+            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+
+            results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Empty(results[0].Diagnostics);
         }
 
         private static async Task<DiagnosticReport[]> RunGetDocumentPullDiagnosticsAsync(TestWorkspace workspace, Document document)
