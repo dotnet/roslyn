@@ -3165,6 +3165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
+                else
+                {
+                    size = BindToNaturalType(size, diagnostics);
+                }
 
                 return size;
             }
