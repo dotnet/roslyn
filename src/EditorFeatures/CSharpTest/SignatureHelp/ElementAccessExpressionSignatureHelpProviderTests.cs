@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
     public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
+        public ElementAccessExpressionSignatureHelpProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override Type GetSignatureHelpProviderType()
             => typeof(ElementAccessExpressionSignatureHelpProvider);
 
@@ -796,6 +801,10 @@ class C
 
         public class IncompleteElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
         {
+            public IncompleteElementAccessExpressionSignatureHelpProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+            {
+            }
+
             internal override Type GetSignatureHelpProviderType()
                 => typeof(ElementAccessExpressionSignatureHelpProvider);
 

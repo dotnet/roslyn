@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
         Inherits AbstractCompletionProviderTests(Of VisualBasicTestWorkspaceFixture)
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
         End Function

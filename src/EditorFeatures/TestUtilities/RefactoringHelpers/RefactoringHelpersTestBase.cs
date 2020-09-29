@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -19,13 +20,19 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 {
     [UseExportProvider]
-    public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase
+    public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
+        protected readonly TWorkspaceFixture fixture;
 
-        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
-            => _fixtureHelper.GetOrCreateFixture();
+        protected RefactoringHelpersTestBase(TWorkspaceFixture workspaceFixture)
+            => this.fixture = workspaceFixture;
+
+        public override void Dispose()
+        {
+            this.fixture.DisposeAfterTest();
+            base.Dispose();
+        }
 
         protected Task TestAsync<TNode>(string text) where TNode : SyntaxNode => TestAsync<TNode>(text, Functions<TNode>.True);
 
@@ -98,9 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 
         private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
+            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
             var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, CancellationToken.None).ConfigureAwait(false);
 
             return relevantNodes.FirstOrDefault(predicate);

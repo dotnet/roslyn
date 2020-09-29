@@ -16,11 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
     {
         private async Task TestDelegateAsync(string text, string expectedType)
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
             MarkupTestFile.GetSpan(text, out text, out var textSpan);
 
-            var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
+            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
 
             var root = await document.GetSyntaxRootAsync();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);

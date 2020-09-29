@@ -9,9 +9,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,6 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public TypeImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override Type GetCompletionProviderType()
             => typeof(TypeImportCompletionProvider);
 

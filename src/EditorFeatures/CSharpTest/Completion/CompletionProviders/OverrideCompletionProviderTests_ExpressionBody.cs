@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -17,6 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     // expression-body members. This class does the opposite.
     public class OverrideCompletionProviderTests_ExpressionBody : AbstractCSharpCompletionProviderTests
     {
+        public OverrideCompletionProviderTests_ExpressionBody(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 

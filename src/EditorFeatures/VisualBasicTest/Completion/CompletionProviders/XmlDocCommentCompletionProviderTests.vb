@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
@@ -11,6 +12,10 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 Namespace Tests
     Public Class XmlDocCommentCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
+
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(XmlDocCommentCompletionProvider)

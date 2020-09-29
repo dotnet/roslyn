@@ -59,20 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void Dispose()
         {
-            if (_workspace is null)
-                return;
-
-            try
+            if (_workspace != null)
             {
-                CloseTextView();
-                _currentDocument = null;
-                Code = null;
-                Position = 0;
-                _workspace?.Dispose();
-            }
-            finally
-            {
-                _workspace = null;
+                throw new InvalidOperationException($"Tests which use {nameof(TestWorkspaceFixture)}.{nameof(GetWorkspace)} must call {nameof(DisposeAfterTest)} after each test.");
             }
         }
 
@@ -100,6 +89,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
                 edit.Apply();
+            }
+        }
+
+        public void DisposeAfterTest()
+        {
+            try
+            {
+                CloseTextView();
+                _currentDocument = null;
+                Code = null;
+                Position = 0;
+                _workspace?.Dispose();
+            }
+            finally
+            {
+                _workspace = null;
             }
         }
 

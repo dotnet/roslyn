@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -23,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public DeclarationNameCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override Type GetCompletionProviderType()
             => typeof(DeclarationNameCompletionProvider);
 
@@ -1395,9 +1400,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
                 WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
 
@@ -1582,9 +1585,7 @@ public class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
@@ -1608,9 +1609,7 @@ class Configuration
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideMethod()
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
@@ -2007,9 +2006,7 @@ class ClassA
         [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 MultipleCamelCaseLocalRules())));
