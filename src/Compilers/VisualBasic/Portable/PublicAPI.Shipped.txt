@@ -3229,6 +3229,7 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSourceRefer
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSpecificDiagnosticOptions(value As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Microsoft.CodeAnalysis.ReportDiagnostic))) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSpecificDiagnosticOptions(value As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic)) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithStrongNameProvider(provider As Microsoft.CodeAnalysis.StrongNameProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSyntaxTreeOptionsProvider(provider As Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithXmlReferenceResolver(resolver As Microsoft.CodeAnalysis.XmlReferenceResolver) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.New() -> Void
