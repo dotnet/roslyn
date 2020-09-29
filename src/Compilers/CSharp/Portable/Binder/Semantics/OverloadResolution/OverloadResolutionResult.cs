@@ -470,16 +470,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are any supported candidates, we don't care about unsupported candidates.
             if (firstSupported.IsNotNull)
             {
+                if (firstSupported.Member is FunctionPointerMethodSymbol
+                    && firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter)
+                {
+                    int badArg = firstSupported.Result.BadArgumentsOpt[0];
+                    IdentifierNameSyntax badName = arguments.Names[badArg];
+                    Location location = new SourceLocation(badName);
+                    diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, location);
+                    return;
+                }
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
-                if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
+                else if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
                     && !isMethodGroupConversion
                     // Function pointer type symbols don't have named parameters, so we just want to report a general mismatched parameter
                     // count instead of name errors.
-                    // The only case we want this block to be entered for function pointers is if it's called with a named argument.
-                    // We have a special error for it (ERR_FunctionPointersCannotBeCalledWithNamedArguments) reported
-                    // in ReportNoCorrespondingNamedParameter.
-                    && (firstSupported.Member is not FunctionPointerMethodSymbol || firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter))
+                    && (firstSupported.Member is not FunctionPointerMethodSymbol))
                 {
                     switch (firstSupported.Result.Kind)
                     {
