@@ -6,6 +6,7 @@ abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.TryGetRoot(out Microsoft
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AsyncKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.Block.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.Arguments.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseCrefParameterListSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.Declaration.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
@@ -18,6 +19,9 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.AccessorList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.ExplicitInterfaceSpecifier.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
@@ -66,6 +70,7 @@ Microsoft.CodeAnalysis.CSharp.Conversion.Equals(Microsoft.CodeAnalysis.CSharp.Co
 Microsoft.CodeAnalysis.CSharp.Conversion.Exists.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsAnonymousFunction.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsBoxing.get -> bool
+Microsoft.CodeAnalysis.CSharp.Conversion.IsConditionalExpression.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsConstantExpression.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsDefaultLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsDynamic.get -> bool
@@ -158,6 +163,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithSourceReferenceResolv
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithSpecificDiagnosticOptions(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Microsoft.CodeAnalysis.ReportDiagnostic>> values) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithSpecificDiagnosticOptions(System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> values) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithStrongNameProvider(Microsoft.CodeAnalysis.StrongNameProvider provider) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
+Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithUsings(params string[] usings) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithUsings(System.Collections.Generic.IEnumerable<string> usings) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithUsings(System.Collections.Immutable.ImmutableArray<string> usings) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
@@ -284,24 +290,29 @@ Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.WithName(Microsoft
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AddBlockAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AddBlockStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.Body.get -> Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithBlock(Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddBlockAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddBlockStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.DelegateKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.ParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithBlock(Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithDelegateKeyword(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax.AddInitializers(params Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax
@@ -477,6 +488,12 @@ Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.WithNewK
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax.WithParameters(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.AddAccessorListAccessors(params Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax
@@ -823,6 +840,10 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.Type.get -> Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.WithDesignation(Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax.DefaultKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken defaultKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax.WithDefaultKeyword(Microsoft.CodeAnalysis.SyntaxToken defaultKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax.Keyword.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -1188,21 +1209,53 @@ Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax.WithFromKeyword(Microsoft.
 Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax.WithInKeyword(Microsoft.CodeAnalysis.SyntaxToken inKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.AddUnmanagedCallingConventionListCallingConventions(params Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.ManagedOrUnmanagedKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.UnmanagedCallingConventionList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken managedOrUnmanagedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax unmanagedCallingConventionList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.WithManagedOrUnmanagedKeyword(Microsoft.CodeAnalysis.SyntaxToken managedOrUnmanagedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.WithUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax unmanagedCallingConventionList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.GreaterThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.LessThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.WithGreaterThanToken(Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.WithLessThanToken(Microsoft.CodeAnalysis.SyntaxToken lessThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.WithParameters(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AsteriskToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.CallingConvention.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.CallingConvention.get -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.DelegateKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.GreaterThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.LessThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.ParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax callingConvention, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithAsteriskToken(Microsoft.CodeAnalysis.SyntaxToken asteriskToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithCallingConvention(Microsoft.CodeAnalysis.SyntaxToken callingConvention) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax callingConvention) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithDelegateKeyword(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithGreaterThanToken(Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithLessThanToken(Microsoft.CodeAnalysis.SyntaxToken lessThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithParameters(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.AddCallingConventions(params Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.CallingConventions.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.OpenBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.WithCallingConventions(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax> callingConventions) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.WithCloseBracketToken(Microsoft.CodeAnalysis.SyntaxToken closeBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.WithOpenBracketToken(Microsoft.CodeAnalysis.SyntaxToken openBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax.Name.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken name) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax.WithName(Microsoft.CodeAnalysis.SyntaxToken name) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax.AddTypeArgumentListArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax.IsUnboundGenericName.get -> bool
@@ -1468,11 +1521,13 @@ Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.WithStatement(Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AddBlockAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AddBlockStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithBlock(Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax.EqualsToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
@@ -1758,11 +1813,8 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax.WithParameters(Microsof
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Default.get -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
-Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax default) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.WithDefault(Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax default) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
@@ -1780,15 +1832,18 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.WithOpenParen
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AddBlockAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AddBlockStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.ParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithBlock(Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -2079,16 +2134,19 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.WithType(Microsoft.Cod
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddBlockAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddBlockStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddParameterAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddParameterModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Parameter.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithBlock(Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithParameter(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax
@@ -2726,6 +2784,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataKeyword = 8441 -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DecimalKeyword = 8315 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationExpression = 9040 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationPattern = 9000 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultConstraint = 9064 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultExpression = 8764 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultKeyword = 8333 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultLiteralExpression = 8755 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -2807,7 +2866,12 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ForKeyword = 8328 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ForStatement = 8811 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FromClause = 8776 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FromKeyword = 8422 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerCallingConvention = 9059 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerParameter = 9057 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerParameterList = 9058 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerType = 9056 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerUnmanagedCallingConvention = 9067 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerUnmanagedCallingConventionList = 9066 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GenericName = 8618 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GetAccessorDeclaration = 8896 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GetKeyword = 8417 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -2893,6 +2957,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.LogicalOrExpression = 8675 -> Microsoft
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LongKeyword = 8311 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MakeRefExpression = 8765 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MakeRefKeyword = 8367 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ManagedKeyword = 8445 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MemberBindingExpression = 8707 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MethodDeclaration = 8875 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MethodKeyword = 8413 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -3089,6 +3154,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.UndefDirectiveTrivia = 8555 -> Microsof
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UndefKeyword = 8472 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnderscoreToken = 8491 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnknownAccessorDeclaration = 8900 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnmanagedKeyword = 8446 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsafeKeyword = 8381 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsafeStatement = 8817 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UShortKeyword = 8308 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -3232,6 +3298,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitCrefParameter(M
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitCrefParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDefaultConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDefaultExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDefaultSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultSwitchLabelSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDefineDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.DefineDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -3265,7 +3332,12 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitForEachStatemen
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitForEachVariableStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitForStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFromClause(Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerParameter(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitGenericName(Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.GlobalStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitGotoStatement(Microsoft.CodeAnalysis.CSharp.Syntax.GotoStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -3439,6 +3511,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Ac
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AsyncKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Block.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -3576,6 +3649,8 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax.Accept
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.DefaultSwitchLabelSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -3717,8 +3792,21 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax.Accept<TResult>
 override Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 override Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -3887,6 +3975,9 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax.Accept<TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -3895,6 +3986,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSynta
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AsyncKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Block.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedVariableDesignationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -3997,6 +4089,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Arrow
 override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AsyncKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Block.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 override Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.SizeOfExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -4247,17 +4340,19 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.TryGetSpeculativeSemanticM
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.TryGetSpeculativeSemanticModelForMethodBody(this Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax method, out Microsoft.CodeAnalysis.SemanticModel speculativeModel) -> bool
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.VarianceKindFromToken(this Microsoft.CodeAnalysis.SyntaxToken node) -> Microsoft.CodeAnalysis.VarianceKind
 static Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions.Emit(this Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation, string outputPath, string pdbPath = null, string xmlDocumentationPath = null, string win32ResourcesPath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
+static Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.Create(params Microsoft.CodeAnalysis.ISourceGenerator[] generators) -> Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver
+static Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.Create(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISourceGenerator> generators, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AdditionalText> additionalTexts = null, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions parseOptions = null, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider optionsProvider = null) -> Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver
 static Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default.get -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.DeserializeFrom(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
-static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions = null, bool? isGeneratedCode = null) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Text.Encoding encoding, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, bool? isGeneratedCode) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Text.Encoding encoding, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Text.Encoding encoding) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions = null, bool? isGeneratedCode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, bool? isGeneratedCode, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions = null, bool? isGeneratedCode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Text.Encoding encoding, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, bool? isGeneratedCode, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Text.Encoding encoding, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options, string path, System.Text.Encoding encoding, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> string
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
@@ -4303,6 +4398,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Mic
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousObjectCreationExpression(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousObjectCreationExpression(Microsoft.CodeAnalysis.SyntaxToken newKeyword, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousObjectMemberDeclarator(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax
@@ -4440,6 +4536,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameterList(Microsoft.C
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameterList(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax designation) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DefaultConstraint() -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DefaultConstraint(Microsoft.CodeAnalysis.SyntaxToken defaultKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DefaultExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DefaultExpression(Microsoft.CodeAnalysis.SyntaxToken keyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DefaultSwitchLabel() -> Microsoft.CodeAnalysis.CSharp.Syntax.DefaultSwitchLabelSyntax
@@ -4560,9 +4658,18 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FromClause(Microsoft.CodeAnal
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FromClause(Microsoft.CodeAnalysis.SyntaxToken fromKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.SyntaxToken inKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FromClause(Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FromClause(string identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerCallingConvention(Microsoft.CodeAnalysis.SyntaxToken managedOrUnmanagedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax unmanagedCallingConventionList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerCallingConvention(Microsoft.CodeAnalysis.SyntaxToken managedOrUnmanagedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerParameter(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerParameter(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerParameterList(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax> parameters = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerParameterList(Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType() -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax callingConvention, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax callingConvention, Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax parameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.SyntaxToken name) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax> callingConventions = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.GenericName(Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.TypeArgumentListSyntax typeArgumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.GenericName(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.GenericName(string identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax
@@ -4761,6 +4868,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedVariableDesignation(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax> variables = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDesignationSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedVariableDesignationSyntax
@@ -4776,12 +4885,12 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseMemberDeclaration(string
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseName(string text, int offset = 0, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseParameterList(string text, int offset = 0, Microsoft.CodeAnalysis.ParseOptions options = null, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseStatement(string text, int offset = 0, Microsoft.CodeAnalysis.ParseOptions options = null, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.ParseOptions options = null, string path = "", System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions = null, bool? isGeneratedCode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.ParseOptions options = null, string path = "", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.ParseOptions options, string path, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, bool? isGeneratedCode, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.ParseOptions options, string path, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.ParseOptions options, string path, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(string text, Microsoft.CodeAnalysis.ParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions = null, bool? isGeneratedCode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(string text, Microsoft.CodeAnalysis.ParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(string text, Microsoft.CodeAnalysis.ParseOptions options, string path, System.Text.Encoding encoding, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, bool? isGeneratedCode, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(string text, Microsoft.CodeAnalysis.ParseOptions options, string path, System.Text.Encoding encoding, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> diagnosticOptions, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(string text, Microsoft.CodeAnalysis.ParseOptions options, string path, System.Text.Encoding encoding, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseToken(string text, int offset = 0) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTokens(string text, int offset = 0, int initialTokenPosition = 0, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTrailingTrivia(string text, int offset = 0) -> Microsoft.CodeAnalysis.SyntaxTriviaList
@@ -4863,6 +4972,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Micros
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SimpleLambdaExpression(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SingletonList<TNode>(TNode node) -> Microsoft.CodeAnalysis.SyntaxList<TNode>
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SingletonSeparatedList<TNode>(TNode node) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SingleVariableDesignation(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax
@@ -5234,6 +5345,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCrefParameter(Mic
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCrefParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDefaultConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDefaultExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDefaultSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultSwitchLabelSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDefineDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.DefineDirectiveTriviaSyntax node) -> void
@@ -5267,7 +5379,12 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitForEachStatement(
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitForEachVariableStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitForStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFromClause(Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerParameter(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitGenericName(Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.GlobalStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitGotoStatement(Microsoft.CodeAnalysis.CSharp.Syntax.GotoStatementSyntax node) -> void
@@ -5461,6 +5578,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitCrefPara
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitCrefParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDefaultConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDefaultExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDefaultSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.DefaultSwitchLabelSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDefineDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.DefineDirectiveTriviaSyntax node) -> TResult
@@ -5494,7 +5612,12 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitForEachS
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitForEachVariableStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitForStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFromClause(Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerParameter(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitGenericName(Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.GlobalStatementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitGotoStatement(Microsoft.CodeAnalysis.CSharp.Syntax.GotoStatementSyntax node) -> TResult

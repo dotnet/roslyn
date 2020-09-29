@@ -454,6 +454,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (serviceBroker == null)
                 return;
 
+            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+            await TaskScheduler.Default;
+
             var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             using (nugetService as IDisposable)

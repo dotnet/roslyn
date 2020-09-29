@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Streams serialized assets into the given stream.
         /// </summary>
-        ValueTask GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken);
+        ValueTask GetAssetsAsync(PipeWriter pipeWriter, int scopeId, Checksum[] checksums, CancellationToken cancellationToken);
 
         // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
         ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);

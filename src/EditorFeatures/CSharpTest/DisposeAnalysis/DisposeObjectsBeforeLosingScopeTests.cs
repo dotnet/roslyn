@@ -14,12 +14,18 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using static Roslyn.Test.Utilities.TestHelpers;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisposeAnalysis
 {
     [Trait(Traits.Feature, Traits.Features.DisposeAnalysis)]
     public sealed class DisposeObjectsBeforeLosingScopeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public DisposeObjectsBeforeLosingScopeTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(isEnabledByDefault: true), null);
 

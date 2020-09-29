@@ -12,11 +12,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
     {
+        public RemoveUnusedValueExpressionStatementTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         private protected override OptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
