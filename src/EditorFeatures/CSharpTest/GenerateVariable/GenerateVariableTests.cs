@@ -9336,5 +9336,12 @@ namespace ConsoleApp5
     string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
 });
         }
+
+        [WorkItem(48172, "https://github.com/dotnet/roslyn/issues/48172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestMissingOfferParameterInTopLevel()
+        {
+            await TestMissingInRegularAndScriptAsync("[|Console|].WriteLine();");
+        }
     }
 }
