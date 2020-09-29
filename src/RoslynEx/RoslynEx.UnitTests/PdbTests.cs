@@ -62,52 +62,53 @@ class Library
 
             comp.VerifyPdb($@"
 <symbols>
-  <files>
+    <files>
     <file id=""1"" name=""Library.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(libraryHash)}"" />
     <file id=""2"" name=""Program.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(programHash)}"" />
-  </files>
-  <methods>
+    </files>
+    <methods>
     <method containingType=""Program"" name=""Main"">
-      <customDebugInfo>
+        <customDebugInfo>
         <using>
-          <namespace usingCount=""1"" />
+            <namespace usingCount=""1"" />
         </using>
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""85"" />
-          <slot kind=""0"" offset=""160"" />
-          <slot kind=""0"" offset=""235"" />
+            <slot kind=""0"" offset=""85"" />
+            <slot kind=""0"" offset=""160"" />
+            <slot kind=""0"" offset=""235"" />
         </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
+        </customDebugInfo>
+        <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x1c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""32"" document=""2"" />
-        <entry offset=""0x22"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x33"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""32"" document=""2"" />
-        <entry offset=""0x39"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x4a"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""49"" document=""2"" />
-        <entry offset=""0x5c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x6d"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""39"" document=""2"" />
-        <entry offset=""0x74"" hidden=""true"" document=""2"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x75"">
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""32"" document=""2"" />
+        <entry offset=""0x23"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x34"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""32"" document=""2"" />
+        <entry offset=""0x3a"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x4b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""49"" document=""2"" />
+        <entry offset=""0x5d"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x6e"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""39"" document=""2"" />
+        <entry offset=""0x75"" hidden=""true"" document=""2"" />
+        </sequencePoints>
+        <scope startOffset=""0x0"" endOffset=""0x76"">
         <namespace name=""System"" />
-        <local name=""hello"" il_index=""0"" il_start=""0x0"" il_end=""0x75"" attributes=""0"" />
-        <local name=""world"" il_index=""1"" il_start=""0x0"" il_end=""0x75"" attributes=""0"" />
-        <local name=""helloWorld"" il_index=""2"" il_start=""0x0"" il_end=""0x75"" attributes=""0"" />
-      </scope>
+        <local name=""hello"" il_index=""0"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
+        <local name=""world"" il_index=""1"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
+        <local name=""helloWorld"" il_index=""2"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
+        </scope>
     </method>
     <method containingType=""Library"" name=""M"">
-      <customDebugInfo>
+        <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
+        </customDebugInfo>
+        <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
         <entry offset=""0xc"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
+        </sequencePoints>
     </method>
-  </methods>
+    </methods>
 </symbols>");
         }
 

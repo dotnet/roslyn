@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Used to implement <see cref="BoundSavePreviousSequencePoint"/> and <see cref="BoundRestorePreviousSequencePoint"/>.
         /// </summary>
-        private PooledDictionary<object, TextSpan> _savedSequencePoints;
+        private PooledDictionary<object, Location> _savedSequencePoints;
 
         private enum IndirectReturnState : byte
         {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // expect to hit it before exiting the method.
                 // We do it by rewriting all returns into a jump to an Exit label 
                 // and mark the Exit sequence with sequence point for the span of the last "}".
-                BlockSyntax blockSyntax = TreeTracker.GetPreTransformationSyntax(_methodBodySyntaxOpt as BlockSyntax);
+                BlockSyntax blockSyntax = _methodBodySyntaxOpt as BlockSyntax;
                 if (blockSyntax != null)
                 {
                     EmitSequencePoint(blockSyntax.SyntaxTree, blockSyntax.CloseBraceToken.Span);
@@ -429,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     continue;
 
                 // Found the previous non-hidden sequence point.  Save it.
-                _savedSequencePoints ??= PooledDictionary<object, TextSpan>.GetInstance();
-                _savedSequencePoints.Add(statement.Identifier, span);
+                _savedSequencePoints ??= PooledDictionary<object, Location>.GetInstance();
+                _savedSequencePoints.Add(statement.Identifier, Location.Create(sequencePoints[i].SyntaxTree, span));
                 return;
             }
         }
@@ -438,10 +438,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node)
         {
             Debug.Assert(node.Syntax is { });
-            if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var span))
+            if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var location))
                 return;
 
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, span);
+            EmitStepThroughSequencePoint(location.SourceTree, location.SourceSpan);
         }
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
@@ -505,7 +505,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(syntaxTree != null);
             Debug.Assert(_emitPdbSequencePoints);
 
-            _builder.DefineSequencePoint(syntaxTree, span);
+            var location = Location.Create(syntaxTree, span);
+            location = TreeTracker.GetPreTransformationLocation(location);
+
+            if (location.SourceSpan == default)
+                _builder.DefineHiddenSequencePoint();
+            else
+                _builder.DefineSequencePoint(location.SourceTree, location.SourceSpan);
+
             return span;
         }
 

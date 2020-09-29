@@ -275,15 +275,7 @@ namespace RoslynEx
             return true;
         }
 
-        private static SyntaxNodeOrToken? GetPreTransformationSyntax(SyntaxNodeOrToken nodeOrToken)
-        {
-            if (nodeOrToken.AsNode() is var node)
-                return GetPreTransformationSyntax(node);
-
-            return GetPreTransformationSyntax(nodeOrToken.AsToken());
-        }
-
-        public static SyntaxToken? GetPreTransformationSyntax(SyntaxToken token)
+        private static SyntaxToken? GetPreTransformationSyntax(SyntaxToken token)
         {
             var (ancestor, annotation) = FindAncestorWithAnnotation(token);
 
@@ -337,9 +329,6 @@ namespace RoslynEx
             // compute original node of the current node from the original node of the annotated ancestor
             return LocatePreTransformationSyntax(node, ancestor, annotation);
         }
-
-        public static Location GetPreTransformationLocation(SyntaxNodeOrToken syntax) =>
-            GetPreTransformationSyntax(syntax)?.GetLocation() ?? Location.Create(syntax.SyntaxTree!, default);
 
         public static Location GetPreTransformationLocation(Location location)
         {

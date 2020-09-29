@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace RoslynEx.UnitTests
+namespace RoslynEx.UnitTests.Diagnostics
 {
     [Trait("Category", "OuterLoop")]
     public class RoslynExDiagnosticAnalyzerTests : DiagnosticAnalyzerTests

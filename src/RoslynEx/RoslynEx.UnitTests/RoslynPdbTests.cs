@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
 using Roslyn.Test.Utilities;
 
-namespace RoslynEx.UnitTests
+namespace RoslynEx.UnitTests.Pdb
 {
     public class RoslynExCheckSumTest : CheckSumTest
     {

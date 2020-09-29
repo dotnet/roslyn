@@ -34,20 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundStatement AddSequencePoint(PropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
         {
             Debug.Assert(declarationSyntax.Initializer != null);
-
-            declarationSyntax = TreeTracker.GetPreTransformationSyntax(declarationSyntax);
-
-            TextSpan? part;
-            if (declarationSyntax == null)
-            {
-                part = null;
-            }
-            else
-            {
-                int start = declarationSyntax.Initializer.Value.SpanStart;
-                int end = declarationSyntax.Initializer.Span.End;
-                part = TextSpan.FromBounds(start, end);
-            }
+            int start = declarationSyntax.Initializer.Value.SpanStart;
+            int end = declarationSyntax.Initializer.Span.End;
+            TextSpan part = TextSpan.FromBounds(start, end);
 
             var result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
@@ -56,12 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundStatement AddSequencePoint(UsingStatementSyntax usingSyntax, BoundStatement rewrittenStatement)
         {
-            usingSyntax = TreeTracker.GetPreTransformationSyntax(usingSyntax);
-            if (usingSyntax == null)
-            {
-                return BoundSequencePoint.CreateHidden(rewrittenStatement);
-            }
-
             int start = usingSyntax.Span.Start;
             int end = usingSyntax.CloseParenToken.Span.End;
             TextSpan span = TextSpan.FromBounds(start, end);
@@ -135,14 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
-            declaratorSyntax = TreeTracker.GetPreTransformationSyntax(declaratorSyntax);
-            if (declaratorSyntax == null)
-            {
-                node = null;
-                part = null;
-                return;
-            }
-
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
 
             if (declarationSyntax.Variables.First() == declaratorSyntax)
