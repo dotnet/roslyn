@@ -452,7 +452,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             static LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
             {
-                Contract.ThrowIfNull(diagnosticData.Message);
                 Contract.ThrowIfNull(diagnosticData.DataLocation);
 
                 var diagnostic = new LSP.Diagnostic

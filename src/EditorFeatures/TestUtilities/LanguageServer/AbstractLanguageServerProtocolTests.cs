@@ -245,12 +245,11 @@ namespace Roslyn.Test.Utilities
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position
                 }),
-                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
                 Preselect = preselect,
             };
 
             if (tags != null)
-                item.Icon = new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId());
+                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement();
 
             if (commitCharacters != null)
                 item.CommitCharacters = commitCharacters;

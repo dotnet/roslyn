@@ -423,7 +423,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var diagnostic = Diagnostic.Create(descriptor, location);
                 return new DiagnosticData(diagnostic.Id,
                     diagnostic.Descriptor.Category,
-                    message: "",
+                    null,
                     null,
                     diagnostic.Severity,
                     diagnostic.DefaultSeverity,

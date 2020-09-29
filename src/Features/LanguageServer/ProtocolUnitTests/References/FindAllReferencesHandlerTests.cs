@@ -164,7 +164,7 @@ class A
             }
         }
 
-        private class ProgressCollector<T> : IProgress<object>
+        private sealed class ProgressCollector<T> : IProgress<object>
         {
             private readonly List<T> _items = new List<T>();
 
