@@ -157,7 +157,7 @@ namespace B
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 location: new DiagnosticDataLocation(document.Id),
-                additionalLocations: new[] { externalAdditionalLocation },
+                additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
                 language: document.Project.Language);
 
             var diagnostic = await diagnosticData.ToDiagnosticAsync(document.Project, CancellationToken.None);
