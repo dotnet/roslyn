@@ -1289,6 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         private static bool IsMemberDeclaration(SyntaxNode node)
         {
+            _ = node;
             return false;
         }
 
