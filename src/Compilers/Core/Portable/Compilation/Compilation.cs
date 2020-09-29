@@ -30,6 +30,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -2201,10 +2202,12 @@ namespace Microsoft.CodeAnalysis
                     var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
                     {
+                        var actualTree = TreeTracker.GetPreTransformationSyntax(tree.GetRoot())?.SyntaxTree ?? tree;
+
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
                             normalizedPath,
                             DebugSourceDocumentLanguageId,
-                            () => tree.GetDebugSourceInfo()));
+                            () => actualTree.GetDebugSourceInfo()));
                     }
                 }
             }

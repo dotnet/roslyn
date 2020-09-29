@@ -19,7 +19,7 @@ jobs:
     - name: Build
       run: ./build.sh
     - name: Run RoslynEx tests
-      run: dotnet test
+      run: dotnet test --filter Category\!=OuterLoop
       working-directory: ./src/RoslynEx/RoslynEx.UnitTests
     - name: Run Roslyn tests
       run: ./build.sh --test

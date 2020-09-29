@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -949,7 +950,7 @@ oneMoreTime:
                             spSpan = TextSpan.FromBounds(syntax.SpanStart, syntax.Declaration.Span.End);
                         }
 
-                        this.EmitSequencePoint(catchBlock.SyntaxTree, spSpan);
+                        this.EmitSequencePoint(syntax.SyntaxTree, spSpan);
                     }
                 }
             }

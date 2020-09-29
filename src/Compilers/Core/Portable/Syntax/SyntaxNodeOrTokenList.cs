@@ -13,6 +13,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -316,6 +317,15 @@ namespace Microsoft.CodeAnalysis
             if (items.Count == 0)
             {
                 return default(SyntaxNodeOrTokenList);
+            }
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                var node = items[i].AsNode();
+                if (TreeTracker.TrackIfNeeded(node) is { } newNode)
+                {
+                    items[i] = newNode;
+                }
             }
 
             var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode!))!;

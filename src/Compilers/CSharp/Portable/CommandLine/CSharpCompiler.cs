@@ -390,16 +390,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private protected override Compilation RunTransformers(
-            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics) =>
+            RunTransformers(
+                input, transformers, analyzerConfigProvider, diagnostics,
+                resources => Arguments.ManifestResources = Arguments.ManifestResources.AddRange(resources));
+
+
+        internal static Compilation RunTransformers(
+            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
+            Action<IEnumerable<ResourceDescription>>? addManifestResources)
         {
             var compilation = input;
+
+            if (!ShouldDebugTransformedCode(analyzerConfigProvider))
+            {
+                // mark old trees as debuggable
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options));
+                }
+            }
+
             foreach (var transformer in transformers)
             {
                 try
                 {
                     var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics);
                     compilation = transformer.Execute(context);
-                    Arguments.ManifestResources = Arguments.ManifestResources.AddRange(context.ManifestResources);
+                    addManifestResources?.Invoke(context.ManifestResources);
                 }
                 catch (Exception ex)
                 {
@@ -408,6 +426,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(diagnostic);
                 }
             }
+
+            if (!ShouldDebugTransformedCode(analyzerConfigProvider))
+            {
+                // mark new trees as not debuggable
+                // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    if (TreeTracker.IsAnnotated(tree.GetRoot()))
+                    {
+#if DEBUG
+                        TreeTracker.MarkAsUndebuggable(tree);
+#endif
+                        continue;
+                    }
+
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null), tree.Options));
+                }
+            }
+
             return compilation;
         }
     }

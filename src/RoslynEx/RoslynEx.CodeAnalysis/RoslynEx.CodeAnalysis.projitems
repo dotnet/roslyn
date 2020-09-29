@@ -14,5 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\SimpleLinkedListNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynExMessageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDependencyResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TreeTracker.cs" />
   </ItemGroup>
 </Project>

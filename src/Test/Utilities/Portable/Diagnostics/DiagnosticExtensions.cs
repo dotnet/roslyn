@@ -98,9 +98,24 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var diagnostics = c.GetDiagnostics();
+            // GetDiagnostics() has side-effects that some tests are relying on
+            _ = c.GetDiagnostics();
+
+            var compilation = c;
+
+            if (RoslynExTest.ShouldExecuteTransformer)
+            {
+                // don't run transformations if there are syntax errors, just like what happens in the compiler
+                var diagnosticBag = new DiagnosticBag();
+                compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnosticBag);
+                if (!CommonCompiler.HasUnsuppressableErrors(diagnosticBag))
+                    compilation = (TCompilation)RoslynExTest.ExecuteTransformer(compilation, new
+RoslynExTest.TokenPerLineTransformer());
+            }
+
+            var diagnostics = compilation.GetDiagnostics();
             diagnostics.Verify(expected);
-            VerifyAssemblyIds(c, diagnostics);
+            VerifyAssemblyIds(compilation, diagnostics);
 
             return c;
         }

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,8 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
+        static DiagnosticInfo GetPreTransformationInfo(DiagnosticInfo info)
+        {
+            for (int i = 0; i < info.Arguments.Length; i++)
+            {
+                if (info.Arguments[i] is SyntaxNode node)
+                    info.Arguments[i] = TreeTracker.GetPreTransformationSyntax(node);
+            }
+
+            return info;
+        }
+
         internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
-            : base(info, location, isSuppressed)
+            : base(GetPreTransformationInfo(info), TreeTracker.GetPreTransformationLocation(location), isSuppressed)
         {
         }
 

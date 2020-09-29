@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Xunit;
 
-namespace RoslynEx.Tests
+namespace RoslynEx.UnitTests
 {
     public class DependencyResolverTests
     {

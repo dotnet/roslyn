@@ -18,6 +18,8 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
@@ -25,6 +27,7 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using RoslynEx;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -231,6 +234,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
+            if (RoslynExTest.ShouldExecuteTransformer)
+                compilation = RoslynExTest.ExecuteTransformer(compilation, new RoslynExTest.TokenPerLineTransformer());
+
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
             bool testWindowsPdb = (format == 0 || format == DebugInformationFormat.Pdb) && ExecutionConditionUtil.IsWindows;
@@ -395,6 +401,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptyMethods(expectedXml);
             RemoveFormatAttributes(expectedXml);
 
+            if (RoslynExTest.ShouldExecuteTransformer)
+            {
+                RemoveEnc(actualXml);
+                RemoveEnc(expectedXml);
+            }
+
             return (actualXml.ToString(), expectedXml.ToString());
         }
 
@@ -408,6 +420,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return array.Length > 0;
+        }
+
+        private static void RemoveEnc(XElement pdb)
+        {
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name.LocalName.StartsWith("enc")
+                           select e);
         }
 
         private static void RemoveEmptyCustomDebugInfo(XElement pdb)

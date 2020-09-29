@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -106,7 +107,9 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             foreach (var n in nodeOrTokens)
             {
-                this.Add(n);
+                var nodeOrToken = TreeTracker.TrackIfNeeded(n.AsNode()) ?? n;
+
+                this.Add(nodeOrToken);
             }
         }
 

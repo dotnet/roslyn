@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -15,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static BoundStatement AddSequencePoint(BoundStatement node)
         {
-            return new BoundSequencePoint(node.Syntax, node);
+            var nodeSyntax = TreeTracker.GetPreTransformationSyntax(node.Syntax);
+
+            return BoundSequencePoint.Create(nodeSyntax, node);
         }
 
         internal static BoundStatement AddSequencePoint(VariableDeclaratorSyntax declaratorSyntax, BoundStatement rewrittenStatement)
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node;
             TextSpan? part;
             GetBreakpointSpan(declaratorSyntax, out node, out part);
-            var result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
+            var result = BoundSequencePoint.Create(node, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
         }

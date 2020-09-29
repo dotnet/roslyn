@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Used to implement <see cref="BoundSavePreviousSequencePoint"/> and <see cref="BoundRestorePreviousSequencePoint"/>.
         /// </summary>
-        private PooledDictionary<object, TextSpan> _savedSequencePoints;
+        private PooledDictionary<object, Location> _savedSequencePoints;
 
         private enum IndirectReturnState : byte
         {
@@ -428,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     continue;
 
                 // Found the previous non-hidden sequence point.  Save it.
-                _savedSequencePoints ??= PooledDictionary<object, TextSpan>.GetInstance();
-                _savedSequencePoints.Add(statement.Identifier, span);
+                _savedSequencePoints ??= PooledDictionary<object, Location>.GetInstance();
+                _savedSequencePoints.Add(statement.Identifier, Location.Create(sequencePoints[i].SyntaxTree, span));
                 return;
             }
         }
@@ -437,10 +438,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node)
         {
             Debug.Assert(node.Syntax is { });
-            if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var span))
+            if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var location))
                 return;
 
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, span);
+            EmitStepThroughSequencePoint(location.SourceTree, location.SourceSpan);
         }
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
@@ -468,13 +469,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (_emitPdbSequencePoints && _methodBodySyntaxOpt != null)
             {
+                // find the pre-transformation root that corresponds to the root node of the tree where the method is
+                var preTransformationRoot = TreeTracker.GetPreTransformationSyntax(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
+                if (preTransformationRoot == null)
+                    return;
+
                 // If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 // provide the IL builder with our best guess at the appropriate debug document.
                 // If we don't and this is hidden sequence point precedes all non-hidden sequence
                 // points, then the IL Builder will drop the sequence point for lack of a document.
                 // This negatively impacts the scenario where we insert hidden sequence points at
                 // the beginnings of methods so that step-into (F11) will handle them correctly.
-                _builder.SetInitialDebugDocument(_methodBodySyntaxOpt.SyntaxTree);
+                _builder.SetInitialDebugDocument(preTransformationRoot.SyntaxTree);
             }
         }
 
@@ -486,7 +492,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePoint(SyntaxNode syntax)
         {
-            EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
+            syntax = TreeTracker.GetPreTransformationSyntax(syntax);
+
+            if (syntax == null)
+                EmitHiddenSequencePoint();
+            else
+                EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
         }
 
         private TextSpan EmitSequencePoint(SyntaxTree syntaxTree, TextSpan span)
@@ -494,7 +505,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(syntaxTree != null);
             Debug.Assert(_emitPdbSequencePoints);
 
-            _builder.DefineSequencePoint(syntaxTree, span);
+            var location = Location.Create(syntaxTree, span);
+            location = TreeTracker.GetPreTransformationLocation(location);
+
+            if (location.SourceSpan == default)
+                _builder.DefineHiddenSequencePoint();
+            else
+                _builder.DefineSequencePoint(location.SourceTree, location.SourceSpan);
+
             return span;
         }
 

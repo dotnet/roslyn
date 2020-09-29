@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "MockSyntaxTree.GetRoot is not implemented, which is not compatible with RoslynEx.")]
         public void TestDiagnostic()
         {
             MockMessageProvider provider = new MockMessageProvider();
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(di2, d1.Info);
         }
 
-        [Fact]
+        [Fact(Skip = "MockSyntaxTree.GetRoot is not implemented, which is not compatible with RoslynEx.")]
         public void TestCustomErrorInfo()
         {
             MockMessageProvider provider = new MockMessageProvider();

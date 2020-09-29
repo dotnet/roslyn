@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis
 
             foreach (TNode node in nodes)
             {
-                builder.Add(node);
+                var newNode = TreeTracker.TrackIfNeeded(node);
+                builder.Add(newNode);
             }
 
             return builder.ToList().Node;
@@ -327,6 +329,11 @@ namespace Microsoft.CodeAnalysis
             if (items.Count == 0)
             {
                 return default(SyntaxList<TNode>);
+            }
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i] = TreeTracker.TrackIfNeeded(items[i]);
             }
 
             var newGreen = creator.CreateList(items.Select(n => n.Green));
