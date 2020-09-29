@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -161,11 +162,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e)
+                catch (Exception e) when (e is not (OperationCanceledException or RemoteInvocationException))
                 {
                     // Ensure that the writer is complete if an exception is thrown
-                    // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
-                    // the proxy should complete it as soon as the remote side completes it.
+                    // that is not handled by the RPC proxy. The proxy completes the writer
+                    // if a remote exception occurs on the server or when the call succeeds.
                     await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
 
                     throw;
