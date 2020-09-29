@@ -32,8 +32,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return result.ToImmutable();
         }
-
-        public static ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(this IDiagnosticService service, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            => service.GetDiagnosticBuckets(workspace, documentId.ProjectId, documentId, cancellationToken);
     }
 }
