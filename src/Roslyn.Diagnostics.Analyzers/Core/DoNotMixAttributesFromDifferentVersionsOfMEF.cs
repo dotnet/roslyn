@@ -120,8 +120,8 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
                 var diagnostic = problematicAttribute.ApplicationSyntaxReference.CreateDiagnostic(
-                	Rule, symbolContext.CancellationToken, problematicAttribute.AttributeClass.Name, exportedType.Name);
-            	symbolContext.ReportDiagnostic(diagnostic);
+                    Rule, symbolContext.CancellationToken, problematicAttribute.AttributeClass.Name, exportedType.Name);
+                symbolContext.ReportDiagnostic(diagnostic);
             }
         }
     }
