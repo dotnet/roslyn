@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -188,7 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Gets the containing expression that is actually a language expression and not just typed
@@ -245,7 +247,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
 #nullable enable
         bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
-#nullable restore
+#nullable disable
         bool IsPostfixUnaryExpression(SyntaxNode node);
 
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
@@ -367,7 +369,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// every "executable block", this also includes C# embedded statement owners.
         /// </summary>
         bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
-#nullable restore
+#nullable disable
 
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -125,11 +123,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 WriteLocation(writer, item.DataLocation);
                 WriteAdditionalLocations(writer, item.AdditionalLocations, cancellationToken);
 
-                writer.WriteInt32(item.CustomTags.Count);
+                writer.WriteInt32(item.CustomTags.Length);
                 foreach (var tag in item.CustomTags)
-                {
                     writer.WriteString(tag);
-                }
 
                 writer.WriteInt32(item.Properties.Count);
                 foreach (var property in item.Properties)
@@ -324,20 +320,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 mappedFile, mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        private static IReadOnlyCollection<DiagnosticDataLocation> ReadAdditionalLocations(Project project, ObjectReader reader)
+        private static ImmutableArray<DiagnosticDataLocation> ReadAdditionalLocations(Project project, ObjectReader reader)
         {
             var count = reader.ReadInt32();
-            var result = new List<DiagnosticDataLocation>();
+            using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(count, out var result);
             for (var i = 0; i < count; i++)
-            {
-                var location = ReadLocation(project, reader, document: null);
-                if (location != null)
-                {
-                    result.Add(location);
-                }
-            }
+                result.AddIfNotNull(ReadLocation(project, reader, document: null));
 
-            return result;
+            return result.ToImmutable();
         }
 
         private static ImmutableDictionary<string, string?> GetProperties(ObjectReader reader, int count)
@@ -356,20 +346,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return ImmutableDictionary<string, string?>.Empty;
         }
 
-        private static IReadOnlyList<string> GetCustomTags(ObjectReader reader, int count)
+        private static ImmutableArray<string> GetCustomTags(ObjectReader reader, int count)
         {
-            if (count > 0)
-            {
-                var tags = new List<string>(count);
-                for (var i = 0; i < count; i++)
-                {
-                    tags.Add(reader.ReadString());
-                }
+            using var _ = ArrayBuilder<string>.GetInstance(count, out var tags);
+            for (var i = 0; i < count; i++)
+                tags.Add(reader.ReadString());
 
-                return new ReadOnlyCollection<string>(tags);
-            }
-
-            return SpecializedCollections.EmptyReadOnlyList<string>();
+            return tags.ToImmutable();
         }
     }
 }

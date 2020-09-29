@@ -13,9 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost

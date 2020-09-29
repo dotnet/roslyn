@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1614,7 +1612,7 @@ unsafe class D : C<delegate*<void>>
                                       .OfType<InvocationExpressionSyntax>()
                                       .Select(s => model.GetSymbolInfo(s).CandidateSymbols.Single())
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1676,7 +1674,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1749,7 +1747,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
