@@ -1037,8 +1037,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then
-                        Exit For
-                    End If
+                    Exit For
+                End If
             Next
 
             Return modifiersUseSiteInfo
