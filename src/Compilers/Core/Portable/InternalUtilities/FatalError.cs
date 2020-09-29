@@ -236,6 +236,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 Report(exception, s_nonFatalHandler);
             }
 
+            if (exception is OperationCanceledException)
+            {
+                // Wrap in InvalidOperationException since cancellation was not requested
+                throw new InvalidOperationException(exception.Message, exception);
+            }
+
             return false;
         }
 
