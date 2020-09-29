@@ -203,5 +203,36 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 Assert.Empty(documentRenameResult.ApplicableActions);
             }
         }
+
+        protected async Task TestRenameMappedFile(string startText, string documentName, string newDocumentName)
+        {
+            using var workspace = new AdhocWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId = ProjectId.CreateNewId();
+            var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Create(), "ProjectName", "AssemblyName", LanguageName, filePath: "");
+
+            solution = solution.AddProject(projectInfo);
+
+            var startSourceText = SourceText.From(startText);
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var documentInfo = DocumentInfo.Create(
+                documentId,
+                documentName,
+                GetDocumentFolders(s_defaultDocumentPath),
+                SourceCodeKind.Regular,
+                TextLoader.From(TextAndVersion.Create(startSourceText, VersionStamp.Create(), documentName)),
+                s_defaultDocumentPath,
+                isGenerated: true,
+                designTimeOnly: false,
+                new TestDocumentServiceProvider());
+
+            solution = solution.AddDocument(documentInfo);
+
+            var document = solution.GetDocument(documentId);
+            var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, newDocumentName, GetDocumentFolders(s_defaultDocumentPath));
+            Assert.Empty(documentRenameResult.ApplicableActions);
+        }
     }
 }
