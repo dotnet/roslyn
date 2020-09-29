@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private readonly IDiagnosticService _diagnosticService;
 
         /// <summary>
-        /// Lock to product <see cref="_documentIdToLastResultId"/> and <see cref="_nextResultId"/>.
+        /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextResultId"/>.
         /// </summary>
         private readonly object _gate = new object();
 
@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
         protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
+
+        /// <summary>
+        /// Creates the <see cref="DiagnosticReport"/> instance we'll report back to clients to let them know our
+        /// progress.  Subclasses can fill in data specific to their needs as appropriate.
+        /// </summary>
         protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
 
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
@@ -71,9 +76,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (updateArgs.DocumentId == null)
                 return;
 
-            // Whenever we hear about changes to a document, drop the data we've stored for it.  We'll recompute it as
-            // necessary on the next request.
-            _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
+            lock (_documentIdToLastResultId)
+            {
+                // Whenever we hear about changes to a document, drop the data we've stored for it.  We'll recompute it as
+                // necessary on the next request.
+                _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
+            }
         }
 
         public async Task<TReport[]?> HandleRequestAsync(
