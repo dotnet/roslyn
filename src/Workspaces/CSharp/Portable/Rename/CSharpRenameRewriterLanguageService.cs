@@ -272,7 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private bool IsInitPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.InitKeyword)
-                && IsNameConflictWithProperty("init", token.Parent as AccessorDeclarationSyntax);
+                // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
+                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
 
             private bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor)
                 => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
