@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
-        public IEnumerable<DiagnosticData> GetDiagnostics(
+        public ImmutableArray<DiagnosticData> GetDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             if (id != null)
@@ -214,108 +215,93 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
         }
 
-        private IEnumerable<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        private ImmutableArray<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<Data>.GetInstance(out var buffer);
+
             foreach (var source in _updateSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                buffer.Clear();
                 if (source.SupportGetDiagnostics)
                 {
                     var diagnostics = source.GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
-                    if (diagnostics != null && diagnostics.Length > 0)
-                    {
+                    if (diagnostics.Length > 0)
                         return diagnostics;
-                    }
                 }
                 else
                 {
-                    using var pool = SharedPools.Default<List<Data>>().GetPooledObject();
+                    AppendMatchingData(source, workspace, projectId, documentId, id, buffer);
+                    Debug.Assert(buffer.Count == 0 || buffer.Count == 1);
 
-                    AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
-                    Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
-
-                    if (pool.Object.Count == 1)
+                    if (buffer.Count == 1)
                     {
-                        var diagnostics = pool.Object[0].Diagnostics;
-                        return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
+                        var diagnostics = buffer[0].Diagnostics;
+                        return includeSuppressedDiagnostics
+                            ? diagnostics
+                            : diagnostics.NullToEmpty().WhereAsArray(d => !d.IsSuppressed);
                     }
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+            return ImmutableArray<DiagnosticData>.Empty;
         }
 
-        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
-        {
-            if (!diagnostics.IsDefault)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (!diagnostic.IsSuppressed)
-                    {
-                        yield return diagnostic;
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<DiagnosticData> GetDiagnostics(
+        private ImmutableArray<DiagnosticData> GetDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
+            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
+            using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
             foreach (var source in _updateSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                buffer.Clear();
                 if (source.SupportGetDiagnostics)
                 {
-                    foreach (var diagnostic in source.GetDiagnostics(workspace, projectId, documentId, null, includeSuppressedDiagnostics, cancellationToken))
-                    {
-                        AssertIfNull(diagnostic);
-                        yield return diagnostic;
-                    }
+                    result.AddRange(source.GetDiagnostics(workspace, projectId, documentId, id: null, includeSuppressedDiagnostics, cancellationToken));
                 }
                 else
                 {
-                    using var list = SharedPools.Default<List<Data>>().GetPooledObject();
+                    AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
 
-                    AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
-
-                    foreach (var data in list.Object)
+                    foreach (var data in buffer)
                     {
                         foreach (var diagnostic in data.Diagnostics)
                         {
                             AssertIfNull(diagnostic);
                             if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
-                            {
-                                yield return diagnostic;
-                            }
+                                result.Add(diagnostic);
                         }
                     }
                 }
             }
+
+            return result.ToImmutable();
         }
 
-        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(
+        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
             Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
+            using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
+            using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
+
             foreach (var source in _updateSources)
             {
+                buffer.Clear();
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using var list = SharedPools.Default<List<Data>>().GetPooledObject();
-
-                AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
-
-                foreach (var data in list.Object)
-                {
-                    yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
-                }
+                AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
+                foreach (var data in buffer)
+                    result.Add(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
             }
+
+            return result.ToImmutable();
         }
 
         private void AppendMatchingData(
-            IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, List<Data> list)
+            IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, ArrayBuilder<Data> list)
         {
             Contract.ThrowIfNull(workspace);
 
@@ -349,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, ArrayBuilder<Data> result) where T : class
         {
             if (key == null)
             {
@@ -412,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

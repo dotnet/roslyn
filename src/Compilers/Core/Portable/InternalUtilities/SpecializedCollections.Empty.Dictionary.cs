@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
 #nullable enable
                 where TKey : notnull
             {
-                public static new readonly Dictionary<TKey, TValue> Instance = new Dictionary<TKey, TValue>();
+                public static new readonly Dictionary<TKey, TValue> Instance = new();
 
                 private Dictionary()
                 {

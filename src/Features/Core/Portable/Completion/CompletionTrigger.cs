@@ -30,24 +30,24 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         [Obsolete("Use 'Invoke' instead.")]
         public static readonly CompletionTrigger Default =
-            new CompletionTrigger(CompletionTriggerKind.Other);
+            new(CompletionTriggerKind.Other);
 
         /// <summary>
         /// The default <see cref="CompletionTrigger"/> when none is specified.
         /// </summary>
         public static readonly CompletionTrigger Invoke =
-            new CompletionTrigger(CompletionTriggerKind.Invoke);
+            new(CompletionTriggerKind.Invoke);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the insertion of a typed character into the document.
         /// </summary>
         public static CompletionTrigger CreateInsertionTrigger(char insertedCharacter)
-            => new CompletionTrigger(CompletionTriggerKind.Insertion, insertedCharacter);
+            => new(CompletionTriggerKind.Insertion, insertedCharacter);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the deletion of a character from the document.
         /// </summary>
         public static CompletionTrigger CreateDeletionTrigger(char deletedCharacter)
-            => new CompletionTrigger(CompletionTriggerKind.Deletion, deletedCharacter);
+            => new(CompletionTriggerKind.Deletion, deletedCharacter);
     }
 }

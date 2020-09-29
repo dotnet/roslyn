@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
     internal class BraceHighlightTag : TextMarkerTag
     {
-        public static readonly BraceHighlightTag StartTag = new BraceHighlightTag(navigateToStart: true);
-        public static readonly BraceHighlightTag EndTag = new BraceHighlightTag(navigateToStart: false);
+        public static readonly BraceHighlightTag StartTag = new(navigateToStart: true);
+        public static readonly BraceHighlightTag EndTag = new(navigateToStart: false);
 
         public bool NavigateToStart { get; }
 

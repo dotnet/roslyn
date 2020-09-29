@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         private NextAnchorIndentationOperationAction NextAction
-            => new NextAnchorIndentationOperationAction(_formattingRules, _index + 1, _node, _list);
+            => new(_formattingRules, _index + 1, _node, _list);
 
         public void Invoke()
         {

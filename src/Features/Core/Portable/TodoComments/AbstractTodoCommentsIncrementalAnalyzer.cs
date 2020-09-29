@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal abstract partial class AbstractTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private string? _lastOptionText = null;
         private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
 

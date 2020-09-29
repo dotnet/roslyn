@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract class CodeGenerationSymbol : ISymbol
     {
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable =
-            new ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]>();
+            new();
 
         private ImmutableArray<AttributeData> _attributes;
 

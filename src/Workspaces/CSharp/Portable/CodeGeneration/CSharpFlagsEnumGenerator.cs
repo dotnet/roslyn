@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
     {
-        internal static readonly CSharpFlagsEnumGenerator Instance = new CSharpFlagsEnumGenerator();
+        internal static readonly CSharpFlagsEnumGenerator Instance = new();
         private static readonly SyntaxGenerator s_generatorInstance = CSharpSyntaxGenerator.Instance;
 
         private CSharpFlagsEnumGenerator()

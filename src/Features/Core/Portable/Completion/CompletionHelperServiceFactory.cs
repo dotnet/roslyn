@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private class Service : ICompletionHelperService, IWorkspaceService
         {
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             private CompletionHelper _caseSensitiveInstance;
             private CompletionHelper _caseInsensitiveInstance;

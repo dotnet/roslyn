@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal readonly struct LineColumnDelta
     {
-        public static LineColumnDelta Default = new LineColumnDelta(lines: 0, spaces: 0, whitespaceOnly: true, forceUpdate: false);
+        public static LineColumnDelta Default = new(lines: 0, spaces: 0, whitespaceOnly: true, forceUpdate: false);
 
         /// <summary>
         /// relative line number between calls

@@ -25,17 +25,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal sealed partial class GraphBuilder
     {
-        private readonly Graph _graph = new Graph();
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly Graph _graph = new();
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
         private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
 
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new Dictionary<GraphNode, Project>();
-        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new Dictionary<GraphNode, Document>();
-        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new Dictionary<GraphNode, ISymbol>();
+        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new();
+        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new();
+        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new();
 
         /// <summary>
         /// The input solution. Never null.

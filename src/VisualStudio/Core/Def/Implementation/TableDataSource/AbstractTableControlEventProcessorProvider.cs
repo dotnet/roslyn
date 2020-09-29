@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => CreateEventProcessor();
 
         protected virtual EventProcessor CreateEventProcessor()
-            => new EventProcessor();
+            => new();
 
         protected class EventProcessor : TableControlEventProcessorBase
         {

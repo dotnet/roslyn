@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationFieldInfo
     {
         private static readonly ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo> s_fieldToInfoMap =
-            new ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo>();
+            new();
 
         private readonly bool _isUnsafe;
         private readonly bool _isWithEvents;

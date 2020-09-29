@@ -18,19 +18,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string LongLength = "LongLength";
 
         private static readonly Dictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
-            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>
-        {
-            { BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals },
-            { BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals },
-            { BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual },
-            { BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual },
-            { BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan },
-            { BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan },
-            { BinaryOperatorKind.Or, BinaryOperatorKind.And },
-            { BinaryOperatorKind.And, BinaryOperatorKind.Or },
-            { BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd },
-            { BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr },
-        };
+            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>()
+            {
+                { BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals },
+                { BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals },
+                { BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual },
+                { BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual },
+                { BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan },
+                { BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan },
+                { BinaryOperatorKind.Or, BinaryOperatorKind.And },
+                { BinaryOperatorKind.And, BinaryOperatorKind.Or },
+                { BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd },
+                { BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr },
+            };
 
         public static SyntaxNode Negate(
             this SyntaxGenerator generator,

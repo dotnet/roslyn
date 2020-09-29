@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         case SpecialType.System_Object:
                             await AddMatchingTypesAsync(
                                 cachedModels,
-                                projectIndex.ClassesThatMayDeriveFromSystemObject,
+                                projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
                                 result: tempBuffer,
                                 predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
                                 cancellationToken).ConfigureAwait(false);

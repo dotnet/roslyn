@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal readonly struct LineColumn
     {
-        public static LineColumn Default = new LineColumn(line: 0, column: 0, whitespaceOnly: true);
+        public static LineColumn Default = new(line: 0, column: 0, whitespaceOnly: true);
 
         /// <summary>
         /// absolute line number from first token

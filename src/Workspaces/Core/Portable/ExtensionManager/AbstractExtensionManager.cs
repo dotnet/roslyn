@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Extensions
 {
     internal abstract class AbstractExtensionManager : IExtensionManager
     {
-        private readonly ConcurrentSet<object> _disabledProviders = new ConcurrentSet<object>(ReferenceEqualityComparer.Instance);
-        private readonly ConcurrentSet<object> _ignoredProviders = new ConcurrentSet<object>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentSet<object> _disabledProviders = new(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentSet<object> _ignoredProviders = new(ReferenceEqualityComparer.Instance);
 
         protected AbstractExtensionManager()
         {

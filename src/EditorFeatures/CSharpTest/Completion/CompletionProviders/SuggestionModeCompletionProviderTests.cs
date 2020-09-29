@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSuggestionModeCompletionProvider);
 
@@ -1349,6 +1344,58 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
+        {
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar() => true;
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar({(hasTypedChar ? "s" : "")}$$
+    }}
+}}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
+        {
+            var overload = isLambda
+                ? "bool Bar(Func<int, bool> predicate) => true;"
+                : "bool Bar(int x) => true;";
+
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar() => true;
+    {overload}
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar({(hasTypedChar ? "s" : "")}$$
+    }}
+}}";
+            if (isLambda)
+            {
+                await VerifyBuilderAsync(markup);
+            }
+            else
+            {
+                await VerifyNotBuilderAsync(markup);
+            }
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
             => await VerifyWorkerAsync(markup, isBuilder: false);
 
@@ -1359,8 +1406,7 @@ class C
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            using var workspaceFixture = new CSharpTestWorkspaceFixture();
-            try
+            using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
                 workspaceFixture.GetWorkspace(ExportProvider);
                 var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
@@ -1371,10 +1417,6 @@ class C
                     var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
-            }
-            finally
-            {
-                workspaceFixture.DisposeAfterTest();
             }
         }
 

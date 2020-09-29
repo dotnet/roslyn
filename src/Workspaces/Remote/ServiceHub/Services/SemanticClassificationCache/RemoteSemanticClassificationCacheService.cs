@@ -73,17 +73,14 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
-            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                // Once fully loaded, we can clear any of the cached information we stored during load.
-                if (isFullyLoaded)
-                {
-                    lock (_cachedData)
-                        _cachedData.Clear();
-                }
+                // We only get called to cache classifications once we're fully loaded.  At that point there's no need
+                // for us to keep around any of the data we cached in-memory during the time the solution was loading.
+                lock (_cachedData)
+                    _cachedData.Clear();
 
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);

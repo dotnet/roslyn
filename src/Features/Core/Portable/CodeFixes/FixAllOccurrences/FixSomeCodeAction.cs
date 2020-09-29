@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal static class SignatureHelpOptions
     {
-        public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new PerLanguageOption2<bool>(nameof(SignatureHelpOptions), nameof(ShowSignatureHelp), defaultValue: true);
+        public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new(nameof(SignatureHelpOptions), nameof(ShowSignatureHelp), defaultValue: true);
     }
 
     [ExportOptionProvider, Shared]

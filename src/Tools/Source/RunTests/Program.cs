@@ -328,7 +328,7 @@ namespace RunTests
                 outputDirectory: options.TestResultXmlOutputDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
-                useHtml: options.UseHtml,
+                includeHtml: options.IncludeHtml,
                 test64: options.Test64,
                 testVsi: options.TestVsi);
             return new ProcessTestExecutor(testExecutionOptions);

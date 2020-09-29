@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// </summary>
         private const int MaxPooledByteArrays = 1024;
 
-        private static readonly Stack<byte[]> s_byteArrayPool = new Stack<byte[]>();
+        private static readonly Stack<byte[]> s_byteArrayPool = new();
 
         internal static byte[] GetPooledBytes()
         {

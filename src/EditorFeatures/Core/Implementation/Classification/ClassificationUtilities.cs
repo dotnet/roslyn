@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class ClassificationUtilities
     {
-        private static readonly ConcurrentQueue<List<ClassifiedSpan>> s_spanCache = new ConcurrentQueue<List<ClassifiedSpan>>();
+        private static readonly ConcurrentQueue<List<ClassifiedSpan>> s_spanCache = new();
 
         public static List<ClassifiedSpan> GetOrCreateClassifiedSpanList()
         {

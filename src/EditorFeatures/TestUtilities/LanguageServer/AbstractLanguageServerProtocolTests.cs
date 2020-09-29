@@ -172,13 +172,19 @@ namespace Roslyn.Test.Utilities
         }
 
         protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
-            => new LSP.SymbolInformation()
+        {
+            var info = new LSP.SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
-                ContainerName = containerName
             };
+
+            if (containerName != null)
+                info.ContainerName = containerName;
+
+            return info;
+        }
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
@@ -223,7 +229,8 @@ namespace Roslyn.Test.Utilities
             string text, LSP.CompletionItemKind kind, string[] tags,
             LSP.CompletionParams requestParameters, bool preselect = false,
             string[]? commitCharacters = null)
-            => new LSP.VSCompletionItem()
+        {
+            var item = new LSP.VSCompletionItem()
             {
                 FilterText = text,
                 InsertText = text,
@@ -237,10 +244,17 @@ namespace Roslyn.Test.Utilities
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position
                 },
-                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
                 Preselect = preselect,
-                CommitCharacters = commitCharacters
             };
+
+            if (tags != null)
+                item.Icon = new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId());
+
+            if (commitCharacters != null)
+                item.CommitCharacters = commitCharacters;
+
+            return item;
+        }
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
             => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
@@ -339,6 +353,13 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = (TestWorkspace)solution.Workspace;
             return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+        }
+
+        private protected static RequestExecutionQueue CreateRequestQueue(Solution solution)
+        {
+            var workspace = (TestWorkspace)solution.Workspace;
+            var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
+            return new RequestExecutionQueue(solutionProvider);
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

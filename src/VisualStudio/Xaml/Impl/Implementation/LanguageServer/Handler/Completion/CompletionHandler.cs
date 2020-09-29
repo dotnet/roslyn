@@ -25,18 +25,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Handle a completion request.
     /// </summary>
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentCompletionName, StringConstants.XamlLanguageName)]
-    internal class CompletionHandler : AbstractRequestHandler<CompletionParams, CompletionItem[]>
+    [ExportLspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public CompletionHandler()
         {
         }
 
-        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
+
+        public async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return CreateErrorItem($"Cannot find document in solution!", request.TextDocument.Uri.ToString());
@@ -56,24 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
         {
-            TextEdit? textEdit = null;
-
-            if (xamlCompletion.Span.HasValue)
-            {
-                textEdit = new TextEdit
-                {
-                    NewText = xamlCompletion.InsertText,
-                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
-                };
-            }
-
-            return new VSCompletionItem
+            var item = new VSCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
                 CommitCharacters = xamlCompletion.CommitCharacters,
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
-                TextEdit = textEdit,
                 Preselect = xamlCompletion.Preselect,
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
@@ -82,9 +72,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Icon = xamlCompletion.Icon,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
+
+            if (xamlCompletion.Span.HasValue)
+            {
+                item.TextEdit = new TextEdit
+                {
+                    NewText = xamlCompletion.InsertText,
+                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
+                };
+            }
+
+            return item;
         }
 
-        private static CompletionItem[] CreateErrorItem(string message, string? details = null)
+        private static CompletionItem[] CreateErrorItem(string message, string details = "")
         {
             var item = new CompletionItem
             {

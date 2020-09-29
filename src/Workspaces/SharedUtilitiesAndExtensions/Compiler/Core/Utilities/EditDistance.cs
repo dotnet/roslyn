@@ -104,7 +104,7 @@ namespace Roslyn.Utilities
 
         private const int MaxMatrixPoolDimension = 64;
         private static readonly ThreadLocal<int[,]> t_matrixPool =
-            new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
+            new(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
         // To find swapped characters we make use of a table that keeps track of the last location
         // we found that character.  For performance reasons we only do this work for ascii characters
@@ -112,7 +112,7 @@ namespace Roslyn.Utilities
         // of needing something more expensive like a dictionary.
         private const int LastSeenIndexLength = 128;
         private static readonly ThreadLocal<int[]> t_lastSeenIndexPool =
-            new ThreadLocal<int[]>(() => new int[LastSeenIndexLength]);
+            new(() => new int[LastSeenIndexLength]);
 
         private static int[,] GetMatrix(int width, int height)
         {
@@ -611,8 +611,8 @@ namespace Roslyn.Utilities
 
     internal class SimplePool<T> where T : class
     {
-        private readonly object _gate = new object();
-        private readonly Stack<T> _values = new Stack<T>();
+        private readonly object _gate = new();
+        private readonly Stack<T> _values = new();
         private readonly Func<T> _allocate;
 
         public SimplePool(Func<T> allocate)
@@ -647,7 +647,7 @@ namespace Roslyn.Utilities
         // Keep around a few arrays of size 256 that we can use for operations without
         // causing lots of garbage to be created.  If we do compare items larger than
         // that, then we will just allocate and release those arrays on demand.
-        private static readonly SimplePool<T[]> s_pool = new SimplePool<T[]>(() => new T[MaxPooledArraySize]);
+        private static readonly SimplePool<T[]> s_pool = new(() => new T[MaxPooledArraySize]);
 
         public static T[] GetArray(int size)
         {

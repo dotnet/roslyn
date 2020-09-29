@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
             private static readonly SymbolDisplayFormat s_typeNameFormatWithGenerics =
-                new SymbolDisplayFormat(
+                new(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                     memberOptions:
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
-                => new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
+                => new(expression, newExpression, _semanticModel, _cancellationToken);
 
             private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)
             {

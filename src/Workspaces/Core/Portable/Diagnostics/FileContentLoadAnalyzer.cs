@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class FileContentLoadAnalyzer : DiagnosticAnalyzer
     {
-        internal static readonly FileContentLoadAnalyzer Instance = new FileContentLoadAnalyzer();
+        internal static readonly FileContentLoadAnalyzer Instance = new();
 
         private FileContentLoadAnalyzer()
         {

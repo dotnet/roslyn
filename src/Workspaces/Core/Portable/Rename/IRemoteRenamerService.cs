@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal partial class RenameLocations
     {
         public SerializableRenameLocations Dehydrate(Solution solution, CancellationToken cancellationToken)
-            => new SerializableRenameLocations(
+            => new(
                 SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
                 SerializableRenameOptionSet.Dehydrate(Options),
                 SerializableSearchResult.Dehydrate(solution, _result, cancellationToken));

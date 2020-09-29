@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(IRefactorNotifyService))]
     internal sealed class ContainedLanguageRefactorNotifyService : IRefactorNotifyService
     {
-        private static readonly SymbolDisplayFormat s_qualifiedDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_qualifiedDisplayFormat = new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 

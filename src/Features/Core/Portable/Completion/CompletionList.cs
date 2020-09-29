@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
-        public static readonly CompletionList Empty = new CompletionList(
+        public static readonly CompletionList Empty = new(
             default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

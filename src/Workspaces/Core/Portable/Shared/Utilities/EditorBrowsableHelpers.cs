@@ -2,15 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class EditorBrowsableHelpers
     {
+        public struct EditorBrowsableInfo
+        {
+            public Compilation Compilation { get; }
+            public INamedTypeSymbol? HideModuleNameAttribute { get; }
+            public IMethodSymbol? EditorBrowsableAttributeConstructor { get; }
+            public ImmutableArray<IMethodSymbol> TypeLibTypeAttributeConstructors { get; }
+            public ImmutableArray<IMethodSymbol> TypeLibFuncAttributeConstructors { get; }
+            public ImmutableArray<IMethodSymbol> TypeLibVarAttributeConstructors { get; }
+            public bool IsDefault => Compilation == null;
+
+            public EditorBrowsableInfo(Compilation compilation)
+            {
+                Compilation = compilation;
+                HideModuleNameAttribute = compilation.HideModuleNameAttribute();
+                EditorBrowsableAttributeConstructor = GetSpecialEditorBrowsableAttributeConstructor(compilation);
+                TypeLibTypeAttributeConstructors = GetSpecialTypeLibTypeAttributeConstructors(compilation);
+                TypeLibFuncAttributeConstructors = GetSpecialTypeLibFuncAttributeConstructors(compilation);
+                TypeLibVarAttributeConstructors = GetSpecialTypeLibVarAttributeConstructors(compilation);
+            }
+        }
+
         /// <summary>
         /// Finds the constructor which takes exactly one argument, which must be of type EditorBrowsableState.
         /// It does not require that the EditorBrowsableAttribute and EditorBrowsableState types be those
@@ -18,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// point that pattern appears to be violated, return null to indicate that an appropriate constructor
         /// could not be found.
         /// </summary>
-        public static IMethodSymbol GetSpecialEditorBrowsableAttributeConstructor(Compilation compilation)
+        public static IMethodSymbol? GetSpecialEditorBrowsableAttributeConstructor(Compilation compilation)
         {
             var editorBrowsableAttributeType = compilation.EditorBrowsableAttributeType();
             var editorBrowsableStateType = compilation.EditorBrowsableStateType();
@@ -48,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public static List<IMethodSymbol> GetSpecialTypeLibTypeAttributeConstructors(Compilation compilation)
+        public static ImmutableArray<IMethodSymbol> GetSpecialTypeLibTypeAttributeConstructors(Compilation compilation)
         {
             return GetSpecialTypeLibAttributeConstructorsWorker(
                 compilation,
@@ -56,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 "System.Runtime.InteropServices.TypeLibTypeFlags");
         }
 
-        public static List<IMethodSymbol> GetSpecialTypeLibFuncAttributeConstructors(Compilation compilation)
+        public static ImmutableArray<IMethodSymbol> GetSpecialTypeLibFuncAttributeConstructors(Compilation compilation)
         {
             return GetSpecialTypeLibAttributeConstructorsWorker(
                 compilation,
@@ -64,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 "System.Runtime.InteropServices.TypeLibFuncFlags");
         }
 
-        public static List<IMethodSymbol> GetSpecialTypeLibVarAttributeConstructors(Compilation compilation)
+        public static ImmutableArray<IMethodSymbol> GetSpecialTypeLibVarAttributeConstructors(Compilation compilation)
         {
             return GetSpecialTypeLibAttributeConstructorsWorker(
                 compilation,
@@ -79,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// but it does demand the types found follow the expected pattern. If at any point that pattern appears to be
         /// violated, return an empty enumerable to indicate that no appropriate constructors were found.
         /// </summary>
-        private static List<IMethodSymbol> GetSpecialTypeLibAttributeConstructorsWorker(
+        private static ImmutableArray<IMethodSymbol> GetSpecialTypeLibAttributeConstructorsWorker(
             Compilation compilation,
             string attributeMetadataName,
             string flagsMetadataName)
@@ -90,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (typeLibAttributeType == null || typeLibFlagsType == null || shortType == null)
             {
-                return new List<IMethodSymbol>();
+                return ImmutableArray<IMethodSymbol>.Empty;
             }
 
             var candidateConstructors = typeLibAttributeType.Constructors
@@ -101,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                                                                       !c.Parameters[0].IsRefOrOut() &&
                                                                       !c.Parameters[0].CustomModifiers.Any()));
 
-            return candidateConstructors.ToList();
+            return candidateConstructors.ToImmutableArrayOrEmpty();
         }
     }
 }

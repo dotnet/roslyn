@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
                 NavigateToItemKind.Class,
+                NavigateToItemKind.Record,
                 NavigateToItemKind.Constant,
                 NavigateToItemKind.Delegate,
                 NavigateToItemKind.Enum,
@@ -138,12 +139,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var result in results)
             {
+                var location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(location);
                 symbols.Add(new VSSymbolInformation()
                 {
                     Name = result.Name,
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
-                    Location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false),
+                    Location = location,
                     Icon = new VisualStudio.Text.Adornments.ImageElement(result.NavigableItem.Glyph.GetImageId())
                 });
             }

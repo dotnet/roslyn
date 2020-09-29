@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
                 => _resolution = resolution;
 
             public Enumerator<TSymbol> GetEnumerator()
-                => new Enumerator<TSymbol>(_resolution);
+                => new(_resolution);
         }
 
         public struct Enumerator<TSymbol> where TSymbol : ISymbol

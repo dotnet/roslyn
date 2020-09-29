@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     // to reduce number of unnecessary heap allocations, most of them just return null.
     internal sealed class DefaultOperationProvider : AbstractFormattingRule
     {
-        public static readonly DefaultOperationProvider Instance = new DefaultOperationProvider();
+        public static readonly DefaultOperationProvider Instance = new();
 
         private DefaultOperationProvider()
         {

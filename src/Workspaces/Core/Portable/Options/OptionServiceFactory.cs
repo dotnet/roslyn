@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Options
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;

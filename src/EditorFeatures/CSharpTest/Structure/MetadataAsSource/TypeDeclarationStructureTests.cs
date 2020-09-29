@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -53,6 +54,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 //     This is a doc comment.
 [Bar, Baz]
 |}{|#0:public class $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(47889, "https://github.com/dotnet/roslyn/issues/47889")]
+        public async Task RecordWithCommentsAndAttributes()
+        {
+            const string code = @"
+{|hint:{|textspan:// Summary:
+//     This is a doc comment.
+[Bar, Baz]
+|}{|#0:public record $$C|}{|textspan2:
 {
     void M();
 }|}|#0}";

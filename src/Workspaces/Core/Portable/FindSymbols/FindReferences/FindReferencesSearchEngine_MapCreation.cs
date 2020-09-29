@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 searchSymbol = sourceSymbol;
             }
 
-            if (searchSymbol != null && result.Add(searchSymbol))
+            Contract.ThrowIfNull(searchSymbol);
+            if (result.Add(searchSymbol))
             {
                 await _progress.OnDefinitionFoundAsync(searchSymbol).ConfigureAwait(false);
 
@@ -135,12 +136,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                var finderTasks = new List<Task>();
+                using var _ = ArrayBuilder<Task>.GetInstance(out var finderTasks);
                 foreach (var f in _finders)
                 {
                     finderTasks.Add(Task.Run(async () =>
                     {
-                        var symbolTasks = new List<Task>();
+                        using var _ = ArrayBuilder<Task>.GetInstance(out var symbolTasks);
 
                         var symbols = await f.DetermineCascadedSymbolsAsync(
                             searchSymbol, _solution, projects, _options, _cancellationToken).ConfigureAwait(false);
@@ -169,12 +170,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private void AddSymbolTasks(
             ConcurrentSet<ISymbol> result,
             ImmutableArray<ISymbol> symbols,
-            List<Task> symbolTasks)
+            ArrayBuilder<Task> symbolTasks)
         {
             if (!symbols.IsDefault)
             {
                 foreach (var child in symbols)
                 {
+                    Contract.ThrowIfNull(child);
                     _cancellationToken.ThrowIfCancellationRequested();
                     symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
                 }
@@ -227,6 +229,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 searchSymbol = symbol.ContainingType;
             }
 
+            Contract.ThrowIfNull(searchSymbol);
             return searchSymbol;
         }
     }
