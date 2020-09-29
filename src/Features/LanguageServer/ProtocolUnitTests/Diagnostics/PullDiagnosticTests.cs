@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            registrationService.EnsureRegistration(workspace, initializeLazily: false);
+            registrationService.Register(workspace);
 
             if (!registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out _))
                 throw new InvalidOperationException();
