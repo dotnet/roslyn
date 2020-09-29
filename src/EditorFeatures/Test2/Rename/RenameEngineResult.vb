@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
-Imports Xunit.Sdk
-Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
-Imports Microsoft.CodeAnalysis
+Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -52,11 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 host As RenameTestHost,
                 Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
                 Optional expectFailure As Boolean = False) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
             workspace.SetTestLogger(AddressOf helper.WriteLine)
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host <> RenameTestHost.InProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try

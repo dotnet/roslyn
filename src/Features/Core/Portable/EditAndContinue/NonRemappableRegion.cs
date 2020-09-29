@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public NonRemappableRegion WithLineDelta(int value)
-            => new NonRemappableRegion(Span, value, IsExceptionRegion);
+            => new(Span, value, IsExceptionRegion);
 
         internal string GetDebuggerDisplay()
             => $"{(IsExceptionRegion ? "ER" : "AS")} {Span} δ={LineDelta}";

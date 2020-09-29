@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              SourceMemberContainerTypeSymbol containingType,
              RecordDeclarationSyntax syntax,
              BindingDiagnosticBag diagnostics) :
-             base(containingType, syntax.ParameterList!.GetLocation(), syntax)
+             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
             this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
         }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -262,8 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
                         | DeclarationModifiers.Unsafe;
+
+                    if (!this.IsRecord)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Static;
+                    }
+
                     break;
                 case TypeKind.Struct:
                     allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
@@ -280,7 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var mods = MakeAndCheckTypeModifiers(
                 defaultAccess,
                 allowedModifiers,
-                this,
                 diagnostics,
                 out modifierErrors);
 
@@ -319,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclarationModifiers MakeAndCheckTypeModifiers(
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
-            SourceMemberContainerTypeSymbol self,
             BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
@@ -351,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var info = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false);
                         if (info != null)
                         {
-                            diagnostics.Add(info, self.Locations[0]);
+                            diagnostics.Add(info, this.Locations[0]);
                             modifierErrors = true;
                         }
                     }
@@ -378,12 +383,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((result & DeclarationModifiers.Partial) == 0)
                 {
                     // duplicate definitions
-                    switch (self.ContainingSymbol.Kind)
+                    switch (this.ContainingSymbol.Kind)
                     {
                         case SymbolKind.Namespace:
                             for (var i = 1; i < partCount; i++)
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, declaration.Declarations[i].NameLocation, self.Name, self.ContainingSymbol);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, declaration.Declarations[i].NameLocation, this.Name, this.ContainingSymbol);
                                 modifierErrors = true;
                             }
                             break;
@@ -392,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             for (var i = 1; i < partCount; i++)
                             {
                                 if (ContainingType!.Locations.Length == 1 || ContainingType.IsPartial())
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, declaration.Declarations[i].NameLocation, self.ContainingSymbol, self.Name);
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, declaration.Declarations[i].NameLocation, this.ContainingSymbol, this.Name);
                                 modifierErrors = true;
                             }
                             break;
@@ -406,14 +411,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var mods = singleDeclaration.Modifiers;
                         if ((mods & DeclarationModifiers.Partial) == 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_MissingPartial, singleDeclaration.NameLocation, self.Name);
+                            diagnostics.Add(ErrorCode.ERR_MissingPartial, singleDeclaration.NameLocation, this.Name);
                             modifierErrors = true;
                         }
                     }
                 }
             }
 
+            if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            {
+                foreach (var syntaxRef in SyntaxReferences)
+                {
+                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                    {
+                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                        _ => null
+                    };
+
+                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
+                }
+            }
+
             return result;
+        }
+
+        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        {
+            if (diagnostics is object && name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
+                compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
+            }
         }
 
         #endregion
@@ -719,19 +748,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return managedKind;
         }
 
-        public override bool IsStatic => _declModifiers.HasFlag(DeclarationModifiers.Static);
+        public override bool IsStatic => HasFlag(DeclarationModifiers.Static);
 
-        public sealed override bool IsRefLikeType => _declModifiers.HasFlag(DeclarationModifiers.Ref);
+        public sealed override bool IsRefLikeType => HasFlag(DeclarationModifiers.Ref);
 
-        public override bool IsReadOnly => _declModifiers.HasFlag(DeclarationModifiers.ReadOnly);
+        public override bool IsReadOnly => HasFlag(DeclarationModifiers.ReadOnly);
 
-        public override bool IsSealed => _declModifiers.HasFlag(DeclarationModifiers.Sealed);
+        public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => _declModifiers.HasFlag(DeclarationModifiers.Abstract);
+        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
 
-        internal bool IsPartial => _declModifiers.HasFlag(DeclarationModifiers.Partial);
+        internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
-        internal bool IsNew => _declModifiers.HasFlag(DeclarationModifiers.New);
+        internal bool IsNew => HasFlag(DeclarationModifiers.New);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
 
         public override Accessibility DeclaredAccessibility
         {
@@ -1534,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var pair in membersByName)
             {
                 var name = pair.Key;
-                Symbol lastSym = GetTypeMembers(name).FirstOrDefault();
+                Symbol? lastSym = GetTypeMembers(name).FirstOrDefault();
                 methodsBySignature.Clear();
                 // Conversion collisions do not consider the name of the conversion,
                 // so do not clear that dictionary.
@@ -1581,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //   following a field of the same name, or a field and a nested type of the same name.
                     //
 
-                    if ((object)lastSym != null)
+                    if (lastSym is object)
                     {
                         if (symbol.Kind != SymbolKind.Method || lastSym.Kind != SymbolKind.Method)
                         {
@@ -1713,7 +1745,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Special case: if there are two destructors, use the destructor syntax instead of "Finalize"
             var methodName = (method1.MethodKind == MethodKind.Destructor && method2.MethodKind == MethodKind.Destructor) ?
                 "~" + this.Name :
-                method1.Name;
+                (method1.IsConstructor() ? this.Name : method1.Name);
+
             // Type '{1}' already defines a member called '{0}' with the same parameter types
             diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
         }
@@ -2081,6 +2114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            if (IsRecord)
+            {
+                // For records the warnings reported below are simply going to echo record specific errors,
+                // producing more noise.
+                return;
+            }
+
             bool hasOp = this.GetOperators(WellKnownMemberNames.EqualityOperatorName).Any() ||
                 this.GetOperators(WellKnownMemberNames.InequalityOperatorName).Any();
             bool overridesEquals = this.TypeOverridesObjectMethod("Equals");
@@ -2112,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var method in this.GetMembers(name).OfType<MethodSymbol>())
             {
-                if (method.IsOverride && method.GetConstructedLeastOverriddenMethod(this).ContainingType.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
+                if (method.IsOverride && method.GetConstructedLeastOverriddenMethod(this, requireSameReturnType: false).ContainingType.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
                 {
                     return true;
                 }
@@ -3016,16 +3056,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
 
-                // https://github.com/dotnet/roslyn/issues/44677
-                // The semantics of an empty parameter list have not been decided. Error for now
-                if (paramList.ParameterCount == 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
-                }
-
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                var existingOrAddedMembers = addProperties(ctor.Parameters);
-                addDeconstruct(ctor, existingOrAddedMembers);
+
+                if (ctor.ParameterCount != 0)
+                {
+                    var existingOrAddedMembers = addProperties(ctor.Parameters);
+                    addDeconstruct(ctor, existingOrAddedMembers);
+                }
             }
 
             addCopyCtor();
@@ -3036,7 +3073,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var thisEquals = addThisEquals(equalityContract);
             addOtherEquals();
             addObjectEquals(thisEquals);
-            addHashCode(equalityContract);
+            var getHashCode = addGetHashCode(equalityContract);
+            addEqualityOperators();
+
+            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
+            }
+
+            var printMembers = addPrintMembersMethod();
+            addToStringMethod(printMembers);
 
             memberSignatures.Free();
 
@@ -3140,6 +3186,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count, diagnostics));
             }
 
+            MethodSymbol addPrintMembersMethod()
+            {
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.PrintMembersMethodName,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                        TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder)),
+                        ImmutableArray<CustomModifier>.Empty,
+                        isParams: false,
+                        RefKind.None)),
+                    RefKind.None,
+                    isInitOnly: false,
+                    returnType: TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean)),
+                    refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                    explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
+
+                MethodSymbol printMembersMethod;
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
+                {
+                    printMembersMethod = new SynthesizedRecordPrintMembers(this, memberOffset: members.Count, diagnostics);
+                    members.Add(printMembersMethod);
+                }
+                else
+                {
+                    printMembersMethod = (MethodSymbol)existingPrintMembersMethod;
+                    if (this.IsSealed && this.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+                    {
+                        if (printMembersMethod.DeclaredAccessibility != Accessibility.Private)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NonPrivateAPIInRecord, printMembersMethod.Locations[0], printMembersMethod);
+                        }
+                    }
+                    else if (printMembersMethod.DeclaredAccessibility != Accessibility.Protected)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, printMembersMethod.Locations[0], printMembersMethod);
+                    }
+
+                    if (!printMembersMethod.ReturnType.Equals(targetMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        if (!printMembersMethod.ReturnType.IsErrorType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, printMembersMethod.Locations[0], printMembersMethod, targetMethod.ReturnType);
+                        }
+                    }
+                    else
+                    {
+                        SynthesizedRecordPrintMembers.VerifyOverridesPrintMembersFromBase(printMembersMethod, diagnostics);
+                    }
+
+                    reportStaticOrNotOverridableAPIInRecord(printMembersMethod, diagnostics);
+                }
+
+                return printMembersMethod;
+            }
+
+            void addToStringMethod(MethodSymbol printMethod)
+            {
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectToString,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray<ParameterSymbol>.Empty,
+                    RefKind.None,
+                    isInitOnly: false,
+                    returnType: TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_String)),
+                    refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                    explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
+                {
+                    var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                    members.Add(toStringMethod);
+                }
+                else
+                {
+                    var toStringMethod = (MethodSymbol)existingToStringMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialType.System_String, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, toStringMethod.Locations[0], toStringMethod);
+                    }
+                }
+            }
+
             ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
                 var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
@@ -3219,7 +3353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics));
             }
 
-            void addHashCode(PropertySymbol equalityContract)
+            MethodSymbol addGetHashCode(PropertySymbol equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectGetHashCode,
@@ -3234,19 +3368,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<CustomModifier>.Empty,
                     ImmutableArray<MethodSymbol>.Empty);
 
+                MethodSymbol getHashCode;
+
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
-                    members.Add(hashCode);
+                    getHashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
+                    members.Add(getHashCode);
                 }
                 else
                 {
-                    var method = (MethodSymbol)existingHashCodeMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
+                    getHashCode = (MethodSymbol)existingHashCodeMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialType.System_Int32, diagnostics) && getHashCode.IsSealed && !IsSealed)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedGetHashCodeInRecord, method.Locations[0], method);
+                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, getHashCode.Locations[0], getHashCode);
                     }
                 }
+                return getHashCode;
             }
 
             PropertySymbol addEqualityContract()
@@ -3369,6 +3506,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics));
                 }
             }
+
+            void addEqualityOperators()
+            {
+                members.Add(new SynthesizedRecordEqualityOperator(this, memberOffset: members.Count, diagnostics));
+                members.Add(new SynthesizedRecordInequalityOperator(this, memberOffset: members.Count, diagnostics));
+            }
         }
 
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> staticInitializers, BindingDiagnosticBag diagnostics)
@@ -3390,7 +3533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                             // Ignore the record copy constructor
-                            if (!(method is SynthesizedRecordCopyCtor))
+                            if (!IsRecord || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method))
                             {
                                 hasInstanceConstructor = true;
                                 hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;

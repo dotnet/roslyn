@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Assert.True(cs != null || csSimple != null || vb != null || vbSimple != null,
                 $"At least one of {nameof(cs)}, {nameof(csSimple)}, {nameof(vb)}, {nameof(vbSimple)} must be provided");
 
-            var hostServices = VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
-            var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
 
             if (cs != null || csSimple != null)
             {

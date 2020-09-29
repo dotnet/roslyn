@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext) => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

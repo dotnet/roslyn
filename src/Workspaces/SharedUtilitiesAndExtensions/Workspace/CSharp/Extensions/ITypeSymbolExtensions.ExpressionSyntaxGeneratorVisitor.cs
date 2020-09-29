@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
         {
-            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new ExpressionSyntaxGeneratorVisitor();
+            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new();
 
             private ExpressionSyntaxGeneratorVisitor()
             {

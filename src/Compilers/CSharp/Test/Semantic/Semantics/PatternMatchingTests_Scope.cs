@@ -3099,16 +3099,16 @@ public class X
                 // (9,33): error CS1002: ; expected
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(9, 33),
-                // (9,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 36),
-                // (9,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 36),
-                // (9,39): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (9,39): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(9, 39),
-                // (9,39): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (9,39): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(9, 39),
                 // (11,33): error CS1002: ; expected
@@ -3226,10 +3226,10 @@ public class X
     // (9,23): error CS1002: ; expected
     //     bool Test1 => let x1 = 11;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(9, 23),
-    // (9,26): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+    // (9,26): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
     //     bool Test1 => let x1 = 11;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 26),
-    // (9,26): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+    // (9,26): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
     //     bool Test1 => let x1 = 11;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 26),
     // (11,29): error CS1002: ; expected

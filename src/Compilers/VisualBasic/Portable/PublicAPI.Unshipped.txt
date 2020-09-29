@@ -1,1 +1,2 @@
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSyntaxTreeOptionsProvider(provider As Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetUsedAssemblyReferences(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.MetadataReference)

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private CancellationToken _cancellationToken;
             private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
 
-            private static readonly ObjectPool<Walker> s_visitorPool = new ObjectPool<Walker>(() => new Walker());
+            private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
             private Walker() { }
 
             public static void AnalyzeOperationsAndUpdateData(

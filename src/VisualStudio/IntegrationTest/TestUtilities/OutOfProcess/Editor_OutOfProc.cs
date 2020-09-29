@@ -86,6 +86,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return builder.ToImmutableAndFree();
         }
 
+        public void InvokeNavigateToNextHighlightedReference()
+        {
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_NextHighlightedReference);
+        }
+
         public string GetCurrentCompletionItem()
         {
             WaitForCompletionSet();

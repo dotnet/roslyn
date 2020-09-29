@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
+            Workspace.WaitForAllAsyncOperationsOrFail(Helper.HangMitigatingTimeout);
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();

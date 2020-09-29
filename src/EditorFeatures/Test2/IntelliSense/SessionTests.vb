@@ -17,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub SessionStopsWhenPresenterIsDismissed()
-            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
+            Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
+            Dim threadingContext = exportProvider.GetExportedValue(Of IThreadingContext)
             Dim presenter = New Mock(Of IIntelliSensePresenterSession)(MockBehavior.Strict)
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Sub(c) c.StopModelComputation())
@@ -33,7 +34,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub PresenterIsDismissedWhenSessionIsStopped()
-            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
+            Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
+            Dim threadingContext = exportProvider.GetExportedValue(Of IThreadingContext)
             Dim presenter = New Mock(Of IIntelliSensePresenterSession)(MockBehavior.Strict)
             presenter.Setup(Sub(p) p.Dismiss())
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)

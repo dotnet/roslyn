@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType, ref useSiteInfo);
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType is TypeParameterSymbol typeParameter ? typeParameter.EffectiveBaseClass(ref useSiteInfo) : receiverType, ref useSiteInfo);
                 if (cloneMethod is null)
                 {
                     hasErrors = true;

@@ -367,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return ImmutableArray<string>.Empty;

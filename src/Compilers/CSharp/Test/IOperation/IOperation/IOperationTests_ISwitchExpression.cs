@@ -509,9 +509,9 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
+                // file.cs(7,25): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         y = /*<bind>*/x switch { 1 => 2, _ when false => 5 }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(7, 25)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(7, 25)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

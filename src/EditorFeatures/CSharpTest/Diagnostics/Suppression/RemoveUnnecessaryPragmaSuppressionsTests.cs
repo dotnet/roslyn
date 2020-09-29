@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         protected sealed override ParseOptions GetScriptOptions() => Options.Script;
         protected internal sealed override string GetLanguage() => LanguageNames.CSharp;
-        protected sealed override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions,
-                (parameters.compilationOptions ?? TestOptions.DebugDll).WithReportSuppressedDiagnostics(true));
+
+        protected override TestParameters SetParameterDefaults(TestParameters parameters)
+            => parameters.WithCompilationOptions((parameters.compilationOptions ?? TestOptions.DebugDll).WithReportSuppressedDiagnostics(true));
 
         protected sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -412,6 +412,33 @@ class Class
 |]", new TestParameters(options: options));
             }
 
+            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
+            {
+                var options = new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, "category: ExcludedCategory" }
+                };
+
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableAssignedButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+        int y;
+        y = 1;
+
+        int z = 1;
+        z++;
+    }}
+}}
+|]", new TestParameters(options: options));
+            }
+
             [Fact]
             public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
             {
@@ -493,9 +520,6 @@ class Class
             [Fact]
             public async Task TestRemoveDiagnosticSuppression_Attribute_Trivia()
             {
-                // This test should not remove Comment1 and DocComment.
-                // TODO: File a bug for SyntaxEditor.RemoveNode API removing doc comment and its preceeeding trivia.
-
                 await TestInRegularAndScript1Async(
         $@"
 class Class
@@ -516,6 +540,11 @@ class Class
         @"
 class Class
 {
+    // Comment1
+    /// <summary>
+    /// DocComment
+    /// </summary>
+    // Comment2
     // Comment4
     void M()
     {
@@ -1000,7 +1029,7 @@ class Class
     }}
 }}|]";
                 var parameters = new TestParameters();
-                using var workspace = CreateWorkspaceFromFile(source, parameters);
+                using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
                 // Suppress the diagnostic in options.
                 var projectId = workspace.Projects[0].Id;

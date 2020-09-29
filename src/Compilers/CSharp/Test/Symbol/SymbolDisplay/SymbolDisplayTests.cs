@@ -7512,7 +7512,7 @@ class B
     static void F3(nint? x, UIntPtr? y) { }
     static void F4(nint[] x, A<nuint> y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular9);
             var formatWithoutOptions = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
@@ -7583,6 +7583,27 @@ class B
             Verify(
                 method.ToDisplayParts(formatWithoutOptions),
                 "static void F4(nint[] x, A<nuint> y)");
+        }
+
+        [Fact]
+        public void RecordDeclaration()
+        {
+            var text = @"
+record Person(string First, string Last);
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("Person").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                "record Person",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName);
         }
     }
 }

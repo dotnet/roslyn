@@ -19,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 {
     public partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestWorkspaceFixture>
     {
-        public TypeInferrerTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         protected override async Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, TestMode mode)
         {
             var root = await document.GetSyntaxRootAsync();

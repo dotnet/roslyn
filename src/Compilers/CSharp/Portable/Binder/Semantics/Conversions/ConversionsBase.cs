@@ -1917,15 +1917,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var s0 = source.StrippedType();
             var t0 = target.StrippedType();
 
-            if (s0.SpecialType != SpecialType.System_UIntPtr &&
-                s0.SpecialType != SpecialType.System_IntPtr &&
-                t0.SpecialType != SpecialType.System_UIntPtr &&
-                t0.SpecialType != SpecialType.System_IntPtr)
+            TypeSymbol otherType;
+            if (isIntPtrOrUIntPtr(s0))
+            {
+                otherType = t0;
+            }
+            else if (isIntPtrOrUIntPtr(t0))
+            {
+                otherType = s0;
+            }
+            else
             {
                 return false;
             }
-
-            TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
             if (otherType.IsPointerOrFunctionPointer())
             {
@@ -1955,6 +1959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+
+            static bool isIntPtrOrUIntPtr(TypeSymbol type) =>
+                (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerType;
         }
 
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)
@@ -2989,6 +2996,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (sourceSig.CallingConvention == Cci.CallingConvention.Unmanaged &&
+                !sourceSig.GetCallingConventionModifiers().SetEquals(destinationSig.GetCallingConventionModifiers()))
+            {
+                return false;
+            }
+
             for (int i = 0; i < sourceSig.ParameterCount; i++)
             {
                 var sourceParam = sourceSig.Parameters[i];
@@ -3488,20 +3501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The spec should state that any pointer type is convertible to
             // sbyte, byte, ... etc, or any corresponding nullable type.
 
-            switch (destination.StrippedType().SpecialType)
-            {
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                    return true;
-            }
-
-            return false;
+            return IsIntegerTypeSupportingPointerConversions(destination.StrippedType());
         }
 
         private static bool HasIntegerToPointerConversion(TypeSymbol source, TypeSymbol destination)
@@ -3515,8 +3515,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Note that void* is convertible to int?, but int? is not convertible to void*.
+            return IsIntegerTypeSupportingPointerConversions(source);
+        }
 
-            switch (source.SpecialType)
+        private static bool IsIntegerTypeSupportingPointerConversions(TypeSymbol type)
+        {
+            switch (type.SpecialType)
             {
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
@@ -3527,6 +3531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int64:
                 case SpecialType.System_UInt64:
                     return true;
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return type.IsNativeIntegerType;
             }
 
             return false;

@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using RunTests.Cache;
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
@@ -18,18 +15,18 @@ namespace RunTests
         internal string OutputDirectory { get; }
         internal string Trait { get; }
         internal string NoTrait { get; }
-        internal bool UseHtml { get; }
+        internal bool IncludeHtml { get; }
         internal bool Test64 { get; }
         internal bool TestVsi { get; }
 
-        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
+        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool includeHtml, bool test64, bool testVsi)
         {
             XunitPath = xunitPath;
             ProcDumpInfo = procDumpInfo;
             OutputDirectory = outputDirectory;
             Trait = trait;
             NoTrait = noTrait;
-            UseHtml = useHtml;
+            IncludeHtml = includeHtml;
             Test64 = test64;
             TestVsi = testVsi;
         }
@@ -70,7 +67,6 @@ namespace RunTests
         internal TestResultInfo TestResultInfo { get; }
         internal AssemblyInfo AssemblyInfo { get; }
         internal string CommandLine { get; }
-        internal bool IsFromCache { get; }
         internal string Diagnostics { get; }
 
         /// <summary>
@@ -88,25 +84,13 @@ namespace RunTests
         internal string ErrorOutput => TestResultInfo.ErrorOutput;
         internal string ResultsFilePath => TestResultInfo.ResultsFilePath;
 
-        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, bool isFromCache, ImmutableArray<ProcessResult> processResults = default, string diagnostics = null)
+        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string diagnostics = null)
         {
             AssemblyInfo = assemblyInfo;
             TestResultInfo = testResultInfo;
             CommandLine = commandLine;
-            IsFromCache = isFromCache;
             ProcessResults = processResults.IsDefault ? ImmutableArray<ProcessResult>.Empty : processResults;
             Diagnostics = diagnostics;
         }
-    }
-
-    internal interface ITestExecutor
-    {
-        TestExecutionOptions Options { get; }
-
-        IDataStorage DataStorage { get; }
-
-        string GetCommandLine(AssemblyInfo assemblyInfo);
-
-        Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken);
     }
 }

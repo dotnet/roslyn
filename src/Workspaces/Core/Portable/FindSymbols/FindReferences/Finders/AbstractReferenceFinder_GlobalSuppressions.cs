@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// For the above example, "~M:" is the prefix, "C.X" is the core symbol ID and "(System.String)" is the parameter list.
         /// </summary>
-        private static readonly Regex s_docCommentIdPattern = new Regex(@"(~?[A-Z]:)([^([]*)(.*)");
+        private static readonly Regex s_docCommentIdPattern = new(@"(~?[A-Z]:)([^([]*)(.*)");
 
         protected static bool ShouldFindReferencesInGlobalSuppressions(ISymbol symbol, [NotNullWhen(returnValue: true)] out string? documentationCommentId)
         {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (IsCandidate(token, expectedDocCommentId, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
                 {
                     var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, document, syntaxFacts);
-                    locations.Add(new FinderLocation(token.Parent, referenceLocation));
+                    locations.Add(new FinderLocation(token.GetRequiredParent(), referenceLocation));
                 }
             }
 

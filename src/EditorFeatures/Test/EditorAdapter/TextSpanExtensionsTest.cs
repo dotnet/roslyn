@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.EditorUtilities;
 using Xunit;
 
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSnapshotSpan1()
         {
-            var snapshot = EditorFactory.CreateBuffer(EditorServicesUtil.ExportProvider, new string('a', 10)).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, new string('a', 10)).CurrentSnapshot;
             var textSpan = new TextSpan(0, 5);
             var ss = textSpan.ToSnapshotSpan(snapshot);
             Assert.Same(snapshot, ss.Snapshot);
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSnapshotSpan2()
         {
-            var snapshot = EditorFactory.CreateBuffer(EditorServicesUtil.ExportProvider, new string('a', 10)).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, new string('a', 10)).CurrentSnapshot;
             var textSpan = new TextSpan(0, 10);
             var ss = textSpan.ToSnapshotSpan(snapshot);
             Assert.Same(snapshot, ss.Snapshot);

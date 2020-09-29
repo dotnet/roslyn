@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class PropertySymbol
+    Partial Friend Class PropertySymbol
         Implements IPropertyDefinition
 
         Private Iterator Function IPropertyDefinitionAccessors(context As EmitContext) As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.GetAccessors

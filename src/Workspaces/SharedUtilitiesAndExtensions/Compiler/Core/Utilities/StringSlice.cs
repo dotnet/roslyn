@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         public char this[int index] => _underlyingString[_span.Start + index];
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public override bool Equals(object obj) => Equals((StringSlice)obj);
 

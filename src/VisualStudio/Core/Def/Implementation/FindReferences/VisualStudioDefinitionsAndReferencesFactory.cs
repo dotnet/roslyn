@@ -64,10 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private string GetSourceLine(string filePath, int lineNumber)
         {
             using var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, hierarchyOpt: null, needsSave: false, needsUndoDisabled: false);
+                _serviceProvider, filePath, hierarchy: null, needsSave: false, needsUndoDisabled: false);
             var vsTextLines = invisibleEditor.VsTextLines;
-            if (vsTextLines != null &&
-                vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
+            if (vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
                 vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
             {
                 return lineText;

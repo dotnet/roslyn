@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -25,11 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return actions(0).NestedCodeActions
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal sealed class LongestCommonSubstring : LongestCommonSubsequence<string>
     {
-        private static readonly LongestCommonSubstring s_instance = new LongestCommonSubstring();
+        private static readonly LongestCommonSubstring s_instance = new();
 
         private LongestCommonSubstring()
         {

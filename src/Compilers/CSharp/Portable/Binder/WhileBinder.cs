@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             ExpressionSyntax condition;

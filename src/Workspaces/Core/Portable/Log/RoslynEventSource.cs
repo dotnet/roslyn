@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed partial class RoslynEventSource : EventSource
     {
         // might not "enabled" but we always have this singleton alive
-        public static readonly RoslynEventSource Instance = new RoslynEventSource();
+        public static readonly RoslynEventSource Instance = new();
 
         private readonly bool _initialized;
         private RoslynEventSource()

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class StatementListBinder
         Inherits BlockBaseBinder
 
-        Private _statementList As SyntaxList(Of StatementSyntax)
+        Private ReadOnly _statementList As SyntaxList(Of StatementSyntax)
         Private _locals As ImmutableArray(Of LocalSymbol) = Nothing
 
         Public Sub New(containing As Binder,

@@ -9,6 +9,8 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
@@ -23,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public XamlLanguageServerClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
-            : base(languageServerProtocol, workspace, diagnosticService, diagnosticsClientName: null)
+        public XamlLanguageServerClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, IAsynchronousOperationListenerProvider listenerProvider, ILspSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 

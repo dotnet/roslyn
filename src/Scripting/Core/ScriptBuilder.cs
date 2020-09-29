@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private readonly InteractiveAssemblyLoader _assemblyLoader;
 
-        private static EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
+        private static readonly EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
             debugInformationFormat: PdbHelpers.GetPlatformSpecificDebugInformationFormat(),
             pdbChecksumAlgorithm: default(HashAlgorithmName));
 

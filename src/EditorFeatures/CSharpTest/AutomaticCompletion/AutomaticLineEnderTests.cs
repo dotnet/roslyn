@@ -839,8 +839,7 @@ $$
 }");
         }
 
-        protected override TestWorkspace CreateWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
             => () => { };

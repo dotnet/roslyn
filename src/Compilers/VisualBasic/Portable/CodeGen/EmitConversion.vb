@@ -9,7 +9,7 @@ Imports PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
 
         Private Shared Function IsSimpleType(type As PrimitiveTypeCode) As Boolean
             Dim result = False

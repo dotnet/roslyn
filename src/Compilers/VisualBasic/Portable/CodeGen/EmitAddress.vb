@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
 
         ' VB has additional, stronger than CLR requirements on whether a reference to an item
         ' can be taken. 

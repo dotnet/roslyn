@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isConfigurable = true,
             LocalizableString description = null,
             params string[] customTags)
-            => new DiagnosticDescriptor(
+            => new(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
                     DiagnosticSeverity.Info,

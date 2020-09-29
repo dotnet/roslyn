@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             private readonly struct ProjectAnalyzerStateSets
             {
-                public static readonly ProjectAnalyzerStateSets Default = new ProjectAnalyzerStateSets(
+                public static readonly ProjectAnalyzerStateSets Default = new(
                     ImmutableArray<AnalyzerReference>.Empty,
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>.Empty,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty,

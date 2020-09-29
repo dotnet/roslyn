@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// No return type.
         /// </remarks>
         public static readonly SymbolDisplayFormat NameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Contains enough information to determine whether two symbols have the same signature.
         /// </summary>
         public static readonly SymbolDisplayFormat SignatureFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,

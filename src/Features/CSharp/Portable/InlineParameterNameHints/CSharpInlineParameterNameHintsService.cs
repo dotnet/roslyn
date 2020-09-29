@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null && param.Name != "")
                         {
-                            spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
+                            spans.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, argument.Span.Start));
                         }
                     }
                 }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                         var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null && param.Name != "")
                         {
-                            spans.Add(new InlineParameterHint(param.Name, attribute.SpanStart));
+                            spans.Add(new InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, attribute.SpanStart));
                         }
                     }
                 }
@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             if (arg is LiteralExpressionSyntax)
             {
                 // We want to adorn literals no matter what
+                return true;
+            }
+            if (arg is InterpolatedStringExpressionSyntax)
+            {
+                // We want to adorn all types of strings
                 return true;
             }
             if (arg is ObjectCreationExpressionSyntax)

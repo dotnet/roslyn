@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8652", // error CS8652: The feature '' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 "CS8703", // error CS8703: The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.
                 "CS8706", // error CS8706: '{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater. 
+                "CS9100", // error CS9100: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;

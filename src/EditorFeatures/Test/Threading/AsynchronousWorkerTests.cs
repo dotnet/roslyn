@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void TestBackgroundAction()
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void TestMultipleBackgroundAction()
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void TestBackgroundCancel1()
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void TestBackgroundCancelOneAction()
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void TestBackgroundCancelMultipleActions()
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             try
             {
-                worker.WaitUntilCompletion_ForTestingPurposesOnly();
+                worker.GetTestAccessor().WaitUntilCompletion();
                 Assert.True(false);
             }
             catch (AggregateException ae)

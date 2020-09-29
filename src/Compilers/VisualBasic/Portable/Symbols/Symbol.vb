@@ -912,7 +912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case useSiteInfo.DiagnosticInfo.Code
                     Case ERRID.ERR_UnsupportedType1
 
-                        GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(useSiteInfo)
+                        GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(useSiteInfo)
 
                     Case Else
                         ' Nothing to do, simply use the same error info.
@@ -922,7 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return useSiteInfo
         End Function
 
-        Private Sub GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol))
+        Private Sub GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol))
             Select Case Me.Kind
                 Case SymbolKind.Field
                     useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
@@ -1033,7 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
                 Else
                     useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
-                    GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(useSiteInfo)
+                    GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(useSiteInfo)
                 End If
 
                 If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then

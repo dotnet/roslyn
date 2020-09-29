@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -168,8 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol? accessingTypeOpt)
         {
-            var accessingType = ((object?)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
-
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             EventSymbol e = this;
             while (e.IsOverride && !e.HidesBaseEventsByName)
             {
@@ -195,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 EventSymbol? overridden = e.OverriddenEvent;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if ((object?)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref discardedUseSiteInfo))
+                if ((object?)overridden == null ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo)))
                 {
                     break;
                 }

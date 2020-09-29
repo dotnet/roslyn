@@ -79,14 +79,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             if (s_loggingStream != null)
             {
-                LogError("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", exception.Message, reason, exception.StackTrace);
+                LogError("'{0}' '{1}' occurred during '{2}'. Stack trace:\r\n{3}", exception.GetType().Name, exception.Message, reason, exception.StackTrace);
 
                 int innerExceptionLevel = 0;
 
                 Exception? e = exception.InnerException;
                 while (e != null)
                 {
-                    Log("Inner exception[{0}] '{1}'. Stack trace: \r\n{1}", innerExceptionLevel, e.Message, e.StackTrace);
+                    Log("Inner exception[{0}] '{1}' '{2}'. Stack trace: \r\n{3}", innerExceptionLevel, e.GetType().Name, e.Message, e.StackTrace);
                     e = e.InnerException;
                     innerExceptionLevel += 1;
                 }

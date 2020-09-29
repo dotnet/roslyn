@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
                 editable = editable_;
             }
 
-            public static DeltaInput Empty = new DeltaInput();
+            public static DeltaInput Empty = new();
         }
 
         [StructLayout(LayoutKind.Sequential)]

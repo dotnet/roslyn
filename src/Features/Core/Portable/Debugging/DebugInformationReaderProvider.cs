@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Debugging
     {
         private sealed class DummySymReaderMetadataProvider : ISymReaderMetadataProvider
         {
-            public static readonly DummySymReaderMetadataProvider Instance = new DummySymReaderMetadataProvider();
+            public static readonly DummySymReaderMetadataProvider Instance = new();
 
             public unsafe bool TryGetStandaloneSignature(int standaloneSignatureToken, out byte* signature, out int length)
                 => throw ExceptionUtilities.Unreachable;

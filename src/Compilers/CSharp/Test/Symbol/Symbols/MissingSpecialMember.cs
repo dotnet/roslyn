@@ -515,7 +515,8 @@ namespace System
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
 
-                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
+                    special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
                 {
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
                 }
@@ -537,7 +538,10 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
+                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
                 {
                     Assert.Null(symbol); // Not available
                 }

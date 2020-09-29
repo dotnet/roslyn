@@ -31,10 +31,10 @@ class Program
     partial abstract struct S {}
 }");
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (7,13): error CS1525: Invalid expression term 'partial'
@@ -49,10 +49,10 @@ class Program
                 // (8,13): error CS1002: ; expected
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(8, 13),
-                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
-                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5),
                 // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
@@ -178,7 +178,7 @@ class A
     public int
 }";
             ParseAndValidate(test,
-                // (6,1): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
                 // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity

@@ -282,7 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static int LineBreaksAfterCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
             if (currentToken.Parent is InitializerExpressionSyntax ||
-                currentToken.Parent.IsKind(SyntaxKind.Interpolation))
+                currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
+                currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax)
             {
                 return 0;
             }
@@ -637,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private static SyntaxTrivia s_trimmedDocCommentExterior = SyntaxFactory.DocumentationCommentExterior("///");
+        private static readonly SyntaxTrivia s_trimmedDocCommentExterior = SyntaxFactory.DocumentationCommentExterior("///");
 
         private SyntaxTrivia GetSpace()
         {

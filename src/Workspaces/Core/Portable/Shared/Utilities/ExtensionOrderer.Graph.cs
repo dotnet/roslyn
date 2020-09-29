@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             where TMetadata : OrderableMetadata
         {
             public readonly Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>> Nodes =
-                new Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>>();
+                new();
 
             public IEnumerable<Lazy<TExtension, TMetadata>> FindExtensions(string name)
             {

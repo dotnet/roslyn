@@ -18,12 +18,12 @@ namespace Roslyn.Test.Utilities
         private const BindingFlags BINDING_FLAGS =
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
-        static private void AppendComma(StringBuilder sb)
+        private static void AppendComma(StringBuilder sb)
         {
             sb.Append(", ");
         }
 
-        static private void RemoveTrailingComma(StringBuilder sb)
+        private static void RemoveTrailingComma(StringBuilder sb)
         {
             if (sb.ToString().EndsWith(", ", StringComparison.Ordinal))
             {
@@ -31,7 +31,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        static private void AppendType(Type type, StringBuilder sb, bool showGenericConstraints = false)
+        private static void AppendType(Type type, StringBuilder sb, bool showGenericConstraints = false)
         {
             if (showGenericConstraints && type.IsGenericParameter)
             {
@@ -59,7 +59,7 @@ namespace Roslyn.Test.Utilities
             sb.Append(type);
         }
 
-        static private void AppendValue(object value, StringBuilder sb, bool includeAssignmentOperator = true)
+        private static void AppendValue(object value, StringBuilder sb, bool includeAssignmentOperator = true)
         {
             if (value != null)
             {
@@ -79,7 +79,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        static private void AppendCustomAttributeData(CustomAttributeData attribute, StringBuilder sb)
+        private static void AppendCustomAttributeData(CustomAttributeData attribute, StringBuilder sb)
         {
             sb.Append("[");
             AppendType(attribute.Constructor.DeclaringType, sb);
@@ -99,7 +99,7 @@ namespace Roslyn.Test.Utilities
             sb.Append(")]");
         }
 
-        static private void AppendParameterInfo(ParameterInfo parameter, StringBuilder sb)
+        private static void AppendParameterInfo(ParameterInfo parameter, StringBuilder sb)
         {
             foreach (var attribute in parameter.CustomAttributes)
             {
@@ -407,7 +407,7 @@ namespace Roslyn.Test.Utilities
             return sb;
         }
 
-        static private void AppendMethodInfo(MethodInfo method, StringBuilder sb)
+        private static void AppendMethodInfo(MethodInfo method, StringBuilder sb)
         {
             sb.Append(".method");
 
@@ -447,7 +447,7 @@ namespace Roslyn.Test.Utilities
             AppendMethodImplAttributes(sb, method.GetMethodImplementationFlags());
         }
 
-        static private void AppendConstructorInfo(ConstructorInfo constructor, StringBuilder sb)
+        private static void AppendConstructorInfo(ConstructorInfo constructor, StringBuilder sb)
         {
             sb.Append(".method");
 
@@ -511,7 +511,7 @@ namespace Roslyn.Test.Utilities
                 sb.Append(" unmanaged");
         }
 
-        static private void AppendPropertyInfo(PropertyInfo property, StringBuilder sb)
+        private static void AppendPropertyInfo(PropertyInfo property, StringBuilder sb)
         {
             sb.Append(".property ");
 
@@ -574,7 +574,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        static private void AppendFieldInfo(FieldInfo field, StringBuilder sb)
+        private static void AppendFieldInfo(FieldInfo field, StringBuilder sb)
         {
             sb.Append(".field ");
 
@@ -634,7 +634,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        static private void AppendEventInfo(EventInfo @event, StringBuilder sb)
+        private static void AppendEventInfo(EventInfo @event, StringBuilder sb)
         {
             sb.Append(".event ");
 
@@ -655,7 +655,7 @@ namespace Roslyn.Test.Utilities
         }
         #endregion
 
-        static public IEnumerable<string> GetMemberSignatures(System.Reflection.Assembly assembly, string fullyQualifiedTypeName)
+        public static IEnumerable<string> GetMemberSignatures(System.Reflection.Assembly assembly, string fullyQualifiedTypeName)
         {
             var candidates = new List<string>();
             var sb = new StringBuilder();
@@ -696,7 +696,7 @@ namespace Roslyn.Test.Utilities
             return candidates;
         }
 
-        static public IEnumerable<string> GetMemberSignatures(System.Reflection.Assembly assembly, string fullyQualifiedTypeName, string memberName)
+        public static IEnumerable<string> GetMemberSignatures(System.Reflection.Assembly assembly, string fullyQualifiedTypeName, string memberName)
         {
             IEnumerable<string> retVal = null;
             if (string.IsNullOrWhiteSpace(memberName))

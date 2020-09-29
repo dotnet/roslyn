@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
 
         public static readonly SymbolDisplayFormat CrefFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,

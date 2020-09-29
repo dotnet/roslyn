@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,14 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
-        /// <summary>
-        /// Creates a "late" bound instance with all fields set.
-        /// </summary>
         public TypeParameterBounds(
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
-            TypeSymbol deducedBaseType)
+            TypeSymbol deducedBaseType,
+            bool ignoresNullableContext)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             Debug.Assert(!interfaces.IsDefault);
@@ -35,11 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.Interfaces = interfaces;
             this.EffectiveBaseClass = effectiveBaseClass;
             this.DeducedBaseType = deducedBaseType;
+            this.IgnoresNullableContext = ignoresNullableContext;
         }
 
         private TypeParameterBounds()
         {
         }
+
+        public readonly bool IgnoresNullableContext;
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// As defined in 10.1.5 of the specification.
         /// </summary>
-        public readonly NamedTypeSymbol EffectiveBaseClass;
+        public readonly NamedTypeSymbol? EffectiveBaseClass;
 
         /// <summary>
         /// The "exact" effective base type. 
@@ -75,14 +79,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// When computing the deduced type we don't perform this abstraction. We keep the original constraint T.
         /// Deduced base type is used to check that consistency rules are satisfied.
         /// </summary>
-        public readonly TypeSymbol DeducedBaseType;
+        public readonly TypeSymbol? DeducedBaseType;
     }
 
     internal static class TypeParameterBoundsExtensions
     {
-        internal static bool IsSet(this TypeParameterBounds boundsOpt)
+        internal static bool HasValue(this TypeParameterBounds? boundsOpt, bool canIgnoreNullableContext)
         {
-            return boundsOpt != TypeParameterBounds.Unset;
+            if (boundsOpt == TypeParameterBounds.Unset)
+            {
+                return false;
+            }
+            if (boundsOpt == null)
+            {
+                return true;
+            }
+            return canIgnoreNullableContext || !boundsOpt.IgnoresNullableContext;
+        }
+
+        // Returns true if bounds was updated with value.
+        // Returns false if bounds already had a value with expected 'IgnoresNullableContext'
+        // or was updated to a value with the expected 'IgnoresNullableContext' value on another thread.
+        internal static bool InterlockedUpdate(ref TypeParameterBounds? bounds, TypeParameterBounds? value)
+        {
+            bool canIgnoreNullableContext = (value?.IgnoresNullableContext == true);
+            while (true)
+            {
+                var comparand = bounds;
+                if (comparand != TypeParameterBounds.Unset && comparand.HasValue(canIgnoreNullableContext))
+                {
+                    return false;
+                }
+                if (Interlocked.CompareExchange(ref bounds, value, comparand) == comparand)
+                {
+                    return true;
+                }
+            }
         }
     }
 }

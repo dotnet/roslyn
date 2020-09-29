@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -34,17 +33,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             => WrapperPolicy.CreateAggregatedObject(managedObject);
 
         /// <summary>
-        /// Return the RCW for the native IComWrapper instance aggregating "managedObject"
+        /// Return the RCW for the native IComWrapperFixed instance aggregating "managedObject"
         /// if there is one. Return "null" if "managedObject" is not aggregated.
         /// </summary>
-        internal static IComWrapper TryGetWrapper(object managedObject)
+        internal static IComWrapperFixed TryGetWrapper(object managedObject)
             => WrapperPolicy.TryGetWrapper(managedObject);
 
         internal static T GetManagedObject<T>(object value) where T : class
         {
             Contract.ThrowIfNull(value, "value");
 
-            if (value is IComWrapper wrapper)
+            if (value is IComWrapperFixed wrapper)
             {
                 return GetManagedObject<T>(wrapper);
             }
@@ -53,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return (T)value;
         }
 
-        internal static T GetManagedObject<T>(IComWrapper comWrapper) where T : class
+        internal static T GetManagedObject<T>(IComWrapperFixed comWrapper) where T : class
         {
             Contract.ThrowIfNull(comWrapper, "comWrapper");
 
@@ -67,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         internal static T TryGetManagedObject<T>(object value) where T : class
         {
-            if (value is IComWrapper wrapper)
+            if (value is IComWrapperFixed wrapper)
             {
                 return TryGetManagedObject<T>(wrapper);
             }
@@ -75,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return value as T;
         }
 
-        internal static T TryGetManagedObject<T>(IComWrapper comWrapper) where T : class
+        internal static T TryGetManagedObject<T>(IComWrapperFixed comWrapper) where T : class
         {
             if (comWrapper == null)
             {

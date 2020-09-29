@@ -426,6 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (loweredInput.Type.IsTupleType &&
+                    !loweredInput.Type.OriginalDefinition.Equals(_factory.Compilation.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)) &&
                     loweredInput.Syntax.Kind() == SyntaxKind.TupleExpression &&
                     loweredInput is BoundObjectCreationExpression expr &&
                     !decisionDag.TopologicallySortedNodes.Any(n => usesOriginalInput(n)))

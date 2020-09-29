@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Note: we cache this data once we've retrieved the actual syntax tree for a document.  This 
             // way, when we call into the actual classification service, it should be very quick for the 
             // it to get the tree if it needs it.
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
 

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
         public static CSharpCommandLineParser Script { get; } = new CSharpCommandLineParser(isScriptCommandLineParser: true);
 
-        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
+        private static readonly char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptCommandLineParser = false)
             : base(CSharp.MessageProvider.Instance, isScriptCommandLineParser)
@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputFileName = null;
             string? outputRefFilePath = null;
             bool refOnly = false;
+            string? generatedFilesOutputDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -127,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
+            bool skipAnalyzers = false;
             ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo? preferredUILang = null;
             string? touchedFilesPath = null;
@@ -611,6 +613,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     sourceFilesSpecified = true;
                                 }
+                            }
+                            continue;
+
+                        case "generatedfilesout":
+                            if (string.IsNullOrWhiteSpace(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
+                            }
+                            else
+                            {
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
                             }
                             continue;
 
@@ -1179,6 +1192,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             reportAnalyzer = true;
                             continue;
 
+                        case "skipanalyzers":
+                        case "skipanalyzers+":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = true;
+                            continue;
+
+                        case "skipanalyzers-":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = false;
+                            continue;
+
                         case "nostdlib":
                         case "nostdlib+":
                             if (value != null)
@@ -1473,6 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
@@ -1503,6 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
+                SkipAnalyzers = skipAnalyzers,
                 EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }

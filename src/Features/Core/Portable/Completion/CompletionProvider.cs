@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
 
-        internal virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, CancellationToken cancellationToken)
+        internal virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
             => GetChangeAsync(document, item, commitKey, cancellationToken);
 
         /// <summary>

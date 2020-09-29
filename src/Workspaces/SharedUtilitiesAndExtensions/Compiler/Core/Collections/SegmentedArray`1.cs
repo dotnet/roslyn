@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         }
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         int IList.Add(object? value)
         {
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         public struct Enumerator : IEnumerator<T>
         {

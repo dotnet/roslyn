@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // generic name
-            if (previousToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList, SyntaxKindEx.FunctionPointerType))
+            if (previousToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList, SyntaxKind.FunctionPointerType))
             {
                 // generic name < * 
                 if (previousToken.Kind() == SyntaxKind.LessThanToken)

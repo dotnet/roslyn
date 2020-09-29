@@ -4,9 +4,7 @@
 
 #nullable enable
 
-using System;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
@@ -15,14 +13,8 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// <summary>
         /// This option is used by TypeScript.
         /// </summary>
-        [Obsolete("Currently used by TypeScript - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = SolutionCrawlerOptions.ClosedFileDiagnostic;
-
-        /// <summary>
-        /// This option is used by TypeScript.
-        /// </summary>
 #pragma warning disable RS0030 // Do not used banned APIs - to avoid a binary breaking API change.
-        public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
             "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
 #pragma warning restore RS0030 // Do not used banned APIs

@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, ISkipLocalsInitAttributeTarget, new()
         {
             arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static internal void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var value = arguments.Attribute.CommonConstructorArguments[0];
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
         }
 
-        static internal void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var value = arguments.Attribute.CommonConstructorArguments[1];

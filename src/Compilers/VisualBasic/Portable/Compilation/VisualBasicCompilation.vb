@@ -394,7 +394,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hostObjectType,
                 isSubmission,
                 referenceManager:=Nothing,
-                reuseReferenceManager:=False)
+                reuseReferenceManager:=False,
+                eventQueue:=Nothing,
+                semanticModelProvider:=Nothing)
 
             If syntaxTrees IsNot Nothing Then
                 c = c.AddSyntaxTrees(syntaxTrees)
@@ -420,9 +422,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isSubmission As Boolean,
             referenceManager As ReferenceManager,
             reuseReferenceManager As Boolean,
+            semanticModelProvider As SemanticModelProvider,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, semanticModelProvider, eventQueue)
 
             Debug.Assert(rootNamespaces IsNot Nothing)
             Debug.Assert(declarationTable IsNot Nothing)
@@ -509,6 +512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
+                Me.SemanticModelProvider,
                 eventQueue:=Nothing) ' no event queue when cloning
         End Function
 
@@ -533,7 +537,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=Not referenceDirectivesChanged)
+                reuseReferenceManager:=Not referenceDirectivesChanged,
+                Me.SemanticModelProvider)
         End Function
 
         ''' <summary>
@@ -558,7 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal))
+                reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal),
+                Me.SemanticModelProvider)
         End Function
 
         Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VisualBasicCompilation
@@ -599,7 +605,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 referenceManager:=Nothing,
-                reuseReferenceManager:=False)
+                reuseReferenceManager:=False,
+                Me.SemanticModelProvider)
             Return c
         End Function
 
@@ -652,7 +659,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions))
+                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions),
+                Me.SemanticModelProvider)
             Return c
         End Function
 
@@ -686,7 +694,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
-                reuseReferenceManager)
+                reuseReferenceManager,
+                Me.SemanticModelProvider)
+        End Function
+
+        ''' <summary>
+        ''' Returns a new compilation with the given semantic model provider.
+        ''' </summary>
+        Friend Overrides Function WithSemanticModelProvider(semanticModelProvider As SemanticModelProvider) As Compilation
+            If Me.SemanticModelProvider Is semanticModelProvider Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilation(
+                Me.AssemblyName,
+                Me.Options,
+                Me.ExternalReferences,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                Me.PreviousSubmission,
+                Me.SubmissionReturnType,
+                Me.HostObjectType,
+                Me.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager:=True,
+                semanticModelProvider)
         End Function
 
         ''' <summary>
@@ -708,6 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
+                Me.SemanticModelProvider,
                 eventQueue:=eventQueue)
         End Function
 
@@ -1481,7 +1517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     mainType = TryCast(mainTypeOrNamespace, SourceMemberContainerTypeSymbol)
-                    If mainType Is Nothing OrElse (mainType.TypeKind <> TypeKind.Class AndAlso mainType.TypeKind <> TypeKind.Structure AndAlso mainType.TypeKind <> TypeKind.Module) Then
+                    If mainType Is Nothing OrElse (mainType.TypeKind <> TYPEKIND.Class AndAlso mainType.TypeKind <> TYPEKIND.Structure AndAlso mainType.TypeKind <> TYPEKIND.Module) Then
                         diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
                         Return Nothing
                     End If
@@ -1501,7 +1537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' named "Main".
 
                     Dim binder As Binder = BinderBuilder.CreateBinderForType(mainType.ContainingSourceModule, mainType.SyntaxReferences(0).SyntaxTree, mainType)
-                    Dim lookupResult As LookupResult = LookupResult.GetInstance()
+                    Dim lookupResult As LookupResult = lookupResult.GetInstance()
                     Dim entryPointLookupOptions As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods
                     binder.LookupMember(lookupResult, mainType, WellKnownMemberNames.EntryPointMethodName, arity:=0, options:=entryPointLookupOptions, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
@@ -1842,7 +1878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceType As ITypeSymbol = source.Type
 
-            Dim sourceConstantValue as ConstantValue = source.GetConstantValue()
+            Dim sourceConstantValue As ConstantValue = source.GetConstantValue()
             If sourceType Is Nothing Then
                 If sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing AndAlso destination.IsReferenceType Then
                     constantValue = sourceConstantValue
@@ -1977,6 +2013,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SemanticModel.
         '''</summary> 
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+            Dim model As SemanticModel = Nothing
+            If SemanticModelProvider IsNot Nothing Then
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility)
+                Debug.Assert(model IsNot Nothing)
+            End If
+
+            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility))
+        End Function
+
+        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
 
@@ -2062,7 +2108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Before returning diagnostics, we filter some of them
             ' to honor the compiler options (e.g., /nowarn and /warnaserror)
-            FilterAndAppendAndFreeDiagnostics(diagnostics, builder)
+            FilterAndAppendAndFreeDiagnostics(diagnostics, builder, cancellationToken)
         End Sub
 
         Private Sub GetDiagnosticsWithoutFiltering(stage As CompilationStage,
@@ -2208,7 +2254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim result = DiagnosticBag.GetInstance()
-            FilterAndAppendAndFreeDiagnostics(result, builder.DiagnosticBag)
+            FilterAndAppendAndFreeDiagnostics(result, builder.DiagnosticBag, cancellationToken)
             Return result.ToReadOnlyAndFree(Of Diagnostic)()
         End Function
 
@@ -2324,7 +2370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(Not IsSubmission OrElse HasCodeToEmit() OrElse
-                         (emitOptions = EmitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
+                         (emitOptions = emitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
                           embeddedTexts Is Nothing AndAlso manifestResources Is Nothing AndAlso testData Is Nothing))
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
@@ -2385,7 +2431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
-            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing)
+            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing, cancellationToken)
 
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 
@@ -2434,7 +2480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     New BindingDiagnosticBag(methodBodyDiagnosticBag),
                     cancellationToken)
 
-                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
+                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag, cancellationToken)
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2466,7 +2512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics)
 
-            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics) Then
+            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken) Then
                 Return False
             End If
 
@@ -2478,7 +2524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension:=Nothing)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, New BindingDiagnosticBag(xmlDiagnostics), cancellationToken)
 
-            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics)
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics, cancellationToken)
         End Function
 
         Private Iterator Function AddedModulesResourceNames(diagnostics As DiagnosticBag) As IEnumerable(Of String)
@@ -2554,7 +2600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim sourceInfo = existingDoc.GetSourceInfo()
 
                     If CheckSumMatches(checkSumText, sourceInfo.Checksum) Then
-                        Dim guid As Guid = Guid.Parse(checksumDirective.Guid.ValueText)
+                        Dim guid As Guid = guid.Parse(checksumDirective.Guid.ValueText)
                         If guid = sourceInfo.ChecksumAlgorithmId Then
                             ' all parts match, nothing to do
                             Continue For
@@ -2807,9 +2853,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
                 returnType As ITypeSymbol,
-                refKind as RefKind,
-                parameterTypes as ImmutableArray(Of ITypeSymbol),
-                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+                refKind As RefKind,
+                parameterTypes As ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds As ImmutableArray(Of RefKind),
+                callingConvention As System.Reflection.Metadata.SignatureCallingConvention,
+                callingConventionTypes As ImmutableArray(Of INamedTypeSymbol)) As IFunctionPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
         End Function
 
