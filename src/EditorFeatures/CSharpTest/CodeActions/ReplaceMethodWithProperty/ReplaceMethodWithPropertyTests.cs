@@ -2361,7 +2361,7 @@ class C
         }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
-        public async Task TestRefactorRetainsComments()
+        public async Task TestMethodWithTrivia_3()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -2376,6 +2376,37 @@ class C
     //Vital Comment
     int FooBar => 1;
 }");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        public async Task TestMethodWithTrivia_4()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    int [||]GetGoo()    // Goo
+    {
+    }
+    void SetGoo(int i)    // SetGoo
+    {
+    }
+}",
+@"class C
+{
+    // Goo
+    // SetGoo
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+}",
+index: 1);
         }
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,

@@ -49,12 +49,13 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
             var finalLeadingTrivia = getAndSetMethods.GetMethodDeclaration.GetLeadingTrivia().ToList();
 
+            if (getMethodDeclaration.ChildNodes().Any(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList && n.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t))))
+            {
+                finalLeadingTrivia.AddRange(getMethodDeclaration.ChildNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList).First().GetTrailingTrivia());
+            }
+
             if (setMethodDeclaration == null)
             {
-                if (getMethodDeclaration.ChildNodes().Any(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList && n.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t))))
-                {
-                    finalLeadingTrivia.AddRange(getMethodDeclaration.ChildNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList).First().GetTrailingTrivia());
-                }
                 return property.WithLeadingTrivia(finalLeadingTrivia);
             }
 
@@ -62,6 +63,10 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethodDeclaration.GetLeadingTrivia()
                                     .SkipWhile(t => syntaxFacts.IsEndOfLineTrivia(t))
                                     .Where(t => !t.IsDirective));
+            if (setMethodDeclaration.ChildNodes().Any(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList && n.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t))))
+            {
+                finalLeadingTrivia.AddRange(setMethodDeclaration.ChildNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList).First().GetTrailingTrivia());
+            }
 
             return property.WithLeadingTrivia(finalLeadingTrivia);
         }
