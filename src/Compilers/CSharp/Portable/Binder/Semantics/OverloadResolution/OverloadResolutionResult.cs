@@ -475,7 +475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int badArg = firstSupported.Result.BadArgumentsOpt[0];
                     IdentifierNameSyntax badName = arguments.Names[badArg];
-                    Location location = new SourceLocation(badName);
                     diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, location);
                     return;
                 }
@@ -837,13 +836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Error CS1746: The delegate 'D' does not have a parameter named 'x'
 
             Location location = new SourceLocation(badName);
-
-            // Function pointers cannot be called with named arguments at all.
-            if (bad.Member is FunctionPointerMethodSymbol)
-            {
-                diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, location);
-                return;
-            }
 
             ErrorCode code = (object)delegateTypeBeingInvoked != null ?
                 ErrorCode.ERR_BadNamedArgumentForDelegateInvoke :
