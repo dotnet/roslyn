@@ -1289,44 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         private static bool IsMemberDeclaration(SyntaxNode node)
         {
-            // From the C# language spec:
-            // class-member-declaration:
-            //    constant-declaration
-            //    field-declaration
-            //    method-declaration
-            //    property-declaration
-            //    event-declaration
-            //    indexer-declaration
-            //    operator-declaration
-            //    constructor-declaration
-            //    destructor-declaration
-            //    static-constructor-declaration
-            //    type-declaration
-            switch (node.Kind())
-            {
-                // Because fields declarations can define multiple symbols "public int a, b;"
-                // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
-                case SyntaxKind.VariableDeclarator:
-                    return node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) ||
-                           node.Parent.Parent.IsKind(SyntaxKind.EventFieldDeclaration);
-
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.PropertyDeclaration:
-                case SyntaxKind.EventDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.IndexerDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
+            return false;
         }
 
         public bool IsDeclaration(SyntaxNode node)
