@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap =
-            new ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>();
+            new();
 
         /// <summary>
         /// Gets the workspace associated with the specific text container.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-            => new WorkspaceRegistration();
+            => new();
 
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 

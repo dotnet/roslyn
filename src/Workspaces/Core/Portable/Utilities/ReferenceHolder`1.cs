@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
         }
 
         public static ReferenceHolder<T> Strong(T value)
-            => new ReferenceHolder<T>(value);
+            => new(value);
 
         public static ReferenceHolder<T> Weak(T value)
         {
@@ -99,7 +99,7 @@ namespace Roslyn.Utilities
             /// <param name="hashCode">The hash code of the collected value.</param>
             /// <returns>A weak <see cref="ReferenceHolder{T}"/> which was already collected.</returns>
             public static ReferenceHolder<T> ReleasedWeak(int hashCode)
-                => new ReferenceHolder<T>(new WeakReference<T>(null!), hashCode);
+                => new(new WeakReference<T>(null!), hashCode);
         }
     }
 }

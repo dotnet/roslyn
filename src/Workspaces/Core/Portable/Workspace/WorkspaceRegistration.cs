@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed class WorkspaceRegistration
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         internal WorkspaceRegistration()
         {

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
+        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
         private bool TryFetchStringTable(SqlConnection connection)
         {

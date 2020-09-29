@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     /// </summary>
     internal sealed class CSharpFileHeaderHelper : AbstractFileHeaderHelper
     {
-        public static readonly CSharpFileHeaderHelper Instance = new CSharpFileHeaderHelper();
+        public static readonly CSharpFileHeaderHelper Instance = new();
 
         private CSharpFileHeaderHelper()
             : base(CSharpSyntaxKinds.Instance)

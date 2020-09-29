@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     /// </summary>
     internal partial class IntervalTree<T> : IEnumerable<T>
     {
-        public static readonly IntervalTree<T> Empty = new IntervalTree<T>();
+        public static readonly IntervalTree<T> Empty = new();
 
         protected Node? root;
 

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal class RenameInvalidIdentifierAnnotation : RenameAnnotation
     {
-        public static RenameInvalidIdentifierAnnotation Instance = new RenameInvalidIdentifierAnnotation();
+        public static RenameInvalidIdentifierAnnotation Instance = new();
 
         private RenameInvalidIdentifierAnnotation()
         {

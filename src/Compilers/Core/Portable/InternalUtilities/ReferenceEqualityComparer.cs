@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ReferenceEqualityComparer : IEqualityComparer<object?>
     {
-        public static readonly ReferenceEqualityComparer Instance = new ReferenceEqualityComparer();
+        public static readonly ReferenceEqualityComparer Instance = new();
 
         private ReferenceEqualityComparer()
         {

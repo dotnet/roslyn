@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         private const string Range = nameof(Range);
         private const string Count = nameof(Count);
 
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly LogAggregator s_logAggregator = new();
 
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
         internal enum ActionInfo
         {

@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// One such default(s), is that the feature is turned on, so that codegen consumes it,
         /// but with silent enforcement, so that the user is not prompted about their usage.
         /// </remarks>
-        internal static readonly CodeStyleOption2<bool> TrueWithSilentEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Silent);
-        internal static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Silent);
-        internal static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion);
-        internal static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Suggestion);
+        internal static readonly CodeStyleOption2<bool> TrueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
+        internal static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
+        internal static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
+        internal static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer")});
 
         // TODO: Should both the below "_FadeOutCode" options be added to AllOptions?
-        internal static readonly PerLanguageOption2<bool> PreferObjectInitializer_FadeOutCode = new PerLanguageOption2<bool>(
+        internal static readonly PerLanguageOption2<bool> PreferObjectInitializer_FadeOutCode = new(
             "CodeStyleOptions", nameof(PreferObjectInitializer_FadeOutCode),
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer_FadeOutCode"));
 
-        internal static readonly PerLanguageOption2<bool> PreferCollectionInitializer_FadeOutCode = new PerLanguageOption2<bool>(
+        internal static readonly PerLanguageOption2<bool> PreferCollectionInitializer_FadeOutCode = new(
             "CodeStyleOptions", nameof(PreferCollectionInitializer_FadeOutCode),
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferSimplifiedInterpolation)}") });
 
         private static readonly CodeStyleOption2<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
-            new CodeStyleOption2<UnusedParametersPreference>(default, NotificationOption2.None);
+            new(default, NotificationOption2.None);
         private static readonly CodeStyleOption2<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
-            new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
+            new(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
 
         // TODO: https://github.com/dotnet/roslyn/issues/31225 tracks adding CodeQualityOption<T> and CodeQualityOptions
         // and moving this option to CodeQualityOptions.
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference") });
 
         private static readonly CodeStyleOption2<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
-            new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption2.Silent);
+            new(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption2.Silent);
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
             CreateOption(
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions") });
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
-            new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("never", AccessibilityModifiersRequired.Never),
                 KeyValuePairUtil.Create("always", AccessibilityModifiersRequired.Always),
@@ -319,10 +319,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption2<ParenthesesPreference> s_alwaysForClarityPreference =
-            new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption2.Silent);
+            new(ParenthesesPreference.AlwaysForClarity, NotificationOption2.Silent);
 
         private static readonly CodeStyleOption2<ParenthesesPreference> s_neverIfUnnecessaryPreference =
-            new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption2.Silent);
+            new(ParenthesesPreference.NeverIfUnnecessary, NotificationOption2.Silent);
 
         private static PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption2<ParenthesesPreference> defaultValue,
@@ -363,14 +363,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 "dotnet_style_parentheses_in_other_operators");
 
         private static readonly BidirectionalMap<string, ParenthesesPreference> s_parenthesesPreferenceMap =
-            new BidirectionalMap<string, ParenthesesPreference>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("always_for_clarity", ParenthesesPreference.AlwaysForClarity),
                 KeyValuePairUtil.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
             });
 
         private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
-            new BidirectionalMap<string, UnusedParametersPreference>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
@@ -433,14 +433,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        public static readonly OptionGroup Usings = new OptionGroup(CompilerExtensionsResources.Organize_usings, priority: 1);
-        public static readonly OptionGroup ThisOrMe = new OptionGroup(CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2);
-        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
-        public static readonly OptionGroup Parentheses = new OptionGroup(CompilerExtensionsResources.Parentheses_preferences, priority: 4);
-        public static readonly OptionGroup Modifier = new OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority: 5);
-        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority: 6);
-        public static readonly OptionGroup Field = new OptionGroup(CompilerExtensionsResources.Field_preferences, priority: 7);
-        public static readonly OptionGroup Parameter = new OptionGroup(CompilerExtensionsResources.Parameter_preferences, priority: 8);
-        public static readonly OptionGroup Suppressions = new OptionGroup(CompilerExtensionsResources.Suppression_preferences, priority: 9);
+        public static readonly OptionGroup Usings = new(CompilerExtensionsResources.Organize_usings, priority: 1);
+        public static readonly OptionGroup ThisOrMe = new(CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2);
+        public static readonly OptionGroup PredefinedTypeNameUsage = new(CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
+        public static readonly OptionGroup Parentheses = new(CompilerExtensionsResources.Parentheses_preferences, priority: 4);
+        public static readonly OptionGroup Modifier = new(CompilerExtensionsResources.Modifier_preferences, priority: 5);
+        public static readonly OptionGroup ExpressionLevelPreferences = new(CompilerExtensionsResources.Expression_level_preferences, priority: 6);
+        public static readonly OptionGroup Field = new(CompilerExtensionsResources.Field_preferences, priority: 7);
+        public static readonly OptionGroup Parameter = new(CompilerExtensionsResources.Parameter_preferences, priority: 8);
+        public static readonly OptionGroup Suppressions = new(CompilerExtensionsResources.Suppression_preferences, priority: 9);
     }
 }

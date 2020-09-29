@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Versions
         private const string Project = nameof(Project);
         private const string DependentProject = nameof(DependentProject);
 
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
+        private static readonly LogAggregator s_logAggregator = new();
 
         public static void LogPersistedTextVersionUsage(bool succeeded)
         {

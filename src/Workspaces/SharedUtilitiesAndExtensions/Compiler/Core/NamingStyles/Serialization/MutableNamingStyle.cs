@@ -52,6 +52,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => NamingStyle = namingStyle;
 
         internal MutableNamingStyle Clone()
-            => new MutableNamingStyle(NamingStyle);
+            => new(NamingStyle);
     }
 }

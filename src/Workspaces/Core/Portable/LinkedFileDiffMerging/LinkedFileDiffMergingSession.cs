@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis
 
         internal class LinkedFileDiffMergingSessionInfo
         {
-            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new List<LinkedFileGroupSessionInfo>();
+            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new();
 
             public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
                 => LinkedFileGroups.Add(info);

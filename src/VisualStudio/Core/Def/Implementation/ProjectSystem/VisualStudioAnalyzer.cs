@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly string _language;
 
         // these 2 are mutable states that must be guarded under the _gate.
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private AnalyzerReference? _analyzerReference;
         private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 

@@ -29,33 +29,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         // Maps to store mapping between special option kinds and the corresponding editor config string representations.
         #region Editor Config maps
         private static readonly BidirectionalMap<string, SpacingWithinParenthesesOption> s_spacingWithinParenthesisOptionsEditorConfigMap =
-            new BidirectionalMap<string, SpacingWithinParenthesesOption>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("expressions", SpacingWithinParenthesesOption.Expressions),
                 KeyValuePairUtil.Create("type_casts", SpacingWithinParenthesesOption.TypeCasts),
                 KeyValuePairUtil.Create("control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
             });
         private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptions> s_binaryOperatorSpacingOptionsEditorConfigMap =
-            new BidirectionalMap<string, BinaryOperatorSpacingOptions>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
                 KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptions.Remove),
                 KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
             });
         private static readonly BidirectionalMap<string, LabelPositionOptions> s_labelPositionOptionsEditorConfigMap =
-            new BidirectionalMap<string, LabelPositionOptions>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("flush_left", LabelPositionOptions.LeftMost),
                 KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
                 KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
             });
         private static readonly BidirectionalMap<string, NewLineOption> s_legacyNewLineOptionsEditorConfigMap =
-            new BidirectionalMap<string, NewLineOption>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
             });
         private static readonly BidirectionalMap<string, NewLineOption> s_newLineOptionsEditorConfigMap =
-            new BidirectionalMap<string, NewLineOption>(new[]
+            new(new[]
             {
                 KeyValuePairUtil.Create("accessors", NewLineOption.Accessors),
                 KeyValuePairUtil.Create("types", NewLineOption.Types),
@@ -453,9 +453,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     internal static class CSharpFormattingOptionGroups
     {
-        public static readonly OptionGroup NewLine = new OptionGroup(WorkspacesResources.New_line_preferences, priority: 1);
-        public static readonly OptionGroup Indentation = new OptionGroup(CSharpWorkspaceResources.Indentation_preferences, priority: 2);
-        public static readonly OptionGroup Spacing = new OptionGroup(CSharpWorkspaceResources.Space_preferences, priority: 3);
-        public static readonly OptionGroup Wrapping = new OptionGroup(CSharpWorkspaceResources.Wrapping_preferences, priority: 4);
+        public static readonly OptionGroup NewLine = new(WorkspacesResources.New_line_preferences, priority: 1);
+        public static readonly OptionGroup Indentation = new(CSharpWorkspaceResources.Indentation_preferences, priority: 2);
+        public static readonly OptionGroup Spacing = new(CSharpWorkspaceResources.Space_preferences, priority: 3);
+        public static readonly OptionGroup Wrapping = new(CSharpWorkspaceResources.Wrapping_preferences, priority: 4);
     }
 }

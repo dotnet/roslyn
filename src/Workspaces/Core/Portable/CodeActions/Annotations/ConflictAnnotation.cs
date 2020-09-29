@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const string Kind = "CodeAction_Conflict";
 
         public static SyntaxAnnotation Create(string description)
-            => new SyntaxAnnotation(Kind, description);
+            => new(Kind, description);
 
         public static string? GetDescription(SyntaxAnnotation annotation)
             => annotation.Data;

@@ -28,8 +28,8 @@ namespace Roslyn.Utilities
     {
         private int _globalId;
 
-        private readonly Dictionary<TAnnotation, SyntaxAnnotation> _realAnnotationMap = new Dictionary<TAnnotation, SyntaxAnnotation>();
-        private readonly Dictionary<string, TAnnotation> _annotationMap = new Dictionary<string, TAnnotation>();
+        private readonly Dictionary<TAnnotation, SyntaxAnnotation> _realAnnotationMap = new();
+        private readonly Dictionary<string, TAnnotation> _annotationMap = new();
 
         private readonly string _annotationKind;
 

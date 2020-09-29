@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         private NextGetAdjustSpacesOperation NextOperation
-            => new NextGetAdjustSpacesOperation(_formattingRules, _index + 1);
+            => new(_formattingRules, _index + 1);
 
         public AdjustSpacesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
         {

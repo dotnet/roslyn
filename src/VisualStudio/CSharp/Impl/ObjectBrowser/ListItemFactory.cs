@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
     internal class ListItemFactory : AbstractListItemFactory
     {
         private static readonly SymbolDisplayFormat s_memberDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_memberWithContainingTypeDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,

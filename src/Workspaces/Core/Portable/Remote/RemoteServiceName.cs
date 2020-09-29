@@ -84,6 +84,6 @@ namespace Microsoft.CodeAnalysis.Remote
             => !(left == right);
 
         public static implicit operator RemoteServiceName(WellKnownServiceHubService wellKnownService)
-            => new RemoteServiceName(wellKnownService);
+            => new(wellKnownService);
     }
 }

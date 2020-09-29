@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// <c>MyType</c> as well as the optional <c>MyType.Get(System.Index)</c> member if it exists.
             /// </summary>
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo =
-                new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
+                new();
 
             public InfoCache(Compilation compilation)
                 => IndexType = compilation.GetBestTypeByMetadataName("System.Index");

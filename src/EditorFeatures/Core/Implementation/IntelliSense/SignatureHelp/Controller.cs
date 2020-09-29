@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private static readonly object s_controllerPropertyKey = new object();
+        private static readonly object s_controllerPropertyKey = new();
         private readonly IAsyncCompletionBroker _completionBroker;
 
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;

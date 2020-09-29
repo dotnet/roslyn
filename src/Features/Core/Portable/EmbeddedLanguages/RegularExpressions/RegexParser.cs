@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexSimpleGroupingNode ParseSimpleGroup(RegexToken openParenToken)
-            => new RegexSimpleGroupingNode(
+            => new(
                 openParenToken, ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
         private RegexExpressionNode ParseGroupingEmbeddedExpression(RegexOptions embeddedOptions)
@@ -1122,22 +1122,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexNonCapturingGroupingNode ParseNonCapturingGroupingNode(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexNonCapturingGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
         private RegexPositiveLookaheadGroupingNode ParsePositiveLookaheadGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexPositiveLookaheadGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
         private RegexNegativeLookaheadGroupingNode ParseNegativeLookaheadGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexNegativeLookaheadGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
         private RegexAtomicGroupingNode ParseAtomicGrouping(RegexToken openParenToken, RegexToken questionToken)
-            => new RegexAtomicGroupingNode(
+            => new(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexNestedOptionsGroupingNode ParseNestedOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken)
-            => new RegexNestedOptionsGroupingNode(
+            => new(
                 openParenToken, questionToken, optionsToken, _currentToken,
                 ParseGroupingEmbeddedExpression(GetNewOptionsFromToken(_options, optionsToken)), ParseGroupingCloseParen());
 

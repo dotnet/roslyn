@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private class ActiveProjectCacheManager
         {
             private readonly ProjectCacheService _projectCacheService;
-            private readonly object _guard = new object();
+            private readonly object _guard = new();
 
             private ProjectId _mostRecentActiveProjectId;
             private IDisposable _mostRecentCache;

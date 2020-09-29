@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         private class ErrorVisitor : SymbolVisitor<bool>
         {
-            private static readonly ErrorVisitor s_instance = new ErrorVisitor();
+            private static readonly ErrorVisitor s_instance = new();
 
             public static bool ContainsError(ISymbol? symbol)
                 => s_instance.Visit(symbol);

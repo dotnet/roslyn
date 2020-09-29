@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
-        private readonly ReferenceCountedDisposableCache<string, RuleSetFile> _ruleSetFileMap = new ReferenceCountedDisposableCache<string, RuleSetFile>();
+        private readonly ReferenceCountedDisposableCache<string, RuleSetFile> _ruleSetFileMap = new();
 
         public VisualStudioRuleSetManager(
             FileChangeWatcher fileChangeWatcher, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)

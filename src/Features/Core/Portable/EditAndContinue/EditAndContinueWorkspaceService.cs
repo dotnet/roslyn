@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        internal static readonly TraceLog Log = new TraceLog(2048, "EnC");
+        internal static readonly TraceLog Log = new(2048, "EnC");
 
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// These diagnostics are cleared as soon as we enter break mode or the debugging session terminates.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnosticsDuringRunMode;
-        private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new object();
+        private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new();
 
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;

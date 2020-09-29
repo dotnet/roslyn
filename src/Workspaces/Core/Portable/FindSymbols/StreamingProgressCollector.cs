@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal class StreamingProgressCollector : IStreamingFindReferencesProgress
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly IStreamingFindReferencesProgress _underlyingProgress;
 
         private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations =
-            new Dictionary<ISymbol, List<ReferenceLocation>>();
+            new();
 
         public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <param name="span"></param>
         /// <returns></returns>
         public static TextSpan ToTextSpan(this Span span)
-            => new TextSpan(span.Start, span.Length);
+            => new(span.Start, span.Length);
 
         public static bool IntersectsWith(this Span span, int position)
             => position >= span.Start && position <= span.End;
