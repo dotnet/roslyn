@@ -70,7 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _diagnosticService = diagnosticService;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
-            // _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
             _clientCapabilities = new VSClientCapabilities();
 
