@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (e is not (OperationCanceledException or RemoteInvocationException))
+                catch (Exception e) when (e is not (OperationCanceledException or RemoteRpcException))
                 {
                     // Ensure that the writer is complete if an exception is thrown
                     // that is not handled by the RPC proxy. The proxy completes the writer
