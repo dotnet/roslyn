@@ -276,15 +276,18 @@ public class Program
             await VerifyNoItemsExistAsync(@"
 public class C
 {
-    public static explicit operator C(float f) => new C();
+    public static explicit operator C(D d) => null;
+}
+public class D
+{
 }
 
 public class Program
 {
     public void Main()
     {
-        float f = 1;
-        f.$$
+        var d = new D();
+        d.$$
     }
 }
 ");
