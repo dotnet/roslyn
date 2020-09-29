@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken);
 
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Func<TService, Stream, CancellationToken, ValueTask> invocation,
-            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken);
 
         public abstract ValueTask<bool> TryInvokeAsync(
@@ -60,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Solution solution,
-            Func<TService, PinnedSolutionInfo, Stream, CancellationToken, ValueTask> invocation,
-            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken);
     }
 }

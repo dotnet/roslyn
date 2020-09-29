@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(provider.Proxy);
 
             return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy, _clientDisconnectedSource).InvokeAsync(
-                (proxy, stream, cancellationToken) => proxy.GetAssetsAsync(stream, scopeId, checksums.ToArray(), cancellationToken),
-                (stream, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(stream, scopeId, checksums, serializerService, cancellationToken),
+                (proxy, pipeWriter, cancellationToken) => proxy.GetAssetsAsync(pipeWriter, scopeId, checksums.ToArray(), cancellationToken),
+                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, scopeId, checksums, serializerService, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 

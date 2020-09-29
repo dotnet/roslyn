@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
@@ -34,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
     [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
     public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
+        public RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         #region Helpers
 
         internal sealed override CodeFixProvider CodeFixProvider
@@ -119,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
+            public CompilerOrAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
             protected abstract bool IsCompilerDiagnosticsTest { get; }
             protected abstract string VariableDeclaredButNotUsedDiagnosticId { get; }
             protected abstract string VariableAssignedButNotUsedDiagnosticId { get; }
@@ -126,8 +137,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
             public sealed class CompilerTests : CompilerOrAnalyzerTests
             {
+                public CompilerTests(ITestOutputHelper logger)
+                    : base(logger)
+                {
+                }
+
                 internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
                     => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+
                 protected override bool IsCompilerDiagnosticsTest => true;
                 protected override string VariableDeclaredButNotUsedDiagnosticId => "CS0168";
                 protected override string VariableAssignedButNotUsedDiagnosticId => "CS0219";
@@ -159,6 +176,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
             public sealed class AnalyzerTests : CompilerOrAnalyzerTests
             {
+                public AnalyzerTests(ITestOutputHelper logger)
+                    : base(logger)
+                {
+                }
+
                 internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
                     => ImmutableArray.Create<DiagnosticAnalyzer>(new UserDiagnosticAnalyzer(), new CompilationEndDiagnosticAnalyzer());
                 protected override bool IsCompilerDiagnosticsTest => false;
@@ -989,6 +1011,11 @@ class Class
 
         public sealed class CompilerAndAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
+            public CompilerAndAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
             internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
                 ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
 

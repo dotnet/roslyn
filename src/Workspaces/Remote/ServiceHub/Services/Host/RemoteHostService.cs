@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return EndPoint.InvokeAsync(
                         nameof(IRemoteHostServiceCallback.GetAssetsAsync),
                         new object[] { scopeId, checksums.ToArray() },
-                        (stream, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(stream, scopeId, checksums, serializerService, cancellationToken).AsTask(),
+                        (stream, cancellationToken) => Task.FromResult(RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken)),
                         cancellationToken);
                 }
             }, cancellationToken).ConfigureAwait(false);
