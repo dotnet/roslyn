@@ -18,20 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public abstract class AbstractCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<CSharpTestWorkspaceFixture>
     {
-        protected AbstractCSharpCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
     }
 
     public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> : AbstractCompletionProviderTests<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected AbstractCSharpCompletionProviderTests(TWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
-
         protected override TestWorkspace CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
 

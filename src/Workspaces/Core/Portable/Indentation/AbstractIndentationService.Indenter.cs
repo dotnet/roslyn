@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             }
 
             public IndentationResult IndentFromStartOfLine(int addedSpaces)
-                => new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
+                => new(this.LineToBeIndented.Start, addedSpaces);
 
             public IndentationResult GetIndentationOfToken(SyntaxToken token)
                 => GetIndentationOfToken(token, addedSpaces: 0);

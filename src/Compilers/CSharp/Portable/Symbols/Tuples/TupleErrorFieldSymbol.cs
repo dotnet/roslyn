@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _useSiteDiagnosticInfo;
         }
 
-        public override sealed int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }

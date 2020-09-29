@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
     public abstract partial class Workspace
     {
-        private readonly EventMap _eventMap = new EventMap();
+        private readonly EventMap _eventMap = new();
 
         private const string WorkspaceChangeEventName = "WorkspaceChanged";
         private const string WorkspaceFailedEventName = "WorkspaceFailed";

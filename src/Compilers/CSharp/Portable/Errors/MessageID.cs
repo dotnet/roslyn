@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
 
-        // available
+        IDS_FeatureDiscards = MessageBase + 12688,
 
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
@@ -213,6 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12786,
         IDS_FeatureExtensionGetEnumerator = MessageBase + 12787,
         IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
+        IDS_Parameter = MessageBase + 12789,
+        IDS_Return = MessageBase + 12790,
+        IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -346,6 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                     return LanguageVersion.CSharp9;
 
+                case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
+                    return LanguageVersion.Preview;
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
@@ -415,6 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureOutVar:
                 case MessageID.IDS_FeatureExpressionBodiedAccessor:
                 case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
+                case MessageID.IDS_FeatureDiscards:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.

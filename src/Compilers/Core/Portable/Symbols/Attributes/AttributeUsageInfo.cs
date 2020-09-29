@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis
         /// (b) AllowMultiple: false
         /// (c) Inherited: true
         /// </summary>
-        static internal readonly AttributeUsageInfo Default = new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: true);
+        internal static readonly AttributeUsageInfo Default = new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: true);
 
-        static internal readonly AttributeUsageInfo Null = default(AttributeUsageInfo);
+        internal static readonly AttributeUsageInfo Null = default(AttributeUsageInfo);
 
         internal AttributeUsageInfo(AttributeTargets validTargets, bool allowMultiple, bool inherited)
         {

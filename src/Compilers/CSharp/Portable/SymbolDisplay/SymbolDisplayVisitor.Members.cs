@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                     AddKeyword(SyntaxKind.UnmanagedKeyword);
 
-                    var conventionTypes = symbol.CallingConventionTypes;
+                    var conventionTypes = symbol.UnmanagedCallingConventionTypes;
 
                     if (symbol.CallingConvention != SignatureCallingConvention.Unmanaged || !conventionTypes.IsEmpty)
                     {
@@ -601,11 +601,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         AddPunctuation(SyntaxKind.CloseBracketToken);
                     }
-                }
-                else if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseExplicitManagedCallingConventionSpecifier))
-                {
-                    AddSpace();
-                    AddKeyword(SyntaxKind.ManagedKeyword);
                 }
 
                 AddPunctuation(SyntaxKind.LessThanToken);

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         /// <summary>
         /// See comment in <see cref="InvertLogicalAsync"/> to understand the need for this annotation.
         /// </summary>
-        private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_annotation = new();
 
         protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
     [ExportLanguageService(typeof(IEmbeddedLanguagesProvider), LanguageNames.CSharp, ServiceLayer.Default), Shared]
     internal class CSharpEmbeddedLanguagesProvider : AbstractEmbeddedLanguagesProvider
     {
-        public static EmbeddedLanguageInfo Info = new EmbeddedLanguageInfo(
+        public static EmbeddedLanguageInfo Info = new(
             (int)SyntaxKind.CharacterLiteralToken,
             (int)SyntaxKind.StringLiteralToken,
             (int)SyntaxKind.InterpolatedStringTextToken,

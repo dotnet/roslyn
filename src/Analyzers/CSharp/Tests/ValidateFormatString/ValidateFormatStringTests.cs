@@ -577,7 +577,7 @@ class C
                 await TestDiagnosticInfoAsync(source,
                     options,
                     diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity: DiagnosticSeverity.Warning,
+                    diagnosticSeverity: DiagnosticSeverity.Info,
                     diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
             }
         }
@@ -594,7 +594,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -610,7 +610,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -626,7 +626,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -643,7 +643,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -660,7 +660,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -677,7 +677,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -695,7 +695,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -713,7 +713,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -729,7 +729,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -745,7 +745,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -761,7 +761,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -777,7 +777,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -794,7 +794,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -811,7 +811,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -828,7 +828,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -854,7 +854,7 @@ class Program
             await TestDiagnosticInfoAsync(input,
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -871,7 +871,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -888,7 +888,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -905,7 +905,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -922,7 +922,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -939,7 +939,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -956,7 +956,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -973,7 +973,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 

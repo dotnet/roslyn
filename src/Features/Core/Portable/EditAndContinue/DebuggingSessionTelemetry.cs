@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         private readonly List<EditSessionTelemetry.Data> _editSessionData;
         private int _emptyEditSessionCount;

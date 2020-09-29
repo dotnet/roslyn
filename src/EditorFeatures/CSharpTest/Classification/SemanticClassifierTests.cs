@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            return GetSemanticClassificationsAsync(document, span);
+            return await GetSemanticClassificationsAsync(document, span);
         }
 
         [Theory]
@@ -1511,8 +1510,8 @@ class C
                 testHost,
                 ParseOptions(Options.Regular),
                 Class("C"),
-                Static("M"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Theory]
@@ -1811,8 +1810,8 @@ namespace MyNameSpace
                 Namespace("MyNameSpace"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("method"),
                 Method("method"),
+                Static("method"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
                 Event("myEvent"),
@@ -1822,12 +1821,12 @@ namespace MyNameSpace
                 Struct("MyStruct"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("MyProp"),
                 Property("MyProp"),
+                Static("MyProp"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("myField"),
                 Field("myField"),
+                Static("myField"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
                 Delegate("MyDelegate"),
@@ -3429,6 +3428,30 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [CombinatorialData]
+        public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // the double-quote inside the string should not affect this being classified as a regex.
+    private Regex myRegex = new Regex(@""^ """" $"";
+}",
+testHost,
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Class("Regex"),
+Class("Regex"),
+Regex.Anchor("^"),
+Regex.Text(@" """" "),
+Regex.Anchor("$"));
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
@@ -4030,8 +4053,8 @@ class X
 }",
             testHost,
             Keyword("var"),
-            Static("Parse"),
-            Method("Parse"));
+            Method("Parse"),
+            Static("Parse"));
         }
 
         [Theory]
@@ -4063,8 +4086,8 @@ class X
 }",
             testHost,
             Keyword("_"),
-            Static("Parse"),
-            Method("Parse"));
+            Method("Parse"),
+            Static("Parse"));
         }
 
         [Theory]

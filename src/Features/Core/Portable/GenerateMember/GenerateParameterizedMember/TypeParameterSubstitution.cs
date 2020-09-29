@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         private sealed class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
         {
             public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
-                new Dictionary<ITypeSymbol, ITypeSymbol>();
+                new();
             private readonly CancellationToken _cancellationToken;
             private readonly Compilation _compilation;
             private readonly ISet<string> _availableTypeParameterNames;

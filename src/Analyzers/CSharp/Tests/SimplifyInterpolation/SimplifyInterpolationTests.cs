@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             Assert.Equal(
                 new[] {
                     ("IDE0071", DiagnosticSeverity.Info),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
                 },
                 diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
         }

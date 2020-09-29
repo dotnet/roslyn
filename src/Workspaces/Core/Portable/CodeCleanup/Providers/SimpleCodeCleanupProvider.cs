@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
@@ -16,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     /// </summary>
     internal class SimpleCodeCleanupProvider : ICodeCleanupProvider
     {
-        private readonly Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>> _documentDelegatee;
-        private readonly Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode> _syntaxDelegatee;
+        private readonly Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>>? _documentDelegatee;
+        private readonly Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode>? _syntaxDelegatee;
 
         public SimpleCodeCleanupProvider(string name,
-            Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>> documentDelegatee = null,
-            Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode> syntaxDelegatee = null)
+            Func<Document, ImmutableArray<TextSpan>, CancellationToken, Task<Document>>? documentDelegatee = null,
+            Func<SyntaxNode, ImmutableArray<TextSpan>, Workspace, CancellationToken, SyntaxNode>? syntaxDelegatee = null)
         {
             Debug.Assert(documentDelegatee != null || syntaxDelegatee != null);
 
@@ -44,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         private async Task<Document> CleanupCoreAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            RoslynDebug.AssertNotNull(_syntaxDelegatee);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = _syntaxDelegatee(root, spans, document.Project.Solution.Workspace, cancellationToken);
 
             if (root != newRoot)

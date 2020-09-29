@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -40,6 +41,7 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -198,19 +200,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
-
-            // Load the designer attribute service and tell it to start watching the solution for
-            // designable files.
-            var designerAttributeService = this.ComponentModel.GetService<IVisualStudioDesignerAttributeService>();
-            designerAttributeService.Start(this.DisposalToken);
-
-            // Load the telemetry service and tell it to start watching the solution for project info.
-            var projectTelemetryService = this.ComponentModel.GetService<IVisualStudioProjectTelemetryService>();
-            projectTelemetryService.Start(this.DisposalToken);
-
-            // Load the todo comments service and tell it to start watching the solution for new comments
-            var todoCommentsService = this.ComponentModel.GetService<IVisualStudioTodoCommentsService>();
-            todoCommentsService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)

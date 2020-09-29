@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// doesn't need to be kept around further.
         /// </summary>
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new ConditionalWeakTable<Project, StringTable>();
+            new();
 
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
@@ -271,7 +271,9 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
-                        extensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray)));
+                        extensionMethodInfoBuilder.ToImmutableDictionary(
+                            static kvp => kvp.Key,
+                            static kvp => kvp.Value.ToImmutable())));
             }
             finally
             {
@@ -288,9 +290,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 declaredSymbolInfos.Free();
             }
         }
-
-        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, string> s_getKey = kvp => kvp.Key;
-        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, ImmutableArray<int>> s_getValuesAsImmutableArray = kvp => kvp.Value.ToImmutable();
 
         private static void AddExtensionMethodInfo(
             IDeclaredSymbolInfoFactoryService infoFactory,

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKind.BaseList);
 
         public static bool IsCommaInArgumentOrParameterList(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.IsKind(SyntaxKind.ParameterList) || token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList));
+            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.IsKind(SyntaxKind.ParameterList) || token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList));
 
         public static bool IsLambdaBodyBlock(this SyntaxNode node)
         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return IsEmbeddedStatement(block);
         }
 
-        public static bool IsEmbeddedStatement(this SyntaxNode node)
+        public static bool IsEmbeddedStatement([NotNullWhen(true)] this SyntaxNode? node)
         {
             SyntaxNode? statementOrElse = node as StatementSyntax;
             if (statementOrElse == null)
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public static bool IsInitializerForArrayOrCollectionCreationExpression(this SyntaxNode node)
+        public static bool IsInitializerForArrayOrCollectionCreationExpression([NotNullWhen(true)] this SyntaxNode? node)
         {
             if (node is InitializerExpressionSyntax initializer)
             {
@@ -495,40 +495,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // there are attributes, get first token after the tokens belong to attributes
             return (firstTokenAfterAttribute, lastToken);
-        }
-
-        public static bool IsBlockBody(this SyntaxNode node)
-        {
-            Contract.ThrowIfNull(node);
-
-            if (!(node is BlockSyntax blockNode) || blockNode.Parent == null)
-            {
-                return false;
-            }
-
-            switch (blockNode.Parent.Kind())
-            {
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.CheckedStatement:
-                case SyntaxKind.UncheckedStatement:
-                case SyntaxKind.UnsafeStatement:
-                case SyntaxKind.TryStatement:
-                case SyntaxKind.CatchClause:
-                case SyntaxKind.FinallyClause:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.UnknownAccessorDeclaration:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)

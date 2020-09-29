@@ -11,9 +11,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class CachingAnalyzerConfigSet
     {
-        private readonly ConcurrentDictionary<string, AnalyzerConfigOptionsResult> _sourcePathToResult = new ConcurrentDictionary<string, AnalyzerConfigOptionsResult>();
+        private readonly ConcurrentDictionary<string, AnalyzerConfigOptionsResult> _sourcePathToResult = new();
         private readonly Func<string, AnalyzerConfigOptionsResult> _computeFunction;
         private readonly AnalyzerConfigSet _underlyingSet;
+
+        public AnalyzerConfigOptionsResult GlobalConfigOptions => _underlyingSet.GlobalConfigOptions;
 
         public CachingAnalyzerConfigSet(AnalyzerConfigSet underlyingSet)
         {

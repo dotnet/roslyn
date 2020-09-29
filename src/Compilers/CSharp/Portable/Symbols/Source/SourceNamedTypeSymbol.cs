@@ -186,6 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var name = typeParameterNames[i];
                     var location = new SourceLocation(tp.Identifier);
                     var varianceKind = typeParameterVarianceKeywords[i];
+
+                    ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics, location);
+
                     if (name == null)
                     {
                         name = typeParameterNames[i] = tp.Identifier.ValueText;
@@ -248,13 +251,14 @@ next:;
         /// <summary>
         /// Returns the constraint clause for the given type parameter.
         /// </summary>
-        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
+        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool canIgnoreNullableContext, int ordinal)
         {
             var clauses = _lazyTypeParameterConstraints;
-            if (clauses.IsDefault)
+            if (!clauses.HasValue(canIgnoreNullableContext))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                if (TypeParameterConstraintClauseExtensions.InterlockedUpdate(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(canIgnoreNullableContext, diagnostics)) &&
+                    _lazyTypeParameterConstraints.HasValue(canIgnoreNullableContext: false))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
@@ -265,7 +269,7 @@ next:;
             return (clauses.Length > 0) ? clauses[ordinal] : TypeParameterConstraintClause.Empty;
         }
 
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(bool canIgnoreNullableContext, DiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -314,9 +318,10 @@ next:;
                         // Wrap binder from factory in a generic constraints specific binder 
                         // to avoid checking constraints when binding type names.
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                        binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+                        binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(
+                            BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | (canIgnoreNullableContext ? BinderFlags.IgnoreNullableContext : 0));
 
-                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, ref isValueTypeOverride, diagnostics);
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, canIgnoreNullableContext, ref isValueTypeOverride, diagnostics);
                     }
 
                     Debug.Assert(constraints.Length == arity);
@@ -435,7 +440,7 @@ next:;
                     }
 
                     builder[i] = TypeParameterConstraintClause.Create(mergedKind,
-                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes);
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes, ignoresNullableContext: constraint.IgnoresNullableContext);
                 }
             }
 

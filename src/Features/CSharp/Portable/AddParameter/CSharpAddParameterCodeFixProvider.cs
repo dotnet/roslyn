@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         ArgumentListSyntax,
         AttributeArgumentListSyntax,
         InvocationExpressionSyntax,
-        ObjectCreationExpressionSyntax>
+        BaseObjectCreationExpressionSyntax>
     {
 
         private const string CS1501 = nameof(CS1501); // error CS1501: No overload for method 'M' takes 1 arguments

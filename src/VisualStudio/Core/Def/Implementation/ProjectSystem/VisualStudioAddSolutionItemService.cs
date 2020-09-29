@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const string SolutionItemsFolderName = "Solution Items";
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly IThreadingContext _threadingContext;
         private readonly ConcurrentDictionary<string, FileChangeTracker> _fileChangeTrackers;
 

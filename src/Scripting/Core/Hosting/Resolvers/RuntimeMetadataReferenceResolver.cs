@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         // The extensions are in order in which the CLR loader looks for assembly files.
         internal static ImmutableArray<string> AssemblyExtensions = ImmutableArray.Create(".dll", ".exe");
 
-        private static char[] s_directorySeparators = new[] { PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar };
+        private static readonly char[] s_directorySeparators = new[] { PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar };
 
         /// <summary>
         /// Creates a resolver that uses the current platform settings (GAC, platform assembly list).

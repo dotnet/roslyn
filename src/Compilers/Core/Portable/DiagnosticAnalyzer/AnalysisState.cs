@@ -107,7 +107,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerStates[index];
         }
 
-        public async Task OnCompilationEventsGeneratedAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
+        public async Task OnCompilationEventsGeneratedAsync(
+            Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents,
+            AsyncQueue<CompilationEvent> eventQueue,
+            ImmutableArray<AdditionalText> additionalFiles,
+            AnalyzerDriver driver,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -115,7 +120,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 using (_gate.DisposableWait(cancellationToken))
                 {
-                    OnCompilationEventsGenerated_NoLock(compilationEvents);
+                    // Defer the call to 'getCompilationEvents' until we know cancellation is no longer possible
+                    OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles));
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
     {
-        public static CSharpUseExplicitTypeHelper Instance = new CSharpUseExplicitTypeHelper();
+        public static CSharpUseExplicitTypeHelper Instance = new();
 
         private CSharpUseExplicitTypeHelper()
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
         }
 
-        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             if (!variableDeclaration.Type.StripRefIfNeeded().IsVar)
             {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // The base analyzer may impose further limitations
-            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken);
         }
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)

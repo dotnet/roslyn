@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal abstract class AbstractChangeSignatureService : ILanguageService
     {
-        protected SyntaxAnnotation changeSignatureFormattingAnnotation = new SyntaxAnnotation("ChangeSignatureFormatting");
+        protected SyntaxAnnotation changeSignatureFormattingAnnotation = new("ChangeSignatureFormatting");
 
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     newRoot,
                     changeSignatureFormattingAnnotation,
                     doc.Project.Solution.Workspace,
-                    options: null,
+                    options: doc.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken),
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
 

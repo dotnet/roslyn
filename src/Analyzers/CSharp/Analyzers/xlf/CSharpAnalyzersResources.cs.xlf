@@ -202,6 +202,11 @@
         <target state="translated">Použít lokální funkci</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="new">Use 'new(...)'</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Použít porovnávání vzorů</target>
@@ -262,9 +267,14 @@
         <target state="translated">Příkaz if lze zjednodušit.</target>
         <note />
       </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="new">'new' expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <target state="translated">typeof se dá převést na nameof.</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

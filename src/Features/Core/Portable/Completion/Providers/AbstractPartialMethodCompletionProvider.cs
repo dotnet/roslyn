@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractPartialMethodCompletionProvider : AbstractMemberInsertingCompletionProvider
     {
         protected static readonly SymbolDisplayFormat SignatureDisplayFormat =
-                new SymbolDisplayFormat(
+                new(
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeParameters,
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
+        protected abstract bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken);
         protected abstract bool IsPartialMethodCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token);
         protected abstract string GetDisplayText(IMethodSymbol method, SemanticModel semanticModel, int position);
         protected abstract bool IsPartial(IMethodSymbol method);
@@ -67,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var method = (IMethodSymbol)member;
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: ImmutableArray<AttributeData>.Empty,
-                accessibility: Accessibility.NotApplicable,
+                accessibility: IncludeAccessibility(method, cancellationToken) ? method.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
-                returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                returnType: method.ReturnType,
                 refKind: method.RefKind,
                 explicitInterfaceImplementations: default,
                 name: member.Name,
@@ -84,10 +85,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only inside classes and structs
-            if (!(semanticModel.GetEnclosingSymbol(position, cancellationToken) is INamedTypeSymbol enclosingSymbol) || !(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
-            {
+            if (semanticModel.GetEnclosingSymbol(position, cancellationToken) is not INamedTypeSymbol enclosingSymbol)
                 return null;
-            }
+
+            if (!(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
+                return null;
 
             var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)
                                         .OfType<IMethodSymbol>()

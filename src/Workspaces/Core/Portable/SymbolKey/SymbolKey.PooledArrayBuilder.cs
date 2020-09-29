@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             public int Count => Builder.Count;
             public T this[int index] => Builder[index];
 
-            public void AddIfNotNull([AllowNull] T value)
+            public void AddIfNotNull(T? value)
             {
                 if (value != null)
                 {
@@ -39,10 +38,10 @@ namespace Microsoft.CodeAnalysis
             public ArrayBuilder<T>.Enumerator GetEnumerator() => Builder.GetEnumerator();
 
             public static PooledArrayBuilder<T> GetInstance()
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance());
+                => new(ArrayBuilder<T>.GetInstance());
 
             public static PooledArrayBuilder<T> GetInstance(int capacity)
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance(capacity));
+                => new(ArrayBuilder<T>.GetInstance(capacity));
 
             public void AddValuesIfNotNull(IEnumerable<T> values)
             {

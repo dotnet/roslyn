@@ -995,14 +995,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (info.Code == (int)ErrorCode.ERR_BogusType)
                 {
-                    info = GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? info;
+                    info = GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() ?? info;
                 }
             }
 
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        private DiagnosticInfo GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo()
+        private DiagnosticInfo GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()
         {
             switch (this.Kind)
             {
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
+            return (type.DefaultType.TypeKind != TypeKind.TypeParameter && DeriveUseSiteDiagnosticFromType(ref result, type.Type)) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (current == AllowedRequiredModifierType.None ||
                         (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
                     {
-                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
+                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
                         {
                             return true;
                         }

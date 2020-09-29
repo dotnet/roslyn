@@ -2242,5 +2242,42 @@ namespace Microsoft.CodeAnalysis
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class RegisterSyntaxTreeCancellationAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "ID0001";
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                DiagnosticId,
+                "Title",
+                "Message",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            public CancellationToken CancellationToken => _cancellationTokenSource.Token;
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(context =>
+                {
+                    // Mimic cancellation by throwing an OperationCanceledException in first callback.
+                    if (!_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        _cancellationTokenSource.Cancel();
+
+                        while (true)
+                        {
+                            context.CancellationToken.ThrowIfCancellationRequested();
+                        }
+
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.Tree.GetRoot().GetLocation()));
+                });
+            }
+        }
     }
 }

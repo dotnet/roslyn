@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -583,8 +582,6 @@ class Program
             }.RunAsync();
         }
 
-#if !CODE_STYLE
-
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestOnMultiCaseSection_CSharp9()
@@ -623,8 +620,6 @@ class Program
                 LanguageVersion = CSharp9,
             }.RunAsync();
         }
-
-#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiCompoundAssignment()
@@ -1970,6 +1965,47 @@ j = i switch
                 DiagnosticResult.CompilerError("CS8805"));
 
             await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        public async Task TestOnMultiCaseSection_String_CSharp9()
+        {
+            var testCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        [|switch|] (s)
+        {
+	        case ""Last"":
+            case ""First"":
+            case ""Count"":
+                return true;
+            default:
+                return false;
+        }
+    }
+}";
+            var fixedCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        return s switch
+        {
+            ""Last"" or ""First"" or ""Count"" => true,
+            _ => false,
+        };
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
         private NamespaceSymbol _container;
-        private NamespaceExtent _extent;
+        private readonly NamespaceExtent _extent;
         private readonly IEnumerable<Symbol> _children;
         private readonly string _name;
 

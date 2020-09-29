@@ -117,10 +117,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
-                cts.Cancel();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -281,10 +279,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -388,10 +384,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -457,10 +451,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -526,10 +518,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, cts.Token);
+                await SymbolFinder.FindSourceDeclarationsAsync(solution, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -592,10 +582,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test", SymbolFilter.All, cts.Token);
+                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test", SymbolFilter.All, new CancellationToken(true));
             });
         }
 
@@ -658,10 +646,8 @@ Inner i;
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                var cts = new CancellationTokenSource();
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                cts.Cancel();
-                await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, cts.Token);
+                await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, new CancellationToken(true));
             });
         }
 

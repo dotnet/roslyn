@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             => CreateNavInfo(rgSymbolNodes, ulcNodes, out ppNavInfo);
 
         int IVsSimpleLibrary2.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
-            => throw new NotImplementedException();
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleLibrary2.GetGuid(out Guid pguidLib)
         {

@@ -781,5 +781,169 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithAddOperatorArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s.Substring([|bar + 1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s[(bar + 1)..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithElementAccessShouldNotAddParentheses()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s, int[] bar)
+    {
+        _ = s.Substring([|bar[0]|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, int[] bar)
+    {
+        _ = s[bar[0]..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithNullConditionalAccess()
+        {
+            var source =
+@"
+#nullable enable
+public class Test
+{
+    public string? M(string? arg)
+        => arg?.Substring([|42|]);
+}";
+            var fixedSource =
+@"
+#nullable enable
+public class Test
+{
+    public string? M(string? arg)
+        => arg?[42..];
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
+        {
+            var source =
+@"
+public class Test
+{
+    public int? M(string arg)
+        => arg?.Substring([|42|]).Length;
+}";
+            var fixedSource =
+@"
+public class Test
+{
+    public int? M(string arg)
+        => arg?[42..].Length;
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [InlineData(
+            "c.Prop.Substring([|42|])",
+            "c.Prop[42..]")]
+        [InlineData(
+            "c.Prop.Substring([|1, c.Prop.Length - 2|])",
+            "c.Prop[1..^1]")]
+        [InlineData(
+            "c?.Prop.Substring([|42|])",
+            "c?.Prop[42..]")]
+        [InlineData(
+            "c.Prop?.Substring([|42|])",
+            "c.Prop?[42..]")]
+        [InlineData(
+            "c?.Prop?.Substring([|42|])",
+            "c?.Prop?[42..]")]
+        public async Task TestExpressionWithNullConditionalAccessVariations(string subStringCode, string rangeCode)
+        {
+            var source =
+@$"
+public class C
+{{
+    public string Prop {{ get; set; }}
+}}
+public class Test
+{{
+    public object M(C c)
+        => { subStringCode };
+}}";
+            var fixedSource =
+@$"
+public class C
+{{
+    public string Prop {{ get; set; }}
+}}
+public class Test
+{{
+    public object M(C c)
+        => { rangeCode };
+}}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }

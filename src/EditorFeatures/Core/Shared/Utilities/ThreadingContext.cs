@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [Shared]
     internal sealed class ThreadingContext : IThreadingContext, IDisposable
     {
-        private readonly CancellationTokenSource _disposalTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _disposalTokenSource = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

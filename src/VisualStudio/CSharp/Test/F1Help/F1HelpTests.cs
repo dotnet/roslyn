@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialType()
+        public async Task TestClassPartialType()
         {
             await Test_KeywordAsync(
 @"part[||]ial class C
@@ -174,12 +174,52 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialMethod()
+        public async Task TestRecordPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRecordWithPrimaryConstructorPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C(string S)
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInClass()
         {
             await Test_KeywordAsync(
 @"partial class C
 {
     par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInRecord()
+        {
+            await Test_KeywordAsync(
+@"partial record C
+{
+    par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestExtendedPartialMethod()
+        {
+            await Test_KeywordAsync(
+@"partial class C
+{
+    public par[||]tial void goo();
 }", "partialmethod");
         }
 
@@ -529,6 +569,70 @@ class Program
 }", "::_CSharpKeyword");
         }
 
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStringInterpolation()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($[||]""Hello, {args[0]}"");
+    }
+}", "$_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(@[||]""Hello\"");
+    }
+}", "@_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimInterpolatedString1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(@[||]$""Hello\ {args[0]}"");
+    }
+}", "@$_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimInterpolatedString2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($[||]@""Hello\ {args[0]}"");
+    }
+}", "@$_CSharpKeyword");
+        }
+
         [WorkItem(864658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNullable()
@@ -626,7 +730,7 @@ class Program
         e +[||]= () => {
         };
     }
-}", "CCC.e.add");
+}", "+=_CSharpKeyword");
         }
 
         [WorkItem(867554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867554")]
@@ -681,6 +785,35 @@ class Program
         var v = [||]nameof(goo);
     }
 }", "nameof");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNullForgiving()
+        {
+            await Test_KeywordAsync(
+@"#nullable enable
+class C
+{
+    int goo(string? x)
+    {
+        return x[||]!.GetHashCode();
+    }
+}", "nullForgiving");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLogicalNot()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    bool goo(bool x)
+    {
+        return [||]!x;
+    }
+}", "!");
         }
     }
 }

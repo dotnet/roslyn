@@ -1233,7 +1233,7 @@ namespace Destination
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullMethodUpToVBClassViaQuickAction()
         {
-            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in 
+            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in
             // AbstractCodeGenerationService will return null.
             var input = @"
 <Workspace>
@@ -1496,6 +1496,60 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullExtendedPartialMethodUpToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void Bar[||]Bar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+        void BarBar();
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void BarBar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task PullMultipleNonPublicMethodsToInterfaceViaDialog()
         {
             var testText = @"
@@ -1698,6 +1752,39 @@ namespace PushUpTest
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullAsyncMethod()
+        {
+            var testText = @"
+using System.Threading.Tasks;
+
+internal interface IPullUp { }
+
+internal class PullUp : IPullUp
+{
+    internal async Task PullU[||]pAsync()
+    {
+        await Task.Delay(1000);
+    }
+}";
+            var expectedText = @"
+using System.Threading.Tasks;
+
+internal interface IPullUp
+{
+    Task PullUpAsync();
+}
+
+internal class PullUp : IPullUp
+{
+    public async Task PullUpAsync()
+    {
+        await Task.Delay(1000);
+    }
+}";
+            await TestWithPullMemberDialogAsync(testText, expectedText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

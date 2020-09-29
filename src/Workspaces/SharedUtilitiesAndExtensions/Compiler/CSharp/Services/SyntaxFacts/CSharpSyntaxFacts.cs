@@ -18,21 +18,20 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     {
-        internal static readonly CSharpSyntaxFacts Instance = new CSharpSyntaxFacts();
+        internal static readonly CSharpSyntaxFacts Instance = new();
 
         protected CSharpSyntaxFacts()
         {
@@ -148,11 +147,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
 #nullable enable
-        public bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+
+        public bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
-            return name.IsMemberAccessExpressionName();
+            return name.IsSimpleMemberAccessExpressionName();
         }
+
+        public bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node;
+
+        public bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        {
+            var name = node as SimpleNameSyntax;
+            return name.IsMemberBindingExpressionName();
+        }
+
+        public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
+            => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
+
+        public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
+            => node.GetRootConditionalAccessExpression();
+
 #nullable restore
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
@@ -280,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.Kind() == SyntaxKind.ThrowExpression;
 
         public bool IsPredefinedType(SyntaxToken token)
-            => TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
+            => TryGetPredefinedType(token, out _);
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
             => TryGetPredefinedType(token, out var actualType) && actualType == type;
@@ -555,6 +571,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
+
+        public SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
+            => ((MemberBindingExpressionSyntax)node).Name;
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;
@@ -1006,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             {
                 var parent = node.Parent;
 
-                // If this node is on the left side of a member access expression, don't ascend 
+                // If this node is on the left side of a member access expression, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is MemberAccessExpressionSyntax memberAccess)
                 {
@@ -1016,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
 
-                // If this node is on the left side of a qualified name, don't ascend 
+                // If this node is on the left side of a qualified name, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is QualifiedNameSyntax qualifiedName)
                 {
@@ -1026,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
 
-                // If this node is on the left side of a alias-qualified name, don't ascend 
+                // If this node is on the left side of a alias-qualified name, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is AliasQualifiedNameSyntax aliasQualifiedName)
                 {
@@ -1228,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
-            => GetArgumentsOfArgumentList((objectCreationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
+            => GetArgumentsOfArgumentList((objectCreationExpression as BaseObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
@@ -1285,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             //    type-declaration
             switch (node.Kind())
             {
-                // Because fields declarations can define multiple symbols "public int a, b;" 
+                // Because fields declarations can define multiple symbols "public int a, b;"
                 // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 case SyntaxKind.VariableDeclarator:
                     return node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) ||
@@ -1726,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKindEx.RecordDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
@@ -2055,31 +2074,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             designation = recursivePattern.Designation;
         }
 
-#if CODE_STYLE
-
-        public bool SupportsNotPattern(ParseOptions options) => false;
-        public bool IsAndPattern(SyntaxNode node) => false;
-        public bool IsBinaryPattern(SyntaxNode node) => false;
-        public bool IsNotPattern(SyntaxNode node) => false;
-        public bool IsOrPattern(SyntaxNode node) => false;
-        public bool IsParenthesizedPattern(SyntaxNode node) => false;
-        public bool IsTypePattern(SyntaxNode node) => false;
-        public bool IsUnaryPattern(SyntaxNode node) => false;
-
-        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
-            => throw ExceptionUtilities.Unreachable;
-
-        public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
-            => throw ExceptionUtilities.Unreachable;
-
-        public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
-            => throw ExceptionUtilities.Unreachable;
-
-        public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
-            => throw ExceptionUtilities.Unreachable;
-
-#else
-
         public bool SupportsNotPattern(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
 
@@ -2130,15 +2124,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-#endif
-
         public bool IsImplicitObjectCreation(SyntaxNode node)
-        {
-#if CODE_STYLE
-            return ((CSharpSyntaxNode)node).Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression;
-#else
-            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
-#endif
-        }
+            => node.IsKind(SyntaxKind.ImplicitObjectCreationExpression);
+
+        public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression)
+            => ((ThrowExpressionSyntax)throwExpression).Expression;
+
+        public bool IsThrowStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ThrowStatement);
+
+        public bool IsLocalFunction(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement);
     }
 }

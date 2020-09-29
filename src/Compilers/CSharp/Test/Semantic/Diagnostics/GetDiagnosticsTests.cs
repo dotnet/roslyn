@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -610,6 +611,86 @@ class C3
             }
 
             await Task.WhenAll(tasks);
+        }
+
+        [Theory, WorkItem(46874, "https://github.com/dotnet/roslyn/pull/46874")]
+        [InlineData(2)]
+        [InlineData(50)]
+        public async Task TestConcurrentGetAnalyzerDiagnostics_SymbolStartAnalyzer(int partialDeclarationCount)
+        {
+            var sources = new string[partialDeclarationCount + 1];
+
+            for (var i = 0; i < partialDeclarationCount; i++)
+            {
+                sources[i] = $@"
+partial class C
+{{
+    void M{i}()
+    {{
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }}
+}}
+";
+            }
+
+            sources[partialDeclarationCount] = @"
+class C3
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var compilation = CreateCompilation(sources);
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(true));
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.VariableDeclaration));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: false));
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree, true);
+            var tasks = new Task[10];
+            for (var i = 0; i < 10; i++)
+            {
+                tasks[i] = Task.Run(() => compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, null, CancellationToken.None));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(46950, "https://github.com/dotnet/roslyn/issues/46950")]
+        public async Task TestGetAnalyzerSyntaxDiagnosticsWithCancellation(bool concurrent)
+        {
+            var source = @"class C { }";
+            var compilation = CreateCompilation(source);
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(concurrent));
+            var tree = compilation.SyntaxTrees.First();
+
+            var analyzer = new RegisterSyntaxTreeCancellationAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: concurrent,
+                    logAnalyzerExecutionTime: false));
+
+            // First call into analyzer mimics cancellation.
+            await Assert.ThrowsAsync<OperationCanceledException>(() => compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, analyzer.CancellationToken));
+
+            // Second call into analyzer reports diagnostic.
+            var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, CancellationToken.None);
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(RegisterSyntaxTreeCancellationAnalyzer.DiagnosticId, diagnostic.Id);
         }
     }
 }

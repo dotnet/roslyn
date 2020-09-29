@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             protected readonly SemanticModel SemanticModel;
             protected readonly Func<TypeInferenceInfo, bool> IsUsableTypeFunc;
 
-            private readonly HashSet<SyntaxNode> _seenExpressionInferType = new HashSet<SyntaxNode>();
-            private readonly HashSet<SyntaxNode> _seenExpressionGetType = new HashSet<SyntaxNode>();
+            private readonly HashSet<SyntaxNode> _seenExpressionInferType = new();
+            private readonly HashSet<SyntaxNode> _seenExpressionGetType = new();
 
             private static readonly Func<TypeInferenceInfo, bool> s_isNotNull = t => t.InferredType != null;
 

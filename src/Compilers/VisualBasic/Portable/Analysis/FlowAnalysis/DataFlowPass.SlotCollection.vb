@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class DataFlowPass
+    Partial Friend Class DataFlowPass
 
         ''' <summary>
         ''' Collection of 0, 1 or more slots. Allows returning of several slots by some 

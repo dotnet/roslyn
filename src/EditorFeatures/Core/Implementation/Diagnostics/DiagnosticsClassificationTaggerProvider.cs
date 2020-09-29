@@ -72,16 +72,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
             // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
-            if (diagnosticData.AdditionalLocations?.Count > 0
+            if (diagnosticData.AdditionalLocations.Length > 0
                 && diagnosticData.Properties != null
                 && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices)
                 && unnecessaryIndices is object)
             {
                 using var _ = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
 
-                var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
                 foreach (var index in GetLocationIndices(unnecessaryIndices))
-                    locationsToTag.Add(additionalLocations[index]);
+                    locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
 
                 return locationsToTag.ToImmutable();
             }

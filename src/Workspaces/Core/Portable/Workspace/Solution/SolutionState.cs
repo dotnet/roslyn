@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
 
             // make sure we don't accidentally capture any state but the list of references:
             static Lazy<HostDiagnosticAnalyzers> CreateLazyHostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> analyzerReferences)
-                => new Lazy<HostDiagnosticAnalyzers>(() => new HostDiagnosticAnalyzers(analyzerReferences));
+                => new(() => new HostDiagnosticAnalyzers(analyzerReferences));
         }
 
         public SolutionState(
@@ -1417,7 +1417,12 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject);
+            var oldDocument = oldProject.GetAdditionalDocumentState(newDocument.Id);
+            Contract.ThrowIfNull(oldDocument);
+
+            return ForkProject(
+                newProject,
+                translate: new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument));
         }
 
         private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
@@ -1735,6 +1740,9 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
+            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
+
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
@@ -1751,7 +1759,7 @@ namespace Microsoft.CodeAnalysis
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
-            new ConditionalWeakTable<ISymbol, ProjectId>();
+            new();
 
         private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
         {

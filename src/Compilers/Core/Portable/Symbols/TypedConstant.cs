@@ -126,14 +126,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [return: MaybeNull]
-        internal T DecodeValue<T>(SpecialType specialType)
+        internal T? DecodeValue<T>(SpecialType specialType)
         {
             TryDecodeValue(specialType, out T value);
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(false)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis
 
             if (_type!.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                value = (T)_value;
+                value = (T)_value!;
                 return true;
             }
 

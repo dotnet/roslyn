@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Position = position;
             CompletionListSpan = defaultSpan;
             Trigger = trigger;
-            Options = options ?? throw new ArgumentException(nameof(options));
+            Options = options ?? throw new ArgumentNullException(nameof(options));
             CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }

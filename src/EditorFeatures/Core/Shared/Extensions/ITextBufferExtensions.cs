@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -44,6 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        internal static bool IsInCloudEnvironmentClientContext(this ITextBuffer buffer)
+        {
+            if (buffer.TryGetWorkspace(out var workspace))
+            {
+                var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                return workspaceContextService.IsCloudEnvironmentClient();
+            }
+
+            return false;
         }
 
         internal static bool TryGetWorkspace(this ITextBuffer buffer, out Workspace workspace)

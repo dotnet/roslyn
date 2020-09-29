@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
             var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
@@ -66,13 +68,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     document, semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
-            return FindReferencesInTokens(
+            return await FindReferencesInTokensAsync(
                  methodSymbol,
                  document,
                  semanticModel,
                  tokens,
                  TokensMatch,
-                 cancellationToken);
+                 cancellationToken).ConfigureAwait(false);
 
             // local functions
             bool TokensMatch(SyntaxToken t)

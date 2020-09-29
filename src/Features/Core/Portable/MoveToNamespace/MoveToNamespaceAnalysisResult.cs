@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal partial class MoveToNamespaceAnalysisResult
     {
-        public static readonly MoveToNamespaceAnalysisResult Invalid = new MoveToNamespaceAnalysisResult();
+        public static readonly MoveToNamespaceAnalysisResult Invalid = new();
 
         public bool CanPerform { get; }
         public Document Document { get; }

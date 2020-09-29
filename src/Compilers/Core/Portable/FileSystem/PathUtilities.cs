@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
         internal const char AltDirectorySeparatorChar = '/';
         internal const string ParentRelativeDirectory = "..";
         internal const string ThisDirectory = ".";
-        internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
+        internal static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 

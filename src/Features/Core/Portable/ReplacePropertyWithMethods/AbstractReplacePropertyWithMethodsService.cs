@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _expression = _identifierName;
                 _cref = _service.TryGetCrefSyntax(_identifierName);
-                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
+                if (_syntaxFacts.IsNameOfSimpleMemberAccessExpression(_expression) ||
+                    _syntaxFacts.IsNameOfMemberBindingExpression(_expression))
                 {
                     _expression = (TExpressionSyntax)_expression.Parent!;
                 }

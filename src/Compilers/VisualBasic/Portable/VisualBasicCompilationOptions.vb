@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 
@@ -1126,12 +1127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.ParseOptions, 0)))))))))))
         End Function
 
-        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
+        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic, cancellationToken As CancellationToken) As Diagnostic
             Return VisualBasicDiagnosticFilter.Filter(
                 diagnostic,
                 GeneralDiagnosticOption,
                 SpecificDiagnosticOptions,
-                SyntaxTreeOptionsProvider)
+                SyntaxTreeOptionsProvider,
+                cancellationToken)
         End Function
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH

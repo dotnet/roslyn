@@ -76,12 +76,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            await connection.RunRemoteAsync(
-                nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
-                solution: null,
-                new object[] { "emptySource", Path.GetTempPath() },
-                CancellationToken.None);
+            using var connection = await client.CreateConnectionAsync<IRemoteSymbolSearchUpdateService>(callbackTarget: mock, CancellationToken.None);
+            Assert.True(await connection.TryInvokeAsync(
+                (service, cancellationToken) => service.UpdateContinuouslyAsync("emptySource", Path.GetTempPath(), cancellationToken),
+                CancellationToken.None));
         }
 
         [Fact]
@@ -89,12 +87,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false).ConfigureAwait(false);
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
             var serviceName = new RemoteServiceName("Test");
 
             // register local service
             TestService testService = null;
-            client.RegisterService(serviceName, (s, p) =>
+            client.RegisterService(serviceName, (s, p, o) =>
             {
                 testService = new TestService(s, p);
                 return testService;
@@ -151,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MockLogService : ISymbolSearchLogService
         {
-            public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
-            public Task LogInfoAsync(string text) => Task.CompletedTask;
+            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => default;
+            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken) => default;
         }
     }
 }

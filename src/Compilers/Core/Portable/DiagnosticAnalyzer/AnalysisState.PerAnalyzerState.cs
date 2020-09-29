@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     // See if we have completed analysis for this file.
-                    return state.StateKind == StateKind.FullyProcessed;
+                    return state.StateKind != StateKind.FullyProcessed;
                 }
             }
 

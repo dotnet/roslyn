@@ -211,6 +211,29 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterfaceAction_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
+        {
+            var markup = @"
+class MyClass$$
+{
+    public int Prop { get; set; }
+}";
+
+            var expectedMarkup = @"
+interface IMyClass
+{
+    int Prop { get; set; }
+}
+
+class MyClass : IMyClass
+{
+    public int Prop { get; set; }
+}";
+
+            await TestExtractInterfaceCodeActionCSharpAsync(markup, expectedMarkup);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndPrivateSet()
         {
             var markup = @"

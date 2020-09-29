@@ -241,11 +241,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.WarningLevel, item2.WarningLevel);
             Assert.Equal(item1.DefaultSeverity, item2.DefaultSeverity);
 
-            Assert.Equal(item1.CustomTags.Count, item2.CustomTags.Count);
-            for (var j = 0; j < item1.CustomTags.Count; j++)
-            {
+            Assert.Equal(item1.CustomTags.Length, item2.CustomTags.Length);
+            for (var j = 0; j < item1.CustomTags.Length; j++)
                 Assert.Equal(item1.CustomTags[j], item2.CustomTags[j]);
-            }
 
             Assert.Equal(item1.Properties.Count, item2.Properties.Count);
             Assert.True(item1.Properties.SetEquals(item2.Properties));

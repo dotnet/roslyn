@@ -25,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
                 CodeActionProvider = false,
                 ReferencesProvider = true,
                 RenameProvider = false,
-                Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true },
             }
         };
 
