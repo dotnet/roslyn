@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -47,6 +48,43 @@ class B
             Assert.Equal("M2", results[3].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
+        public async Task TestFindAllReferencesAsync_Class()
+        {
+            var markup =
+@"class {|reference:A|}
+{
+    public int someInt = 1;
+    void M()
+    {
+        var i = someInt + 1;
+    }
+}
+class B
+{
+    int someInt = {|reference:A|}.someInt + 1;
+    void M2()
+    {
+        var j = someInt + {|caret:|}{|reference:A|}.someInt;
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
+            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+
+            var textElement = results[0].Text as ClassifiedTextElement;
+            Assert.NotNull(textElement);
+            var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
+
+            Assert.Equal("class A", actualText);
+            Assert.Equal("B", results[1].ContainingType);
+            Assert.Equal("B", results[2].ContainingType);
+            Assert.Equal("M2", results[2].ContainingMember);
+
+            AssertValidDefinitionProperties(results, 0, Glyph.ClassInternal);
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
