@@ -4728,7 +4728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 resultKind,
                 implicitReceiver.Type,
-                binderOpt: this,
+                binder: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }
