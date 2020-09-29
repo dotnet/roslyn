@@ -39,7 +39,8 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspSolutionProvider));
+            .AddParts(typeof(TestLspSolutionProvider))
+            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider

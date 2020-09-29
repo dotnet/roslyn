@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            registrationService.Register(workspace);
+            registrationService.EnsureRegistration(workspace, initializeLazily: false);
 
             //Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
 
