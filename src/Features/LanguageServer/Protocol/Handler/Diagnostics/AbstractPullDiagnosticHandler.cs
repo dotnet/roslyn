@@ -88,10 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             // The progress object we will stream reports to.
-            var progress = GetProgress(diagnosticsParams);
-
-            // The buffer we will add results to if our client doesn't support streaming results.
-            using var _ = ArrayBuilder<TReport>.GetInstance(out var reports);
+            using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
@@ -103,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
-            HandleRemovedDocuments(previousResults, progress, reports);
+            HandleRemovedDocuments(previousResults, progress);
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -114,23 +111,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Nothing changed between the last request and this one.  Report a null-diagnostics, same-result-id
                     // response to the client to know they don't need to do anything.
                     var previousResult = documentToPreviousResult[document];
-                    Report(progress, reports,
-                        CreateReport(previousResult.TextDocument, diagnostics: null, previousResult.PreviousResultId));
+                    progress.Report(CreateReport(previousResult.TextDocument, diagnostics: null, previousResult.PreviousResultId));
                 }
                 else
                 {
-                    await ComputeAndReportCurrentDiagnosticsAsync(progress, reports, document, cancellationToken).ConfigureAwait(false);
+                    await ComputeAndReportCurrentDiagnosticsAsync(progress, document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
-            return progress != null ? null : reports.ToArray();
+            return progress.GetValues();
         }
 
         private async Task ComputeAndReportCurrentDiagnosticsAsync(
-            IProgress<TReport[]>? progress,
-            ArrayBuilder<TReport> reports,
+            BufferedProgress<TReport> progress,
             Document document,
             CancellationToken cancellationToken)
         {
@@ -142,11 +137,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
                 diagnostics.Add(ConvertDiagnostic(document, text, diagnostic));
 
-            var report = RecordDiagnosticReport(document, diagnostics.ToArray());
-            Report(progress, reports, report);
+            progress.Report(RecordDiagnosticReport(document, diagnostics.ToArray()));
         }
 
-        private void HandleRemovedDocuments(DiagnosticParams[]? previousResults, IProgress<TReport[]>? progress, ArrayBuilder<TReport> reports)
+        private void HandleRemovedDocuments(DiagnosticParams[]? previousResults, BufferedProgress<TReport> progress)
         {
             if (previousResults == null)
                 return;
@@ -162,16 +156,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                         // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
                         // workspace).  In that case we need to return an actual diagnostic report with `null` for the
                         // diagnostics to let the client know to dump that file entirely.
-                        Report(progress, reports, CreateReport(textDocument, diagnostics: null, resultId: null));
+                        progress.Report(CreateReport(textDocument, diagnostics: null, resultId: null));
                     }
                 }
             }
-        }
-
-        private static void Report(IProgress<TReport[]>? progress, ArrayBuilder<TReport> reports, TReport report)
-        {
-            progress?.Report(new[] { report });
-            reports.Add(report);
         }
 
         private bool DiagnosticsAreUnchanged(Dictionary<Document, DiagnosticParams> documentToPreviousResult, Document document)
