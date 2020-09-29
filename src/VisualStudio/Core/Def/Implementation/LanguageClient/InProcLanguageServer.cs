@@ -101,10 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return serverCapabilities;
         }
 
-        [JsonRpcMethod(Methods.InitializedName)]
-        public Task InitializedAsync()
-            => Task.CompletedTask;
-
         [JsonRpcMethod(Methods.ShutdownName)]
         public Task ShutdownAsync(CancellationToken _)
         {
