@@ -9,7 +9,6 @@
     <TargetFramework>net472</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
-    <Nullable>enable</Nullable>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
     <IsPackable>true</IsPackable>
