@@ -99,13 +99,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
+                    // Cancellation was requested and expected
                     return false;
                 }
-
-                // It is not guaranteed that RPC only throws OCE when our token is signaled.
-                // Signal the cancelation source that our token is linked to and throw new cancellation
-                // exception in OnUnexpectedException.
-                ClientDisconnectedSource.Cancel();
 
                 return true;
             }
