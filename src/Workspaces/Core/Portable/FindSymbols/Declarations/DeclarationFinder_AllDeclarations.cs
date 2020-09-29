@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.FindAllDeclarationsWithNormalQueryAsync(solutionInfo, project.Id, query.Name, query.Kind, criteria, cancellationToken),
-                    callbackTarget: null,
+                    callbackTarget: SymbolFinder.EmptyServerCallback.Instance,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
