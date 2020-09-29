@@ -7780,7 +7780,7 @@ public class P
         [WorkItem(44656, "https://github.com/dotnet/roslyn/issues/44656")]
         public async Task ImplicitObjectCreation()
         {
-            await TestInRegularAndScriptAsync( @"
+            await TestInRegularAndScriptAsync(@"
 class A
 {
     public void Create(A a, B b)
