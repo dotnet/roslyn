@@ -76,6 +76,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.Empty(results[0].Diagnostics);
         }
 
+        [Fact]
+        public async Task TestDiagnosticsRemainAfterErrorIsNotFixed()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            // Calling GetTextBuffer will effectively open the file.
+            var buffer = workspace.Documents.Single().GetTextBuffer();
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
+
+            buffer.Insert(0, " ");
+
+            results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
+        }
+
         private static async Task<DiagnosticReport[]> RunGetDocumentPullDiagnosticsAsync(TestWorkspace workspace, Document document)
         {
             var solution = document.Project.Solution;
