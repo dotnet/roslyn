@@ -19,8 +19,8 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class BlobBuildingStream : Stream
     {
-        private static ObjectPool<BlobBuildingStream> s_pool = new ObjectPool<BlobBuildingStream>(() => new BlobBuildingStream());
-        private BlobBuilder _builder;
+        private static readonly ObjectPool<BlobBuildingStream> s_pool = new ObjectPool<BlobBuildingStream>(() => new BlobBuildingStream());
+        private readonly BlobBuilder _builder;
 
         /// <summary>
         /// The chunk size to be used by the underlying BlobBuilder.

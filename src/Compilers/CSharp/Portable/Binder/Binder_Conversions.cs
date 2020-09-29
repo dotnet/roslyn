@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Error:
@@ -497,18 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
-            var originalGroup = source switch
+            var (originalGroup, isAddressOf) = source switch
             {
-                BoundMethodGroup m => m,
-                BoundUnconvertedAddressOfOperator { Operand: { } m } => m,
+                BoundMethodGroup m => (m, false),
+                BoundUnconvertedAddressOfOperator { Operand: { } m } => (m, true),
                 _ => throw ExceptionUtilities.UnexpectedValue(source),
             };
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
-            BoundExpression? receiverOpt = group.ReceiverOpt;
-            MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
-            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, destination, diagnostics))
+            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, isAddressOf, destination, diagnostics))
             {
                 hasErrors = true;
             }
@@ -1084,6 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BoundExpression? receiverOpt,
             bool isExtensionMethod,
+            bool isAddressOf,
             TypeSymbol delegateOrFuncPtrType,
             DiagnosticBag diagnostics)
         {
@@ -1092,7 +1092,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
+            var location = syntax.Location;
+            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
@@ -1101,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (selectedMethod.IsConditional)
             {
                 // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, location, selectedMethod);
                 return true;
             }
 
@@ -1109,13 +1110,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, location, selectedMethod);
                 return true;
             }
 
             if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe())
             {
                 return ReportUnsafeIfNotAllowed(syntax, diagnostics);
+            }
+
+            if (!isAddressOf)
+            {
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
             }
 
             // No use site errors, but there could be use site warnings.
@@ -1160,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(conversion.IsValid); // i.e. if it exists, then it is valid.
                 // Only cares about nullness and type of receiver, so no need to worry about BoundTypeOrValueExpression.
-                return this.MethodGroupConversionHasErrors(boundMethodGroup.Syntax, conversion, boundMethodGroup.ReceiverOpt, conversion.IsExtensionMethod, delegateType, diagnostics);
+                return this.MethodGroupConversionHasErrors(boundMethodGroup.Syntax, conversion, boundMethodGroup.ReceiverOpt, conversion.IsExtensionMethod, isAddressOf: false, delegateType, diagnostics);
             }
         }
 

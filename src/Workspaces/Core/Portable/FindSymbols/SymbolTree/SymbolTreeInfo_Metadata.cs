@@ -683,14 +683,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private MetadataNode GetOrCreateChildNode(
                MetadataNode currentNode, string simpleName)
             {
-                foreach (var childNode in _parentToChildren[currentNode])
+                if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
                 {
-                    if (childNode.Name == simpleName)
-                    {
-                        // Found an existing child node.  Just return that and all 
-                        // future parts off of it.
-                        return childNode;
-                    }
+                    // Found an existing child node.  Just return that and all 
+                    // future parts off of it.
+                    return childNode;
                 }
 
                 // Couldn't find a child node with this name.  Make a new node for

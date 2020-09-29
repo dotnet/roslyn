@@ -187,7 +187,7 @@ namespace System.Runtime.CompilerServices
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             };
 
             await test.RunAsync();

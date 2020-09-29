@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -140,8 +141,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public ProjectId Id => _visualStudioProject.Id;
 
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         public void SetOptions(string commandLineForOptions)
             => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
+
+        public void SetOptions(ImmutableArray<string> arguments)
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(arguments);
 
         public string? DefaultNamespace
         {

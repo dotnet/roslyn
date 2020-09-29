@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// Gate access to reporting sln crawler events so we cannot
         /// report UI changes concurrently.
         /// </summary>
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 
         /// <summary>
         /// Task used to trigger throttled UI updates in an interval

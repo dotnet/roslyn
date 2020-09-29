@@ -18,16 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableTitle = new(
            nameof(CSharpAnalyzersResources.Misplaced_using_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        private static readonly LocalizableResourceString s_localizableOutsideMessage = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableOutsideMessage = new(
             nameof(CSharpAnalyzersResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly DiagnosticDescriptor s_outsideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, s_localizableTitle, s_localizableOutsideMessage);
 
-        private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableInsideMessage = new(
             nameof(CSharpAnalyzersResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly DiagnosticDescriptor s_insideDiagnosticDescriptor = CreateDescriptorWithId(

@@ -50,16 +50,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var editor = Editor.GetEditor(_operationKind, _service, _state, _fileName, cancellationToken);
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
-
-            internal override bool PerformFinalApplicabilityCheck => true;
-
-            internal override bool IsApplicable(Workspace workspace)
-                => _operationKind switch
-                {
-                    MoveTypeOperationKind.RenameFile => workspace.CanRenameFilesDuringCodeActions(_state.SemanticDocument.Document.Project),
-                    MoveTypeOperationKind.MoveTypeNamespaceScope => _state.TypeNode.Parent is TNamespaceDeclarationSyntax,
-                    _ => true,
-                };
         }
     }
 }

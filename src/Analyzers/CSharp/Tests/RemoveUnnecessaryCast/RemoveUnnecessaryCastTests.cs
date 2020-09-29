@@ -1814,6 +1814,35 @@ class A
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
+        [WorkItem(46423, "https://github.com/dotnet/roslyn/issues/46423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotCrashWhenTypeCantBeDetermined()
+        {
+            var source =
+@"
+class Other
+{
+    public short GetScopeIdForTelemetry(FixAllScope scope)
+        => (short)(scope switch
+        {
+            FixAllScope.Document => 1,
+            FixAllScope.Project => 2,
+            FixAllScope.Solution => 3,
+            _ => 4,
+        });
+
+    public enum FixAllScope
+    {
+        Document,
+        Project,
+        Solution,
+        Other
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
         [WorkItem(545777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545777")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveImportantTrailingTrivia()
@@ -8101,6 +8130,162 @@ class Other
         string s = $""{c:X4}"";
     }
 }");
+        }
+
+        [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveNativeIntCastsAsIdentity()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public nint N(IntPtr x) => [|(nint)|]x;
+}";
+            var fixedCode =
+@"using System;
+
+public class C {
+    public nint N(IntPtr x) => x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNativeIntCasts()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public nuint N(IntPtr x) => (nuint)(nint)x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveNativeUIntCastsAsIdentity()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public nuint N(UIntPtr x) => [|(nuint)|]x;
+}";
+            var fixedCode =
+@"using System;
+
+public class C {
+    public nuint N(UIntPtr x) => x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNativeUIntCasts()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public nint N(UIntPtr x) => (nint)(nuint)x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveIntPtrCastsAsIdentity()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    public void M(IntPtr x)
+    {
+        var v = [|(IntPtr)|]x;
+    }
+}";
+            var fixedCode =
+@"
+using System;
+
+class C
+{
+    public void M(IntPtr x)
+    {
+        var v = x;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
+
+        [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUIntPtrCastsAsIdentity()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    public void M(UIntPtr x)
+    {
+        var v = [|(UIntPtr)|]x;
+    }
+}";
+            var fixedCode =
+@"
+using System;
+
+class C
+{
+    public void M(UIntPtr x)
+    {
+        var v = x;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
         }
     }
 }

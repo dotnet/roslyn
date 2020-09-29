@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
-        private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type?>();
+        private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new();
 
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly AnalyzerConfigOptions _options;

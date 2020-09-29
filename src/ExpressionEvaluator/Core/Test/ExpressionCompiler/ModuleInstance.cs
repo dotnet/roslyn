@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             _includeLocalSignatures = includeLocalSignatures;
         }
 
-        public unsafe static ModuleInstance Create(
+        public static unsafe ModuleInstance Create(
             PEMemoryBlock metadata,
             Guid moduleVersionId,
             ISymUnmanagedReader symReader = null)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return Create(AssemblyMetadata.CreateFromImage(assemblyImage), symReader, includeLocalSignatures);
         }
 
-        private unsafe static ModuleInstance Create(
+        private static unsafe ModuleInstance Create(
             Metadata metadata,
             object symReader,
             bool includeLocalSignatures)

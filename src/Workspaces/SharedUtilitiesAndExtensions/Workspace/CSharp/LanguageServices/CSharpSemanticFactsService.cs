@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
+    internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
-        internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+        internal static readonly CSharpSemanticFactsService Instance = new();
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
@@ -33,6 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Get all the symbols visible to the current location.
             var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
+
+            // Local function parameter is allowed to shadow variables since C# 8.
+            if (((CSharpCompilation)semanticModel.Compilation).LanguageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
+                {
+                    visibleSymbols = visibleSymbols.WhereAsArray(s => !s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter));
+                }
+            }
 
             // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
             // E.g. symbols inside if statements / try catch statements.

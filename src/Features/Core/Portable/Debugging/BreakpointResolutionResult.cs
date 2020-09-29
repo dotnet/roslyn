@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         internal static BreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new BreakpointResolutionResult(document, textSpan, locationNameOpt, isLineBreakpoint: false);
+            => new(document, textSpan, locationNameOpt, isLineBreakpoint: false);
 
         internal static BreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
-            => new BreakpointResolutionResult(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
+            => new(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
     }
 }

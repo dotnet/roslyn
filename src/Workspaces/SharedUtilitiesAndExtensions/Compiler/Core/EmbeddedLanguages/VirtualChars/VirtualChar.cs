@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// fail.
         /// </summary>
         public static VirtualChar Create(Rune rune, TextSpan span)
-            => new VirtualChar(rune, surrogateChar: default, span);
+            => new(rune, surrogateChar: default, span);
 
         /// <summary>
         /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.  This will throw

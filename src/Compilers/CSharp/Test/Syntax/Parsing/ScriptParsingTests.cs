@@ -1950,10 +1950,10 @@ partial void Goo(){};
 partial enum en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 // partial enum en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 // partial enum en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
         }
@@ -2559,11 +2559,11 @@ fixed int x[10];
         {
             // pointer decl
             string test = @"a.b * c;";
-            ParseAndValidate(test, TestOptions.RegularPreview);
+            ParseAndValidate(test, TestOptions.Regular9);
 
             // pointer decl
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.RegularPreview, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
+            ParseAndValidate(test, TestOptions.Regular9, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
 
             // multiplication
             test = @"a.b * c;";

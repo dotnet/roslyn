@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                     new ChainedFormattingRules(this.Rules, OptionSet.AsAnalyzerConfigOptions(OptionService, Root.Language)),
                     _tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
-                    tokenStream: null);
+                    tokenStream: null,
+                    _syntaxFacts);
             }
 
             public IndentationResult? GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             }
 
             public IndentationResult IndentFromStartOfLine(int addedSpaces)
-                => new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
+                => new(this.LineToBeIndented.Start, addedSpaces);
 
             public IndentationResult GetIndentationOfToken(SyntaxToken token)
                 => GetIndentationOfToken(token, addedSpaces: 0);

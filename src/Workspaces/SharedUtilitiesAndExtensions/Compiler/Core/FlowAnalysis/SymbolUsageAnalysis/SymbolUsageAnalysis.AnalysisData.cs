@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
             /// </summary>
             public SymbolUsageResult ToResult()
-                => new SymbolUsageResult(SymbolsWriteBuilder.ToImmutableDictionary(),
+                => new(SymbolsWriteBuilder.ToImmutableDictionary(),
                                          SymbolsReadBuilder.ToImmutableHashSet());
 
             public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)

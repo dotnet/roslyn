@@ -20,10 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
     {
-        public SymbolCompletionProviderTests_NoInteractive(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 

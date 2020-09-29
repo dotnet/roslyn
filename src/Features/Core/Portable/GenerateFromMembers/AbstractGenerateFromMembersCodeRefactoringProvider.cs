@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         }
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,

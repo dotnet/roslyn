@@ -29,13 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpSyncNamespaceCodeRefactoringProvider();
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        {
-            return TestWorkspace.IsWorkspaceElement(initialMarkup)
-                ? TestWorkspace.Create(initialMarkup)
-                : TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-        }
-
         protected static string ProjectRootPath
             => PathUtilities.IsUnixLikePlatform
             ? @"/ProjectA/"

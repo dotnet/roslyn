@@ -4,9 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,18 +30,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
+        public readonly IToolTipService ToolTipService;
+        public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineParameterNameHintsTaggerProvider(IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
                                                        IClassificationFormatMapService classificationFormatMapService,
                                                        IClassificationTypeRegistryService classificationTypeRegistryService,
-                                                       IThreadingContext threadingContext)
+                                                       IThreadingContext threadingContext,
+                                                       IToolTipService toolTipService,
+                                                       Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
             this.ClassificationTypeRegistryService = classificationTypeRegistryService;
             this.ThreadingContext = threadingContext;
+            this.ToolTipService = toolTipService;
+            this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
@@ -52,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
 
             var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
-            return new InlineParameterNameHintsTagger(this, textView, buffer, tagAggregator) as ITagger<T>;
+            return new InlineParameterNameHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
         }
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -95,10 +96,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                case SyntaxKind.RecordDeclaration:
+                    {
+                        if (associatedSymbol is IMethodSymbol ctor)
+                        {
+                            var recordDeclaration = (RecordDeclarationSyntax)node;
+                            Debug.Assert(ctor.MethodKind == MethodKind.Constructor && recordDeclaration.ParameterList is object);
+
+                            var codeBlocks = GetParameterListInitializersAndAttributes(recordDeclaration.ParameterList);
+
+                            if (recordDeclaration.BaseList?.Types.FirstOrDefault() is PrimaryConstructorBaseTypeSyntax initializer)
+                            {
+                                codeBlocks = codeBlocks.Concat(initializer);
+                            }
+
+                            builder.Add(GetDeclarationInfo(node, associatedSymbol, codeBlocks));
+                            return;
+                        }
+
+                        goto case SyntaxKind.ClassDeclaration;
+                    }
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.RecordDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members)

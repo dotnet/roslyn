@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public static readonly TaskScheduler AboveNormalInstance = new PrioritizedTaskScheduler(ThreadPriority.AboveNormal);
 
         private readonly Thread _thread;
-        private readonly BlockingCollection<Task> _tasks = new BlockingCollection<Task>();
+        private readonly BlockingCollection<Task> _tasks = new();
 
         private PrioritizedTaskScheduler(ThreadPriority priority)
         {

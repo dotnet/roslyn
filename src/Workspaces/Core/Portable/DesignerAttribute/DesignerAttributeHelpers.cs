@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var firstClassType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(firstClass, cancellationToken);
+            var firstClassType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(firstClass, cancellationToken);
             return TryGetDesignerCategory(firstClassType, designerCategoryType, cancellationToken);
         }
 

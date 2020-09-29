@@ -48,6 +48,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
 
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
+
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
 

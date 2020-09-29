@@ -685,9 +685,9 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (7,19): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("_").WithLocation(7, 19)
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
             var tree = compilation.SyntaxTrees[0];
@@ -750,18 +750,18 @@ class Program
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,18): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x)").WithArguments("parenthesized pattern").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x)").WithArguments("parenthesized pattern", "9.0").WithLocation(8, 18),
                 // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         if (t is (int x)) { }                           // error 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(8, 19),
-                // (9,27): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,27): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_)").WithArguments("parenthesized pattern").WithLocation(9, 27),
-                // (10,28): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(_)").WithArguments("parenthesized pattern", "9.0").WithLocation(9, 27),
+                // (10,28): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int y)").WithArguments("parenthesized pattern").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int y)").WithArguments("parenthesized pattern", "9.0").WithLocation(10, 28),
                 // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29)

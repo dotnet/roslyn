@@ -86,6 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             If Not Me._disposedValue Then
                 If disposing Then
+                    VisualStudioWorkspace.Dispose()
                     Workspace.Dispose()
                 End If
             End If

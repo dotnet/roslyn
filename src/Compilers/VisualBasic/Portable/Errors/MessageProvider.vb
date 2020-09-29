@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -132,6 +133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
                                                                    options.SpecificDiagnosticOptions,
+                                                                   options.SyntaxTreeOptionsProvider,
+                                                                   CancellationToken.None, ' We don't have a tree so there's no need to pass cancellation to the SyntaxTreeOptionsProvider
                                                                    hasSourceSuppression)
         End Function
 

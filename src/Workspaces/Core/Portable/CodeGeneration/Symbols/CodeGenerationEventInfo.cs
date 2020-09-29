@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationEventInfo
     {
         private static readonly ConditionalWeakTable<IEventSymbol, CodeGenerationEventInfo> s_eventToInfoMap =
-            new ConditionalWeakTable<IEventSymbol, CodeGenerationEventInfo>();
+            new();
 
         private readonly bool _isUnsafe;
         private CodeGenerationEventInfo(bool isUnsafe)

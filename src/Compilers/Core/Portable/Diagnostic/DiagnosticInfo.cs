@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             _arguments = arguments;
         }
 
-        private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
+        protected DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
         {
             _messageProvider = original.MessageProvider;
             _errorCode = original._errorCode;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Create a copy of this instance with a explicit overridden severity
-        internal DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        internal virtual DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
         {
             return new DiagnosticInfo(this, severity);
         }

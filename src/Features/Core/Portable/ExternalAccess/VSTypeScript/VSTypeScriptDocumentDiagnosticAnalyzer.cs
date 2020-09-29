@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             var analyzer = document.Project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
             }
 
             return analyzer.AnalyzeDocumentSyntaxAsync(document, cancellationToken);
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             var analyzer = document.Project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
-                return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
             }
 
             return analyzer.AnalyzeDocumentSemanticsAsync(document, cancellationToken);

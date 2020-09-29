@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
 
         private static readonly SymbolDisplayFormat s_memberFormat =
-            new SymbolDisplayFormat(
+            new(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters |
                                SymbolDisplayMemberOptions.IncludeExplicitInterface,

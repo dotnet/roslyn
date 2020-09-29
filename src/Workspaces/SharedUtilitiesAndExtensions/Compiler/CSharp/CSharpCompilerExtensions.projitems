@@ -79,11 +79,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\SpacingFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\StructuredTriviaFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\SuppressFormattingRule.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\SyntaxKindEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\CSharpUnnecessaryImportsProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\SyntaxFactoryEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\AbstractCSharpPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpPatternPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpExpressionPrecedenceService.cs" />

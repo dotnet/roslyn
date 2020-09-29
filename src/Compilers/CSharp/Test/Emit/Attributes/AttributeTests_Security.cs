@@ -759,7 +759,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry

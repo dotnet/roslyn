@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptIndentationServiceWrapper Create(Document document)
-            => new VSTypeScriptIndentationServiceWrapper(document.Project.LanguageServices.GetRequiredService<IIndentationService>());
+            => new(document.Project.LanguageServices.GetRequiredService<IIndentationService>());
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "External access API.")]
         public async Task<VSTypeScriptIndentationResultWrapper?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)

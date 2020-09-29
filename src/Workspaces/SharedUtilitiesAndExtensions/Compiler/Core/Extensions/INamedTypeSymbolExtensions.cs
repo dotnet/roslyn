@@ -551,30 +551,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
+            if (!member.IsAbstract && !member.IsVirtual && !member.IsOverride)
+                return false;
+
+            if (member.IsSealed)
+                return false;
+
+            if (!member.IsAccessibleWithin(containingType))
+                return false;
+
+            return member switch
             {
-                if (member.IsSealed)
-                {
-                    return false;
-                }
-
-                if (!member.IsAccessibleWithin(containingType))
-                {
-                    return false;
-                }
-
-                switch (member.Kind)
-                {
-                    case SymbolKind.Event:
-                        return true;
-                    case SymbolKind.Method:
-                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
-                    case SymbolKind.Property:
-                        return !((IPropertySymbol)member).IsWithEvents;
-                }
-            }
-
-            return false;
+                IEventSymbol => true,
+                IMethodSymbol { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: true } => true,
+                IPropertySymbol { IsWithEvents: false } => true,
+                _ => false,
+            };
         }
 
         private static void RemoveOverriddenMembers(
@@ -584,10 +576,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var overriddenMember = member.OverriddenMember();
-                if (overriddenMember != null)
+                if (!member.IsImplicitlyDeclared)
                 {
-                    result.Remove(overriddenMember);
+                    var overriddenMember = member.OverriddenMember();
+                    if (overriddenMember != null)
+                        result.Remove(overriddenMember);
                 }
             }
         }

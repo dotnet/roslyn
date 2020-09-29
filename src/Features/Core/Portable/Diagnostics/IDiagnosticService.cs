@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -25,11 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource
         /// </summary>
-        IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
+        ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get current UpdatedEventArgs stored in IDiagnosticUpdateSource
+        /// Get current buckets stored our diagnostics are grouped into.  Specific buckets can be retrieved by calling
+        /// <see cref="IDiagnosticServiceExtensions.GetDiagnostics(IDiagnosticService, DiagnosticBucket, bool, CancellationToken)"/>.
         /// </summary>
-        IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken);
+        ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken);
     }
 }

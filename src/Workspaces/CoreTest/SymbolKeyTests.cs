@@ -1016,6 +1016,52 @@ class C
             TestRoundTrip(fields, comp);
         }
 
+        [Fact]
+        public void TestGenericErrorType()
+        {
+            var source1 = @"
+public class C
+{
+    public Goo<X> G() { }
+}";
+
+            // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
+            // error type.
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp, "File1.cs");
+            var tree = compilation1.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var node = root.DescendantNodes().OfType<CSharp.Syntax.GenericNameSyntax>().Single();
+
+            var semanticModel = compilation1.GetSemanticModel(tree);
+            var symbol = semanticModel.GetTypeInfo(node).Type;
+
+            {
+                // Ensure we don't crash getting these symbol keys.
+                var id = SymbolKey.CreateString(symbol);
+                Assert.NotNull(id);
+
+                // Validate that if the client does ask to resolve locations that we
+                // do not crash if those locations cannot be found.
+                var found = SymbolKey.ResolveString(id, compilation1).GetAnySymbol();
+                Assert.NotNull(found);
+
+                Assert.Equal(symbol.Name, found.Name);
+                Assert.Equal(symbol.Kind, found.Kind);
+            }
+
+            {
+                // Ensure we don't crash getting these symbol keys.
+                var id = SymbolKey.CreateString(symbol.OriginalDefinition);
+                Assert.NotNull(id);
+
+                var found = SymbolKey.ResolveString(id, compilation1).GetAnySymbol();
+                Assert.NotNull(found);
+
+                Assert.Equal(symbol.Name, found.Name);
+                Assert.Equal(symbol.Kind, found.Kind);
+            }
+        }
+
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)

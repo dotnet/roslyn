@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 {
     internal abstract partial class AbstractLegacyProject : IProjectSiteEx
     {
-        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new Stack<VisualStudioProject.BatchScope>();
+        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new();
 
         public void StartBatch()
             => _batchScopes.Push(VisualStudioProject.CreateBatchScope());

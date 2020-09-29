@@ -37,25 +37,25 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
         /// </summary>
         public const string CSharpProjectExistsInWorkspaceUIContextString = "CA719A03-D55C-48F9-85DE-D934346E7F70";
-        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new Guid(CSharpProjectExistsInWorkspaceUIContextString);
+        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new(CSharpProjectExistsInWorkspaceUIContextString);
 
         public const string CSharpProjectRootIdString = "C7FEDB89-B36D-4a62-93F4-DC7A95999921";
 
         // from debugger\idl\makeapi\guid.c  
         public const string CSharpDebuggerLanguageIdString = "3f5162f8-07c6-11d3-9053-00c04fa302a1";
 
-        public static readonly Guid CSharpPackageId = new Guid(CSharpPackageIdString);
-        public static readonly Guid CSharpProjectId = new Guid(CSharpProjectIdString);
-        public static readonly Guid CSharpLanguageServiceId = new Guid(CSharpLanguageServiceIdString);
-        public static readonly Guid CSharpEditorFactoryId = new Guid(CSharpEditorFactoryIdString);
-        public static readonly Guid CSharpCodePageEditorFactoryId = new Guid(CSharpCodePageEditorFactoryIdString);
-        public static readonly Guid CSharpCommandSetId = new Guid(CSharpCommandSetIdString);     // guidCSharpCmdId
-        public static readonly Guid CSharpGroupId = new Guid(CSharpGroupIdString);               // guidCSharpGrpId
-        public static readonly Guid CSharpRefactorIconId = new Guid(CSharpRefactorIconIdString); // guidCSharpRefactorIcon
-        public static readonly Guid CSharpGenerateIconId = new Guid(CSharpGenerateIconIdString); // guidCSharpGenerateIcon
-        public static readonly Guid CSharpOrganizeIconId = new Guid(CSharpOrganizeIconIdString); // guidCSharpOrganizeIcon
-        public static readonly Guid CSharpDebuggerLanguageId = new Guid(CSharpDebuggerLanguageIdString);
-        public static readonly Guid CSharpLibraryId = new Guid(CSharpLibraryIdString);
+        public static readonly Guid CSharpPackageId = new(CSharpPackageIdString);
+        public static readonly Guid CSharpProjectId = new(CSharpProjectIdString);
+        public static readonly Guid CSharpLanguageServiceId = new(CSharpLanguageServiceIdString);
+        public static readonly Guid CSharpEditorFactoryId = new(CSharpEditorFactoryIdString);
+        public static readonly Guid CSharpCodePageEditorFactoryId = new(CSharpCodePageEditorFactoryIdString);
+        public static readonly Guid CSharpCommandSetId = new(CSharpCommandSetIdString);     // guidCSharpCmdId
+        public static readonly Guid CSharpGroupId = new(CSharpGroupIdString);               // guidCSharpGrpId
+        public static readonly Guid CSharpRefactorIconId = new(CSharpRefactorIconIdString); // guidCSharpRefactorIcon
+        public static readonly Guid CSharpGenerateIconId = new(CSharpGenerateIconIdString); // guidCSharpGenerateIcon
+        public static readonly Guid CSharpOrganizeIconId = new(CSharpOrganizeIconIdString); // guidCSharpOrganizeIcon
+        public static readonly Guid CSharpDebuggerLanguageId = new(CSharpDebuggerLanguageIdString);
+        public static readonly Guid CSharpLibraryId = new(CSharpLibraryIdString);
 
         // option page guids from csharp\rad\pkg\guids.h
         public const string CSharpOptionPageAdvancedIdString = "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF";
@@ -88,19 +88,19 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// A <see cref="UIContext"/> that is set if there is a Visual Basic project in the <see cref="VisualStudioWorkspace"/>.
         /// </summary>
         public const string VisualBasicProjectExistsInWorkspaceUIContextString = "EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275";
-        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new Guid(VisualBasicProjectExistsInWorkspaceUIContextString);
+        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new(VisualBasicProjectExistsInWorkspaceUIContextString);
 
-        public static readonly Guid VisualBasicPackageId = new Guid(VisualBasicPackageIdString);
-        public static readonly Guid VisualBasicCompilerServiceId = new Guid(VisualBasicCompilerServiceIdString);
-        public static readonly Guid VisualBasicLanguageServiceId = new Guid(VisualBasicLanguageServiceIdString);
-        public static readonly Guid VisualBasicEditorFactoryId = new Guid(VisualBasicEditorFactoryIdString);
-        public static readonly Guid VisualBasicCodePageEditorFactoryId = new Guid(VisualBasicCodePageEditorFactoryIdString);
-        public static readonly Guid VisualBasicLibraryId = new Guid(VisualBasicLibraryIdString);
+        public static readonly Guid VisualBasicPackageId = new(VisualBasicPackageIdString);
+        public static readonly Guid VisualBasicCompilerServiceId = new(VisualBasicCompilerServiceIdString);
+        public static readonly Guid VisualBasicLanguageServiceId = new(VisualBasicLanguageServiceIdString);
+        public static readonly Guid VisualBasicEditorFactoryId = new(VisualBasicEditorFactoryIdString);
+        public static readonly Guid VisualBasicCodePageEditorFactoryId = new(VisualBasicCodePageEditorFactoryIdString);
+        public static readonly Guid VisualBasicLibraryId = new(VisualBasicLibraryIdString);
 
-        public static readonly Guid VisualBasicProjectId = new Guid(VisualBasicProjectIdString);
+        public static readonly Guid VisualBasicProjectId = new(VisualBasicProjectIdString);
 
         // from debugger\idl\makeapi\guid.c  
-        public static readonly Guid VisualBasicDebuggerLanguageId = new Guid(VisualBasicDebuggerLanguageIdString);
+        public static readonly Guid VisualBasicDebuggerLanguageId = new(VisualBasicDebuggerLanguageIdString);
 
         // option page guid from setupauthoring\vb\components\vblanguageservice.pkgdef
         public const string VisualBasicOptionPageVBSpecificIdString = "F1E1021E-A781-4862-9F4B-88746A288A67";
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public const string FSharpPackageIdString = "871D2A70-12A2-4e42-9440-425DD92A4116";
 
-        public static readonly Guid FSharpPackageId = new Guid(FSharpPackageIdString);
+        public static readonly Guid FSharpPackageId = new(FSharpPackageIdString);
 
         // from vscommon\inc\textmgruuids.h
         public const string TextManagerPackageString = "F5E7E720-1401-11D1-883B-0000F87579D2";
@@ -127,13 +127,13 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
         public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
-        public static readonly Guid RoslynPackageId = new Guid(RoslynPackageIdString);
-        public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);
-        public static readonly Guid RoslynGroupId = new Guid(RoslynGroupIdString);
+        public static readonly Guid RoslynPackageId = new(RoslynPackageIdString);
+        public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
+        public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
 
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids
         public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
-        public static readonly Guid InteractiveCommandSetId = new Guid(InteractiveCommandSetIdString);
+        public static readonly Guid InteractiveCommandSetId = new(InteractiveCommandSetIdString);
     }
 }

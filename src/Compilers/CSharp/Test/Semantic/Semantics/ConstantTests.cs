@@ -3309,7 +3309,7 @@ class C
 @"
 void f() { if () const int i = 0; }
 ";
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
     // (2,6): warning CS8321: The local function 'f' is declared but never used
     // void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
@@ -3434,7 +3434,7 @@ class C
                 );
         }
 
-        // Attempting to call `ConstantValue` on every constiuent string component times out the IOperation runner.
+        // Attempting to call `ConstantValue` on every constituent string component times out the IOperation runner.
         // Instead, we manually validate just the top level
         [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()
