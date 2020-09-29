@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
     internal sealed class DefaultProjectInfoServiceFactory : IWorkspaceServiceFactory
     {
         private readonly Lazy<IProjectInfoService> _singleton =
-            new Lazy<IProjectInfoService>(() => new DefaultProjectInfoService());
+            new(() => new DefaultProjectInfoService());
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

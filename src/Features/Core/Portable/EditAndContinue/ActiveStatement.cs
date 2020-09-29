@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DocumentId PrimaryDocumentId => DocumentIds[0];
 
         internal ActiveStatement WithSpan(LinePositionSpan span)
-            => new ActiveStatement(Ordinal, PrimaryDocumentOrdinal, DocumentIds, Flags, span, InstructionId, ThreadIds);
+            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, Flags, span, InstructionId, ThreadIds);
 
         internal ActiveStatement WithFlags(ActiveStatementFlags flags)
-            => new ActiveStatement(Ordinal, PrimaryDocumentOrdinal, DocumentIds, flags, Span, InstructionId, ThreadIds);
+            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, flags, Span, InstructionId, ThreadIds);
     }
 }

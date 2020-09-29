@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         private NextGetAdjustNewLinesOperation NextOperation
-            => new NextGetAdjustNewLinesOperation(_formattingRules, _index + 1);
+            => new(_formattingRules, _index + 1);
 
         public AdjustNewLinesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
         {

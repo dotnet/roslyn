@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed partial class DiagnosticAnalyzerInfoCache
     {
         private readonly ConditionalWeakTable<AnalyzerOptions, ConcurrentDictionary<DiagnosticAnalyzer, bool?>> _compilationEndAnalyzerInfo
-            = new ConditionalWeakTable<AnalyzerOptions, ConcurrentDictionary<DiagnosticAnalyzer, bool?>>();
+            = new();
 
         public async Task<bool?> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer analyzer, Project project, CancellationToken cancellationToken)
         {

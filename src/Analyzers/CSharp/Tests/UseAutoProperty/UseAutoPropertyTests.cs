@@ -2449,5 +2449,57 @@ class Class
     }
 }");
         }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyAndSetterNeeded()
+        {
+            await TestInRegularAndScript1Async(
+@"struct S
+{
+    [|int i|];
+    public readonly int P => i;
+    public void SetP(int value) => i = value;
+}",
+@"struct S
+{
+    public int P { get; private set; }
+    public void SetP(int value) => P = value;
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyWithNoAccessModifierAndSetterNeeded()
+        {
+            await TestInRegularAndScript1Async(
+@"struct S
+{
+    [|int i|];
+    readonly int P => i;
+    public void SetP(int value) => i = value;
+}",
+@"struct S
+{
+    int P { get; set; }
+    public void SetP(int value) => P = value;
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyAndSetterUnneeded()
+        {
+            await TestInRegularAndScript1Async(
+@"struct S
+{
+    [|int i|];
+    public readonly int P => i;
+}",
+@"struct S
+{
+    public readonly int P { get; }
+}");
+        }
     }
 }

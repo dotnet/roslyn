@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
             => _first.Any(predicate) || _second.Any(predicate);
 
         public Enumerator GetEnumerator()
-            => new Enumerator(_first, _second);
+            => new(_first, _second);
 
         public ImmutableArray<T> ToImmutableArray()
             => _first.NullToEmpty().AddRange(_second.NullToEmpty());

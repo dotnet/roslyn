@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Precedence
 {
     internal class CSharpExpressionPrecedenceService : AbstractCSharpPrecedenceService<ExpressionSyntax>
     {
-        public static readonly CSharpExpressionPrecedenceService Instance = new CSharpExpressionPrecedenceService();
+        public static readonly CSharpExpressionPrecedenceService Instance = new();
 
         private CSharpExpressionPrecedenceService()
         {

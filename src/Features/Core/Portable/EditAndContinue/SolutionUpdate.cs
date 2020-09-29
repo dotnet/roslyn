@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static SolutionUpdate Blocked()
             => Blocked(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)>.Empty);
 
-        public static SolutionUpdate Blocked(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics) => new SolutionUpdate(
+        public static SolutionUpdate Blocked(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics) => new(
             SolutionUpdateStatus.Blocked,
             ImmutableArray<Deltas>.Empty,
             ImmutableArray<IDisposable>.Empty,

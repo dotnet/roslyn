@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         private const int MetadataFailed = int.MaxValue;
 
-        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
+        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
         public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {

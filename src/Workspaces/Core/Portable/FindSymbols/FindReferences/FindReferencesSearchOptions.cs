@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed class FindReferencesSearchOptions
     {
         public static readonly FindReferencesSearchOptions Default =
-            new FindReferencesSearchOptions(
+            new(
                 associatePropertyReferencesWithSpecificAccessor: false,
                 cascade: true);
 
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public FindReferencesSearchOptions WithAssociatePropertyReferencesWithSpecificAccessor(bool associatePropertyReferencesWithSpecificAccessor)
-            => new FindReferencesSearchOptions(associatePropertyReferencesWithSpecificAccessor, Cascade);
+            => new(associatePropertyReferencesWithSpecificAccessor, Cascade);
 
         public FindReferencesSearchOptions WithCascade(bool cascade)
-            => new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor, cascade);
+            => new(AssociatePropertyReferencesWithSpecificAccessor, cascade);
 
         /// <summary>
         /// For IDE features, if the user starts searching on an accessor, then we want to give

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => new TriviaDataFactory(this.TreeData, this.Options);
 
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
-            => new FormattingContext(this, tokenStream);
+            => new(this, tokenStream);
 
         protected override NodeOperations CreateNodeOperations(CancellationToken cancellationToken)
         {

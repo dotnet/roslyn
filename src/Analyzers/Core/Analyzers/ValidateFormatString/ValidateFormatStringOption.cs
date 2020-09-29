@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
     internal class ValidateFormatStringOption
     {
         public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
-            new PerLanguageOption2<bool>(
+            new(
                 nameof(ValidateFormatStringOption),
                 nameof(ReportInvalidPlaceholdersInStringDotFormatCalls),
                 defaultValue: true,

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// The annotation normally used on nodes to request case correction.
         /// </summary>
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation Annotation = new();
 
         /// <summary>
         /// Case corrects all names found in the provided document.

@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
-        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
+        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
 
         /// <summary>
         /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         }
 
         private static HighlightSpan CreateHighlightSpan(TextSpan textSpan)
-            => new HighlightSpan(textSpan, HighlightSpanKind.None);
+            => new(textSpan, HighlightSpanKind.None);
 
         private static RegexToken GetCaptureToken(RegexEscapeNode node)
             => node switch

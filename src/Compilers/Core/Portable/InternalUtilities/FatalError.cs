@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return false;
         }
 
-        private static readonly object s_reportedMarker = new object();
+        private static readonly object s_reportedMarker = new();
 
         private static void Report(Exception exception, Action<Exception>? handler)
         {

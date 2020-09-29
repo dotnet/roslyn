@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 => MatchedSpansInReverse?.Free();
 
             public CamelCaseResult WithFromStart(bool fromStart)
-                => new CamelCaseResult(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);
+                => new(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);
 
             public CamelCaseResult WithAddedMatchedSpan(TextSpan value)
             {

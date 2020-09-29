@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
-            => new WordSpanEnumerable(name, nameSpan, WordSeparator);
+            => new(name, nameSpan, WordSeparator);
 
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         internal XElement CreateXElement()
-            => new XElement(nameof(NamingStyle),
+            => new(nameof(NamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
 
         internal static NamingStyle FromXElement(XElement namingStyleElement)
-            => new NamingStyle(
+            => new(
                 id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
                 name: namingStyleElement.Attribute(nameof(Name)).Value,
                 prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,

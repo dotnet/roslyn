@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return firstCharacter.ToString() + baseName.Substring(1);
         }
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {

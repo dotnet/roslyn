@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private sealed class OptionKeyComparer : IComparer<OptionKey>
         {
-            public static readonly OptionKeyComparer Instance = new OptionKeyComparer();
+            public static readonly OptionKeyComparer Instance = new();
             private OptionKeyComparer() { }
 
             public int Compare(OptionKey x, OptionKey y)

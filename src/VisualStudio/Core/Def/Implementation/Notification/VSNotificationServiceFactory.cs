@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
     {
         private readonly IVsUIShell _uiShellService;
 
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
 
         private static VSDialogService s_singleton;
 

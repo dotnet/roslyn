@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class Checksum
     {
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
-            new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
+            new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
         public static Checksum Create(IEnumerable<string> values)
         {

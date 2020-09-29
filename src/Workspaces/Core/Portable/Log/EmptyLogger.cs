@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class EmptyLogger : ILogger
     {
-        public static readonly EmptyLogger Instance = new EmptyLogger();
+        public static readonly EmptyLogger Instance = new();
 
         public bool IsEnabled(FunctionId functionId)
             => false;

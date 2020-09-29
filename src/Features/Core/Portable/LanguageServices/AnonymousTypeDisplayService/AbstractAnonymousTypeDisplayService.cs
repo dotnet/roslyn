@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => Part(kind, null, text);
 
         private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
-            => new SymbolDisplayPart(kind, symbol, text);
+            => new(kind, symbol, text);
 
         protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {

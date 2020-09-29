@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// actually transitioned to a loaded state.
         /// </summary>
         private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedStateTask =
-            new ConditionalWeakTable<Workspace, Task>();
+            new();
 
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,

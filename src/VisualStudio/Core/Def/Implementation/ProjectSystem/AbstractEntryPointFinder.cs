@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal abstract class AbstractEntryPointFinder : SymbolVisitor
     {
-        protected readonly HashSet<INamedTypeSymbol> EntryPoints = new HashSet<INamedTypeSymbol>();
+        protected readonly HashSet<INamedTypeSymbol> EntryPoints = new();
 
         public override void VisitNamespace(INamespaceSymbol symbol)
         {

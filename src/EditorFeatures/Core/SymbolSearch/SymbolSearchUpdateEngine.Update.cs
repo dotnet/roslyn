@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private const int AddReferenceDatabaseTextFileFormatVersion = 1;
 
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
-            new ConcurrentDictionary<string, object>();
+            new();
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly IStreamingFindReferencesProgress _progress;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap;
 
             public FindReferencesServerCallback(

@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Simplification
     {
         public const string Kind = "SpecialType";
 
-        private static readonly ConcurrentDictionary<SpecialType, string> s_fromSpecialTypes = new ConcurrentDictionary<SpecialType, string>();
-        private static readonly ConcurrentDictionary<string, SpecialType> s_toSpecialTypes = new ConcurrentDictionary<string, SpecialType>();
+        private static readonly ConcurrentDictionary<SpecialType, string> s_fromSpecialTypes = new();
+        private static readonly ConcurrentDictionary<string, SpecialType> s_toSpecialTypes = new();
 
         public static SyntaxAnnotation Create(SpecialType specialType)
-            => new SyntaxAnnotation(Kind, s_fromSpecialTypes.GetOrAdd(specialType, CreateFromSpecialTypes));
+            => new(Kind, s_fromSpecialTypes.GetOrAdd(specialType, CreateFromSpecialTypes));
 
         public static SpecialType GetSpecialType(SyntaxAnnotation annotation)
             => s_toSpecialTypes.GetOrAdd(annotation.Data, CreateToSpecialTypes);

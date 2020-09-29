@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime
     internal class DateAndTimeOptions
     {
         public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions =
-            new PerLanguageOption2<bool>(
+            new(
                 nameof(DateAndTime),
                 nameof(ProvideDateAndTimeCompletions),
                 defaultValue: true,

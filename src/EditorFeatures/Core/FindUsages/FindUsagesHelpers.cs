@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static readonly SymbolDisplayFormat s_definitionFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType,

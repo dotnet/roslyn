@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// 
         /// All code that reads or writes from the db should go through this.
         /// </summary>
-        private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
+        private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new();
 
         private static async Task<TResult> PerformTaskAsync<TArg, TResult>(
             Func<TArg, TResult> func, TArg arg,
