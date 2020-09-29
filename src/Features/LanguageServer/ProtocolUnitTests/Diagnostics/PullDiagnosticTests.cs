@@ -106,19 +106,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
             var workspace = CreateTestWorkspace(markup, out _);
 
-            //var threadingContext = workspace.GetService<IThreadingContext>();
-            //var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             registrationService.EnsureRegistration(workspace, initializeLazily: false);
-
-            //Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
-
-            //Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
-            //service.Register(workspace)
 
             if (!registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out _))
                 throw new InvalidOperationException();
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var diagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
             diagnosticService.Register(new TestHostDiagnosticUpdateSource(workspace));
 
-            registrationService.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create<IIncrementalAnalyzer>(analyzerService.CreateIncrementalAnalyzer(workspace)));
+            registrationService.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
 
             return workspace;
         }
