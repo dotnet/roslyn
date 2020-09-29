@@ -240,18 +240,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 result.Add(VSDiagnosticTags.VisibleInErrorList);
             }
 
-            foreach (var tag in diagnosticData.CustomTags)
-            {
-                switch (tag)
-                {
-                    case WellKnownDiagnosticTags.Unnecessary:
-                        result.Add(DiagnosticTag.Unnecessary);
-                        break;
-                    case WellKnownDiagnosticTags.Build:
-                        result.Add(VSDiagnosticTags.BuildError);
-                        break;
-                }
-            }
+            result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
+                ? VSDiagnosticTags.BuildError
+                : VSDiagnosticTags.IntellisenseError);
+
+            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                result.Add(DiagnosticTag.Unnecessary);
 
             return result.ToArray();
         }
