@@ -2008,14 +2008,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                         return DeclarationKind.Attribute;
                     }
                     break;
-                // init accessor is currently missing. It should be added here when resolving
-                // https://github.com/dotnet/roslyn/issues/48136
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
-                    return DeclarationKind.SetAccessor;
-                case SyntaxKind.InitAccessorDeclaration:
-                    return DeclarationKind.InitAccessor;
+                case SyntaxKind.InitAccessorDeclaration
+                    return DeclarationKind.SetAccessor;:
                 case SyntaxKind.AddAccessorDeclaration:
                     return DeclarationKind.AddAccessor;
                 case SyntaxKind.RemoveAccessorDeclaration:
