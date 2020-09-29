@@ -4,13 +4,10 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,7 +16,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -27,6 +23,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
     public class PullDiagnosticTests : AbstractLanguageServerProtocolTests
     {
+        [Fact]
+        public async Task TestNoDiagnosticsForClosedFilesWithFSAOff()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Empty(results[0].Diagnostics);
+        }
+
+        [Fact]
+        public async Task TestDiagnosticsForOpenFilesWithFSAOff()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            // Calling GetTextBuffer will effectively open the file.
+            workspace.Documents.Single().GetTextBuffer();
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+        }
+
         private static async Task<DiagnosticReport[]> RunGetDocumentPullDiagnosticsAsync(TestWorkspace workspace, Document document)
         {
             var solution = document.Project.Solution;
@@ -64,67 +89,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             };
         }
 
-        private void VerifyContent(LSP.VSHover result, string expectedContent)
-        {
-            var containerElement = (ContainerElement)result.RawContent;
-            using var _ = ArrayBuilder<ClassifiedTextElement>.GetInstance(out var classifiedTextElements);
-            GetClassifiedTextElements(containerElement, classifiedTextElements);
-            Assert.False(classifiedTextElements.SelectMany(classifiedTextElements => classifiedTextElements.Runs).Any(run => run.NavigationAction != null));
-            var content = string.Join("|", classifiedTextElements.Select(cte => string.Join(string.Empty, cte.Runs.Select(ctr => ctr.Text))));
-            Assert.Equal(expectedContent, content);
-        }
-
-        private void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
-        {
-            foreach (var element in container.Elements)
-            {
-                if (element is ClassifiedTextElement classifiedTextElement)
-                {
-                    classifiedTextElements.Add(classifiedTextElement);
-                }
-                else if (element is ContainerElement containerElement)
-                {
-                    GetClassifiedTextElements(containerElement, classifiedTextElements);
-                }
-            }
-        }
-
-        [Fact]
-        public async Task TestGetDocumentPullDiagnostics1()
-        {
-            var markup =
-@"class A";
-            using var workspace = CreateTestWorkspaceWithDiagnostics(markup);
-
-            var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
-
-            Console.WriteLine(results);
-        }
-
-        private TestWorkspace CreateTestWorkspaceWithDiagnostics(string markup)
+        private TestWorkspace CreateTestWorkspaceWithDiagnostics(string markup, BackgroundAnalysisScope scope)
         {
             var workspace = CreateTestWorkspace(markup, out _);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.Options
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)));
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             registrationService.Register(workspace);
 
-            if (!registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out _))
-                throw new InvalidOperationException();
-
-            var analyzerService = (DiagnosticAnalyzerService)registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value!;
             var diagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
             diagnosticService.Register(new TestHostDiagnosticUpdateSource(workspace));
-
-            registrationService.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
 
             return workspace;
         }
