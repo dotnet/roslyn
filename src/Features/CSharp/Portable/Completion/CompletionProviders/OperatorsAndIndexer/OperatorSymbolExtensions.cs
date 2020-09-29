@@ -54,6 +54,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
+        internal static int GetOperatorSortIndex(this IMethodSymbol m)
+        {
+            return m.Name switch
+            {
+                // comparison and negation
+                WellKnownMemberNames.EqualityOperatorName => 0, // ==
+                WellKnownMemberNames.InequalityOperatorName => 1, // !=
+                WellKnownMemberNames.GreaterThanOperatorName => 2, // >
+                WellKnownMemberNames.GreaterThanOrEqualOperatorName => 3, // >=
+                WellKnownMemberNames.LessThanOperatorName => 4, // <
+                WellKnownMemberNames.LessThanOrEqualOperatorName => 5, // <=
+                WellKnownMemberNames.LogicalNotOperatorName => 6, // !
+                // mathematical
+                WellKnownMemberNames.AdditionOperatorName => 7, // +
+                WellKnownMemberNames.SubtractionOperatorName => 8, // -
+                WellKnownMemberNames.MultiplyOperatorName => 9, // *
+                WellKnownMemberNames.DivisionOperatorName => 10, // /
+                WellKnownMemberNames.ModulusOperatorName => 11, // %
+                WellKnownMemberNames.IncrementOperatorName => 12, // ++
+                WellKnownMemberNames.DecrementOperatorName => 13, // --
+                WellKnownMemberNames.UnaryPlusOperatorName => 14, // +
+                WellKnownMemberNames.UnaryNegationOperatorName => 15, // -
+                // bit operations
+                WellKnownMemberNames.BitwiseAndOperatorName => 16, // &
+                WellKnownMemberNames.BitwiseOrOperatorName => 17, // |
+                WellKnownMemberNames.ExclusiveOrOperatorName => 18, // ^
+                WellKnownMemberNames.LeftShiftOperatorName => 19, // <<
+                WellKnownMemberNames.RightShiftOperatorName => 20, // >>
+                WellKnownMemberNames.OnesComplementOperatorName => 21, // ~
+                // true false
+                WellKnownMemberNames.FalseOperatorName => 22, // false
+                WellKnownMemberNames.TrueOperatorName => 23, // true
+
+                _ => throw ExceptionUtilities.UnexpectedValue(m.Name),
+            };
+        }
+
         public static string GetOperatorName(this IMethodSymbol m)
         {
             return m.Name switch

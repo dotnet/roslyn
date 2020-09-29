@@ -82,6 +82,76 @@ public class Program
 ", "+");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorsAreSortedByImporttanceAndGroupedByTopic()
+        {
+            var items = await GetCompletionItemsAsync(@"
+public class C
+{
+    public static C operator +(C a, C b) => null;
+    public static C operator -(C a, C b) => null;
+    public static C operator *(C a, C b) => null;
+    public static C operator /(C a, C b) => null;
+    public static C operator %(C a, C b) => null;
+    public static bool operator ==(C a, C b) => true;
+    public static bool operator !=(C a, C b) => false;
+    public static bool operator <(C a, C b) => true;
+    public static bool operator >(C a, C b) => false;
+    public static bool operator <=(C a, C b) => true;
+    public static bool operator >=(C a, C b) => false;
+    public static C operator +(C a) => null;
+    public static C operator -(C a) => null;
+    public static C operator ++(C a) => null;
+    public static C operator --(C a) => null;
+    public static bool operator true(C w) => true;
+    public static bool operator false(C w) => false;
+    public static bool operator &(C a, C b) => true;
+    public static bool operator |(C a, C b) => true;
+    public static C operator !(C a) => null;
+    public static C operator ^(C a, C b) => null;
+    public static C operator <<(C a, int b) => null;
+    public static C operator >>(C a, int b) => null;
+    public static C operator ~(C a) => null;
+
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c = new C();
+        c.$$;
+    }
+}
+", SourceCodeKind.Regular);
+            // true and false operators are not listed
+            Assert.Collection(items,
+                i => Assert.Equal("==", i.DisplayText),
+                i => Assert.Equal("!=", i.DisplayText),
+                i => Assert.Equal(">", i.DisplayText),
+                i => Assert.Equal(">=", i.DisplayText),
+                i => Assert.Equal("<", i.DisplayText),
+                i => Assert.Equal("<=", i.DisplayText),
+                i => Assert.Equal("!", i.DisplayText),
+                i => Assert.Equal("+", i.DisplayText), // Addition a+b
+                i => Assert.Equal("-", i.DisplayText), // Subtraction a-b
+                i => Assert.Equal("*", i.DisplayText),
+                i => Assert.Equal("/", i.DisplayText),
+                i => Assert.Equal("%", i.DisplayText),
+                i => Assert.Equal("++", i.DisplayText),
+                i => Assert.Equal("--", i.DisplayText),
+                i => Assert.Equal("+", i.DisplayText), // Unary plus +a
+                i => Assert.Equal("-", i.DisplayText), // Unary minus -a
+                i => Assert.Equal("&", i.DisplayText),
+                i => Assert.Equal("|", i.DisplayText),
+                i => Assert.Equal("^", i.DisplayText),
+                i => Assert.Equal("<<", i.DisplayText),
+                i => Assert.Equal(">>", i.DisplayText),
+                i => Assert.Equal("~", i.DisplayText)
+            );
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("bool")]
