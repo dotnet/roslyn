@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private readonly Dictionary<DocumentId, DocumentState> _documentState;
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         public CommittedSolution(DebuggingSession debuggingSession, Solution solution)
         {

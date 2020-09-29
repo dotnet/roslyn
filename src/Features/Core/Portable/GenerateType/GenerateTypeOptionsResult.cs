@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal class GenerateTypeOptionsResult
     {
-        public static readonly GenerateTypeOptionsResult Cancelled = new GenerateTypeOptionsResult(isCancelled: true);
+        public static readonly GenerateTypeOptionsResult Cancelled = new(isCancelled: true);
 
         public Accessibility Accessibility { get; }
         public Document ExistingDocument { get; }

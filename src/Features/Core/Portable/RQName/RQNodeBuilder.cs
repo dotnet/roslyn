@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             };
 
         private static RQNamespace BuildNamespace(INamespaceSymbol @namespace)
-            => new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
+            => new(RQNodeBuilder.GetNameParts(@namespace));
 
         private static IList<string> GetNameParts(INamespaceSymbol @namespace)
         {

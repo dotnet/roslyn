@@ -62,20 +62,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return _all;
         }
 
-        private static readonly SymbolKindOrTypeKind _namespace = new SymbolKindOrTypeKind(SymbolKind.Namespace);
-        private static readonly SymbolKindOrTypeKind _class = new SymbolKindOrTypeKind(TypeKind.Class);
-        private static readonly SymbolKindOrTypeKind _struct = new SymbolKindOrTypeKind(TypeKind.Struct);
-        private static readonly SymbolKindOrTypeKind _interface = new SymbolKindOrTypeKind(TypeKind.Interface);
-        private static readonly SymbolKindOrTypeKind _enum = new SymbolKindOrTypeKind(TypeKind.Enum);
-        private static readonly SymbolKindOrTypeKind _property = new SymbolKindOrTypeKind(SymbolKind.Property);
-        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(MethodKind.Ordinary);
-        private static readonly SymbolKindOrTypeKind _localFunction = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
-        private static readonly SymbolKindOrTypeKind _field = new SymbolKindOrTypeKind(SymbolKind.Field);
-        private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
-        private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
-        private static readonly SymbolKindOrTypeKind _parameter = new SymbolKindOrTypeKind(SymbolKind.Parameter);
-        private static readonly SymbolKindOrTypeKind _typeParameter = new SymbolKindOrTypeKind(SymbolKind.TypeParameter);
-        private static readonly SymbolKindOrTypeKind _local = new SymbolKindOrTypeKind(SymbolKind.Local);
+        private static readonly SymbolKindOrTypeKind _namespace = new(SymbolKind.Namespace);
+        private static readonly SymbolKindOrTypeKind _class = new(TypeKind.Class);
+        private static readonly SymbolKindOrTypeKind _struct = new(TypeKind.Struct);
+        private static readonly SymbolKindOrTypeKind _interface = new(TypeKind.Interface);
+        private static readonly SymbolKindOrTypeKind _enum = new(TypeKind.Enum);
+        private static readonly SymbolKindOrTypeKind _property = new(SymbolKind.Property);
+        private static readonly SymbolKindOrTypeKind _method = new(MethodKind.Ordinary);
+        private static readonly SymbolKindOrTypeKind _localFunction = new(MethodKind.LocalFunction);
+        private static readonly SymbolKindOrTypeKind _field = new(SymbolKind.Field);
+        private static readonly SymbolKindOrTypeKind _event = new(SymbolKind.Event);
+        private static readonly SymbolKindOrTypeKind _delegate = new(TypeKind.Delegate);
+        private static readonly SymbolKindOrTypeKind _parameter = new(SymbolKind.Parameter);
+        private static readonly SymbolKindOrTypeKind _typeParameter = new(SymbolKind.TypeParameter);
+        private static readonly SymbolKindOrTypeKind _local = new(SymbolKind.Local);
         private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
             ImmutableArray.Create(
                 _namespace,
@@ -234,11 +234,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return ImmutableArray<ModifierKind>.Empty;
         }
 
-        private static readonly ModifierKind _abstractModifierKind = new ModifierKind(ModifierKindEnum.IsAbstract);
-        private static readonly ModifierKind _asyncModifierKind = new ModifierKind(ModifierKindEnum.IsAsync);
-        private static readonly ModifierKind _constModifierKind = new ModifierKind(ModifierKindEnum.IsConst);
-        private static readonly ModifierKind _readonlyModifierKind = new ModifierKind(ModifierKindEnum.IsReadOnly);
-        private static readonly ModifierKind _staticModifierKind = new ModifierKind(ModifierKindEnum.IsStatic);
+        private static readonly ModifierKind _abstractModifierKind = new(ModifierKindEnum.IsAbstract);
+        private static readonly ModifierKind _asyncModifierKind = new(ModifierKindEnum.IsAsync);
+        private static readonly ModifierKind _constModifierKind = new(ModifierKindEnum.IsConst);
+        private static readonly ModifierKind _readonlyModifierKind = new(ModifierKindEnum.IsReadOnly);
+        private static readonly ModifierKind _staticModifierKind = new(ModifierKindEnum.IsStatic);
         private static readonly ImmutableArray<ModifierKind> _allModifierKind = ImmutableArray.Create(_abstractModifierKind, _asyncModifierKind, _constModifierKind, _readonlyModifierKind, _staticModifierKind);
 
         private static ImmutableArray<ModifierKind> ParseModifiers(string symbolSpecRequiredModifiers)

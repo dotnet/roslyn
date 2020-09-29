@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal sealed partial class CSharpNullableAnnotationReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
         public CSharpNullableAnnotationReducer() : base(s_pool)

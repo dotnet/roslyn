@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <see cref="_justEnumerateTheEntireRunningDocumentTable"/> and <see cref="_taskPending"/>. These are the only mutable fields
             /// in this class that are modified from multiple threads.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private HashSet<string>? _fileNamesToCheckForOpenDocuments;
 
             /// <summary>
@@ -62,14 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             #region Fields read/and written to only on the UI thread to track active context for files
 
-            private readonly ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinkCache = new ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink>();
+            private readonly ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinkCache = new();
 
             /// <summary>
             /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
             /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
             /// </summary>
             private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
-                = new MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>>();
+                = new();
 
             #endregion
 

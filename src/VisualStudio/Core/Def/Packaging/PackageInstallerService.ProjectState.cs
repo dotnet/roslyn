@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private struct ProjectState
         {
-            public static readonly ProjectState Disabled = new ProjectState(isEnabled: false, ImmutableDictionary<string, string>.Empty);
+            public static readonly ProjectState Disabled = new(isEnabled: false, ImmutableDictionary<string, string>.Empty);
 
             public readonly bool IsEnabled;
 

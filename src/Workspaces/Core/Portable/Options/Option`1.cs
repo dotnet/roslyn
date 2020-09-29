@@ -92,6 +92,6 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static implicit operator OptionKey(Option<T> option)
-            => new OptionKey(option);
+            => new(option);
     }
 }

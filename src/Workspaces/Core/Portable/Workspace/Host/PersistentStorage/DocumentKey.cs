@@ -60,6 +60,6 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public DocumentKey Rehydrate()
-            => new DocumentKey(Project.Rehydrate(), Id, FilePath, Name);
+            => new(Project.Rehydrate(), Id, FilePath, Name);
     }
 }

@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider))]
     internal sealed class DefaultAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
-        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = new ShadowCopyAnalyzerAssemblyLoader();
+        private readonly DefaultAnalyzerAssemblyLoader _loader = new();
+        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

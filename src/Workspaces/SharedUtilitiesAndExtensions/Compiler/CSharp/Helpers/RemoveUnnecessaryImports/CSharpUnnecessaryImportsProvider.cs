@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
     internal sealed class CSharpUnnecessaryImportsProvider
         : AbstractUnnecessaryImportsProvider<UsingDirectiveSyntax>
     {
-        public static readonly CSharpUnnecessaryImportsProvider Instance = new CSharpUnnecessaryImportsProvider();
+        public static readonly CSharpUnnecessaryImportsProvider Instance = new();
 
         private CSharpUnnecessaryImportsProvider()
         {

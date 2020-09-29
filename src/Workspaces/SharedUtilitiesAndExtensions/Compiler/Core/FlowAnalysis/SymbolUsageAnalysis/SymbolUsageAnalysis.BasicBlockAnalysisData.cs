@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         private sealed class BasicBlockAnalysisData : IDisposable
         {
             private static readonly ObjectPool<BasicBlockAnalysisData> s_pool =
-                new ObjectPool<BasicBlockAnalysisData>(() => new BasicBlockAnalysisData());
+                new(() => new BasicBlockAnalysisData());
 
             /// <summary>
             /// Map from each symbol to possible set of reachable write operations that are live at current program point.

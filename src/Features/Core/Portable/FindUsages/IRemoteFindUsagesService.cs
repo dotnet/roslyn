@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         private readonly Solution _solution;
         private readonly IFindUsagesContext _context;
-        private readonly Dictionary<int, DefinitionItem> _idToDefinition = new Dictionary<int, DefinitionItem>();
+        private readonly Dictionary<int, DefinitionItem> _idToDefinition = new();
 
         public FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
         {

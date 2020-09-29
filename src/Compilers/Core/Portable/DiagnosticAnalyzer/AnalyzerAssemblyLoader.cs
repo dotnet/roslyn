@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
         // lock _guard to read/write
-        private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new Dictionary<string, Assembly>();
-        private readonly Dictionary<string, AssemblyIdentity> _loadedAssemblyIdentitiesByPath = new Dictionary<string, AssemblyIdentity>();
-        private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new Dictionary<AssemblyIdentity, Assembly>();
+        private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new();
+        private readonly Dictionary<string, AssemblyIdentity> _loadedAssemblyIdentitiesByPath = new();
+        private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new();
 
         // maps file name to a full path (lock _guard to read/write):
-        private readonly Dictionary<string, HashSet<string>> _knownAssemblyPathsBySimpleName = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, HashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
         protected abstract Assembly LoadFromPathImpl(string fullPath);
 

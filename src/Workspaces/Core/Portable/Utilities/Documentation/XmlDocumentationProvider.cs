@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class XmlDocumentationProvider : DocumentationProvider
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
         private Dictionary<string, string> _docComments;
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
             return _docComments.TryGetValue(documentationMemberID, out var docComment) ? docComment : "";
         }
 
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };

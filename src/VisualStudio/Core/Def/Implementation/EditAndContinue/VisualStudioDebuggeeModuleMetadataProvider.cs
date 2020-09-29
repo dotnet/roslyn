@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             /// <summary>
             /// Message source id as specified in ManagedEditAndContinueService.vsdconfigxml.
             /// </summary>
-            public static readonly Guid MessageSourceId = new Guid("58CDF976-1923-48F7-8288-B4189F5700B1");
+            public static readonly Guid MessageSourceId = new("58CDF976-1923-48F7-8288-B4189F5700B1");
 
             private sealed class DataItem : DkmDataItem
             {

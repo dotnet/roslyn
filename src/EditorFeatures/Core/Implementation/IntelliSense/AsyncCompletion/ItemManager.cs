@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// <summary>
         /// For telemetry.
         /// </summary>
-        private readonly object _targetTypeCompletionFilterChosenMarker = new object();
+        private readonly object _targetTypeCompletionFilterChosenMarker = new();
 
         internal ItemManager(RecentItemsManager recentItemsManager)
         {

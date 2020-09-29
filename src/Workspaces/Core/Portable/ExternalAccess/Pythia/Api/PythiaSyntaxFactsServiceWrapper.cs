@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             => UnderlyingObject = underlyingObject;
 
         public static PythiaSyntaxFactsServiceWrapper Create(Document document)
-            => new PythiaSyntaxFactsServiceWrapper(document.GetRequiredLanguageService<ISyntaxFactsService>());
+            => new(document.GetRequiredLanguageService<ISyntaxFactsService>());
     }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
     {
         public static readonly IWorkspaceGlobalUndoTransaction Transaction = new NoOpUndoTransaction();
 
-        private readonly NoOpGlobalUndoService _singleton = new NoOpGlobalUndoService();
+        private readonly NoOpGlobalUndoService _singleton = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

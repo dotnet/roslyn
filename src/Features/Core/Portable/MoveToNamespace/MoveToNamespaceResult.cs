@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal class MoveToNamespaceResult
     {
-        public static readonly MoveToNamespaceResult Failed = new MoveToNamespaceResult();
+        public static readonly MoveToNamespaceResult Failed = new();
 
         public bool Succeeded { get; }
         public Solution UpdatedSolution { get; }

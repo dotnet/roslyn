@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         }
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public struct Enumerator
         {

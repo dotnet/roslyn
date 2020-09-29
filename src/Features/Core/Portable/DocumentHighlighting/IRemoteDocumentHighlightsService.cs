@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         public DocumentHighlights Rehydrate(Solution solution)
-            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans);
+            => new(solution.GetDocument(DocumentId), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new(highlights.Document.Id, highlights.HighlightSpans);

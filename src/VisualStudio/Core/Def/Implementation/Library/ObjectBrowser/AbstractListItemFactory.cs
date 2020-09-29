@@ -21,34 +21,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
     internal abstract class AbstractListItemFactory
     {
         private static readonly SymbolDisplayFormat s_searchFormat =
-            new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+            new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
 
         private static readonly SymbolDisplayFormat s_simplePredefinedTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes);
 
         private static readonly SymbolDisplayFormat s_simpleNormalTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_simplePredefinedTypeFullName =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         private static readonly SymbolDisplayFormat s_simpleNormalTypeFullName =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_predefinedTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         private static readonly SymbolDisplayFormat s_normalTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);

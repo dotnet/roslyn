@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// a particular semantic model.
         /// </summary>
         private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
-            new ConditionalWeakTable<SemanticModel, RegexPatternDetector>();
+            new();
 
         private readonly EmbeddedLanguageInfo _info;
         private readonly SemanticModel _semanticModel;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
         private static readonly Regex s_languageCommentDetector =
-            new Regex(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =

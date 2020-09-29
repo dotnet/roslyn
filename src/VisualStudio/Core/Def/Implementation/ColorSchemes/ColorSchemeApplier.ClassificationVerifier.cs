@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private readonly IServiceProvider _serviceProvider;
             private readonly ImmutableDictionary<SchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
 
-            private static readonly Guid TextEditorMEFItemsColorCategory = new Guid("75a05685-00a8-4ded-bae5-e7a50bfa929a");
+            private static readonly Guid TextEditorMEFItemsColorCategory = new("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
             // These classification colors (0x00BBGGRR) should match the VS\EditorColors.xml file.
             // They are not in the scheme files because they are core classifications.

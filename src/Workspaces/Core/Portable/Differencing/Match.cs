@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
         public EditScript<TNode> GetTreeEdits()
-            => new EditScript<TNode>(this);
+            => new(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>
