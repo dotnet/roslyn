@@ -1313,8 +1313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.PropertyDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.EventDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
