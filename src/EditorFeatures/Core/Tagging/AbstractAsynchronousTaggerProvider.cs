@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// </summary>
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
     {
-        private readonly object _uniqueKey = new object();
+        private readonly object _uniqueKey = new();
         private readonly IForegroundNotificationService _notificationService;
 
         protected readonly IAsynchronousOperationListener AsyncListener;
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         private struct DiffResult
         {

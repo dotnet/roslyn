@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (callingConvention == SignatureCallingConvention.Unmanaged)
                 {
-                    visitor.WriteSymbolKeyArray(symbol.Signature.CallingConventionTypes);
+                    visitor.WriteSymbolKeyArray(symbol.Signature.UnmanagedCallingConventionTypes);
                 }
 
                 visitor.WriteRefKind(symbol.Signature.RefKind);

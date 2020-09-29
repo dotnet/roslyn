@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputFileName = null;
             string? outputRefFilePath = null;
             bool refOnly = false;
+            string? generatedFilesOutputDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -612,6 +613,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     sourceFilesSpecified = true;
                                 }
+                            }
+                            continue;
+
+                        case "generatedfilesout":
+                            if (string.IsNullOrWhiteSpace(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
+                            }
+                            else
+                            {
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
                             }
                             continue;
 
@@ -1489,6 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),

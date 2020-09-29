@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
-            => new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
+            => new((documentId, cancellationToken) =>
                 _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
 
         /// <summary>

@@ -222,6 +222,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetTargetOfMemberBinding(SyntaxNode node);
 
+        SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node);
+
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedArgument(SyntaxNode node);

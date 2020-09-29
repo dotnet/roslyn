@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public const string OptionName = "FeatureManager/Persistence";
 
-        public static readonly Option<bool> Enabled = new Option<bool>(OptionName, "Enabled", defaultValue: true);
+        public static readonly Option<bool> Enabled = new(OptionName, "Enabled", defaultValue: true);
     }
 }

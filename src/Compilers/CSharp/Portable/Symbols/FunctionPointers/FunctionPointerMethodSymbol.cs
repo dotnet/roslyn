@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> CallingConventionTypes
+        internal override ImmutableArray<NamedTypeSymbol> UnmanagedCallingConventionTypes
         {
             get
             {
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
-        internal sealed override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData => null;
+        internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;

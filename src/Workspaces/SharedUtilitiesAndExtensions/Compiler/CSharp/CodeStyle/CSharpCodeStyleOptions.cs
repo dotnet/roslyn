@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
     internal static partial class CSharpCodeStyleOptions
     {
-        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion);
-        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Silent);
+        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
 
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
@@ -122,22 +122,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferRangeOperator")});
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSilentEnforcement =
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Silent);
+            new(ExpressionBodyPreference.Never, NotificationOption2.Silent);
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSuggestionEnforcement =
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Suggestion);
+            new(ExpressionBodyPreference.Never, NotificationOption2.Suggestion);
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> WhenPossibleWithSilentEnforcement =
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent);
+            new(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent);
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> WhenPossibleWithSuggestionEnforcement =
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Suggestion);
+            new(ExpressionBodyPreference.WhenPossible, NotificationOption2.Suggestion);
 
         public static readonly CodeStyleOption2<ExpressionBodyPreference> WhenOnSingleLineWithSilentEnforcement =
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Silent);
+            new(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Silent);
 
         public static readonly CodeStyleOption2<PreferBracesPreference> UseBracesWithSilentEnforcement =
-            new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.Always, NotificationOption2.Silent);
+            new(PreferBracesPreference.Always, NotificationOption2.Silent);
 
         public static readonly Option2<CodeStyleOption2<ExpressionBodyPreference>> PreferExpressionBodiedConstructors = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, nameof(PreferExpressionBodiedConstructors),
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
         public static readonly CodeStyleOption2<AddImportPlacement> PreferOutsidePlacementWithSilentEnforcement =
-           new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
+           new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 
         public static readonly Option2<CodeStyleOption2<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateOption(
             CSharpCodeStyleOptionGroups.UsingDirectivePreferences, nameof(PreferredUsingDirectivePlacement),
@@ -307,6 +307,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 editorConfigName: "csharp_style_unused_value_assignment_preference",
                 defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion),
                 s_allOptionsBuilder);
+
+        public static readonly Option2<CodeStyleOption2<bool>> ImplicitObjectCreationWhenTypeIsApparent = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(ImplicitObjectCreationWhenTypeIsApparent),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_implicit_object_creation_when_type_is_apparent"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.ImplicitObjectCreationWhenTypeIsApparent")});
+
+#if false
+
+        public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
+            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarElsewhere),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_elsewhere"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible")});
+
+#endif
 
         static CSharpCodeStyleOptions()
         {
@@ -348,13 +366,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
     internal static class CSharpCodeStyleOptionGroups
     {
-        public static readonly OptionGroup VarPreferences = new OptionGroup(CSharpCompilerExtensionsResources.var_preferences, priority: 1);
-        public static readonly OptionGroup ExpressionBodiedMembers = new OptionGroup(CSharpCompilerExtensionsResources.Expression_bodied_members, priority: 2);
-        public static readonly OptionGroup PatternMatching = new OptionGroup(CSharpCompilerExtensionsResources.Pattern_matching_preferences, priority: 3);
-        public static readonly OptionGroup NullCheckingPreferences = new OptionGroup(CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4);
-        public static readonly OptionGroup Modifier = new OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority: 5);
-        public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6);
-        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority: 7);
-        public static readonly OptionGroup UsingDirectivePreferences = new OptionGroup(CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8);
+        public static readonly OptionGroup VarPreferences = new(CSharpCompilerExtensionsResources.var_preferences, priority: 1);
+        public static readonly OptionGroup ExpressionBodiedMembers = new(CSharpCompilerExtensionsResources.Expression_bodied_members, priority: 2);
+        public static readonly OptionGroup PatternMatching = new(CSharpCompilerExtensionsResources.Pattern_matching_preferences, priority: 3);
+        public static readonly OptionGroup NullCheckingPreferences = new(CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4);
+        public static readonly OptionGroup Modifier = new(CompilerExtensionsResources.Modifier_preferences, priority: 5);
+        public static readonly OptionGroup CodeBlockPreferences = new(CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6);
+        public static readonly OptionGroup ExpressionLevelPreferences = new(CompilerExtensionsResources.Expression_level_preferences, priority: 7);
+        public static readonly OptionGroup UsingDirectivePreferences = new(CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8);
     }
 }

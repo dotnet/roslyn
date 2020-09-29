@@ -114,6 +114,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // Don't convert if the as is part of a using statement
+            // eg using (var x = y as MyObject) { }
+            if (localStatement is UsingStatementSyntax)
+            {
+                return;
+            }
+
+            // Don't convert if the as is part of a local declaration with a using keyword
+            // eg using var x = y as MyObject;
+            if (localStatement is LocalDeclarationStatementSyntax localDecl && localDecl.UsingKeyword != default)
+            {
+                return;
+            }
+
             var typeNode = asExpression.Right;
             var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (asType.IsNullable())

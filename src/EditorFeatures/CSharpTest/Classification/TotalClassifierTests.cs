@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            return GetAllClassificationsAsync(document, span);
+            return await GetAllClassificationsAsync(document, span);
         }
 
         [Theory]
@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("param"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("name"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("'"),
@@ -636,7 +635,6 @@ namespace C
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("param"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("name"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
@@ -671,7 +669,6 @@ class Program<T>
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("see"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
@@ -713,7 +710,6 @@ namespace N
                 XmlDoc.Text("  "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("see"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
@@ -790,7 +786,6 @@ class MyClass
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("see"),
-                XmlDoc.AttributeName(" "),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class Node<TExtension, TMetadata>
         {
             public readonly Lazy<TExtension, TMetadata> Extension;
-            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new HashSet<Node<TExtension, TMetadata>>();
+            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new();
 
             public Node(Lazy<TExtension, TMetadata> extension)
                 => this.Extension = extension;

@@ -833,6 +833,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return token.WithLeadingTrivia(default(SyntaxTriviaList));
         }
 
+        /// <summary>
+        /// Creates a new token with the trailing trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutTrailingTrivia(this SyntaxToken token)
+        {
+            return token.WithTrailingTrivia(default(SyntaxTriviaList));
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
@@ -871,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Gets a list of ancestor nodes (including this node) 
         /// </summary>
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
-            => new ValueAncestorsAndSelfEnumerable(syntaxNode, ascendOutOfTrivia);
+            => new(syntaxNode, ascendOutOfTrivia);
 
         public struct ValueAncestorsAndSelfEnumerable
         {
@@ -885,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public Enumerator GetEnumerator()
-                => new Enumerator(_syntaxNode, _ascendOutOfTrivia);
+                => new(_syntaxNode, _ascendOutOfTrivia);
 
             public struct Enumerator
             {

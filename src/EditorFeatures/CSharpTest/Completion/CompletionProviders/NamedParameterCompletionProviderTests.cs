@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,10 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public NamedParameterCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(NamedParameterCompletionProvider);
 
@@ -171,6 +166,27 @@ partial class PartialClass
 {
     static partial void Goo(int declaring);
     static partial void Goo(int implementing)
+    {
+    }
+    static void Caller()
+    {
+        Goo($$
+    }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtendedPartialMethods()
+        {
+            var markup = @"
+partial class PartialClass
+{
+    public static partial void Goo(int declaring);
+    public static partial void Goo(int implementing)
     {
     }
     static void Caller()

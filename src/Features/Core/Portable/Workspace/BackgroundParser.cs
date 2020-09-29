@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly TaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
 
-        private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _stateLock = new(LockRecursionPolicy.NoRecursion);
 
-        private readonly object _parseGate = new object();
+        private readonly object _parseGate = new();
         private ImmutableDictionary<DocumentId, CancellationTokenSource> _workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
 
         public bool IsStarted { get; private set; }

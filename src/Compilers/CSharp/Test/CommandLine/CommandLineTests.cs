@@ -2476,6 +2476,24 @@ print Goodbye, World";
             }
         }
 
+        private static void ValidateWrittenSources(Dictionary<string, Dictionary<string, string>> expectedFilesMap, Encoding encoding = null)
+        {
+            foreach ((var dirPath, var fileMap) in expectedFilesMap.ToArray())
+            {
+                foreach (var file in Directory.GetFiles(dirPath))
+                {
+                    var name = Path.GetFileName(file);
+                    var content = File.ReadAllText(file, encoding ?? Encoding.UTF8);
+
+                    Assert.Equal(fileMap[name], content);
+                    Assert.True(fileMap.Remove(name));
+                }
+                Assert.Empty(fileMap);
+                Assert.True(expectedFilesMap.Remove(dirPath));
+            }
+            Assert.Empty(expectedFilesMap);
+        }
+
         [Fact]
         public void Optimize()
         {
@@ -12343,11 +12361,12 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
-            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, $"generatedSource.cs"), generatedSource } }, dir, true);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
         }
 
         [Theory, CombinatorialData]
@@ -12382,8 +12401,8 @@ class C
                 generators: new[] { generator });
 
             // Verify source generator was executed, regardless of the value of 'skipAnalyzers'.
-            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
-            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, "generatedSource.cs"), generatedSource } }, dir, true);
 
             if (expectedAnalyzerExecution)
             {
@@ -12417,17 +12436,210 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
-            var generator1Prefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
-            var generator2Prefix = $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}";
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
 
             ValidateEmbeddedSources_Portable(new Dictionary<string, string>
             {
-                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator1Prefix}_{source1Name}", source1},
-                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator2Prefix}_{source2Name}", source2},
+                { Path.Combine(dir.Path, generator1Prefix, source1Name), source1},
+                { Path.Combine(dir.Path, generator2Prefix, source2Name), source2},
             }, dir, true);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_WriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory]
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
+        public void SourceGenerators_WriteGeneratedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generator = new SingleFileTestGenerator(source1, source1Name);
+            var generator2 = new SingleFileTestGenerator2(source2, source2Name);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
+
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
+                { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+            });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [ConditionalFact(typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
+        [WorkItem(47990, "https://github.com/dotnet/roslyn/issues/47990")]
+        public void SourceGenerators_SxS_AssemblyLoading()
+        {
+            // compile the generators
+            var dir = Temp.CreateDirectory();
+            var snk = Temp.CreateFile("TestKeyPair_", ".snk", dir.Path).WriteAllBytes(TestResources.General.snKey);
+            var src = dir.CreateFile("generator.cs");
+            var virtualSnProvider = new DesktopStrongNameProvider(ImmutableArray.Create(dir.Path));
+
+            string createGenerator(string version)
+            {
+                var generatorSource = $@"
+using Microsoft.CodeAnalysis;
+[assembly:System.Reflection.AssemblyVersion(""{version}"")]
+
+[Generator]
+public class TestGenerator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ context.AddSource(""generatedSource.cs"", ""//from version {version}""); }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var path = Path.Combine(dir.Path, Guid.NewGuid().ToString() + ".dll");
+
+                var comp = CreateEmptyCompilation(source: generatorSource,
+                                             references: TargetFrameworkUtil.NetStandard20References.Add(MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly)),
+                                             options: TestOptions.DebugDll.WithCryptoKeyFile(Path.GetFileName(snk.Path)).WithStrongNameProvider(virtualSnProvider),
+                                             assemblyName: "generator");
+                comp.VerifyDiagnostics();
+                comp.Emit(path);
+                return path;
+            }
+
+            var gen1 = createGenerator("1.0.0.0");
+            var gen2 = createGenerator("2.0.0.0");
+
+            var generatedDir = dir.CreateDirectory("generated");
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/analyzer:" + gen1, "/analyzer:" + gen2 }.ToArray());
+
+            // This is wrong! Both generators are writing the same file out, over the top of each other
+            // See https://github.com/dotnet/roslyn/issues/47990
+            ValidateWrittenSources(new()
+            {
+                //  { Path.Combine(generatedDir.Path,  "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 1.0.0.0" } } },
+                { Path.Combine(generatedDir.Path, "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 2.0.0.0" } } }
+            });
+        }
+
+        [Fact]
+        public void SourceGenerators_DoNotWriteGeneratedSources_When_No_Directory_Supplied()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            ValidateWrittenSources(new() { { generatedDir.Path, new() } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_Error_When_GeneratedDir_NotExist()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedDirPath = Path.Combine(dir.Path, "noexist");
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            Assert.Contains("CS0016:", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_Error_When_NoDirectoryArgumentGiven()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:", "/langversion:preview", "/out:embed.exe" });
+            Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_ReportedWrittenFiles_To_TouchedFilesLogger()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var touchedFiles = Directory.GetFiles(dir.Path, "touched*");
+            Assert.Equal(2, touchedFiles.Length);
+
+            string[] writtenText = File.ReadAllLines(Path.Combine(dir.Path, "touched.write"));
+            Assert.Equal(2, writtenText.Length);
+            Assert.EndsWith("EMBED.EXE", writtenText[0], StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -12676,12 +12888,12 @@ option1 = def");
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
-[file.cs]
+[/file.cs]
 option1 = abc");
 
             analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
-[file.cs]
+[/file.cs]
 option1 = def");
 
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -12689,7 +12901,7 @@ option1 = def");
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
             Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'file.cs'", output, StringComparison.Ordinal);
+            Assert.Contains("'/file.cs'", output, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -12824,6 +13036,44 @@ dotnet_diagnostic.CS0164.severity = none;
 ");
 
             VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(bool useGlobalConfig)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var additionalFlags = new[] { "/warnaserror+" };
+            if (useGlobalConfig)
+            {
+                var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = warning;
+");
+                additionalFlags = additionalFlags.Append("/analyzerconfig:" + globalConfig.Path).ToArray();
+            }
+            else
+            {
+                string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""15.0"">
+  <Rules AnalyzerId=""Compiler"" RuleNamespace=""Compiler"">
+    <Rule Id=""CS0164"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+                _ = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+                additionalFlags = additionalFlags.Append("/ruleset:Rules.ruleset").ToArray();
+            }
+
+            VerifyOutput(dir, src, additionalFlags: additionalFlags, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
         }
 
         [Fact]

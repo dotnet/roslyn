@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
-
         private readonly CSharpCompilationOptions _options;
         private readonly Lazy<Imports> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
@@ -1824,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var viableEntryPoint in viableEntryPoints)
                     {
-                        if (viableEntryPoint.UnmanagedCallersOnlyAttributeData is { } data)
+                        if (viableEntryPoint.GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is { } data)
                         {
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
@@ -2472,24 +2470,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxTrees = this.SyntaxTrees;
                 if (this.Options.ConcurrentBuild)
                 {
-                    var parallelOptions = cancellationToken.CanBeCanceled
-                                        ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                        : DefaultParallelOptions;
-
-                    Parallel.For(0, syntaxTrees.Length, parallelOptions,
+                    RoslynParallel.For(
+                        0,
+                        syntaxTrees.Length,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
-                            try
-                            {
-                                var syntaxTree = syntaxTrees[i];
-                                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
-                                builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
-                            }
-                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                            {
-                                throw ExceptionUtilities.Unreachable;
-                            }
-                        }));
+                            var syntaxTree = syntaxTrees[i];
+                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                        }),
+                        cancellationToken);
                 }
                 else
                 {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal class CodeGenerationOptions
     {
-        public static readonly CodeGenerationOptions Default = new CodeGenerationOptions();
+        public static readonly CodeGenerationOptions Default = new();
 
         /// <summary>
         /// A location used to determine the best place to generate a member.  This is only used for

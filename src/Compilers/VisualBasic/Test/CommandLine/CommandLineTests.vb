@@ -10091,6 +10091,39 @@ dotnet_diagnostic.BC42024.severity = warning;
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
         End Sub
 
+        <Theory, CombinatorialData>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
+        Public Sub WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(useGlobalConfig As Boolean)
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+    Private Sub M()
+        Dim a As String
+    End Sub
+End Class")
+            Dim additionalFlags = {"/warnaserror+"}
+
+            If useGlobalConfig Then
+                Dim globalConfig = dir.CreateFile(".globalconfig").WriteAllText($"
+is_global = true
+dotnet_diagnostic.BC42024.severity = warning;
+")
+                additionalFlags = additionalFlags.Append("/analyzerconfig:" & globalConfig.Path).ToArray()
+            Else
+                Dim ruleSetSource As String = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""15.0"">
+  <Rules AnalyzerId=""Compiler"" RuleNamespace=""Compiler"">
+    <Rule Id=""BC42024"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+                dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+                additionalFlags = additionalFlags.Append("/ruleset:Rules.ruleset").ToArray()
+            End If
+
+            VerifyOutput(dir, src, additionalFlags:=additionalFlags, expectedErrorCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False)
+        End Sub
+
         <Fact>
         <WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")>
         Public Sub GlobalAnalyzerConfigSpecificDiagnosticOptionsOverrideGeneralCommandLineOptions()

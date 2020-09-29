@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct BuilderNode
         {
-            public static readonly BuilderNode RootNode = new BuilderNode("", RootNodeParentIndex, default);
+            public static readonly BuilderNode RootNode = new("", RootNodeParentIndex, default);
 
             public readonly string Name;
             public readonly int ParentIndex;
@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private sealed class ParameterTypeInfoProvider : ISignatureTypeProvider<ParameterTypeInfo, object>
         {
-            public static readonly ParameterTypeInfoProvider Instance = new ParameterTypeInfoProvider();
+            public static readonly ParameterTypeInfoProvider Instance = new();
 
             private static ParameterTypeInfo ComplexInfo
-                => new ParameterTypeInfo(string.Empty, isComplex: true, isArray: false);
+                => new(string.Empty, isComplex: true, isArray: false);
 
             public ParameterTypeInfo GetPrimitiveType(PrimitiveTypeCode typeCode)
-                => new ParameterTypeInfo(typeCode.ToString(), isComplex: false, isArray: false);
+                => new(typeCode.ToString(), isComplex: false, isArray: false);
 
             public ParameterTypeInfo GetGenericInstantiation(ParameterTypeInfo genericType, ImmutableArray<ParameterTypeInfo> typeArguments)
                 => genericType.IsComplexType

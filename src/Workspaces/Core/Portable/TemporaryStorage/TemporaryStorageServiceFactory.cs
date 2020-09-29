@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// available in source control history. The use of exclusive locks was not causing any measurable
             /// performance overhead even on 28-thread machines at the time this was written.</para>
             /// </remarks>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             /// <summary>
             /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer

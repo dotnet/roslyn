@@ -1966,5 +1966,46 @@ j = i switch
 
             await test.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        public async Task TestOnMultiCaseSection_String_CSharp9()
+        {
+            var testCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        [|switch|] (s)
+        {
+	        case ""Last"":
+            case ""First"":
+            case ""Count"":
+                return true;
+            default:
+                return false;
+        }
+    }
+}";
+            var fixedCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        return s switch
+        {
+            ""Last"" or ""First"" or ""Count"" => true,
+            _ => false,
+        };
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
+        }
     }
 }

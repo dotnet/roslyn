@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static readonly Guid ImageCatalogGuid = Guid.Parse("ae27a6b0-e345-4288-96df-5eaf394ee369");
 
         public static ImageId GetImageCatalogImageId(int imageId)
-            => new ImageId(ImageCatalogGuid, imageId);
+            => new(ImageCatalogGuid, imageId);
 
         public static ImageId GetImageId(this Glyph glyph)
         {

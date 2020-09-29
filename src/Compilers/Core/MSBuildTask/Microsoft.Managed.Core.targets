@@ -26,7 +26,7 @@
 
   <Target Name="_BeforeVBCSCoreCompile"
           DependsOnTargets="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies">
-    
+
     <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
       <ReferencePathWithRefAssemblies>
         <EmbedInteropTypes />
@@ -79,11 +79,14 @@
     
     -->
   <ItemGroup>
-    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false' or '$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
     <!-- Work around a GetPathsOfAllDirectoriesAbove() bug where it can return multiple equivalent paths when the 
          compilation includes linked files with relative paths - https://github.com/microsoft/msbuild/issues/4392 -->
     <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
     <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    
+    <GlobalAnalyzerConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(GlobalAnalyzerConfigFiles->Exists())" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
   </ItemGroup>
 
   <!--
@@ -256,12 +259,42 @@
     If a user requests that any @(AdditionalFiles) items are copied to the output directory
     we add them to the @(None) group to ensure they will be copied.
  -->
- 
-   <Target Name="CopyAdditionalFiles" 
-           BeforeTargets="AssignTargetPaths">
+
+  <Target Name="CopyAdditionalFiles"
+          BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
     </ItemGroup>
   </Target>
 
+  <!--
+    ========================
+    CompilerGeneratedFilesOutputPath
+    ========================
+    
+    Controls output of generated files.
+    
+    CompilerGeneratedFilesOutputPath controls the location the files will be output to.
+    The compiler will not emit any generated files when the path is empty, and defaults to a /generated directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
+    EmitCompilerGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When EmitCompilerGeneratedFiles is true, we ensure that CompilerGeneatedFilesOutputPath has a value and issue a warning if not.
+    We will create CompilerGeneratedFilesOutputPath if it does not exist.
+    -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles Condition="'$(EmitCompilerGeneratedFiles)' == ''">false</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath Condition="'$(EmitCompilerGeneratedFiles)' != 'true'"></CompilerGeneratedFilesOutputPath>
+    <CompilerGeneratedFilesOutputPath Condition="'$(EmitCompilerGeneratedFiles)' == 'true' and '$(CompilerGeneratedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <Target Name="CreateCompilerGeneratedFilesOutputPath"
+        BeforeTargets="CoreCompile"
+        Condition="'$(EmitCompilerGeneratedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
+
+    <Warning Condition="'$(CompilerGeneratedFilesOutputPath)' == ''"
+             Text="EmitCompilerGeneratedFiles was true, but no CompilerGeneratedFilesOutputPath was provided. CompilerGeneratedFilesOutputPath must be set in order to emit generated files." />
+    
+    <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
+             Directories="$(CompilerGeneratedFilesOutputPath)"  />
+  </Target>
+  
 </Project>

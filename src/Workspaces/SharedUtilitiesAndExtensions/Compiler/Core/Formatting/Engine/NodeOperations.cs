@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal class NodeOperations
     {
-        public static NodeOperations Empty = new NodeOperations();
+        public static NodeOperations Empty = new();
 
         public List<IndentBlockOperation> IndentBlockOperation { get; }
         public List<SuppressOperation> SuppressOperation { get; }

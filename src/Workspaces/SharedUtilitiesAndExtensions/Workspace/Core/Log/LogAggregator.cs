@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal class LogAggregator : AbstractLogAggregator<LogAggregator.Counter>
     {
         protected override Counter CreateCounter()
-            => new Counter();
+            => new();
 
         public void SetCount(object key, int count)
         {

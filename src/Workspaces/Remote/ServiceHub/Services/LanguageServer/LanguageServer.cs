@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
                 NavigateToItemKind.Class,
+                NavigateToItemKind.Record,
                 NavigateToItemKind.Constant,
                 NavigateToItemKind.Delegate,
                 NavigateToItemKind.Enum,

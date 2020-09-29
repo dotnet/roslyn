@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>
-            new RelativePathResolver(searchPaths, BaseDirectory);
+            new(searchPaths, BaseDirectory);
 
         public RelativePathResolver WithBaseDirectory(string baseDirectory) =>
-            new RelativePathResolver(SearchPaths, baseDirectory);
+            new(SearchPaths, baseDirectory);
 
         public bool Equals(RelativePathResolver other) =>
             BaseDirectory == other.BaseDirectory && SearchPaths.SequenceEqual(other.SearchPaths);

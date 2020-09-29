@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class Service : IWorkspaceStatusService
         {
-            private readonly SemaphoreSlim _initializationGate = new SemaphoreSlim(initialCount: 1);
+            private readonly SemaphoreSlim _initializationGate = new(initialCount: 1);
             private readonly IAsyncServiceProvider2 _serviceProvider;
 
             private bool _initialized = false;

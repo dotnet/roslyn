@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     {
         internal const string TagId = "MarkerFormatDefinition/HighlightedReference";
 
-        public static readonly ReferenceHighlightTag Instance = new ReferenceHighlightTag();
+        public static readonly ReferenceHighlightTag Instance = new();
 
         private ReferenceHighlightTag()
             : base(TagId)

@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
         private readonly IAsynchronousOperationListener _asyncListener;
 
         // Lock for serializing access to these objects.
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         // The current task we are executing on the background.  Kept around so we can serialize
         // background tasks by continually calling 'SafeContinueWith' on this task.
         private Task _currentBackgroundTask;
 
         // The cancellation source for the current chain of work.
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         #endregion
 

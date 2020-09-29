@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         ICommandHandler<ToggleBlockCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
-            new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
+            new(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
 
         private readonly ITextStructureNavigatorSelectorService _navigatorSelectorService;
 

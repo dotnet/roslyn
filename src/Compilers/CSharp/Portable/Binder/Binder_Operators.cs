@@ -1350,6 +1350,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return valueLeft.Int32Value / valueRight.Int32Value;
                     case BinaryOperatorKind.NIntRemainder:
                         return valueLeft.Int32Value % valueRight.Int32Value;
+                    case BinaryOperatorKind.NIntLeftShift:
+                        {
+                            var int32Value = valueLeft.Int32Value << valueRight.Int32Value;
+                            var int64Value = valueLeft.Int64Value << valueRight.Int32Value;
+                            return (int32Value == int64Value) ? int32Value : null;
+                        }
+                    case BinaryOperatorKind.NUIntLeftShift:
+                        {
+                            var uint32Value = valueLeft.UInt32Value << valueRight.Int32Value;
+                            var uint64Value = valueLeft.UInt64Value << valueRight.Int32Value;
+                            return (uint32Value == uint64Value) ? uint32Value : null;
+                        }
                 }
 
                 return null;
@@ -1808,12 +1820,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.FloatRemainder:
                     return valueLeft.SingleValue % valueRight.SingleValue;
                 case BinaryOperatorKind.IntLeftShift:
-                case BinaryOperatorKind.NIntLeftShift:
                     return valueLeft.Int32Value << valueRight.Int32Value;
                 case BinaryOperatorKind.LongLeftShift:
                     return valueLeft.Int64Value << valueRight.Int32Value;
                 case BinaryOperatorKind.UIntLeftShift:
-                case BinaryOperatorKind.NUIntLeftShift:
                     return valueLeft.UInt32Value << valueRight.Int32Value;
                 case BinaryOperatorKind.ULongLeftShift:
                     return valueLeft.UInt64Value << valueRight.Int32Value;

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForMethodsHelper :
         UseExpressionBodyHelper<MethodDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForMethodsHelper Instance = new UseExpressionBodyForMethodsHelper();
+        public static readonly UseExpressionBodyForMethodsHelper Instance = new();
 
         private UseExpressionBodyForMethodsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,

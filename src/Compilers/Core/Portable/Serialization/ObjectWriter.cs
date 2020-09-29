@@ -388,10 +388,10 @@ namespace Roslyn.Utilities
             private int _nextId;
 
             private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+                new(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
             private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
+                new(() => new Dictionary<object, int>(128));
 
             public WriterReferenceMap(bool valueEquality)
             {

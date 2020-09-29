@@ -223,38 +223,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
 #nullable enable
-        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
         {
-            get
+            if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
             {
-                if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
+                var data = _underlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+                if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                    || ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
                 {
-                    var data = _underlyingMethod.UnmanagedCallersOnlyAttributeData;
-                    if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
-                        || ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
-                    {
-                        // Underlying hasn't been found yet either, just return it. We'll check again the next
-                        // time this is called
-                        return data;
-                    }
-
-                    if (data?.CallingConventionTypes.IsEmpty == false)
-                    {
-                        var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
-                        foreach (var identifier in data.CallingConventionTypes)
-                        {
-                            builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
-                        }
-
-                        data = UnmanagedCallersOnlyAttributeData.Create(builder.ToImmutableHashSet(), data.IsValid);
-                        builder.Free();
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, data, UnmanagedCallersOnlyAttributeData.Uninitialized);
+                    // Underlying hasn't been found yet either, just return it. We'll check again the next
+                    // time this is called
+                    return data;
                 }
 
-                return _lazyUnmanagedAttributeData;
+                if (data?.CallingConventionTypes.IsEmpty == false)
+                {
+                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                    foreach (var identifier in data.CallingConventionTypes)
+                    {
+                        builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
+                    }
+
+                    data = UnmanagedCallersOnlyAttributeData.Create(builder.ToImmutableHashSet());
+                    builder.Free();
+                }
+
+                Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, data, UnmanagedCallersOnlyAttributeData.Uninitialized);
             }
+
+            return _lazyUnmanagedAttributeData;
         }
 #nullable restore
 

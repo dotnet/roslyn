@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal class AsyncCompletionLogger
     {
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
+        private static readonly LogAggregator s_logAggregator = new();
 
         internal enum ActionInfo
         {

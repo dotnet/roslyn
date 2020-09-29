@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
-            => new InsertionPoint(document, _annotation);
+            => new(document, _annotation);
 
         private Lazy<SyntaxNode> CreateLazyContextNode()
-            => new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
+            => new(ComputeContextNode, isThreadSafe: true);
 
         private SyntaxNode ComputeContextNode()
         {

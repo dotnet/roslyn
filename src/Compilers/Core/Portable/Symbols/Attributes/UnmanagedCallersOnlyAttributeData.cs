@@ -13,31 +13,32 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class UnmanagedCallersOnlyAttributeData
     {
-        internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
-        internal static readonly UnmanagedCallersOnlyAttributeData AttributePresentDataNotBound = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: false);
-        private static readonly UnmanagedCallersOnlyAttributeData PlatformDefault = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid: true);
+        internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty);
+        internal static readonly UnmanagedCallersOnlyAttributeData AttributePresentDataNotBound = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty);
+        private static readonly UnmanagedCallersOnlyAttributeData PlatformDefault = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: ImmutableHashSet<INamedTypeSymbolInternal>.Empty);
 
-        internal static UnmanagedCallersOnlyAttributeData Create(ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes, bool isValid)
-            => (callingConventionTypes, isValid) switch
+        public const string CallConvsPropertyName = "CallConvs";
+
+        internal static UnmanagedCallersOnlyAttributeData Create(ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes)
+            => callingConventionTypes switch
             {
-                (null, true) or ({ IsEmpty: true }, true) => PlatformDefault,
-                _ => new UnmanagedCallersOnlyAttributeData(callingConventionTypes ?? ImmutableHashSet<INamedTypeSymbolInternal>.Empty, isValid)
+                null or { IsEmpty: true } => PlatformDefault,
+                _ => new UnmanagedCallersOnlyAttributeData(callingConventionTypes)
             };
 
         public readonly ImmutableHashSet<INamedTypeSymbolInternal> CallingConventionTypes;
-        public readonly bool IsValid;
 
-        private UnmanagedCallersOnlyAttributeData(ImmutableHashSet<INamedTypeSymbolInternal> callingConventionTypes, bool isValid)
+        private UnmanagedCallersOnlyAttributeData(ImmutableHashSet<INamedTypeSymbolInternal> callingConventionTypes)
         {
             CallingConventionTypes = callingConventionTypes;
-            IsValid = isValid;
         }
 
-        internal static bool IsCallConvsTypedConstant(string key, in TypedConstant value)
+        internal static bool IsCallConvsTypedConstant(string key, bool isField, in TypedConstant value)
         {
-            return key == "CallConvs"
+            return isField
+                   && key == CallConvsPropertyName
                    && value.Kind == TypedConstantKind.Array
-                   && value.Values.All(v => v.Kind == TypedConstantKind.Type);
+                   && (value.Values.IsDefaultOrEmpty || value.Values.All(v => v.Kind == TypedConstantKind.Type));
         }
     }
 }

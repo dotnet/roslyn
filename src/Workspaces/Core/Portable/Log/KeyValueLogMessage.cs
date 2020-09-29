@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class KeyValueLogMessage : LogMessage
     {
-        private static readonly ObjectPool<KeyValueLogMessage> s_pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
+        private static readonly ObjectPool<KeyValueLogMessage> s_pool = new(() => new KeyValueLogMessage(), 20);
 
-        public static readonly KeyValueLogMessage NoProperty = new KeyValueLogMessage();
+        public static readonly KeyValueLogMessage NoProperty = new();
 
         public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {

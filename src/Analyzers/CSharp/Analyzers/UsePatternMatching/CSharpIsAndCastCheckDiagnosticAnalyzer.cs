@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
+        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new();
 
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,

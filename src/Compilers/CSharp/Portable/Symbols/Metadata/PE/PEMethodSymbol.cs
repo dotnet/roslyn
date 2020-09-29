@@ -1334,13 +1334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 EnsureTypeParametersAreLoaded(ref result);
-                if (result == null && UnmanagedCallersOnlyAttributeData is UnmanagedCallersOnlyAttributeData data)
+                if (result == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                    if (MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction)
-                        || !IsStatic
-                        || !data.IsValid)
+                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
                     {
                         result = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                     }
@@ -1435,38 +1433,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal override UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
         {
-            get
+            if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
             {
-                if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
-                {
-                    var allAttributes = GetAttributes();
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                var unmanagedCallersOnlyData = containingModule.Module.TryGetUnmanagedCallersOnlyAttribute(_handle, new MetadataDecoder(containingModule),
+                    static (name, value, isField) => MethodSymbol.TryDecodeUnmanagedCallersOnlyCallConvsField(name, value, isField, location: null, diagnostics: null));
 
-                    CSharpAttributeData? unmanagedAttribute = null;
-                    foreach (var attribute in allAttributes)
-                    {
-                        if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
-                        {
-                            unmanagedAttribute = attribute;
-                            break;
-                        }
-                    }
+                Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                             && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
 
-                    UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
-                        ? null
-                        : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
+                var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
+                                                              unmanagedCallersOnlyData,
+                                                              UnmanagedCallersOnlyAttributeData.Uninitialized);
 
-                    var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
-                                                                  data,
-                                                                  UnmanagedCallersOnlyAttributeData.Uninitialized);
-
-                    _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
-                    return result;
-                }
-
-                return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
+                _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
+                return result;
             }
+
+            return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
         }
 #nullable restore
 

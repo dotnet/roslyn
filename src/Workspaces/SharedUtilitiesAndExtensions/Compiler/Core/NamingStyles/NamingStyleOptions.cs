@@ -24,6 +24,6 @@ namespace Microsoft.CodeAnalysis.Simplification
             });
 
         public static OptionKey2 GetNamingPreferencesOptionKey(string language)
-            => new OptionKey2(NamingPreferences, language);
+            => new(NamingPreferences, language);
     }
 }

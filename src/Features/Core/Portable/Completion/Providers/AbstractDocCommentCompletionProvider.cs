@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
         private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)> s_tagMap =
-            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>
+            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>()
             {
                 //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
                 { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },

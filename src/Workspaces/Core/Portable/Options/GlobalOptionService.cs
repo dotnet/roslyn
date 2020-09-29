@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
         private readonly HashSet<string> _forceComputedLanguages;
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
 #pragma warning disable IDE0044 // Add readonly modifier - https://github.com/dotnet/roslyn/issues/33009
         private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _neutralEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;

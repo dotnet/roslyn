@@ -39,23 +39,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in parallel,
         /// but the current tradeoff is for simplicity of code and "obvious correctness" than something that is subtle, fast, and wrong.</remarks>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// The number of active batch scopes. If this is zero, we are not batching, non-zero means we are batching.
         /// </summary>
         private int _activeBatchScopes = 0;
 
-        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesAddedInBatch = new List<(string path, MetadataReferenceProperties properties)>();
-        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesRemovedInBatch = new List<(string path, MetadataReferenceProperties properties)>();
-        private readonly List<ProjectReference> _projectReferencesAddedInBatch = new List<ProjectReference>();
-        private readonly List<ProjectReference> _projectReferencesRemovedInBatch = new List<ProjectReference>();
+        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesAddedInBatch = new();
+        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesRemovedInBatch = new();
+        private readonly List<ProjectReference> _projectReferencesAddedInBatch = new();
+        private readonly List<ProjectReference> _projectReferencesRemovedInBatch = new();
 
-        private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new Dictionary<string, VisualStudioAnalyzer>();
-        private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new List<VisualStudioAnalyzer>();
-        private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new List<VisualStudioAnalyzer>();
+        private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new();
+        private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new();
+        private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new();
 
-        private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new List<Func<Solution, Solution>>();
+        private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new();
 
         private string _assemblyName;
         private string _displayName;
@@ -83,13 +83,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
         private bool _runAnalyzers = true;
 
-        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
+        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new();
 
         /// <summary>
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
         /// may not be in the actual workspace yet.
         /// </summary>
-        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken>();
+        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new();
 
         /// <summary>
         /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
         /// </summary>
-        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
+        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new();
 
         /// <summary>
         /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The workspace snapshot will only have a document with  <see cref="DynamicFileInfo.FilePath"/> (the value) but not the
         /// original dynamic file path (the key).
         /// </summary>
-        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new Dictionary<string, string?>();
+        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new();
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
@@ -1141,7 +1141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The map of file paths to the underlying <see cref="DocumentId"/>. This document may exist in <see cref="_documentsAddedInBatch"/> or has been
             /// pushed to the actual workspace.
             /// </summary>
-            private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// A map of explicitly-added "always open" <see cref="SourceTextContainer"/> and their associated <see cref="DocumentId"/>. This does not contain
@@ -1152,7 +1152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
             /// </summary>
-            private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new Dictionary<DocumentId, IDynamicFileInfoProvider>();
+            private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new();
 
             /// <summary>
             /// The current list of documents that are to be added in this batch.
@@ -1162,7 +1162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The current list of documents that are being removed in this batch. Once the document is in this list, it is no longer in <see cref="_documentPathsToDocumentIds"/>.
             /// </summary>
-            private readonly List<DocumentId> _documentsRemovedInBatch = new List<DocumentId>();
+            private readonly List<DocumentId> _documentsRemovedInBatch = new();
 
             /// <summary>
             /// The current list of document file paths that will be ordered in a batch.

@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialType()
+        public async Task TestClassPartialType()
         {
             await Test_KeywordAsync(
 @"part[||]ial class C
@@ -174,12 +174,52 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialMethod()
+        public async Task TestRecordPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRecordWithPrimaryConstructorPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C(string S)
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInClass()
         {
             await Test_KeywordAsync(
 @"partial class C
 {
     par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInRecord()
+        {
+            await Test_KeywordAsync(
+@"partial record C
+{
+    par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestExtendedPartialMethod()
+        {
+            await Test_KeywordAsync(
+@"partial class C
+{
+    public par[||]tial void goo();
 }", "partialmethod");
         }
 
