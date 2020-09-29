@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //                             ↑        | cursor after the manipulation is placed after the dot
             var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
             var parentExpression = GetParentExpressionOfToken(potentialDotTokenLeftOfCursor);
-            var nodeOrTokenToRemove = FindNodeOrTokenToRemoveAtCursorPosition(tokenAtPosition);
+            var tokenToRemove = FindTokenToRemoveAtCursorPosition(tokenAtPosition);
             if (rootExpression is null || parentExpression is null)
             {
                 // ProvideCompletionsAsync only adds CompletionItems, if GetParentExpressionOfToken returns an expression.
@@ -85,13 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 throw ExceptionUtilities.Unreachable;
             }
 
-            var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, nodeOrTokenToRemove.HasValue ? nodeOrTokenToRemove.Value.Span.End : rootExpression.Span.End);
+            var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, tokenToRemove.HasValue ? tokenToRemove.Value.Span.End : rootExpression.Span.End);
             var cursorPositionOffset = spanToReplace.End - position;
             var fromRootToParent = rootExpression.ToString();
-            if (nodeOrTokenToRemove is SyntaxNodeOrToken nodeOrToken)
+            if (tokenToRemove is SyntaxToken token)
             {
                 // Cut off the identifier
-                var length = nodeOrToken.Span.Start - rootExpression.SpanStart;
+                var length = token.Span.Start - rootExpression.SpanStart;
                 fromRootToParent = fromRootToParent.Substring(0, length);
                 // place cursor right behind ).
                 cursorPositionOffset = 0;

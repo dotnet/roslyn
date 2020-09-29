@@ -91,15 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             context.AddItems(completionItems);
         }
 
-        protected static SyntaxNodeOrToken? FindNodeOrTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor)
+        protected static SyntaxToken? FindTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor) => tokenAtCursor switch
         {
-            return tokenAtCursor switch
-            {
-                { Parent: IdentifierNameSyntax identifierName } => identifierName,
-                var token when token.IsKeyword() => token,
-                _ => null,
-            };
-        }
+            var token when token.IsKind(SyntaxKind.IdentifierToken) => token,
+            var token when token.IsKeyword() => token,
+            _ => null,
+        };
 
         /// <summary>
         /// Returns the expression left to the passed dot <paramref name="token"/>.
