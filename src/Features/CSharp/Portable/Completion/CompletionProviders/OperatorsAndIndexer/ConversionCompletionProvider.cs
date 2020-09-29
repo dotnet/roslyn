@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
         {
+            var containerIsNullable = container.IsNullable();
+            container = container.RemoveNullableIfPresent();
             var allMembers = container.GetMembers();
             var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
                                          where
@@ -44,16 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                              m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
                                              container.Equals(m.Parameters[0].Type) // Convert from container type to other type
                                          let typeName = m.ReturnType.ToMinimalDisplayString(semanticModel, position)
+                                         // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
+                                         let optionalNullableQuestionmark = containerIsNullable && m.ReturnType.IsStructType() ? "?" : ""
                                          select SymbolCompletionItem.CreateWithSymbolId(
                                              displayTextPrefix: "(",
                                              displayText: typeName, // The type to convert to
-                                             displayTextSuffix: ")",
+                                             displayTextSuffix: $"{optionalNullableQuestionmark})",
                                              filterText: typeName,
                                              sortText: SortText(typeName),
                                              symbols: ImmutableList.Create(m),
                                              rules: CompletionItemRules.Default,
                                              contextPosition: position,
-                                             properties: CreatePropertiesBag((MinimalTypeNamePropertyName, typeName)));
+                                             properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}")));
             return allExplicitConversions.ToImmutableArray();
         }
 

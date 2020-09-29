@@ -756,6 +756,62 @@ public class Program
 ");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in numeric conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
+        public async Task ExplicitConversionOfNullableStructToNullableStructIsOffered()
+        {
+            // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
+            await VerifyItemExistsAsync(@"
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class Program
+{
+    public void Main()
+    {
+        S? s = null;
+        s.$$
+    }
+}
+", "int", displayTextSuffix: "?)");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in numeric conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
+        public async Task ExplicitConversionOfNullableStructToNullableStructIsApplied()
+        {
+            // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
+            await VerifyCustomCommitProviderAsync(@"
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class Program
+{
+    public void Main()
+    {
+        S? s = null;
+        s.$$
+    }
+}
+", "int", @"
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class Program
+{
+    public void Main()
+    {
+        S? s = null;
+        ((int?)s).$$
+    }
+}
+");
+        }
+
         [WpfFact(Skip = "Built-in conversions are not returned by ITypeSymbol.GetAllMembers()"), Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         // built-in numeric conversions:
