@@ -2008,6 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                         return DeclarationKind.Attribute;
                     }
                     break;
+
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
