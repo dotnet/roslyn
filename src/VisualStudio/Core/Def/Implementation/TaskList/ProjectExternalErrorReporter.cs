@@ -23,8 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
-        internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
-        internal static readonly IReadOnlyList<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
+        internal static readonly ImmutableArray<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
+        internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
