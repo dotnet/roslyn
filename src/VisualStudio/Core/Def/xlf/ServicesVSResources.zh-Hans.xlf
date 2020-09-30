@@ -657,11 +657,6 @@
         <target state="translated">拉取成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Razor C# 语言服务器客户端</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">正规表达式</target>

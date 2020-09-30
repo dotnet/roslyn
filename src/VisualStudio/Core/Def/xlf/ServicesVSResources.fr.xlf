@@ -657,11 +657,6 @@
         <target state="translated">Élever les membres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Client Razor du serveur de langage C#</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">Expressions régulières</target>

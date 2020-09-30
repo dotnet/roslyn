@@ -657,11 +657,6 @@
         <target state="translated">Member nach oben ziehen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Client des Razor C#-Sprachservers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">Reguläre Ausdrücke</target>

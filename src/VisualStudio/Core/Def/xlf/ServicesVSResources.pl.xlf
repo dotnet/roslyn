@@ -657,11 +657,6 @@
         <target state="translated">Podciągnij składowe w górę</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Klient serwera języka C# platformy Razor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">Wyrażenia regularne</target>
