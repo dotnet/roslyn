@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""defaultConfiguration"": {{
                 ""level"": ""error""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""shortDescription"": {{
                 ""text"": ""Field is never used""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -211,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""defaultConfiguration"": {{
                 ""level"": ""error""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -225,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""shortDescription"": {{
                 ""text"": ""Field is never used""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
