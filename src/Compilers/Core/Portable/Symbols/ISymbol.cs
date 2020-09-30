@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
         /// </list>
         /// </para>
         /// <para>
-        /// The generated class and entry point method for top-level statements are not considered as implicitly declared.
+        /// The class and entry point method for top-level statements are not considered as implicitly declared.
         /// </para>
         /// </remarks>
         bool IsImplicitlyDeclared { get; }
