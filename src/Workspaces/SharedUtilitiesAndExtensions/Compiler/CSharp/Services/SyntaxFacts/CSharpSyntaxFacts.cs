@@ -2148,7 +2148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return rootNode;
 
             static bool IsRootOperationNode(SyntaxNode node)
-                => (node is StatementSyntax && StatementIsRoot(node)) ||
+                => IsAccessorBlock(node) ||
                     node.Kind() == SyntaxKind.Attribute ||
                     node.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     node.Kind() == SyntaxKind.BaseConstructorInitializer ||
@@ -2158,14 +2158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
             static bool IsAccessorBlock(SyntaxNode node)
             {
-                if (node.Kind() == SyntaxKind.Block)
+                // Compilation syntax is a block syntax but not a valid operation root
+                if (node.Kind() != SyntaxKind.Block || node is CompilationUnitSyntax)
                 {
-                    var parentKind = node.Parent?.Kind();
-                    return parentKind == SyntaxKind.GetAccessorDeclaration ||
-                        parentKind == SyntaxKind.SetAccessorDeclaration;
+                    return false;
                 }
 
-                return true;
+                return node.IsParentKind(SyntaxKind.GetAccessorDeclaration, SyntaxKind.SetAccessorDeclaration);
             }
         }
     }

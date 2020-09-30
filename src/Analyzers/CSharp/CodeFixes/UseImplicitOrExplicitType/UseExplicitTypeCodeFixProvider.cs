@@ -65,92 +65,144 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationContext = node.Parent;
 
-            TypeSyntax? typeSyntax = null;
-            ParenthesizedVariableDesignationSyntax? parensDesignation = null;
-            SyntaxNode? declarationSyntax = null;
-
-            if (declarationContext is RefTypeSyntax refType)
+            if (declarationContext is RefTypeSyntax)
             {
                 declarationContext = declarationContext.Parent;
             }
 
             if (declarationContext is VariableDeclarationSyntax varDecl)
             {
-                typeSyntax = varDecl.Type;
-                declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
+                await HandleVariableDeclarationAsync(document, editor, varDecl, cancellationToken).ConfigureAwait(false);
             }
             else if (declarationContext is ForEachStatementSyntax forEach)
             {
-                typeSyntax = forEach.Type;
-                declarationSyntax = forEach.Identifier.Parent;
+                await HandleForEachStatementAsync(document, editor, forEach, cancellationToken).ConfigureAwait(false);
             }
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
-                typeSyntax = declarationExpression.Type;
-
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax? variableDesignation))
-                {
-                    parensDesignation = variableDesignation;
-                }
+                await HandleDeclarationExpressionAsync(document, editor, declarationExpression, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(declarationContext?.Kind());
             }
+        }
 
-            if (parensDesignation is null)
-            {
-                typeSyntax = typeSyntax.StripRefIfNeeded();
+        private static async Task HandleDeclarationExpressionAsync(Document document, SyntaxEditor editor, DeclarationExpressionSyntax declarationExpression, CancellationToken cancellationToken)
+        {
+            var typeSyntax = declarationExpression.Type;
+            typeSyntax = typeSyntax.StripRefIfNeeded();
 
-                var newTypeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
-                RoslynDebug.AssertNotNull(newTypeSymbol);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && declarationSyntax is not null)
-                {
-                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                    // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
-                    // determine if it needs to be null
-                    var encapsulatingNode = syntaxFacts.GetIOperationRootNode(node);
-                    Contract.ThrowIfNull(encapsulatingNode);
-
-                    var operationScope = semanticModel.GetRequiredOperation(encapsulatingNode, cancellationToken);
-                    var declSymbol = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
-
-                    if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
-                    {
-                        // If the symbol is never assigned null we can update the type symbol to also be non-null
-                        newTypeSymbol = newTypeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                    }
-                }
-
-                // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
-                // that would defeat the purpose of this refactoring entirely).
-                var newTypeSyntax = newTypeSymbol
-                             .GenerateTypeSyntax(allowVar: false)
-                             .WithTriviaFrom(typeSyntax);
-
-                Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
-
-                editor.ReplaceNode(typeSyntax, newTypeSyntax);
-            }
-            else
+            if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax? variableDesignation))
             {
                 RoslynDebug.AssertNotNull(typeSyntax.Parent);
 
                 var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
                 RoslynDebug.AssertNotNull(tupleTypeSymbol);
 
-                var leadingTrivia = node.GetLeadingTrivia()
-                    .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
+                var leadingTrivia = declarationExpression.GetLeadingTrivia()
+                    .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
-                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
+                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, variableDesignation).WithLeadingTrivia(leadingTrivia);
 
-                editor.ReplaceNode(declarationContext, tupleDeclaration);
+                editor.ReplaceNode(declarationExpression, tupleDeclaration);
             }
+            else
+            {
+                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+                RoslynDebug.AssertNotNull(typeSymbol);
+
+                editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
+            }
+        }
+
+        private static async Task HandleForEachStatementAsync(Document document, SyntaxEditor editor, ForEachStatementSyntax forEach, CancellationToken cancellationToken)
+        {
+            var typeSyntax = forEach.Type.StripRefIfNeeded();
+            var declarationSyntax = forEach.Identifier.Parent;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+
+            RoslynDebug.AssertNotNull(typeSymbol);
+            RoslynDebug.AssertNotNull(declarationSyntax);
+
+            typeSymbol = AdjustNullabilityOfTypeSymbol(
+                typeSymbol,
+                document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                semanticModel,
+                declarationSyntax,
+                cancellationToken);
+
+            editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
+        }
+
+        private static async Task HandleVariableDeclarationAsync(Document document, SyntaxEditor editor, VariableDeclarationSyntax varDecl, CancellationToken cancellationToken)
+        {
+            var typeSyntax = varDecl.Type.StripRefIfNeeded();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+            RoslynDebug.AssertNotNull(typeSymbol);
+
+            if (varDecl.Variables.Count == 1)
+            {
+                var declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
+                RoslynDebug.AssertNotNull(declarationSyntax);
+
+                typeSymbol = AdjustNullabilityOfTypeSymbol(
+                    typeSymbol,
+                    document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                    semanticModel,
+                    declarationSyntax,
+                    cancellationToken);
+            }
+
+            editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
+        }
+
+        private static ITypeSymbol AdjustNullabilityOfTypeSymbol(
+            ITypeSymbol typeSymbol,
+            ISyntaxFacts syntaxFacts,
+            SemanticModel semanticModel,
+            SyntaxNode declarationSyntax,
+            CancellationToken cancellationToken)
+        {
+            if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
+            {
+                // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
+                // determine if it needs to be null
+                var encapsulatingNode = syntaxFacts.GetIOperationRootNode(declarationSyntax);
+                Contract.ThrowIfNull(encapsulatingNode);
+
+                var operationScope = semanticModel.GetRequiredOperation(encapsulatingNode, cancellationToken);
+                var declSymbol = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
+
+                if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
+                {
+                    // If the symbol is never assigned null we can update the type symbol to also be non-null
+                    return typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
+            }
+
+            return typeSymbol;
+        }
+
+        private static SyntaxNode GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
+        {
+            // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
+            // that would defeat the purpose of this refactoring entirely).
+            var newTypeSyntax = newTypeSymbol
+                         .GenerateTypeSyntax(allowVar: false)
+                         .WithTriviaFrom(typeSyntax);
+
+            Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+
+            return newTypeSyntax;
         }
 
         private static ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
