@@ -882,7 +882,7 @@ public class Program
         [InlineData("class", "struct", false, false, false)] // c.From class -> struct = (To)
         [InlineData("class", "struct", false, true, false)] // c?.From class -> struct = (To)
         [InlineData("struct", "struct", false, false, false)] // c.From struct -> struct = (To)
-        [InlineData("struct", "struct", false, true, true)] // c.From struct -> struct = (To?)
+        [InlineData("struct", "struct", false, true, true)] // c?.From struct -> struct = (To?)
 
         // From property is Nullable<From>
         [InlineData("struct", "class", true, false, false)] // c.From struct -> class = (To)
