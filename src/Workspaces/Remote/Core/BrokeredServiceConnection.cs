@@ -165,8 +165,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 catch (Exception e) when (e is not (OperationCanceledException or RemoteRpcException))
                 {
                     // Ensure that the writer is complete if an exception is thrown
-                    // that is not handled by the RPC proxy. The proxy completes the writer
-                    // if a remote exception occurs on the server or when the call succeeds.
+                    // that is not thrown by the RPC proxy. The proxy completes the writer
+                    // if a remote exception occurs on the server or the request is canceled.
+                    // The remote service completes the writer when the call succeeds.
                     await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
 
                     throw;
