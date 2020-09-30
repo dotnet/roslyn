@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. This doesn't include the generated method and class for top-level statements.
+        /// an explicit corresponding source code declaration.
         /// </summary> 
         /// <remarks>
         /// This is intended for symbols that are ordinary symbols in the language sense, and may be
@@ -145,6 +145,9 @@ namespace Microsoft.CodeAnalysis
         /// <item><description>The parameters on indexer accessor methods (not on the indexer itself).</description></item>
         /// <item><description>Methods in anonymous types.</description></item>
         /// </list>
+        /// </para>
+        /// <para>
+        /// The generated class and entry point method for top-level statements are not considered as implicitly declared.
         /// </para>
         /// </remarks>
         bool IsImplicitlyDeclared { get; }
