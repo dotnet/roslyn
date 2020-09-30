@@ -747,18 +747,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static bool IsReadOnly([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            return symbol switch
+            => symbol switch
             {
                 IFieldSymbol field => field.IsReadOnly,
-
                 IPropertySymbol property => property.IsReadOnly,
-
-                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
-                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
-
+#if CODEANALYSIS_V3_OR_BETTER
+                IMethodSymbol method => method.IsReadOnly,
+                ITypeSymbol type => type.IsReadOnly,
+#endif
                 _ => false,
             };
-        }
     }
 }

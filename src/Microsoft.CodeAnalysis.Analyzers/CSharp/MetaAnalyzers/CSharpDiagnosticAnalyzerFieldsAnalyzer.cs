@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpDiagnosticAnalyzerFieldsAnalyzer : DiagnosticAnalyzerFieldsAnalyzer<ClassDeclarationSyntax, FieldDeclarationSyntax, TypeSyntax, VariableDeclarationSyntax>
+    public class CSharpDiagnosticAnalyzerFieldsAnalyzer : DiagnosticAnalyzerFieldsAnalyzer<ClassDeclarationSyntax, StructDeclarationSyntax, FieldDeclarationSyntax, TypeSyntax, VariableDeclarationSyntax>
     {
     }
 }
