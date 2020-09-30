@@ -89,8 +89,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericHashSet1));
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsConcurrentConcurrentDictionary2));
 
-                    RoslynDebug.Assert(symbolEqualityComparerType != null, "SymbolEqualityComparer should not be null here.");
-
                     context.RegisterOperationAction(
                         context => HandleObjectCreation(in context, symbolType, symbolEqualityComparerType, collectionTypesBuilder.ToImmutable()),
                         OperationKind.ObjectCreation);
