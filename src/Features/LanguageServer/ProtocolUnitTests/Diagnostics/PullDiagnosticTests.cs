@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             results = await RunGetWorkspacePullDiagnosticsAsync(workspace, progress: progress);
 
             Assert.Null(results);
-            Assert.Equal("CS1513", progress.GetValues()[0][0].Diagnostics![0].Code);
+            Assert.Equal("CS1513", progress.GetValues()![0][0].Diagnostics![0].Code);
         }
 
         #endregion
