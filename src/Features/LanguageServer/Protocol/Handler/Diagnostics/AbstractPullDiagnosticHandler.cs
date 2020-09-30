@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 Code = diagnosticData.Id,
                 Message = diagnosticData.Message,
-                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
+                Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                 Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMapped: true)),
                 Tags = ConvertTags(diagnosticData),
                 DiagnosticType = diagnosticData.Category,
@@ -223,6 +224,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 },
             };
         }
+
+        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
+            => severity switch
+            {
+                // Hidden is translated in ConvertTags to pass along appropriate _ms tags
+                // that will hide the item in a client that knows about those tags.
+                DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
+                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
+                DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            };
 
         private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {

@@ -193,18 +193,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
-            => severity switch
-            {
-                // Hidden is translated in AbstractPullDiagnosticHandler.ConvertTags to pass along appropriate _ms tags
-                // that will hide the item in a client that knows about those tags.
-                DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
-                DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(severity),
-            };
-
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {
             if (Enum.TryParse<LSP.SymbolKind>(kind, out var symbolKind))
