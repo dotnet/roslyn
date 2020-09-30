@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             internal bool CanGeneratePropertyOrField()
             {
-                return ContainingType is { IsImplicitlyDeclared: false,  Name: not TopLevelStatementsEntryPointTypeName };
+                return ContainingType is { IsImplicitlyDeclared: false,  Name: not WellKnownMemberNames.TopLevelStatementsEntryPointTypeName };
             }
 
             internal bool CanGenerateLocal()
@@ -148,9 +148,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             internal bool CanGenerateParameter()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return ContainingMethod is { IsImplicitlyDeclared: false }
-                    // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
-                    && ContainingMethod.Name != WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
+                // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
+                return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
                     && !IsInMemberContext && !IsConstant;
             }
 
