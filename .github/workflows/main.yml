@@ -13,7 +13,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.100-preview.7.20366.6
+        dotnet-version: 5.0.100-preview.8.20417.9
     - name: Restore
       run: ./restore.sh
     - name: Build
