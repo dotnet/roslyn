@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,8 +42,8 @@ namespace Roslyn.Utilities
         /// </summary>
         private bool _substringsAreSimilar;
 
-        private static readonly object s_poolGate = new object();
-        private static readonly Stack<WordSimilarityChecker> s_pool = new Stack<WordSimilarityChecker>();
+        private static readonly object s_poolGate = new();
+        private static readonly Stack<WordSimilarityChecker> s_pool = new();
 
         public static WordSimilarityChecker Allocate(string text, bool substringsAreSimilar)
         {

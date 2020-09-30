@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -36,8 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _extensionMethodInfo = extensionMethodInfo;
         }
 
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new ConditionalWeakTable<Document, SyntaxTreeIndex>();
-        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {

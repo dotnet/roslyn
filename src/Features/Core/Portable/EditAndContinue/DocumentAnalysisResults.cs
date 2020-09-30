@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults SyntaxErrors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
-            => new DocumentAnalysisResults(rudeEdits);
+            => new(rudeEdits);
 
         public static DocumentAnalysisResults Unchanged(
             ImmutableArray<ActiveStatement> activeStatements,
@@ -177,6 +179,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasSemanticErrors);
         }
 
-        internal static readonly TraceLog Log = new TraceLog(256, "EnC");
+        internal static readonly TraceLog Log = new(256, "EnC");
     }
 }

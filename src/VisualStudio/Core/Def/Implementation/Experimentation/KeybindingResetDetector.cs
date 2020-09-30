@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -56,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private const uint ResumeId = 707;
         private const uint SuspendId = 708;
         private const uint ToggleSuspendId = 709;
-        private static readonly Guid ReSharperPackageGuid = new Guid("0C6E6407-13FC-4878-869A-C8B4016C57FE");
-        private static readonly Guid ReSharperCommandGroup = new Guid("{47F03277-5055-4922-899C-0F7F30D26BF1}");
+        private static readonly Guid ReSharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
+        private static readonly Guid ReSharperCommandGroup = new("{47F03277-5055-4922-899C-0F7F30D26BF1}");
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly System.IServiceProvider _serviceProvider;
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private OleComponent _oleComponent;
         private uint _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = new();
         /// <summary>
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.

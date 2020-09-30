@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// an attribute argument.
         /// </summary>
         internal abstract UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete);
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Returns true if this method is an extension method.
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Platform invoke information, or null if the method isn't a P/Invoke.
         /// </summary>
         public abstract DllImportData? GetDllImportData();
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Declaration security information associated with this type, or null if there is none.
@@ -898,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual ImmutableArray<NamedTypeSymbol> CallingConventionTypes => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal virtual ImmutableArray<NamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<NamedTypeSymbol>.Empty;
 
         /// <summary>
         /// Returns the map from type parameters to type arguments.
@@ -958,56 +961,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(CSharpAttributeData attribute, Location? location, DiagnosticBag? diagnostics)
+        internal static (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs) TryDecodeUnmanagedCallersOnlyCallConvsField(
+            string key,
+            TypedConstant value,
+            bool isField,
+            Location? location,
+            DiagnosticBag? diagnostics)
         {
-            Debug.Assert((location is null) == (diagnostics is null));
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
-            bool isValid = true;
-            if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+
+            if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, isField, in value))
             {
-                foreach (var (key, value) in attribute.CommonNamedArguments)
-                {
-                    if (!UnmanagedCallersOnlyAttributeData.IsCallConvsTypedConstant(key, in value))
-                    {
-                        continue;
-                    }
-
-                    if (callingConventionTypes != null)
-                    {
-                        isValid = false;
-                    }
-
-                    if (value.Values.IsDefaultOrEmpty)
-                    {
-                        callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
-                        continue;
-                    }
-
-                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
-                    foreach (var callConvTypedConstant in value.Values)
-                    {
-                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
-                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
-                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
-                        {
-                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
-                            diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
-                            isValid = false;
-                        }
-                        else
-                        {
-                            _ = builder.Add(callConvType);
-                        }
-
-                    }
-                    callingConventionTypes = builder.ToImmutableHashSet();
-                    builder.Free();
-                }
+                return (false, callingConventionTypes);
             }
 
-            return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes, isValid);
+            if (value.Values.IsDefaultOrEmpty)
+            {
+                callingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                return (true, callingConventionTypes);
+            }
+
+            var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+            foreach (var callConvTypedConstant in value.Values)
+            {
+                Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                    || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                {
+                    // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                    diagnostics?.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, location!, callConvTypedConstant.ValueInternal ?? "null");
+                }
+                else
+                {
+                    _ = builder.Add(callConvType);
+                }
+
+            }
+            callingConventionTypes = builder.ToImmutableHashSet();
+            builder.Free();
+
+            return (true, callingConventionTypes);
         }
-#nullable restore
+
+        /// <summary>
+        /// Determines if this method is a valid target for UnmanagedCallersOnly, reporting an error in the given diagnostic
+        /// bag if it is not null. <paramref name="location"/> and <paramref name="diagnostics"/> should both be null, or 
+        /// neither should be null. If an error would be reported (whether or not diagnostics is null), true is returned.
+        /// </summary>
+        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, DiagnosticBag? diagnostics)
+        {
+            Debug.Assert((location == null) == (diagnostics == null));
+
+            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            {
+                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location);
+                return true;
+            }
+
+            if (isGenericMethod(this) || ContainingType.IsGenericType)
+            {
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location);
+                return true;
+            }
+
+            return false;
+
+            static bool isGenericMethod([DisallowNull] MethodSymbol? method)
+            {
+                do
+                {
+                    if (method.IsGenericMethod)
+                    {
+                        return true;
+                    }
+
+                    method = method.ContainingSymbol as MethodSymbol;
+                } while (method is not null);
+
+                return false;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Return error code that has highest priority while calculating use site error for this symbol.

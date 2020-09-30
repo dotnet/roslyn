@@ -31,6 +31,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\AbstractRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RedundantEqualityConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\SuppressMessageAttributeState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />

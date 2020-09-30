@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,9 +20,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public bool IsLineBreakpoint => UnderlyingObject.IsLineBreakpoint;
 
         public static VSTypeScriptBreakpointResolutionResultWrapper CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
+            => new(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
 
         public static VSTypeScriptBreakpointResolutionResultWrapper CreateLineResult(Document document, string? locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
+            => new(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
     }
 }

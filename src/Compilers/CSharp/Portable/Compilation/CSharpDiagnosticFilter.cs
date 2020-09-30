@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -196,6 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // 4. Global analyzer config level
                 isSpecified = true;
+
+                // '/warnaserror' should promote warnings configured in global analyzer config to error.
+                if (report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error)
+                {
+                    report = ReportDiagnostic.Error;
+                }
             }
             else
             {

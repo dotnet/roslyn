@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -658,7 +660,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             => generator.SeparatedList<TArgumentSyntax>(ConvertArguments(generator, parameterNamingRule, arguments.GetWithSeparators()));
 
         private SyntaxNodeOrTokenList ConvertArguments(SyntaxGenerator generator, NamingRule parameterNamingRule, SyntaxNodeOrTokenList list)
-            => new SyntaxNodeOrTokenList(list.Select(v => ConvertArgumentOrToken(generator, parameterNamingRule, v)));
+            => new(list.Select(v => ConvertArgumentOrToken(generator, parameterNamingRule, v)));
 
         private SyntaxNodeOrToken ConvertArgumentOrToken(SyntaxGenerator generator, NamingRule parameterNamingRule, SyntaxNodeOrToken arg)
             => arg.IsToken

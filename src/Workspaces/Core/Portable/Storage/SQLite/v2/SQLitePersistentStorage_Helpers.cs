@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// </summary>
         private const int MaxPooledByteArrays = 1024;
 
-        private static readonly Stack<byte[]> s_byteArrayPool = new Stack<byte[]>();
+        private static readonly Stack<byte[]> s_byteArrayPool = new();
 
         internal static byte[] GetPooledBytes()
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// <remarks>It runs out-of-proc if it's enabled</remarks>
     internal static partial class ExtensionMethodImportCompletionHelper
     {
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
         private static Task s_indexingTask = Task.CompletedTask;
 
         public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(

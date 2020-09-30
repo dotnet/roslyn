@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 //#define DEBUG_ALPHA // turn on DEBUG_ALPHA to help diagnose issues around type parameter alpha-renaming
 
 using System;
@@ -94,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
         {
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress), constraintTypes, null);
+            _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress, canIgnoreNullableContext), constraintTypes, null);
 
             TypeWithAnnotations bestObjectConstraint = default;
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (bestObjectConstraint.HasType)
             {
                 // See if we need to put Object! or Object~ back in order to preserve nullability information for the type parameter.
-                if (ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
+                if (!canIgnoreNullableContext && ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
                 {
                     Debug.Assert(!HasNotNullConstraint && !HasValueTypeConstraint);
                     if (constraintTypes.Count == 0)
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
                 {
                     var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
+                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty, canIgnoreNullableContext: false), constraintTypes, null);
                     return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
                 }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -10,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     internal sealed class EndRegionFormattingRule : AbstractFormattingRule
     {
-        public static readonly EndRegionFormattingRule Instance = new EndRegionFormattingRule();
+        public static readonly EndRegionFormattingRule Instance = new();
 
         private EndRegionFormattingRule()
         {

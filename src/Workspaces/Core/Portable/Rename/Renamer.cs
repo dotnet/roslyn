@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -75,6 +74,12 @@ namespace Microsoft.CodeAnalysis.Rename
             if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
+            }
+
+            if (document.Services.GetService<ISpanMappingService>() != null)
+            {
+                // Don't advertise that we can file rename generated documents that map to a different file.
+                return new RenameDocumentActionSet(ImmutableArray<RenameDocumentAction>.Empty, document.Id, document.Name, document.Folders.ToImmutableArray(), document.Project.Solution.Options);
             }
 
             using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);

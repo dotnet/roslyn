@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -98,8 +101,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                     foreach (var type in method.GetParameters().Select(p => p.ParameterType))
                     {
-                        // stream is special cased by JSON-RPC for streaming APIs
-                        if (type != typeof(Stream))
+                        // types that are special cased by JSON-RPC for streaming APIs
+                        if (type != typeof(Stream) &&
+                            type != typeof(IDuplexPipe) &&
+                            type != typeof(PipeReader) &&
+                            type != typeof(PipeWriter))
                         {
                             AddTypeRecursive(type, method);
                         }

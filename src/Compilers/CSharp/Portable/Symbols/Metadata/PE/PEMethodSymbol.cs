@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1338,9 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                    if (MethodKind is not MethodKind.Ordinary
-                        || !IsStatic
-                        || !data.IsValid)
+                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
                     {
                         result = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                     }
@@ -1439,24 +1439,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
             {
-                var allAttributes = GetAttributes();
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                var unmanagedCallersOnlyData = containingModule.Module.TryGetUnmanagedCallersOnlyAttribute(_handle, new MetadataDecoder(containingModule),
+                    static (name, value, isField) => MethodSymbol.TryDecodeUnmanagedCallersOnlyCallConvsField(name, value, isField, location: null, diagnostics: null));
 
-                CSharpAttributeData? unmanagedAttribute = null;
-                foreach (var attribute in allAttributes)
-                {
-                    if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
-                    {
-                        unmanagedAttribute = attribute;
-                        break;
-                    }
-                }
-
-                UnmanagedCallersOnlyAttributeData? data = unmanagedAttribute == null
-                    ? null
-                    : DecodeUnmanagedCallersOnlyAttributeData(unmanagedAttribute, location: null, diagnostics: null);
+                Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                             && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
 
                 var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
-                                                              data,
+                                                              unmanagedCallersOnlyData,
                                                               UnmanagedCallersOnlyAttributeData.Uninitialized);
 
                 _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
@@ -1465,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
         }
-#nullable restore
+#nullable disable
 
         internal override bool GenerateDebugInfo => false;
 

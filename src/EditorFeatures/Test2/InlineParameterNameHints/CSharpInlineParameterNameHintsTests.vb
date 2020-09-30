@@ -360,5 +360,43 @@ class A
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        <WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
+        Public Async Function TestRecordBaseType() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+record Base(int Alice, int Bob);
+record Derived(int Other) : Base({|Alice:2|}, {|Bob:2|});
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        <WorkItem(47696, "https://github.com/dotnet/roslyn/issues/47696")>
+        Public Async Function TestClassBaseType() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Base
+{
+    public Base(int paramName) {}
+}
+class Derived : Base
+{
+    public Derived() : base({|paramName:20|}) {}
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace
