@@ -73,6 +73,27 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionIsNotOfferedAfterNumberLiteral()
+        {
+            // User may want to type a floating point literal.
+            await VerifyNoItemsExistAsync(@"
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        1.$$
+    }
+}
+", SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitUserDefinedConversionIsSuggestedAfterDot()
         {
             await VerifyItemExistsAsync(@"

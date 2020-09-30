@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var expression = GetParentExpressionOfToken(potentialDotToken);
-            if (expression is null)
+            if (expression is null || expression.IsKind(SyntaxKind.NumericLiteralExpression))
             {
                 return;
             }
