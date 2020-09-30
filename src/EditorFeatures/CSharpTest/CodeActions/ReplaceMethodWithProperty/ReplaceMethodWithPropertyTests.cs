@@ -2359,6 +2359,7 @@ class C
     }
 }");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_3()
