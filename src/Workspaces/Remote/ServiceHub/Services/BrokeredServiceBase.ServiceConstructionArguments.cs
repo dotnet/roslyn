@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Threading;
 using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -16,13 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             public readonly IServiceProvider ServiceProvider;
             public readonly IServiceBroker ServiceBroker;
-            public readonly CancellationTokenSource ClientDisconnectedSource;
 
-            public ServiceConstructionArguments(IServiceProvider serviceProvider, IServiceBroker serviceBroker, CancellationTokenSource clientDisconnectedSource)
+            public ServiceConstructionArguments(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
             {
                 ServiceProvider = serviceProvider;
                 ServiceBroker = serviceBroker;
-                ClientDisconnectedSource = clientDisconnectedSource;
             }
         }
     }
