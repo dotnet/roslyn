@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
             builder.AddRange(allExplicitConversions);
             builder.AddRange(GetBuiltInNumericConversions(semanticModel, container, containerIsNullable, position));
+            builder.AddRange(GetBuiltInEnumConversions(semanticModel, container, containerIsNullable, position));
             return builder.ToImmutable();
         }
 
@@ -74,25 +75,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var numericConversions = container.GetBuiltInNumericConversions();
             if (numericConversions is not null)
             {
-                var optionalNullableQuestionmark = containerIsNullable ? "?" : "";
-                var builtInNumericConversions = from specialType in numericConversions
-                                                let typeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
-                                                let typeName = typeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                                select CommonCompletionItem.Create(
-                                                    displayTextPrefix: "(",
-                                                    displayText: typeName,
-                                                    displayTextSuffix: $"{optionalNullableQuestionmark})",
-                                                    filterText: typeName,
-                                                    sortText: SortText(typeName),
-                                                    glyph: typeSymbol.GetGlyph(),
-                                                    rules: CompletionItemRules.Default,
-                                                    properties: CreatePropertiesBag(
-                                                        (MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}"),
-                                                        ("ContextPosition", position.ToString())));
-                return builtInNumericConversions.ToImmutableArray();
+                return GetCompletionItemsForSpecialTypes(semanticModel, containerIsNullable, position, numericConversions);
             }
 
             return ImmutableArray<CompletionItem>.Empty;
+        }
+
+        private ImmutableArray<CompletionItem> GetBuiltInEnumConversions(SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
+        {
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+            // Three kinds of conversions are defined in the spec.
+            // Suggestion are made for one kind:
+            // * From any enum_type to sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal.
+            // No suggestion for the other two kinds of conversions:
+            // * From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum_type.
+            // * From any enum_type to any other enum_type.
+            if (!container.IsEnumType())
+            {
+                return ImmutableArray<CompletionItem>.Empty;
+            }
+
+            var convertToSpecialTypes = new[]
+            {
+                SpecialType.System_SByte,
+                SpecialType.System_Byte,
+                SpecialType.System_Int16,
+                SpecialType.System_UInt16,
+                SpecialType.System_Int32,
+                SpecialType.System_UInt32,
+                SpecialType.System_Int64,
+                SpecialType.System_UInt64,
+                SpecialType.System_Char,
+                SpecialType.System_Single,
+                SpecialType.System_Double,
+                SpecialType.System_Decimal,
+            };
+
+            return GetCompletionItemsForSpecialTypes(semanticModel, containerIsNullable, position, convertToSpecialTypes);
+        }
+
+        private ImmutableArray<CompletionItem> GetCompletionItemsForSpecialTypes(SemanticModel semanticModel, bool containerIsNullable, int position, SpecialType[] specialTypes)
+        {
+            var optionalNullableQuestionmark = containerIsNullable ? "?" : "";
+            var conversionCompletionItems = from specialType in specialTypes
+                                            let typeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
+                                            let typeName = typeSymbol.ToMinimalDisplayString(semanticModel, position)
+                                            select CommonCompletionItem.Create(
+                                                displayTextPrefix: "(",
+                                                displayText: typeName,
+                                                displayTextSuffix: $"{optionalNullableQuestionmark})",
+                                                filterText: typeName,
+                                                sortText: SortText(typeName),
+                                                glyph: typeSymbol.GetGlyph(),
+                                                rules: CompletionItemRules.Default,
+                                                properties: CreatePropertiesBag(
+                                                    (MinimalTypeNamePropertyName, $"{typeName}{optionalNullableQuestionmark}"),
+                                                    ("ContextPosition", position.ToString())));
+            return conversionCompletionItems.ToImmutableArray();
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)

@@ -936,7 +936,7 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         // built-in numeric conversions:
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-        public async Task ExplicitBuildInconversionsAreOffered()
+        public async Task ExplicitBuildInNumericConversionsAreOffered()
         {
             await VerifyCustomCommitProviderAsync(@"
 public class Program
@@ -975,7 +975,7 @@ public class Program
         [InlineData("float", "byte", "char", "decimal", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
         [InlineData("double", "byte", "char", "decimal", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
         [InlineData("decimal", "byte", "char", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort")]
-        public async Task ExplicitBuildInconversionsAreOfferedAcordingToSpec(string fromType, params string[] toTypes)
+        public async Task ExplicitBuildInNumericConversionsAreOfferedAcordingToSpec(string fromType, params string[] toTypes)
         {
             var items = await GetCompletionItemsAsync(@$"
 public class Program
@@ -994,7 +994,7 @@ public class Program
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         // built-in numeric conversions:
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-        public async Task ExplicitBuildInconversionsAreLifted()
+        public async Task ExplicitBuildInNumericConversionsAreLifted()
         {
             await VerifyCustomCommitProviderAsync(@"
 public class Program
@@ -1015,6 +1015,85 @@ public class Program
     }
 }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in enum conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+        public async Task ExplicitBuildInEnumConversionsIsApplied()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        var e = E.One;
+        e.$$
+    }
+}
+", "int", @"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        var e = E.One;
+        ((int)e).$$
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in enum conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+        public async Task ExplicitBuildInEnumConversionsAreLifted()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        E? e = null;
+        e.$$
+    }
+}
+", "int", @"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        E? e = null;
+        ((int?)e).$$
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        // built-in enum conversions:
+        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+        public async Task ExplicitBuildInEnumConversionsAreSortedAndComplete()
+        {
+            var items = await GetCompletionItemsAsync(@"
+public enum E { One }
+public class Program
+{
+    public void Main()
+    {
+        var e = E.One;
+        e.$$
+    }
+}
+", SourceCodeKind.Regular);
+            var expected = new[] { "byte", "char", "decimal", "double", "float", "int", "long", "sbyte", "short", "uint", "ulong", "ushort" };
+            AssertEx.SetEqual(items.Select(i => i.DisplayText), expected);
         }
     }
 }
