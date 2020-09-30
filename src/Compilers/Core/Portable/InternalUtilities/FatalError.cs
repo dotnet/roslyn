@@ -76,11 +76,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         private static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
-#if NET20 // CancellationToken is not defined on NET20, we have an empty stub for it to reduce the amount of conditional code.
-            => exception is OperationCanceledException;
-#else
             => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
-#endif
 
         /// <summary>
         /// Use in an exception filter to report a fatal error. 
