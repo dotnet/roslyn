@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private readonly IDiagnosticService _diagnosticService;
 
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextResultId"/>.
+        /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextDocumentResultId"/>.
         /// </summary>
         private readonly object _gate = new object();
 
@@ -38,9 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private readonly Dictionary<(Workspace workspace, DocumentId documentId), string> _documentIdToLastResultId = new();
 
         /// <summary>
-        /// The next available id to label results with.
+        /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
+        /// way we can update diagnostics with the client with per-doc granularity.
         /// </summary>
-        private long _nextResultId;
+        private long _nextDocumentResultId;
 
         protected AbstractPullDiagnosticHandler(
             ILspSolutionProvider solutionProvider,
@@ -112,8 +113,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 if (DiagnosticsAreUnchanged(documentToPreviousResult, document))
                 {
-                    // Nothing changed between the last request and this one.  Report a null-diagnostics, same-result-id
-                    // response to the client to know they don't need to do anything.
+                    // Nothing changed between the last request and this one.  Report a (null-diagnostics,
+                    // same-result-id) response to the client as that means they should just preserve the current
+                    // diagnostics they have for this file.
                     var previousResult = documentToPreviousResult[document];
                     progress.Report(CreateReport(previousResult.TextDocument, diagnostics: null, previousResult.PreviousResultId));
                 }
@@ -157,9 +159,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var document = _solutionProvider.GetDocument(textDocument);
                     if (document == null)
                     {
-                        // Client is asking server about a document that no longer exists (i.e. was removed/deleted from the
-                        // workspace).  In that case we need to return an actual diagnostic report with `null` for the
-                        // diagnostics to let the client know to dump that file entirely.
+                        // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
+                        // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
+                        // means they should just consider the file deleted and should remove all diagnostics
+                        // information they've cached for it.
                         progress.Report(CreateReport(textDocument, diagnostics: null, resultId: null));
                     }
                 }
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
                 // the same diagnostic set in the future.
-                var resultId = _nextResultId++.ToString();
+                var resultId = _nextDocumentResultId++.ToString();
                 _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
                 return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), diagnostics, resultId);
             }
