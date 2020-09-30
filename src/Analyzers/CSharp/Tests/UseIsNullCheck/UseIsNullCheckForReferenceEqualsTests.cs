@@ -500,5 +500,36 @@ class C
     }
 }");
         }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsBaseConstraintGeneric()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    public static void NotNull<T>(T value) where T:C
+    {
+        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
+        {
+            return;
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public static void NotNull<T>(T value) where T:C
+    {
+        if (value is null)
+        {
+            return;
+        }
+    }
+}");
+        }
     }
 }

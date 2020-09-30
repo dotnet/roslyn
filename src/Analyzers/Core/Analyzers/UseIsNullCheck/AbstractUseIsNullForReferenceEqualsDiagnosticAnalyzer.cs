@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
             if (genericParameterSymbol != null)
             {
-                if (genericParameterSymbol.HasValueTypeConstraint)
+                if (genericParameterSymbol.IsValueType)
                 {
                     // 'is null' would generate error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                     // '== null' would generate error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
@@ -120,7 +120,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     return;
                 }
 
-                if (!genericParameterSymbol.HasReferenceTypeConstraint)
+                // HasReferenceTypeConstraint returns false for base type constraint.
+                // IsReferenceType returns true.
+
+                if (!genericParameterSymbol.IsReferenceType)
                 {
                     // Needs special casing for C# as long as
                     // https://github.com/dotnet/csharplang/issues/1284
