@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public partial class AddUsingTests : AbstractAddUsingTests
     {
+        public AddUsingTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
