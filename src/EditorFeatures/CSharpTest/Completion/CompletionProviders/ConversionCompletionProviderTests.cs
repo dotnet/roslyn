@@ -761,8 +761,6 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in numeric conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
         public async Task ExplicitConversionOfNullableStructToNullableStructIsOffered()
         {
             // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
@@ -783,8 +781,6 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in numeric conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
         public async Task ExplicitConversionOfNullableStructToNullableStructIsApplied()
         {
             // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
@@ -817,8 +813,6 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        // built-in numeric conversions:
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
         public async Task ExplicitConversionOfConditionalAccessOfStructAppliesNullableStruct()
         {
             // see https://sharplab.io/#gist:08c697b6b9b6384b8ec81cc586e064e6 to run a sample
