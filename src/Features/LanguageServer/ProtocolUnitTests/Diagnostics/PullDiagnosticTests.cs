@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         #region Document Diagnostics
 
         [Fact]
-        public async Task TestNoDiagnosticsForClosedFilesWithFSAOff()
+        public async Task TestNoDocumentDiagnosticsForClosedFilesWithFSAOff()
         {
             var markup =
 @"class A {";
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
-        public async Task TestDiagnosticsForOpenFilesWithFSAOff()
+        public async Task TestDocumentDiagnosticsForOpenFilesWithFSAOff()
         {
             var markup =
 @"class A {";
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
-        public async Task TestDiagnosticsForRemovedDocument()
+        public async Task TestDocumentDiagnosticsForRemovedDocument()
         {
             var markup =
 @"class A {";
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
-        public async Task TestNoChangeIfCalledTwice()
+        public async Task TestNoChangeIfDocumentDiagnosticsCalledTwice()
         {
             var markup =
 @"class A {";
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
-        public async Task TestDiagnosticsRemovedAfterErrorIsFixed()
+        public async Task TestDocumentDiagnosticsRemovedAfterErrorIsFixed()
         {
             var markup =
 @"class A {";
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
-        public async Task TestDiagnosticsRemainAfterErrorIsNotFixed()
+        public async Task TestDocumentDiagnosticsRemainAfterErrorIsNotFixed()
         {
             var markup =
 @"class A {";
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         [Fact]
-        public async Task TestStreamingDiagnostics()
+        public async Task TestStreamingDocumentDiagnostics()
         {
             var markup =
 @"class A {";
