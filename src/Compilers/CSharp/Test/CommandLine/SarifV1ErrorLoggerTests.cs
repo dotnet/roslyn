@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
           ""id"": ""CS0169"",
           ""shortDescription"": ""Field is never used"",
           ""defaultLevel"": ""warning"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -161,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         ""CS5001"": {{
           ""id"": ""CS5001"",
           ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,

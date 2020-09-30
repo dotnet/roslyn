@@ -9368,7 +9368,7 @@ class C2 : C1
                 Diagnostic("A", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
             var diag = diags.Single();
-            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k()", diag.Descriptor.HelpLinkUri);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
         }
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
@@ -9418,7 +9418,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 

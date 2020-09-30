@@ -1969,7 +1969,7 @@ End Class
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
-            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
 
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
@@ -1977,7 +1977,7 @@ End Class
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             diag = diags.Single()
-            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
         <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
@@ -2041,7 +2041,7 @@ End Class
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             diag = diags.Single()
-            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
         <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
@@ -2325,7 +2325,7 @@ End Class
             diags.Verify(Diagnostic("A", "M1()").WithArguments("Public Overloads Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
-            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k()", diag.Descriptor.HelpLinkUri)
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
         End Sub
 
         <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
