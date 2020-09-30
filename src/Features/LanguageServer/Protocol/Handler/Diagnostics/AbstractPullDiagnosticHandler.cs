@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // diagnostics.  Compute and report the current diagnostics info for this document.
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var diagnostics);
+            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var diagnostics);
             foreach (var diagnostic in _diagnosticService.GetDiagnostics(document, includeSuppressedDiagnostics: false, cancellationToken))
                 diagnostics.Add(ConvertDiagnostic(document, text, diagnostic));
 
