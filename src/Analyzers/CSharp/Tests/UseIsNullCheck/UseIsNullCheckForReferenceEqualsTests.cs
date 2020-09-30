@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
         }
 
         private static readonly ParseOptions CSharp7 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7);
+        private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
         private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -286,7 +287,7 @@ class C
         }
     }
 }
-");
+", new TestParameters(parseOptions: CSharp7));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -530,6 +531,37 @@ class C
         }
     }
 }");
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestUnconstrainedGenericInCSharp8()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if ({|FixAllInDocument:ReferenceEquals|}(value, null))
+        {
+            return;
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+    }
+}", new TestParameters(parseOptions: CSharp8));
         }
     }
 }

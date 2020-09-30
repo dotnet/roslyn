@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             });
 
         protected abstract bool IsLanguageVersionSupported(ParseOptions options);
+        protected abstract bool IsUnconstrainedGenericSupported(ParseOptions options);
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
@@ -123,11 +124,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 // HasReferenceTypeConstraint returns false for base type constraint.
                 // IsReferenceType returns true.
 
-                if (!genericParameterSymbol.IsReferenceType)
+                if (!genericParameterSymbol.IsReferenceType && !IsUnconstrainedGenericSupported(syntaxTree.Options))
                 {
                     // Needs special casing for C# as long as
-                    // https://github.com/dotnet/csharplang/issues/1284
-                    // is not implemented.
+                    // 'is null' over unconstrained generic is implemented in C# 8.
                     properties = properties.Add(UseIsNullConstants.UnconstrainedGeneric, "");
                 }
             }
