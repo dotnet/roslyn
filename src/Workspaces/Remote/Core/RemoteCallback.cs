@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
             if (exception is ConnectionLostException)
             {
-                return true;
+                // Return false if cancellation was not requested to rethrow this exception for diagnostics
+                return false;
             }
 
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
