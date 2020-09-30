@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             internal bool CanGeneratePropertyOrField()
             {
-                return !ContainingType.IsImplicitlyDeclared && ContainingType.Name != WellKnownMemberNames.TopLevelStatementsEntryPointTypeName;
+                return ContainingType is { IsImplicitlyDeclared: false,  Name: not TopLevelStatementsEntryPointTypeName };
             }
 
             internal bool CanGenerateLocal()
