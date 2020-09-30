@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
             //If it's there we need to add it to the final comments
             //this is to fix issue 42699, https://github.com/dotnet/roslyn/issues/42699
-            finalLeadingTrivia = AddParamListTriviaIfNeeded(syntaxFacts, getMethodDeclaration, finalLeadingTrivia);
+            AddParamListTriviaIfNeeded(syntaxFacts, getMethodDeclaration, finalLeadingTrivia);
 
             if (setMethodDeclaration == null)
             {
