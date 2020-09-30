@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
+        /// an explicit corresponding source code declaration. This doesn't include the generated method and class for top-level statements.
         /// </summary> 
         /// <remarks>
         /// This is intended for symbols that are ordinary symbols in the language sense, and may be
