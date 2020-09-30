@@ -77,11 +77,14 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static void AddParamListTriviaIfNeeded(ISyntaxFacts syntaxFacts, SyntaxNode methodDeclaration, List<SyntaxTrivia> finalLeadingTrivia)
         {
             var paramList = syntaxFacts.GetParameterList(methodDeclaration);
-            var trailingTrivia = paramList.GetTrailingTrivia();
-            if (trailingTrivia .Any(t => syntaxFacts.IsRegularComment(t)))
+            if (paramList != null)
             {
-                // we have a meaningful comment on the parameter list so add it to the trivia list
-                finalLeadingTrivia.AddRange(trailingTrivia);
+                var trailingTrivia = paramList.GetTrailingTrivia();
+                if (trailingTrivia.Any(t => syntaxFacts.IsRegularComment(t)))
+                {
+                    // we have a meaningful comment on the parameter list so add it to the trivia list
+                    finalLeadingTrivia.AddRange(trailingTrivia);
+                }
             }
         }
     }
