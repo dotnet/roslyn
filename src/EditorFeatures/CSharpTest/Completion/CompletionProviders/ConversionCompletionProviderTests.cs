@@ -821,6 +821,9 @@ public class Program
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
         public async Task ExplicitConversionOfConditionalAccessOfStructAppliesNullableStruct()
         {
+            // see https://sharplab.io/#gist:08c697b6b9b6384b8ec81cc586e064e6 to run a sample
+            // conversion ((int)c?.S) fails with System.InvalidOperationException: Nullable object must have a value.
+            // conversion ((int?)c?.S) passes (returns an int? with HasValue == false)
             await VerifyCustomCommitProviderAsync(@"
 public struct S {
     public static explicit operator int(S _) => 0;
