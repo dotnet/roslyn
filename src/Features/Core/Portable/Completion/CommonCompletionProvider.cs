@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => false;
 
-        public sealed override async Task<CompletionDescription> GetDescriptionAsync(
+        public override async Task<CompletionDescription?> GetDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             // Get the actual description provided by whatever subclass we are.

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal partial class RegexEmbeddedCompletionProvider : CompletionProvider
+    internal partial class RegexEmbeddedCompletionProvider : LSPCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -39,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
             => _language = language;
 
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create(
+            '\\', // any escape
+            '[', // character class
+            '(', // any group
+            '{'); // \p{
+
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
             if (trigger.Kind == CompletionTriggerKind.Invoke ||
@@ -49,21 +55,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                return IsTriggerCharacter(trigger.Character);
-            }
-
-            return false;
-        }
-
-        private static bool IsTriggerCharacter(char ch)
-        {
-            switch (ch)
-            {
-                case '\\': // any escape
-                case '[':  // character class
-                case '(':  // any group
-                case '{':  // \p{
-                    return true;
+                return TriggerCharacters.Contains(trigger.Character);
             }
 
             return false;

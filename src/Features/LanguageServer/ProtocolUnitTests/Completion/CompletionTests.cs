@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(), triggerCharacter: "\0", triggerKind: LSP.CompletionTriggerKind.Invoked);
-            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, completionParams);
+
+            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
+                completionParams, commitCharacters: CompletionRules.Default.DefaultCommitCharacters);
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(locations["caret"].Single(), triggerCharacter: "\0", LSP.CompletionTriggerKind.Invoked);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, preselect: true);
+                completionParams, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{'));
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -125,6 +128,48 @@ namespace M
             var results = (LSP.VSCompletionList)await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             Assert.True(results.Items.Any());
             Assert.True(results.SuggesstionMode);
+        }
+
+        [Fact]
+        public async Task TestGetDateAndTimeCompletionsAsync()
+        {
+            var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        DateTime.Now.ToString(""{|caret:|});
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), triggerCharacter: "\"", triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+            var expected = CreateCompletionItem("d", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, sortText: "0000");
+
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
+        }
+
+        [Fact]
+        public async Task TestGetRegexCompletionsAsync()
+        {
+            var markup =
+@"using System.Text.RegularExpressions;
+class A
+{
+    void M()
+    {
+        new Regex(""\\{|caret:|}"");
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), triggerCharacter: "\\", triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+            var expected = CreateCompletionItem("\\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, sortText: "0000");
+
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
         }
 
         private static async Task<LSP.CompletionList> RunGetCompletionsAsync(Solution solution, LSP.CompletionParams completionParams)
