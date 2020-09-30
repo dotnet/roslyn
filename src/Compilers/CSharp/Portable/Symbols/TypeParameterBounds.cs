@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Returns true if bounds was updated with value.
-        // Returns false if bounds already had a value with expected 'IgnoresNullableContext'
-        // or was updated to a value with the expected 'IgnoresNullableContext' value on another thread.
+        // Returns false if bounds already had a value with sufficient 'IgnoresNullableContext'
+        // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
         internal static bool InterlockedUpdate(ref TypeParameterBounds? bounds, TypeParameterBounds? value)
         {
             bool canIgnoreNullableContext = (value?.IgnoresNullableContext == true);

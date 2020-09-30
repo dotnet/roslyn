@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
-    public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseExplicitTypeTests
     {
         #region "Fix all occurrences tests"
 

@@ -25,6 +25,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />

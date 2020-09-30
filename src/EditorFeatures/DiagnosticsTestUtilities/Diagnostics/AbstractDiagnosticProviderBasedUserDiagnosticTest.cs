@@ -21,13 +21,18 @@ using Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
-        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =
-            new ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)>();
+        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = new();
+
+        public AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
 
         internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 

@@ -16,11 +16,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractSuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
+        public AbstractSuppressionDiagnosticTest(ITestOutputHelper logger = null)
+            : base(logger)
+        {
+        }
+
         protected abstract int CodeActionIndex { get; }
         protected virtual bool IncludeSuppressedDiagnostics => false;
         protected virtual bool IncludeUnsuppressedDiagnostics => true;
