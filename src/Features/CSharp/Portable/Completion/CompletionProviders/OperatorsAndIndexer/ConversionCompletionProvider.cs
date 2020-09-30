@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var (tokenAtPosition, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
             // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
             //                      ↓               | cursor position
-            //                   ↓                  | normalizedToken (dot)
+            //                   ↓                  | potentialDotTokenLeftOfCursor
             // white?.Black.White.Black?.White      | current user input
             // white?.Black.White.Black?.White      | rootExpression (text manipulation starts with this)
             //       .Black.White                   | parentExpression (needed to calculate the position to insert the closing brace)
