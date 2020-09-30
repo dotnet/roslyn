@@ -2410,6 +2410,7 @@ class C
 }",
 index: 1);
         }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
