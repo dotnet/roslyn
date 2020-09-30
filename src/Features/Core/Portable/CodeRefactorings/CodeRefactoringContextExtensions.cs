@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -20,12 +21,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         internal static void RegisterRefactorings<TCodeAction>(
             this CodeRefactoringContext context, ImmutableArray<TCodeAction> actions)
             where TCodeAction : CodeAction
+            => RegisterRefactorings(context, actions, applicableToSpan: null);
+
+        /// <summary>
+        /// Use this helper to register multiple refactorings (<paramref name="actions"/>) with an applicable span.
+        /// </summary>
+        internal static void RegisterRefactorings<TCodeAction>(
+            this CodeRefactoringContext context, ImmutableArray<TCodeAction> actions, TextSpan applicableToSpan)
+            where TCodeAction : CodeAction
+            => RegisterRefactorings(context, actions, new Nullable<TextSpan>(applicableToSpan));
+
+        private static void RegisterRefactorings<TCodeAction>(
+            CodeRefactoringContext context, ImmutableArray<TCodeAction> actions, TextSpan? applicableToSpan = null)
+            where TCodeAction : CodeAction
         {
             if (!actions.IsDefault)
             {
                 foreach (var action in actions)
                 {
-                    context.RegisterRefactoring(action);
+                    if (applicableToSpan != null)
+                    {
+                        context.RegisterRefactoring(action, applicableToSpan.Value);
+                    }
+                    else
+                    {
+                        context.RegisterRefactoring(action);
+                    }
                 }
             }
         }
