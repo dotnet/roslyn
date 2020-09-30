@@ -49,8 +49,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
             var finalLeadingTrivia = getAndSetMethods.GetMethodDeclaration.GetLeadingTrivia().ToList();
 
+            //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
+            //If it's there we need to add it to the final comments
+            //this is to fix issue 42699, https://github.com/dotnet/roslyn/issues/42699
             if (getMethodDeclaration.ChildNodes().Any(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList && n.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t))))
             {
+                //we have a meaningful comment on the parameter list so add it to the trivia list
                 finalLeadingTrivia.AddRange(getMethodDeclaration.ChildNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList).First().GetTrailingTrivia());
             }
 
@@ -63,8 +67,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethodDeclaration.GetLeadingTrivia()
                                     .SkipWhile(t => syntaxFacts.IsEndOfLineTrivia(t))
                                     .Where(t => !t.IsDirective));
+
+            //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
+            //If it's there we need to add it to the final comments
             if (setMethodDeclaration.ChildNodes().Any(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList && n.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t))))
             {
+                //we have a meaningful comment on the parameter list so add it to the trivia list
                 finalLeadingTrivia.AddRange(setMethodDeclaration.ChildNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParameterList).First().GetTrailingTrivia());
             }
 
