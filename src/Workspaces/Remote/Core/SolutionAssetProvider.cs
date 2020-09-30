@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
 
+            // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
+            // avoid deadlocks (the exception handler in 'task1' ensures progress is made in 'task2').
+            cancellationToken.ThrowIfCancellationRequested();
+            var mustNotCancelToken = CancellationToken.None;
+
             // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC pipe.
             // Run two tasks - the first synchronously writes to a local pipe and the second asynchronosly transfers the data to the RPC pipe.
             //
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // no-op
                 }
-            }, cancellationToken);
+            }, mustNotCancelToken);
 
             // Complete RPC once we send the initial piece of data and start waiting for the writer to send more,
             // so the client can start reading from the stream. Once CopyPipeDataAsync completes the pipeWriter

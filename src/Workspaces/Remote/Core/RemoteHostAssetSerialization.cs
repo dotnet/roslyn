@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
+            // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
+            // avoid deadlocks (the exception handler in 'copyTask' ensures progress is made in the blocking read).
+            cancellationToken.ThrowIfCancellationRequested();
+            var mustNotCancelToken = CancellationToken.None;
+
             // Workaround for ObjectReader not supporting async reading.
             // Unless we read from the RPC stream asynchronously and with cancallation support we might hang when the server cancels.
             // https://github.com/dotnet/roslyn/issues/47861
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
                     await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
                 }
-            }, cancellationToken);
+            }, mustNotCancelToken);
 
             // blocking read from the local pipe on the current thread:
             try
