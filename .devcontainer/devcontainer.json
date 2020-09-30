@@ -1,6 +1,9 @@
 {
   "name": "Dev space",
   "dockerFile": "Dockerfile",
+  "settings": {
+    "terminal.integrated.shell.linux": "/usr/bin/pwsh"
+  },
   "postCreateCommand": "./init.ps1 -InstallLocality machine",
   "extensions": [
     "ms-azure-devops.azure-pipelines",
