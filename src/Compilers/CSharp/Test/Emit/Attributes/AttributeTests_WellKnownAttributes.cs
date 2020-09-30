@@ -8197,7 +8197,7 @@ class C
             var diag = diags.Single();
             Assert.Equal("TEST1", diag.Id);
             Assert.Equal(ErrorCode.WRN_DeprecatedSymbol, (ErrorCode)diag.Code);
-            Assert.Equal(string.Empty, diag.Descriptor.HelpLinkUri);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
 
             diags.Verify(
                 // (12,9): warning TEST1: 'C.M1()' is obsolete
@@ -8259,7 +8259,7 @@ class C
             var diags = comp.GetDiagnostics();
 
             var diag = diags.Single();
-            Assert.Equal("", diag.Descriptor.HelpLinkUri);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
 
             diags.Verify(
                 // (12,9): warning CS0612: 'C.M1()' is obsolete
@@ -8649,7 +8649,7 @@ class C2 : C1
                 var diags = comp2.GetDiagnostics();
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
 
                 diags.Verify(
                     // (6,9): warning CS0612: 'C1.M1()' is obsolete
@@ -8855,7 +8855,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 
@@ -9089,7 +9089,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 
