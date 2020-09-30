@@ -58,16 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (completionContext.Trigger.Character == '.' && syntaxContext.LeftToken.Parent is MemberAccessExpressionSyntax memberAccessExpression)
-            {
-                var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
-                var type = semanticModel.GetTypeInfo(memberAccessExpression.Expression).Type;
-                if (type != null && type.SpecialType.IsIntegralType())
-                {
-                    return false;
-                }
-            }
-
             return true;
         }
 

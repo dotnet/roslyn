@@ -7570,6 +7570,29 @@ class C
             End Using
         End Function
 
+        <WorkItem(44862, "https://github.com/dotnet/roslyn/issues/44862")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PreselectOffInRangeExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+    void M()
+    {
+        var i = 1;
+        var arr = new int[3];
+        var x = arr[i$$];
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="CompareTo", isHardSelected:=False)
+            End Using
+        End Function
+
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.

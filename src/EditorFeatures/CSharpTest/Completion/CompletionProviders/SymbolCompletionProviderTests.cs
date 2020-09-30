@@ -10747,24 +10747,5 @@ class C
                 markup, "",
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
-
-        [WorkItem(44862, "https://github.com/dotnet/roslyn/issues/44862")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPreselectOffInRangeExpression()
-        {
-            var markup = @"
-class C
-{
-    private static void M()
-    {
-        var i = 1;
-        var arr = new int[3];
-        var x = arr[i.$$];
-    }
-}
-";
-
-            await VerifyItemExistsAsync(markup, "CompareTo", usePreviousCharAsTrigger: true);
-        }
     }
 }
