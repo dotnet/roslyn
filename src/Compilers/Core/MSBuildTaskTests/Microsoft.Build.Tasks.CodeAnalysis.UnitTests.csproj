@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>net5.0;net472</TargetFrameworks>
-    <Nullable>enable</Nullable>
 
     <!-- Multiple test failures -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
