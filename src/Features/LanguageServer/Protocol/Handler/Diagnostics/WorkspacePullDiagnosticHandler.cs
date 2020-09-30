@@ -48,6 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
+            // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
+            // prioritize the current working files, but then also include all other docs in all projects (depending on
+            // current FSA settings).  When adding the docs, we do so in a simple manner, not worrying about if a
+            // document is added multiple.  That's not a problem though as we do a .Distinct call at the end to ensure
+            // that a file only ever appears once in the collection.  As .Distinct preserves order and discards later
+            // duplicates it finds, this won't affect important files that we put at the front of the list.
+
             // The active and visible docs always get priority in terms or results.
             var activeDocument = documentTrackingService.GetActiveDocument(solution);
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
