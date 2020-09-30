@@ -280,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     IParameterSymbol param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
                     if (param == null)
                     {
-                        return true;
+                        // User is calling an overload without the equivalenceKey parameter
+                        return false;
                     }
 
                     foreach (var argument in invocation.Arguments)
