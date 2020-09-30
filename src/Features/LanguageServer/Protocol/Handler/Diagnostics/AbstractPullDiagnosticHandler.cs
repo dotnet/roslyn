@@ -100,14 +100,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<DiagnosticParams>();
 
+            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
+            // the user from squiggles or error-list.
+            HandleRemovedDocuments(previousResults, progress);
+
+            // Create a mapping from documents to the previous results the client says it has for them.  That way as we
+            // process documents we know if we should tell the client it should stay the same, or we can tell it what
+            // the updated diagnostics are.
             var documentToPreviousDiagnosticParams =
                 previousResults.Select(r => new { DiagnosticParams = r, Document = _solutionProvider.GetDocument(r.TextDocument) })
                                .Where(a => a.Document != null)
                                .ToDictionary(a => a.Document, a => a.DiagnosticParams);
-
-            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
-            // the user from squiggles or error-list.
-            HandleRemovedDocuments(previousResults, progress);
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
