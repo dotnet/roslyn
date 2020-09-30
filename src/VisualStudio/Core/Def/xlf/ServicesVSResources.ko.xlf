@@ -657,6 +657,11 @@
         <target state="translated">멤버 풀하기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Razor_CSharp_Language_Server_Client">
+        <source>Razor C# Language Server Client</source>
+        <target state="translated">Razor C# 언어 서버 클라이언트</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">정규식</target>
