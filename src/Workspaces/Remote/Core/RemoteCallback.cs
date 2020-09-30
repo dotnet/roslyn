@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -108,19 +108,24 @@ namespace Microsoft.CodeAnalysis.Remote
             // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
             if (exception is ConnectionLostException)
             {
-                // Return false if cancellation was not requested to rethrow this exception for diagnostics
-                return false;
+                return true;
             }
 
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
             return FatalError.ReportWithoutCrashAndPropagate(exception);
         }
 
-        private static Exception OnUnexpectedException(CancellationToken cancellationToken)
+        private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // If this is hit the cancellation token passed to the service implementation did not use the correct token.
+            if (exception is ConnectionLostException)
+            {
+                throw new OperationCanceledException(exception.Message, exception);
+            }
+
+            // If this is hit the cancellation token passed to the service implementation did not use the correct token,
+            // and the resulting exception was not a ConnectionLostException.
             return ExceptionUtilities.Unreachable;
         }
     }
