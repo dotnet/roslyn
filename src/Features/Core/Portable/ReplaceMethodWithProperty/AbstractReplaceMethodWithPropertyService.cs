@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -48,16 +49,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration;
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
             var finalLeadingTrivia = getAndSetMethods.GetMethodDeclaration.GetLeadingTrivia().ToList();
-            var paramList = syntaxFacts.GetParameterList(getMethodDeclaration);
 
             //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
             //If it's there we need to add it to the final comments
             //this is to fix issue 42699, https://github.com/dotnet/roslyn/issues/42699
-            if (paramList.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t)))
-            {
-                //we have a meaningful comment on the parameter list so add it to the trivia list
-                finalLeadingTrivia.AddRange(paramList.GetTrailingTrivia());
-            }
+            finalLeadingTrivia = AddParamListTriviaIfNeeded(syntaxFacts, getMethodDeclaration, finalLeadingTrivia);
 
             if (setMethodDeclaration == null)
             {
@@ -71,14 +67,23 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
             //If it's there we need to add it to the final comments
-            paramList = syntaxFacts.GetParameterList(setMethodDeclaration);
+            finalLeadingTrivia = AddParamListTriviaIfNeeded(syntaxFacts, setMethodDeclaration, finalLeadingTrivia);
+
+            return property.WithLeadingTrivia(finalLeadingTrivia);
+        }
+
+        //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
+        //If it's there we need to add it to the final comments
+        private static List<SyntaxTrivia> AddParamListTriviaIfNeeded(ISyntaxFacts syntaxFacts, SyntaxNode methodDeclaration, List<SyntaxTrivia> finalLeadingTrivia)
+        {
+            var paramList = syntaxFacts.GetParameterList(methodDeclaration);
             if (paramList.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t)))
             {
                 //we have a meaningful comment on the parameter list so add it to the trivia list
                 finalLeadingTrivia.AddRange(paramList.GetTrailingTrivia());
             }
 
-            return property.WithLeadingTrivia(finalLeadingTrivia);
+            return finalLeadingTrivia;
         }
     }
 }
