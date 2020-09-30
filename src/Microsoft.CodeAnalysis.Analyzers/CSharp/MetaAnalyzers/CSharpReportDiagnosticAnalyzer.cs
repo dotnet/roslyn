@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpReportDiagnosticAnalyzer : ReportDiagnosticAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax>
+    public class CSharpReportDiagnosticAnalyzer : ReportDiagnosticAnalyzer<ClassDeclarationSyntax, StructDeclarationSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax>
     {
         protected override ReportDiagnosticCompilationAnalyzer GetAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {

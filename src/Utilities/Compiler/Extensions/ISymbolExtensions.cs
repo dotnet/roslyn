@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -154,114 +153,6 @@ namespace Analyzer.Utilities.Extensions
                 IPropertySymbol p => p.Parameters,
                 _ => ImmutableArray.Create<IParameterSymbol>()
             };
-        }
-
-        /// <summary>
-        /// Returns true if the given source symbol has required visibility based on options:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
-        ///      given symbol's visibility is one of the candidate visibilites.
-        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
-        ///      matches the given default symbol visibility.
-        /// </summary>
-        public static bool MatchesConfiguredVisibility(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken,
-            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
-        => symbol.MatchesConfiguredVisibility(symbol, options, rule, compilation, cancellationToken, defaultRequiredVisibility);
-
-        /// <summary>
-        /// Returns true if the given symbol has required visibility based on options in context of the given containing symbol:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
-        ///      given symbol's visibility is one of the candidate visibilites.
-        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
-        ///      matches the given default symbol visibility.
-        /// </summary>
-        public static bool MatchesConfiguredVisibility(
-            this ISymbol symbol,
-            ISymbol containingContextSymbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken,
-            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
-        {
-            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, containingContextSymbol, compilation, defaultRequiredVisibility, cancellationToken);
-            return allowedVisibilities == SymbolVisibilityGroup.All ||
-                allowedVisibilities.Contains(symbol.GetResultantVisibility());
-        }
-
-        /// <summary>
-        /// Returns true if the given source symbol has been configured to be excluded from analysis by options.
-        /// </summary>
-        public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        => symbol.IsConfiguredToSkipAnalysis(symbol, options, rule, compilation, cancellationToken);
-
-        /// <summary>
-        /// Returns true if the given symbol has been configured to be excluded from analysis by options in context of the given containing symbol.
-        /// </summary>
-        public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            ISymbol containingContextSymbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        {
-            var excludedSymbols = options.GetExcludedSymbolNamesWithValueOption(rule, containingContextSymbol, compilation, cancellationToken);
-            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, containingContextSymbol, compilation, cancellationToken);
-            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
-            {
-                return false;
-            }
-
-            while (symbol != null)
-            {
-                if (excludedSymbols.Contains(symbol))
-                {
-                    return true;
-                }
-
-                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
-                {
-                    foreach (var type in namedType.GetBaseTypesAndThis())
-                    {
-                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                symbol = symbol.ContainingSymbol;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns true if the given symbol has required symbol modifiers based on options:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
-        ///      given symbol has all the required modifiers.
-        ///   2. Otherwise, if user has not configured modifiers.
-        /// </summary>
-        public static bool MatchesConfiguredModifiers(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken,
-            SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
-        {
-            var requiredModifiers = options.GetRequiredModifiersOption(rule, symbol, compilation, defaultRequiredModifiers, cancellationToken);
-            return symbol.GetSymbolModifiers().Contains(requiredModifiers);
         }
 
         /// <summary>
@@ -856,18 +747,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static bool IsReadOnly([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            return symbol switch
+            => symbol switch
             {
                 IFieldSymbol field => field.IsReadOnly,
-
                 IPropertySymbol property => property.IsReadOnly,
-
-                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
-                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
-
+#if CODEANALYSIS_V3_OR_BETTER
+                IMethodSymbol method => method.IsReadOnly,
+                ITypeSymbol type => type.IsReadOnly,
+#endif
                 _ => false,
             };
-        }
     }
 }

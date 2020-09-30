@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 var coreAnalysisDomain = new CoreCopyAnalysisDataDomain(CopyAbstractValueDomain.Default, GetDefaultCopyValue);
                 AnalysisDomain = new CopyAnalysisDomain(coreAnalysisDomain);
 
-                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData.AssertValidCopyAnalysisData();
+                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData?.AssertValidCopyAnalysisData();
             }
 
             public CopyAnalysisDomain AnalysisDomain { get; }

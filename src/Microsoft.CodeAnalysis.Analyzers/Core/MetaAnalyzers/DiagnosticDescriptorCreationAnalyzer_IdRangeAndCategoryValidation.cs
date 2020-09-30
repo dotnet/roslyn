@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 string arg4 = Path.GetFileName(additionalText.Path);
-                var diagnostic = Diagnostic.Create(DiagnosticIdMustBeInSpecifiedFormatRule, argument.Value.Syntax.GetLocation(), arg1, arg2, arg3, arg4);
+                var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeInSpecifiedFormatRule, arg1, arg2, arg3, arg4);
                 addDiagnostic(diagnostic);
             }
         }
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // Category '{0}' is not from the allowed categories specified in the file '{1}'.
                     string arg1 = category ?? "<unknown>";
                     string arg2 = Path.GetFileName(additionalText.Path);
-                    var diagnostic = Diagnostic.Create(UseCategoriesFromSpecifiedRangeRule, argument.Value.Syntax.GetLocation(), arg1, arg2);
+                    var diagnostic = argument.Value.CreateDiagnostic(UseCategoriesFromSpecifiedRangeRule, arg1, arg2);
                     operationAnalysisContext.ReportDiagnostic(diagnostic);
                     return false;
                 }

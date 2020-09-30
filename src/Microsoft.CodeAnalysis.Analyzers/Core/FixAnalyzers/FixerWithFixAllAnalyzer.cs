@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     }
                     else if (fixer.BaseType != null && fixer.BaseType.Equals(_codeFixProviderSymbol))
                     {
-                        Diagnostic diagnostic = Diagnostic.Create(OverrideGetFixAllProviderRule, fixer.Locations.First(), fixer.Name);
+                        Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             {
                                 if (IsViolatingCodeActionCreateInvocation(invocation))
                                 {
-                                    Diagnostic diagnostic = Diagnostic.Create(CreateCodeActionEquivalenceKeyRule, invocation.Syntax.GetLocation(), EquivalenceKeyParameterName);
+                                    Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
                                     context.ReportDiagnostic(diagnostic);
                                 }
                             }
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             {
                                 if (IsViolatingCodeActionObjectCreation(objectCreation))
                                 {
-                                    Diagnostic diagnostic = Diagnostic.Create(OverrideCodeActionEquivalenceKeyRule, objectCreation.Syntax.GetLocation(), objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
+                                    Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
                                     context.ReportDiagnostic(diagnostic);
                                 }
                             }

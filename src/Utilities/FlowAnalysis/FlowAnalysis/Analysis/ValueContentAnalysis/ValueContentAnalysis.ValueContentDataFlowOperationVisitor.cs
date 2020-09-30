@@ -200,6 +200,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                         };
                     }
                 }
+                else if (DataFlowAnalysisContext.GetValueForAdditionalSupportedValueTypeOperation is { } getValueFunc &&
+                    operation.Type is INamedTypeSymbol namedType &&
+                    DataFlowAnalysisContext.AdditionalSupportedValueTypes.Contains(namedType))
+                {
+                    return getValueFunc(operation);
+                }
 
                 return ValueDomain.UnknownOrMayBeValue;
             }

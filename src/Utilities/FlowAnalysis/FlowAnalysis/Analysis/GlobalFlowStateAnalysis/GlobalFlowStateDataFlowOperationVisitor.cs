@@ -26,12 +26,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         private readonly AnalysisEntity _globalEntity;
         private readonly bool _hasPredicatedGlobalState;
 
+        private readonly ImmutableDictionary<IOperation, GlobalFlowStateAnalysisValueSet>.Builder _globalValuesMapBuilder;
+
         protected GlobalFlowStateDataFlowOperationVisitor(GlobalFlowStateAnalysisContext analysisContext, bool hasPredicatedGlobalState)
             : base(analysisContext)
         {
             _globalEntity = GetGlobalEntity(analysisContext);
             _hasPredicatedGlobalState = hasPredicatedGlobalState;
+            _globalValuesMapBuilder = ImmutableDictionary.CreateBuilder<IOperation, GlobalFlowStateAnalysisValueSet>();
         }
+
+        internal ImmutableDictionary<IOperation, GlobalFlowStateAnalysisValueSet> GetGlobalValuesMap()
+            => _globalValuesMapBuilder.ToImmutable();
 
         private static AnalysisEntity GetGlobalEntity(GlobalFlowStateAnalysisContext analysisContext)
         {
@@ -157,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
             => GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
         protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2, BasicBlock forBlock)
-            => _hasPredicatedGlobalState && forBlock.DominatesPredecessors() ?
+            => _hasPredicatedGlobalState && forBlock.DominatesPredecessors(DataFlowAnalysisContext.ControlFlowGraph) ?
             GlobalFlowStateAnalysisDomainInstance.Intersect(value1, value2, GlobalFlowStateAnalysisValueSetDomain.Intersect) :
             GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
         protected sealed override void UpdateValuesForAnalysisData(GlobalFlowStateAnalysisData targetAnalysisData)
@@ -188,15 +194,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             bool hasParameterWithDelegateType)
             => GetClonedCurrentAnalysisData();
 
-        protected GlobalFlowStateAnalysisValueSet GetValueOrDefault(GlobalFlowStateAnalysisValueSet value)
-            => value.Kind == GlobalFlowStateAnalysisValueSetKind.Known ? value : GlobalState;
-
         #region Visitor methods
 
         public override GlobalFlowStateAnalysisValueSet Visit(IOperation operation, object? argument)
         {
             var value = base.Visit(operation, argument);
-            return GetValueOrDefault(value);
+
+            if (operation != null)
+            {
+                // Store the current global value in a separate global values builder.
+                // These values need to be saved into the base operation value builder in the final analysis result.
+                // This will be done as a post-step after the analysis is complete.
+                _globalValuesMapBuilder.Add(operation, GlobalState);
+            }
+
+            return value;
         }
 
         public override GlobalFlowStateAnalysisValueSet VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
@@ -216,7 +228,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 MergeAndSetGlobalState(argumentValue);
             }
 
-            return GetValueOrDefault(value);
+            return value;
         }
 
         public override GlobalFlowStateAnalysisValueSet VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)

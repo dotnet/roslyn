@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (!hasAttribute)
                 {
-                    Diagnostic diagnostic = Diagnostic.Create(MissingDiagnosticAnalyzerAttributeRule, namedType.Locations[0]);
+                    Diagnostic diagnostic = namedType.CreateDiagnostic(MissingDiagnosticAnalyzerAttributeRule);
                     symbolContext.ReportDiagnostic(diagnostic);
                 }
                 else if (supportsCSharp ^ supportsVB)
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (compilationType == null)
                     {
                         string missingLanguage = supportsCSharp ? LanguageNames.VisualBasic : LanguageNames.CSharp;
-                        Diagnostic diagnostic = Diagnostic.Create(AddLanguageSupportToAnalyzerRule, attributeSyntax.GetLocation(), namedType.Name, missingLanguage);
+                        Diagnostic diagnostic = attributeSyntax.CreateDiagnostic(AddLanguageSupportToAnalyzerRule, namedType.Name, missingLanguage);
                         symbolContext.ReportDiagnostic(diagnostic);
                     }
                 }
