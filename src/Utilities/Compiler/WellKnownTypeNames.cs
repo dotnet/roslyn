@@ -237,6 +237,9 @@ namespace Analyzer.Utilities
         public const string SystemReflectionParameterInfo = "System.Reflection.ParameterInfo";
         public const string SystemResourcesNeutralResourcesLanguageAttribute = "System.Resources.NeutralResourcesLanguageAttribute";
         public const string SystemResourcesResourceManager = "System.Resources.ResourceManager";
+        public const string SystemRuntimeCompilerServicesCallerFilePathAttribute = "System.Runtime.CompilerServices.CallerFilePathAttribute";
+        public const string SystemRuntimeCompilerServicesCallerLineNumberAttribute = "System.Runtime.CompilerServices.CallerLineNumberAttribute";
+        public const string SystemRuntimeCompilerServicesCallerMemberNameAttribute = "System.Runtime.CompilerServices.CallerMemberNameAttribute";
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
