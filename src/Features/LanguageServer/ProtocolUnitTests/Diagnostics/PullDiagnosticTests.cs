@@ -334,27 +334,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         }
 
-#if false
-
         [Fact]
-        public async Task TestStreamingDocumentDiagnostics()
+        public async Task TestStreamingWorkspaceDiagnostics()
         {
-            var markup =
+            var markup1 =
 @"class A {";
-            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            // Calling GetTextBuffer will effectively open the file.
-            workspace.Documents.Single().GetTextBuffer();
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
             var progress = BufferedProgress.Create<DiagnosticReport[]>(null);
-            var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(), progress: progress);
+            results = await RunGetWorkspacePullDiagnosticsAsync(workspace, progress: progress);
 
             Assert.Null(results);
-            Assert.Equal("CS1513", progress.GetValues()!.Single().Single().Diagnostics.Single().Code);
+            Assert.Equal("CS1513", progress.GetValues()[0][0].Diagnostics![0].Code);
         }
-
-#endif
 
         #endregion
 
