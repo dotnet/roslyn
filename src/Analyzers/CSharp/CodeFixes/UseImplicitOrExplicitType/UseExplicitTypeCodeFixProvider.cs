@@ -149,18 +149,18 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
             RoslynDebug.AssertNotNull(typeSymbol);
 
-            if (varDecl.Variables.Count == 1)
-            {
-                var declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
-                RoslynDebug.AssertNotNull(declarationSyntax);
+            // Since we're only dealing with variable declaration using var, we know
+            // that implicitly typed variables cannot have multiple declarators in
+            // a single declaration (CS0819). Only one variable should be present
+            var declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
+            RoslynDebug.AssertNotNull(declarationSyntax);
 
-                typeSymbol = AdjustNullabilityOfTypeSymbol(
-                    typeSymbol,
-                    document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                    semanticModel,
-                    declarationSyntax,
-                    cancellationToken);
-            }
+            typeSymbol = AdjustNullabilityOfTypeSymbol(
+                typeSymbol,
+                document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                semanticModel,
+                declarationSyntax,
+                cancellationToken);
 
             editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
         }
