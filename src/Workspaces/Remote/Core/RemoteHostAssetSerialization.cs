@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // Workaround for ObjectReader not supporting async reading.
             // Unless we read from the RPC stream asynchronously and with cancallation support we might hang when the server cancels.
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Exception? exception = null;
 
             // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
-            Task.Run(async () =>
+            var copyTask = Task.Run(async () =>
             {
                 try
                 {
@@ -113,19 +113,25 @@ namespace Microsoft.CodeAnalysis.Remote
                     await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
                     await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
                 }
-            }, cancellationToken).Forget();
+            }, cancellationToken);
 
             // blocking read from the local pipe on the current thread:
             try
             {
                 using var stream = localPipe.Reader.AsStream(leaveOpen: false);
-                return new(ReadData(stream, scopeId, checksums, serializerService, cancellationToken));
+                return ReadData(stream, scopeId, checksums, serializerService, cancellationToken);
             }
             catch (EndOfStreamException)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 throw exception ?? ExceptionUtilities.Unreachable;
+            }
+            finally
+            {
+                // Make sure to complete the copy and pipes before returning, otherwise the caller could complete the
+                // reader and/or writer while they are still in use.
+                await copyTask.ConfigureAwait(false);
             }
         }
 
