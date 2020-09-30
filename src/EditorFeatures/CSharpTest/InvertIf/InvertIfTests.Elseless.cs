@@ -793,5 +793,49 @@ class C
     }
 }");
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task IfWithoutElse_InPropertyAccessors(string accessor)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    private bool _b;
+
+    public string Prop
+    {{
+        {accessor}
+        {{
+            [||]if (_b)
+            {{
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine();
+            }}
+        }}
+    }}
+}}",
+$@"class C
+{{
+    private bool _b;
+
+    public string Prop
+    {{
+        {accessor}
+        {{
+            if (!_b)
+            {{
+                return;
+            }}
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+        }}
+    }}
+}}");
+        }
     }
 }
