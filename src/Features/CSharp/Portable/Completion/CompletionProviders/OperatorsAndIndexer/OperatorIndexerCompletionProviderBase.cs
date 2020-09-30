@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected abstract int SortingGroupIndex { get; } // Indexer, operators and conversion should be listed grouped together.
 
-        protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position);
+        protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, SemanticModel semanticModel, int position);
 
         internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 return;
             }
+            var isAccessedByConditionalAccess = expression.GetRootConditionalAccessExpression() is not null;
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
             var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var completionItems = GetCompletionItemsForTypeSymbol(container, semanticModel, position);
+            var completionItems = GetCompletionItemsForTypeSymbol(container, isAccessedByConditionalAccess, semanticModel, position);
             context.AddItems(completionItems);
         }
 

@@ -33,9 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 2;
 
-        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, SemanticModel semanticModel, int position)
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, SemanticModel semanticModel, int position)
         {
-            var containerIsNullable = container.IsNullable();
+            var containerIsNullable = container.IsNullable() || // var int? id = null; id.$$                
+                (container.IsValueType && isAccessedByConditionalAccess); // var p = new System.Diagnostics.Process(); p?.Id.$$;
             container = container.RemoveNullableIfPresent();
             var allMembers = container.GetMembers();
             var allExplicitConversions = from m in allMembers.OfType<IMethodSymbol>()
