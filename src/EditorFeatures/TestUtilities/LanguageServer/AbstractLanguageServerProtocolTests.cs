@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -40,6 +41,7 @@ namespace Roslyn.Test.Utilities
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
             .AddParts(typeof(TestLspSolutionProvider))
+            .AddParts(typeof(TestDocumentTrackingService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]

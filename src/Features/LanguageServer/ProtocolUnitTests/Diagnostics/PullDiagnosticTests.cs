@@ -186,6 +186,173 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         #region Workspace Diagnostics
 
+        [Fact]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOff()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFilesAndProjects);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesWithFSAOn()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+        }
+
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsForRemovedDocument()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+
+            workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(
+                workspace, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            // First doc should show up as removed.
+            Assert.Equal(2, results2.Length);
+            Assert.Null(results2[0].Diagnostics);
+            Assert.Null(results2[0].ResultId);
+
+            // Second doc should show up as unchanged.
+            Assert.Null(results2[1].Diagnostics);
+            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        }
+
+        private static DiagnosticParams[] CreateDiagnosticParamsFromPreviousReports(WorkspaceDiagnosticReport[] results)
+        {
+            return results.Select(r => new DiagnosticParams { TextDocument = r.TextDocument, PreviousResultId = r.ResultId }).ToArray();
+        }
+
+        [Fact]
+        public async Task TestNoChangeIfWorkspaceDiagnosticsCalledTwice()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(
+                workspace, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(2, results2.Length);
+            Assert.Null(results2[0].Diagnostics);
+            Assert.Null(results2[1].Diagnostics);
+
+            Assert.Equal(results[0].ResultId, results2[0].ResultId);
+            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        }
+
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsRemovedAfterErrorIsFixed()
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+
+            var buffer = workspace.Documents.First().GetTextBuffer();
+            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(
+                workspace, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(2, results2.Length);
+            Assert.Empty(results2[0].Diagnostics);
+            Assert.Null(results2[1].Diagnostics);
+
+            Assert.NotEqual(results[0].ResultId, results2[0].ResultId);
+            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        }
+
+#if false
+
+        [Fact]
+        public async Task TestDocumentDiagnosticsRemainAfterErrorIsNotFixed()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            // Calling GetTextBuffer will effectively open the file.
+            var buffer = workspace.Documents.Single().GetTextBuffer();
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
+
+            buffer.Insert(0, " ");
+
+            results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                previousResultId: results[0].ResultId);
+
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
+        }
+
+        [Fact]
+        public async Task TestStreamingDocumentDiagnostics()
+        {
+            var markup =
+@"class A {";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            // Calling GetTextBuffer will effectively open the file.
+            workspace.Documents.Single().GetTextBuffer();
+
+            var progress = BufferedProgress.Create<DiagnosticReport[]>(null);
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(), progress: progress);
+
+            Assert.Null(results);
+            Assert.Equal("CS1513", progress.GetValues()!.Single().Single().Diagnostics.Single().Code);
+        }
+
+#endif
+
         #endregion
 
         private static async Task<DiagnosticReport[]> RunGetDocumentPullDiagnosticsAsync(
@@ -203,6 +370,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 queue,
                 MSLSPMethods.DocumentPullDiagnosticName,
                 CreateDocumentDiagnosticParams(document, previousResultId, progress),
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
+
+            return result;
+        }
+
+        private static async Task<WorkspaceDiagnosticReport[]> RunGetWorkspacePullDiagnosticsAsync(
+            TestWorkspace workspace,
+            DiagnosticParams[]? previousResults = null,
+            IProgress<WorkspaceDiagnosticReport[]>? progress = null)
+        {
+            var solution = workspace.CurrentSolution;
+            var queue = CreateRequestQueue(solution);
+            var server = GetLanguageServer(solution);
+
+            await WaitForDiagnosticsAsync(workspace);
+
+            var result = await server.ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]>(
+                queue,
+                MSLSPMethods.WorkspacePullDiagnosticName,
+                CreateWorkspaceDiagnosticParams(previousResults, progress),
                 new LSP.ClientCapabilities(),
                 clientName: null,
                 CancellationToken.None);
@@ -228,6 +417,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(document),
                 PreviousResultId = previousResultId,
+                PartialResultToken = progress,
+            };
+        }
+
+        private static WorkspaceDocumentDiagnosticsParams CreateWorkspaceDiagnosticParams(
+            DiagnosticParams[]? previousResults = null,
+            IProgress<WorkspaceDiagnosticReport[]>? progress = null)
+        {
+            return new WorkspaceDocumentDiagnosticsParams
+            {
+                PreviousResults = previousResults,
                 PartialResultToken = progress,
             };
         }

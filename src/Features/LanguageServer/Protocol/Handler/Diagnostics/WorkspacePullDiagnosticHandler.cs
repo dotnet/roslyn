@@ -19,17 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
-        private readonly IDocumentTrackingService _documentTrackingService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspacePullDiagnosticHandler(
             ILspSolutionProvider solutionProvider,
-            IDiagnosticService diagnosticService,
-            IDocumentTrackingService documentTrackingService)
+            IDiagnosticService diagnosticService)
             : base(solutionProvider, diagnosticService)
         {
-            _documentTrackingService = documentTrackingService;
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request)
@@ -50,9 +46,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var solution = context.Solution;
 
+            var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+
             // The active and visible docs always get priority in terms or results.
-            var activeDocument = _documentTrackingService.GetActiveDocument(solution);
-            var visibleDocuments = _documentTrackingService.GetVisibleDocuments(solution);
+            var activeDocument = documentTrackingService.GetActiveDocument(solution);
+            var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             result.AddIfNotNull(activeDocument);
             result.AddRange(visibleDocuments);
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    var analysisScope = solution.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
+                    var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
                         return;
                 }
