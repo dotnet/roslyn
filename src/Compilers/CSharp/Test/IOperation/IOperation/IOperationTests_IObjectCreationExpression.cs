@@ -814,6 +814,28 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void ImplicitObjectCreationUnconverted_IfCondition()
+        {
+            var comp = CreateCompilation(@"
+if (/*<bind>*/new(bad)/*</bind>*/) {}
+", options: TestOptions.UnsafeReleaseExe);
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,19): error CS0103: The name 'bad' does not exist in the current context
+                // if (/*<bind>*/new(bad)/*</bind>*/) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(2, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(comp, @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'bad')
+        Children(0)
+            ", expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ImplicitObjectCreationWithDynamicMemberInitializer_01()
         {
