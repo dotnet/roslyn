@@ -74,16 +74,15 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         //If there is a comment on the same line as the method it is contained in trailing trivia for the parameter list
         //If it's there we need to add it to the final comments
-        private static List<SyntaxTrivia> AddParamListTriviaIfNeeded(ISyntaxFacts syntaxFacts, SyntaxNode methodDeclaration, List<SyntaxTrivia> finalLeadingTrivia)
+        private static void AddParamListTriviaIfNeeded(ISyntaxFacts syntaxFacts, SyntaxNode methodDeclaration, List<SyntaxTrivia> finalLeadingTrivia)
         {
             var paramList = syntaxFacts.GetParameterList(methodDeclaration);
-            if (paramList.GetTrailingTrivia().Any(t => !syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t)))
+            var trailingTrivia = paramList.GetTrailingTrivia();
+            if (trailingTrivia .Any(t => syntaxFacts.IsRegularComment(t)))
             {
-                //we have a meaningful comment on the parameter list so add it to the trivia list
-                finalLeadingTrivia.AddRange(paramList.GetTrailingTrivia());
+                // we have a meaningful comment on the parameter list so add it to the trivia list
+                finalLeadingTrivia.AddRange(trailingTrivia);
             }
-
-            return finalLeadingTrivia;
         }
     }
 }
