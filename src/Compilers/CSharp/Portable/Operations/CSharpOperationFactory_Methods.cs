@@ -219,7 +219,6 @@ namespace Microsoft.CodeAnalysis.Operations
                         var property = (PropertySymbol?)boundObjectInitializerMember.MemberSymbol;
                         MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         Debug.Assert(property is not null);
-                        Debug.Assert(accessor is not null);
                         return DeriveArguments(
                                     boundObjectInitializerMember,
                                     boundObjectInitializerMember.Binder,
@@ -318,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundNode boundNode,
             Binder binder,
             Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
+            MethodSymbol? optionalParametersMethod,
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<int> argumentsToParametersOpt,
@@ -335,6 +334,8 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
+
+            Debug.Assert(optionalParametersMethod is not null);
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
