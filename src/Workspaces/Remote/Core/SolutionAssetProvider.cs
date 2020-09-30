@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // (non-contiguous) memory allocated for the underlying buffers. The amount of memory is bounded by the total size of the serialized assets.
             var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
 
-            Task.Run(() =>
+            var task1 = Task.Run(() =>
             {
                 try
                 {
@@ -71,12 +71,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // no-op
                 }
-            }, cancellationToken).Forget();
+            }, cancellationToken);
 
             // Complete RPC once we send the initial piece of data and start waiting for the writer to send more,
             // so the client can start reading from the stream. Once CopyPipeDataAsync completes the pipeWriter
             // the corresponding client-side pipeReader will complete and the data transfer will be finished.
-            CopyPipeDataAsync().Forget();
+            var task2 = CopyPipeDataAsync();
+
+            await Task.WhenAll(task1, task2).ConfigureAwait(false);
 
             async Task CopyPipeDataAsync()
             {
