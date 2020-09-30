@@ -530,7 +530,7 @@ class C
             return;
         }
     }
-}");
+}", new TestParameters(parseOptions: CSharp7));
         }
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
