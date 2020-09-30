@@ -67,13 +67,13 @@ namespace Roslyn.Test.Utilities
                 return _currentSolution;
             }
 
-            public ImmutableArray<Document> GetDocuments(Uri documentUri)
+            public ImmutableArray<Document> GetDocuments(Uri? documentUri)
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
             }
 
-            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
+            public ImmutableArray<TextDocument> GetTextDocuments(Uri? documentUri)
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetTextDocuments(documentUri);

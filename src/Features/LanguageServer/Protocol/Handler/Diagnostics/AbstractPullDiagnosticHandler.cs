@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -99,9 +100,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<DiagnosticParams>();
 
-            var documentToPreviousResult = new Dictionary<Document, DiagnosticParams>();
-            foreach (var previousResult in previousResults)
-                AddPreviousResult(documentToPreviousResult, previousResult);
+            var documentToPreviousDiagnosticParams =
+                previousResults.Select(r => new { DiagnosticParams = r, Document = _solutionProvider.GetDocument(r.TextDocument) })
+                               .Where(a => a.Document != null)
+                               .ToDictionary(a => a.Document, a => a.DiagnosticParams);
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -111,13 +113,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             foreach (var document in GetOrderedDocuments(context))
             {
-                if (DiagnosticsAreUnchanged(documentToPreviousResult, document))
+                if (DiagnosticsAreUnchanged(documentToPreviousDiagnosticParams, document))
                 {
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
                     // diagnostics they have for this file.
-                    var previousResult = documentToPreviousResult[document];
-                    progress.Report(CreateReport(previousResult.TextDocument, diagnostics: null, previousResult.PreviousResultId));
+                    var previousParams = documentToPreviousDiagnosticParams[document];
+                    progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
                 }
                 else
                 {
@@ -169,14 +171,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private bool DiagnosticsAreUnchanged(Dictionary<Document, DiagnosticParams> documentToPreviousResult, Document document)
+        private bool DiagnosticsAreUnchanged(Dictionary<Document, DiagnosticParams> documentToPreviousDiagnosticParams, Document document)
         {
             lock (_gate)
             {
                 var workspace = document.Project.Solution.Workspace;
-                return documentToPreviousResult.TryGetValue(document, out var previousResult) &&
+                return documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
                        _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                       lastReportedResultId == previousResult.PreviousResultId;
+                       lastReportedResultId == previousParams.PreviousResultId;
             }
         }
 
@@ -189,17 +191,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var resultId = _nextDocumentResultId++.ToString();
                 _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
                 return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), diagnostics, resultId);
-            }
-        }
-
-        protected void AddPreviousResult(
-            Dictionary<Document, DiagnosticParams> documentToDiagnosticParams, DiagnosticParams previousResult)
-        {
-            if (previousResult.TextDocument != null && previousResult.PreviousResultId != null)
-            {
-                var document = _solutionProvider.GetDocument(previousResult.TextDocument);
-                if (document != null)
-                    documentToDiagnosticParams[document] = previousResult;
             }
         }
 
