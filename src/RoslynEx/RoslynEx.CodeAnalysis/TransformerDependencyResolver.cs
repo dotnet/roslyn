@@ -17,7 +17,7 @@ namespace RoslynEx
             // Build a graph of dependencies between unorderedTransformations.
             int n = transformers.Count;
 
-            Dictionary<string, int> nameToIndexMapping = transformers.Select((t, i) => (t.GetType().FullName, i)).ToDictionary(x => x.FullName, x => x.i);
+            Dictionary<string, int> nameToIndexMapping = transformers.Select((t, i) => (t.GetType().FullName, i)).ToDictionary(x => x.FullName!, x => x.i);
 
             Graph graph = new Graph(n);
             bool[] hasPredecessor = new bool[n];
@@ -137,6 +137,6 @@ namespace RoslynEx
             }
         }
 
-        private static string GetDisplayName(this ISourceTransformer transformer) => transformer.GetType().FullName;
+        private static string GetDisplayName(this ISourceTransformer transformer) => transformer.GetType().FullName!;
     }
 }

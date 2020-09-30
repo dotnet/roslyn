@@ -169,13 +169,13 @@ namespace RoslynEx
             throw new NotImplementedException();
         }
 
-        public override string GetErrorDisplayString(ISymbol symbol) => symbol.ToString();
+        public override string GetErrorDisplayString(ISymbol symbol) => symbol.ToString()!;
 
         public override string GetHelpLink(int code) => string.Empty;
 
         public override LocalizableString GetMessageFormat(int code) => LoadMessage(code, null);
 
-        public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture) =>
+        public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo? culture) =>
             string.Format(culture, "{0} {1}",
                 severity == DiagnosticSeverity.Error || isWarningAsError ? "error" : "warning",
                 id);
@@ -189,7 +189,7 @@ namespace RoslynEx
 
         public override int GetWarningLevel(int code) => 0;
 
-        public override string LoadMessage(int code, CultureInfo language) =>
+        public override string LoadMessage(int code, CultureInfo? language) =>
             code switch
             {
                 ERR_TransformerFailed => "Transformer '{0}' failed: {1}",

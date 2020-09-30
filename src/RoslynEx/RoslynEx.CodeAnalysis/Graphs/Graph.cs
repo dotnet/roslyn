@@ -4,8 +4,8 @@ namespace RoslynEx.Graphs
 {
     internal sealed class Graph : AbstractGraph
     {
-        private readonly SimpleLinkedListNode<int>[] successors;
-        private readonly SimpleLinkedListNode<int>[] predecessors;
+        private readonly SimpleLinkedListNode<int>?[] successors;
+        private readonly SimpleLinkedListNode<int>?[] predecessors;
 
         public Graph( int size ) : base( size )
         {
@@ -27,7 +27,7 @@ namespace RoslynEx.Graphs
 
         public override bool HasEdge(int predecessor, int successor)
         {
-            SimpleLinkedListNode<int> current = this.successors[predecessor];
+            SimpleLinkedListNode<int>? current = this.successors[predecessor];
 
             while ( current != null )
             {
@@ -55,7 +55,7 @@ namespace RoslynEx.Graphs
             {
                 NodeInfo nodeInfo = queue.Dequeue();
                 int current = nodeInfo.Node;
-                SimpleLinkedListNode<int> successorNode = this.successors[current];
+                SimpleLinkedListNode<int>? successorNode = this.successors[current];
                 int currentDistance = distances[current];
 
                 while ( successorNode != null )
@@ -66,7 +66,7 @@ namespace RoslynEx.Graphs
 
                     // Check that the new node is not already in the path.
                     bool hasCycle = false;
-                    SimpleLinkedListNode<int> nodeInPathCursor = nodeInfo.NodesInPath;
+                    SimpleLinkedListNode<int>? nodeInPathCursor = nodeInfo.NodesInPath;
                     while ( nodeInPathCursor != null )
                     {
                         if ( nodeInPathCursor.Value == successor )

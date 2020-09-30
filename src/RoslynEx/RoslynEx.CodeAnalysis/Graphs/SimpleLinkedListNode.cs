@@ -15,8 +15,8 @@ namespace RoslynEx.Graphs
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     internal sealed class SimpleLinkedListNode<T>
     {
-        private T value;
-        private SimpleLinkedListNode<T> next;
+        private T? value;
+        private SimpleLinkedListNode<T>? next;
 
 
         private SimpleLinkedListNode()
@@ -28,7 +28,7 @@ namespace RoslynEx.Graphs
         /// </summary>
         /// <param name="value">Node value.</param>
         /// <param name="next">Next node.</param>
-        public SimpleLinkedListNode(T value, SimpleLinkedListNode<T> next)
+        public SimpleLinkedListNode(T value, SimpleLinkedListNode<T>? next)
         {
             this.value = value;
             this.next = next;
@@ -38,7 +38,7 @@ namespace RoslynEx.Graphs
         /// <summary>
         /// Gets or sets the node value.
         /// </summary>
-        public T Value
+        public T? Value
         {
             get { return this.value; }
             set { this.value = value; }
@@ -47,7 +47,7 @@ namespace RoslynEx.Graphs
         /// <summary>
         /// Gets the next node.
         /// </summary>
-        public SimpleLinkedListNode<T> Next
+        public SimpleLinkedListNode<T>? Next
         {
             get { return this.next; }
             internal set { this.next = value; }
@@ -61,7 +61,7 @@ namespace RoslynEx.Graphs
         public SimpleLinkedListNode<T> GetLast()
 #pragma warning restore CA1024 // Use properties where appropriate
         {
-            SimpleLinkedListNode<T> cursor = this;
+            SimpleLinkedListNode<T>? cursor = this;
             SimpleLinkedListNode<T> last = this;
 
             while (cursor != null)
@@ -80,7 +80,7 @@ namespace RoslynEx.Graphs
         /// <param name="node">Reference to the head node. May safely be a reference to a <c>null</c> node.</param>
         /// <param name="value">Value.</param>
         [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
-        public static void Insert(ref SimpleLinkedListNode<T> node, T value)
+        public static void Insert(ref SimpleLinkedListNode<T>? node, T value)
         {
             node = new SimpleLinkedListNode<T>(value, node);
         }
@@ -142,13 +142,13 @@ namespace RoslynEx.Graphs
         /// <param name="value">The value to remove.</param>
         /// <returns><c>true</c> if the node was found and removed, otherwise <c>false</c>.</returns>
         [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
-        public static bool Remove(ref SimpleLinkedListNode<T> node, T value)
+        public static bool Remove(ref SimpleLinkedListNode<T>? node, T value)
         {
             if (node == null)
             {
                 return false;
             }
-            else if ((value == null && node.value == null) || node.value.Equals(value))
+            else if ((value == null && node.value == null) || Equals(node.value, value))
             {
                 node = node.next;
                 return true;
@@ -157,9 +157,9 @@ namespace RoslynEx.Graphs
             {
                 SimpleLinkedListNode<T> previousNode = node;
 
-                for (SimpleLinkedListNode<T> cursor = node.next; cursor != null; cursor = cursor.next)
+                for (SimpleLinkedListNode<T>? cursor = node.next; cursor != null; cursor = cursor.next)
                 {
-                    if ((value == null && cursor.value == null) || cursor.value.Equals(value))
+                    if ((value == null && cursor.value == null) || Equals(cursor.value, value))
                     {
                         previousNode.next = cursor.next;
                         return true;

@@ -21,7 +21,7 @@ namespace RoslynEx.UnitTests
             var diagnostics = new List<DiagnosticInfo>();
 
             TransformerDependencyResolver.Sort(
-                ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName, typeof(T3).FullName }.ToImmutableArray() },
+                ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName, typeof(T3).FullName }.ToImmutableArray() }!,
                 diagnostics);
 
             Assert.Equal(transformers.ToArray(), new ISourceTransformer[] { T1, T2, T3 });
@@ -37,7 +37,7 @@ namespace RoslynEx.UnitTests
             var diagnostics = new List<DiagnosticInfo>();
 
             TransformerDependencyResolver.Sort(
-                ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName }.ToImmutableArray() }, diagnostics);
+                ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName }.ToImmutableArray() }!, diagnostics);
 
             Assert.Equal(1, diagnostics.Count);
             Assert.Equal(RoslynExMessageProvider.ERR_TransformerNotFound, diagnostics[0].Code);
@@ -53,10 +53,10 @@ namespace RoslynEx.UnitTests
 
             TransformerDependencyResolver.Sort(
                 ref transformers,
-                new[] { 
+                new[] {
                     new[] { typeof(T1).FullName, typeof(T2).FullName, typeof(T3).FullName }.ToImmutableArray(),
                     new[] { typeof(T3).FullName, typeof(T1).FullName }.ToImmutableArray()
-                },
+                }!,
                 diagnostics);
 
             Assert.Equal(1, diagnostics.Count);
@@ -72,7 +72,7 @@ namespace RoslynEx.UnitTests
             var diagnostics = new List<DiagnosticInfo>();
 
             TransformerDependencyResolver.Sort(
-                ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName }.ToImmutableArray() }, diagnostics);
+                ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName }.ToImmutableArray() }!, diagnostics);
 
             Assert.Equal(1, diagnostics.Count);
             Assert.Equal(RoslynExMessageProvider.ERR_TransformersNotOrdered, diagnostics[0].Code);

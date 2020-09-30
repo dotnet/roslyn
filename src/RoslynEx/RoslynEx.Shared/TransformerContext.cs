@@ -2,6 +2,11 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+#if ROSLYNEX_INTERFACE
+// missing constructor causes warnings
+#nullable disable
+#endif
+
 namespace RoslynEx
 {
     /// <summary>

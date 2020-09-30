@@ -129,7 +129,7 @@ class Library
 
             class Rewriter : CSharpSyntaxRewriter
             {
-                private readonly Func<int, StatementSyntax> getStepStatement;
+                private readonly Func<int, StatementSyntax> getStepStatement = null!;
 
                 public Rewriter(StatementSyntax stepStatement)
                 {
@@ -143,7 +143,7 @@ class Library
 
                     statements.Add(ParseStatement("Console.WriteLine(\"start\");"));
 
-                    for (int i = 0; i < node.Body.Statements.Count; i++)
+                    for (int i = 0; i < node.Body!.Statements.Count; i++)
                     {
                         statements.Add(getStepStatement(i));
                         statements.Add(node.Body.Statements[i]);
