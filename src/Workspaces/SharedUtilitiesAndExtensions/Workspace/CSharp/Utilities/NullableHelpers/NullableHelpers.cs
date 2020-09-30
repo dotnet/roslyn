@@ -5,22 +5,47 @@
 #nullable enable
 
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class NullableHelpers
     {
         /// <summary>
-        /// Given an encapsulating operation, returns true if the symbol passed in
+        /// Gets the declared symbol and root operation from the passed in declarationSyntax and calls
+        /// <see cref="IsSymbolAssignedPossiblyNullValue(SemanticModel, IOperation, ISymbol)"/>. Note
+        /// that this is bool and not bool? because we know that the symbol is at the very least declared, 
+        /// so there's no need to return a null value. 
+        /// </summary>
+        public static bool IsDeclaredSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+        {
+            var declaredType = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
+            var declaredOperation = semanticModel.GetRequiredOperation(declarationSyntax, cancellationToken);
+
+            var rootOperation = declaredOperation;
+
+            // Walk up the tree to find a root for the operation
+            // that contains the declaration
+            while (rootOperation.Parent is not null)
+            {
+                rootOperation = rootOperation.Parent;
+            }
+
+            return IsSymbolAssignedPossiblyNullValue(semanticModel, rootOperation, declaredType) == true;
+        }
+
+        /// <summary>
+        /// Given an operation, goes through all decendent operations and returns true if the symbol passed in
         /// is ever assigned a possibly null value as determined by nullable flow state. Returns
         /// null if no references are found, letting the caller determine what to do with that information
         /// </summary>
-        public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
+        public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation operation, ISymbol symbol)
         {
-            var references = containingOperation.DescendantsAndSelf()
+            var references = operation.DescendantsAndSelf()
                 .Where(o => IsSymbolReferencedByOperation(o, symbol, allowNullInitializer: false));
 
             var hasReference = false;

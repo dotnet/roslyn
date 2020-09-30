@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             typeSymbol = AdjustNullabilityOfTypeSymbol(
                 typeSymbol,
-                document.GetRequiredLanguageService<ISyntaxFactsService>(),
                 semanticModel,
                 declarationSyntax,
                 cancellationToken);
@@ -157,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             typeSymbol = AdjustNullabilityOfTypeSymbol(
                 typeSymbol,
-                document.GetRequiredLanguageService<ISyntaxFactsService>(),
                 semanticModel,
                 declarationSyntax,
                 cancellationToken);
@@ -167,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         private static ITypeSymbol AdjustNullabilityOfTypeSymbol(
             ITypeSymbol typeSymbol,
-            ISyntaxFacts syntaxFacts,
             SemanticModel semanticModel,
             SyntaxNode declarationSyntax,
             CancellationToken cancellationToken)
@@ -176,13 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
                 // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
                 // determine if it needs to be null
-                var encapsulatingNode = syntaxFacts.GetIOperationRootNode(declarationSyntax);
-                Contract.ThrowIfNull(encapsulatingNode);
-
-                var operationScope = semanticModel.GetRequiredOperation(encapsulatingNode, cancellationToken);
-                var declSymbol = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
-
-                if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
+                var isPossiblyAssignedNull = NullableHelpers.IsDeclaredSymbolAssignedPossiblyNullValue(semanticModel, declarationSyntax, cancellationToken);
+                if (!isPossiblyAssignedNull)
                 {
                     // If the symbol is never assigned null we can update the type symbol to also be non-null
                     return typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
