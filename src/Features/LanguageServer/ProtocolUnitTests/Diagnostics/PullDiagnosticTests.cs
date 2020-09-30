@@ -64,25 +64,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             workspace.Documents.Single().GetTextBuffer();
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var results = await RunGetDocumentPullDiagnosticsAsync(workspace, document);
 
-            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
-
-            workspace.OnDocumentRemoved(workspace.Documents.Single().Id);
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
-
-            await WaitForDiagnosticsAsync(workspace);
-
-            var solution = workspace.CurrentSolution;
+            // Get the diagnostics for the solution containing the doc.
+            var solution = document.Project.Solution;
             var queue = CreateRequestQueue(solution);
             var server = GetLanguageServer(solution);
 
             await WaitForDiagnosticsAsync(workspace);
+            var results = await server.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
+                queue,
+                MSLSPMethods.DocumentPullDiagnosticName,
+                CreateDocumentDiagnosticParams(document),
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
 
+            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
+
+            // Now remove the doc.
+            workspace.OnDocumentRemoved(workspace.Documents.Single().Id);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
+
+            // And get diagnostic again, using the same doc-id as before.
+            await WaitForDiagnosticsAsync(workspace);
             results = await server.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
                 queue,
                 MSLSPMethods.DocumentPullDiagnosticName,
-                new DocumentDiagnosticsParams { TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(document) },
+                new DocumentDiagnosticsParams { PreviousResultId = results.Single().ResultId, TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(document) },
                 new LSP.ClientCapabilities(),
                 clientName: null,
                 CancellationToken.None);
