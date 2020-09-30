@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
+            // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
+            // avoid deadlocks (the exception handler in 'writerTask' ensures progress is made in 'readerTask').
+            cancellationToken.ThrowIfCancellationRequested();
+            var mustNotCancelToken = CancellationToken.None;
+
             var pipe = new Pipe();
 
             // Create new tasks that both start executing, rather than invoking the delegates directly
@@ -170,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     throw;
                 }
-            }, cancellationToken);
+            }, mustNotCancelToken);
 
             var readerTask = Task.Run(
                 async () =>
@@ -189,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
-                }, cancellationToken);
+                }, mustNotCancelToken);
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
