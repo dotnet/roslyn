@@ -305,33 +305,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.Equal(results[1].ResultId, results2[1].ResultId);
         }
 
-#if false
-
         [Fact]
-        public async Task TestDocumentDiagnosticsRemainAfterErrorIsNotFixed()
+        public async Task TestWorkspaceDiagnosticsRemainAfterErrorIsNotFixed()
         {
-            var markup =
+            var markup1 =
 @"class A {";
-            using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+            var markup2 = "";
+            using var workspace = CreateTestWorkspaceWithDiagnostics(
+                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            // Calling GetTextBuffer will effectively open the file.
-            var buffer = workspace.Documents.Single().GetTextBuffer();
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
-
+            Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
+            Assert.Empty(results[1].Diagnostics);
+
+            var buffer = workspace.Documents.First().GetTextBuffer();
             buffer.Insert(0, " ");
 
-            results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(),
-                previousResultId: results[0].ResultId);
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(workspace);
 
-            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-            Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
+            Assert.Equal("CS1513", results2[0].Diagnostics.Single().Code);
+            Assert.Equal(new Position { Line = 0, Character = 10 }, results2[0].Diagnostics.Single().Range.Start);
+
+            Assert.Empty(results2[1].Diagnostics);
+            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         }
+
+#if false
 
         [Fact]
         public async Task TestStreamingDocumentDiagnostics()
