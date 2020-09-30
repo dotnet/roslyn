@@ -2367,7 +2367,7 @@ class C
             await TestInRegularAndScript1Async(
 @"class C
 {
-    [||]int FooBar() //Vital Comment
+    [||]int Goo() //Vital Comment
     {
       return 1;
     }
@@ -2375,7 +2375,7 @@ class C
 @"class C
 {
     //Vital Comment
-    int FooBar => 1;
+    int Goo => 1;
 }");
         }
 
