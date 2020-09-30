@@ -690,7 +690,7 @@ namespace Analyzer.Utilities.Extensions
                methodSymbol.Name switch
                {
                    "$Main" => true,
-                   "<$Main>$" => true,
+                   "<Main>$" => true,
                    _ => false
                };
     }
