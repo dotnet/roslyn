@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 // Only verify against built in providers.  3rd party ones do not necessarily implement the possible trigger characters API.
                 foreach (var provider in triggeredProviders)
                 {
-                    if (provider is LSPCompletionProvider lspProvider && lspProvider.IsInsertionTrigger(text, caretPosition, optionSet))
+                    if (provider is LSPCompletionProvider lspProvider && lspProvider.IsInsertionTrigger(text, caretPosition - 1, optionSet))
                     {
                         if (!lspProvider.TriggerCharacters.Contains(character))
                         {
