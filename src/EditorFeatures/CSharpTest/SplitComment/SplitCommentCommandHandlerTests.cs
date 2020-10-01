@@ -18,6 +18,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestMissingWithSelection()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //[|Test|] Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestMissingWithMultiSelection()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //[||]Test[||] Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
         public void TestSplitStartOfComment()
         {
             TestHandled(
@@ -200,6 +228,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 		// Test Comment
 	}
 }", useTabs: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestDoesNotHandleDocComments()
+        {
+            TestNotHandled(
+@"namespace TestNamespace
+{
+    public class Program
+    {
+        /// <summary>Test [||]Comment</summary>
+        public static void Main(string[] args)
+        {
+            
+        }
+    }
+}");
         }
     }
 }
