@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var operatorSign = symbol.GetOperatorSignOfOperator();
                 if (operatorPosition.HasFlag(OperatorPosition.Infix))
                 {
-                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {operatorSign} ", positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
                     if (change is not null)
                     {
                         return change;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
                 if (operatorPosition.HasFlag(OperatorPosition.Postfix))
                 {
-                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ", positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                    var change = await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
                     if (change is not null)
                     {
                         return change;

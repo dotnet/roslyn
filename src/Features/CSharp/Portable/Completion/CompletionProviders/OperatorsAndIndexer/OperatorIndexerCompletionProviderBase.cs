@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, int positionOffset, CancellationToken cancellationToken)
+        protected static async Task<CompletionChange?> ReplaceDotAndTokenAfterWithTextAsync(Document document, CompletionItem item, string text, bool removeConditionalAccess, int positionOffset, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
@@ -147,12 +147,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                var newPosition = token.Span.End + (text.Length - 1) + positionOffset;
-                var replaceSpan = TextSpan.FromBounds(token.SpanStart, tokenAtPosition.Span.End);
+                var replacementStart = GetReplacementStart(removeConditionalAccess, token);
+                var newPosition = replacementStart + text.Length + positionOffset;
+                var replaceSpan = TextSpan.FromBounds(replacementStart, tokenAtPosition.Span.End);
                 return CompletionChange.Create(new TextChange(replaceSpan, text), newPosition);
             }
 
             return null;
+        }
+
+        private static int GetReplacementStart(bool removeConditionalAccess, SyntaxToken token)
+        {
+            var replacementStart = token.SpanStart;
+            if (removeConditionalAccess)
+            {
+                if (token.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.GetParentConditionalAccessExpression() is ConditionalAccessExpressionSyntax conditional)
+                {
+                    replacementStart = conditional.OperatorToken.SpanStart;
+                }
+            }
+
+            return replacementStart;
         }
     }
 }
