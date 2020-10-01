@@ -173,6 +173,7 @@ class A
         }
 
         [Fact]
+        [WorkItem(47743, "https://github.com/dotnet/roslyn/issues/47743")]
         public async Task TestGetRegexCompletionsTargetTypedAsync()
         {
             var markup =
