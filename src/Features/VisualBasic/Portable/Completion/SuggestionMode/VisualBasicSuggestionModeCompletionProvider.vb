@@ -152,7 +152,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
             Return Nothing
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
-
     End Class
 End Namespace

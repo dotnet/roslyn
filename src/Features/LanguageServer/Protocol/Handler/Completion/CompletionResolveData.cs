@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -13,5 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public Position Position { get; set; }
 
         public string DisplayText { get; set; }
+
+        public CompletionTrigger CompletionTrigger { get; set; }
     }
 }

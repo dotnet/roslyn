@@ -4,6 +4,8 @@
 
 // This is a generated file, please edit Generate.ps1 to change the contents
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Test.Utilities
