@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -182,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _parseOptions = parseOptions;
         }
 
-        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue)
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
         {
             lock (_gate)
             {
@@ -193,6 +194,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 field = newValue;
+
+                if (logThrowAwayTelemetry)
+                {
+                    var telemetry = _workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
+                    // If we already have a compilation, then this change will mean it gets throw away, so log it
+                    if (_workspace.CurrentSolution.State.TryGetCompilation(Id, out var previousCompilation))
+                    {
+                        int numTrees = previousCompilation.SyntaxTrees.Count();
+                        if (numTrees > 0)
+                        {
+                            var projectState = _workspace.CurrentSolution.State.GetRequiredProjectState(Id);
+                            telemetry.ReportCompilationThrownAway(projectState.ProjectInfo.Attributes.TelemetryId, numTrees);
+                        }
+                    }
+                }
 
                 if (_activeBatchScopes > 0)
                 {
@@ -241,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public CompilationOptions? CompilationOptions
         {
             get => _compilationOptions;
-            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
+            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -250,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ParseOptions? ParseOptions
         {
             get => _parseOptions;
-            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value));
+            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         /// <summary>

@@ -39,5 +39,12 @@ namespace Microsoft.CodeAnalysis.Telemetry
         /// Reports telemetry on API usage.
         /// </summary>
         void ReportApiUsage(HashSet<ISymbol> symbols, Guid solutionSessionId, Guid projectGuid);
+
+        /// <summary>
+        /// Reports telemetry on a compilation being thrown away during evaluation
+        /// </summary>
+        /// <param name="projectGuid">The guid of the project, for correlation with the project system</param>
+        /// <param name="syntaxTreesThrownAway">The number of syntax trees that have been parsed.</param>
+        void ReportCompilationThrownAway(Guid projectGuid, int syntaxTreesThrownAway);
     }
 }

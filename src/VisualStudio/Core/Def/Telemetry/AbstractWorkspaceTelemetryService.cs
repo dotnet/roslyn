@@ -93,5 +93,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 // no-op
             }
         }
+
+        public void ReportCompilationThrownAway(Guid projectGuid, int syntaxTreesParsed)
+        {
+            Logger.Log(FunctionId.Workspace_Project_CompilationThrownAway, KeyValueLogMessage.Create(m =>
+            {
+                m[nameof(projectGuid)] = projectGuid.ToString("B");
+                m[nameof(syntaxTreesParsed)] = syntaxTreesParsed;
+            }));
+        }
     }
 }
