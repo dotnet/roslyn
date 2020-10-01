@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
-        <target state="needs-review-translation">Diese Aufrufsite ruft eine Funktion mit einem params-Parameter auf. Dies führt zu einer Arrayzuordnung.</target>
+        <target state="translated">Diese Aufrufsite ruft eine Funktion mit einem params-Parameter auf. Dies führt zu einer Arrayzuordnung.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
-        <target state="needs-review-translation">Der Werttyp für die Verweistypkonvertierung verursacht Boxing in der Aufrufsite (hier) und Unboxing in der Site der aufgerufenen Funktion. Verwenden Sie ggf. Generics.</target>
+        <target state="translated">Der Werttyp für die Verweistypkonvertierung verursacht Boxing in der Aufrufsite (hier) und Unboxing in der Site der aufgerufenen Funktion. Verwenden Sie ggf. Generics.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
         <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
-        <target state="needs-review-translation">Für den Werttyp ({0}) wird ein Boxing in einen Verweistyp für eine Zeichenfolgenverkettung durchgeführt.</target>
+        <target state="translated">Für den Werttyp ({0}) wird ein Boxing in einen Verweistyp für eine Zeichenfolgenverkettung durchgeführt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

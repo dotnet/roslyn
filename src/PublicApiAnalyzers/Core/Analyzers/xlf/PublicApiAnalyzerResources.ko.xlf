@@ -129,12 +129,12 @@
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">
         <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <target state="translated">퍼블릭 API 파일 '{0}'이(가) 없거나 추가 분석기 파일로 표시되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingTitle">
         <source>Missing shipped or unshipped public API file</source>
-        <target state="new">Missing shipped or unshipped public API file</target>
+        <target state="translated">제공되거나 제공되지 않은 퍼블릭 API 파일이 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
