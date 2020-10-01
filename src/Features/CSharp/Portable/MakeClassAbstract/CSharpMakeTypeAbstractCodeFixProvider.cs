@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MakeClassAbstract;
 
-namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
+namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeTypeAbstractCodeFixProvider)), Shared]
     internal sealed class CSharpMakeTypeAbstractCodeFixProvider : AbstractMakeTypeAbstractCodeFixProvider<TypeDeclarationSyntax>
