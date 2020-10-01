@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
 
-            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (Result)
                 {
                     Result.Add(definition);
                 }
 
-                return default;
+                return Task.CompletedTask;
             }
         }
 

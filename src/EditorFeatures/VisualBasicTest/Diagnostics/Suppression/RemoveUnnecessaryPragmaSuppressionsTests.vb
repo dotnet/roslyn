@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
-Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnnecessarySuppressions
 
@@ -20,10 +19,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
     <WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")>
     Public NotInheritable Class RemoveUnnecessaryInlineSuppressionsTests
         Inherits AbstractUnncessarySuppressionDiagnosticTest
-
-        Public Sub New(logger As ITestOutputHelper)
-            MyBase.New(logger)
-        End Sub
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script

@@ -6,7 +6,6 @@
 
 using System;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
@@ -66,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Invokes a remote API that streams results back to the caller.
         /// </summary>
         public async ValueTask<TResult> InvokeAsync<TResult>(
-            Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            Func<T, Stream, CancellationToken, ValueTask> invocation,
+            Func<Stream, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
             try
@@ -80,55 +79,45 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        // Remote calls can only throw 4 types of exceptions that correspond to
+        // TODO: https://github.com/microsoft/vs-streamjsonrpc/issues/246
         //
+        // We need to get to a state when remote calls can only throw 4 types of exceptions that correspond to
         //   1) Connection issue (connection dropped for any reason)
         //   2) Serialization issue - bug in serialization of arguments (types are not serializable, etc.)
         //   3) Remote exception - an exception was thrown by the callee
         //   4) Cancelation
+        // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is set the connection dropped exception [1] should not be thrown.
+        // Instead a the cancellation token should be signaled and OperationCancelledException should be thrown ([4]).
         //
+        // Until the above issue in JSON-RPC is fixed we do a best guess on what the issue is.
+
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
-            if (exception is IOException)
+            if (exception is RemoteInvocationException or JsonException)
             {
-                // propagate intermittent exceptions without reporting telemetry:
-                return false;
+                // indicates bug on client side or in serialization, propagate the exception
+                return FatalError.ReportWithoutCrashAndPropagate(exception);
             }
 
-            if (exception is OperationCanceledException)
+            if (cancellationToken.IsCancellationRequested)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return false;
-                }
-
-                // It is not guaranteed that RPC only throws OCE when our token is signaled.
-                // Signal the cancelation source that our token is linked to and throw new cancellation
-                // exception in OnUnexpectedException.
-                ClientDisconnectedSource.Cancel();
-
-                return true;
+                // If cancelation is requested and we see a different exception the handler will throw OperationCancelledException.
+                return exception is not OperationCanceledException;
             }
 
-            // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is
-            // set ConnectionLostException should not be thrown. Instead the cancellation token should be
-            // signaled and OperationCancelledException should be thrown.
-            // Seems to not work in all cases currently, so we need to cancel ourselves (bug https://github.com/microsoft/vs-streamjsonrpc/issues/551).
-            // Once this issue is fixed we can remov this if statement and fall back to reporting NFW
-            // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
-            if (exception is ConnectionLostException)
-            {
-                ClientDisconnectedSource.Cancel();
+            // We assume that any other exception indicates lost connection (it might not),
+            // cancel any ongoing work since the client can't receive the results.
+            // This should be handled by JSON-RPC but it's not guaranteed due to https://github.com/microsoft/vs-streamjsonrpc/issues/246.
+            ClientDisconnectedSource.Cancel();
 
-                return true;
-            }
-
-            // Indicates bug on client side or in serialization, report NFW and propagate the exception.
-            return FatalError.ReportWithoutCrashAndPropagate(exception);
+            // catch the exception, cancellation exception will be thrown by the handler.
+            return true;
         }
 
         private static Exception OnUnexpectedException(CancellationToken cancellationToken)
         {
+            // Remote call may fail with different exception even when our cancellation token is signaled
+            // (e.g. on shutdown if the connection is dropped):
             cancellationToken.ThrowIfCancellationRequested();
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token.

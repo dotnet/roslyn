@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(threadingContext As IThreadingContext)
+            MyBase.New(threadingContext)
         End Sub
     End Class
 End Namespace

@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFindUsagesLSPService()
+        public CSharpFindUsagesLSPService(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
     }

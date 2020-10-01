@@ -7,11 +7,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
-    public partial class PopulateSwitchExpressionTests
+    public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

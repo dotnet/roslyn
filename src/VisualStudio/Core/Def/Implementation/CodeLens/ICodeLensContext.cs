@@ -31,13 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         /// <summary>
         /// get reference location descriptor of the given descriptor
         /// </summary>
-        Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
+        Task<IEnumerable<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations of methods that refer to the located node.
         /// </summary>
-        Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
+        Task<IEnumerable<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
     }
 }

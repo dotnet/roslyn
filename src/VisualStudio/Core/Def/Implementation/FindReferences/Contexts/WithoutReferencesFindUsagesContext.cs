@@ -34,14 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             // We should never be called in a context where we get references.
-            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
+            protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync()
                 => Task.CompletedTask;
 
-            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
 

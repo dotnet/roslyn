@@ -12,17 +12,11 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public ValidateFormatStringTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
-
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 

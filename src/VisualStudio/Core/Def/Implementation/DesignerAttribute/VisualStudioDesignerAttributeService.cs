@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Our connection to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>? _lazyConnection;
+        private RemoteServiceConnection<IRemoteDesignerAttributeService>? _lazyConnection;
 
         /// <summary>
         /// Cache from project to the CPS designer service for it.  Computed on demand (which
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            _lazyConnection = await client.CreateConnectionAsync<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = await client.CreateConnectionAsync<IRemoteDesignerAttributeService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.

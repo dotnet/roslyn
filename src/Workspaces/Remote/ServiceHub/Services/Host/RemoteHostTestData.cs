@@ -4,6 +4,9 @@
 
 #nullable enable
 
+using System;
+using Microsoft.CodeAnalysis.Host;
+
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>

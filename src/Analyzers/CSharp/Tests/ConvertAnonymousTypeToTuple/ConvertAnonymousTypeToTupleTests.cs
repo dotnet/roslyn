@@ -9,17 +9,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousTypeToTuple
 {
     public partial class ConvertAnonymousTypeToTupleTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public ConvertAnonymousTypeToTupleTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpConvertAnonymousTypeToTupleDiagnosticAnalyzer(), new CSharpConvertAnonymousTypeToTupleCodeFixProvider());
 

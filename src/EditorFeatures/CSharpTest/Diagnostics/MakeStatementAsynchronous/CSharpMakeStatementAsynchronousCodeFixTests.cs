@@ -9,18 +9,12 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeStatementAsynchronous
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStatementAsynchronous)]
     public class CSharpMakeStatementAsynchronousCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public CSharpMakeStatementAsynchronousCodeFixTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
-
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeStatementAsynchronousCodeFixProvider());
 

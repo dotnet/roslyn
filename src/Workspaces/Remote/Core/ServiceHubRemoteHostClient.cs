@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IServiceBroker _serviceBroker;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
-        private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
 
         private readonly ConnectionPools? _connectionPools;
 
@@ -68,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
             _errorReportingService = services.GetService<IErrorReportingService>();
-            _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -163,16 +161,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), RemoteHostOptions.IsServiceHubProcess64Bit(_services));
 
-                // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-                await TaskScheduler.Default;
-
 #pragma warning disable ISB001 // Dispose of proxies - BrokeredServiceConnection takes care of disposal
                 var proxy = await _serviceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
 
                 Contract.ThrowIfNull(proxy, $"Brokered service not found: {descriptor.Moniker.Name}");
 
-                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService, _shutdownCancellationService);
+                return new BrokeredServiceConnection<T>(proxy, _assetStorage, _errorReportingService);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<INamedTypeSymbol>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project>? projects,
+            IImmutableSet<Project> projects,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,

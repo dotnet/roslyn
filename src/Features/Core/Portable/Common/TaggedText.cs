@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -17,39 +16,33 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A piece of text with a descriptive tag.
     /// </summary>
-    [DataContract]
     public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
         /// </summary>
-        [DataMember(Order = 0)]
         public string Tag { get; }
 
         /// <summary>
         /// The actual text to be displayed.
         /// </summary>
-        [DataMember(Order = 1)]
         public string Text { get; }
 
         /// <summary>
         /// Gets the style(s) to apply to the text.
         /// </summary>
-        [DataMember(Order = 2)]
         internal TaggedTextStyle Style { get; }
 
         /// <summary>
         /// Gets the navigation target for the text, or <see langword="null"/> if the text does not have a navigation
         /// target.
         /// </summary>
-        [DataMember(Order = 3)]
         internal string NavigationTarget { get; }
 
         /// <summary>
         /// Gets the navigation hint for the text, or <see langword="null"/> if the text does not have a navigation
         /// hint.
         /// </summary>
-        [DataMember(Order = 4)]
         internal string NavigationHint { get; }
 
         /// <summary>

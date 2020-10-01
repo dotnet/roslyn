@@ -9,17 +9,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisambiguateSameVariable
 {
     public class DisambiguateSameVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public DisambiguateSameVariableTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
-
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpDisambiguateSameVariableCodeFixProvider());
 

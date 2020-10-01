@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
 
-        public override ValueTask ReportMessageAsync(string message)
+        public override Task ReportMessageAsync(string message)
         {
             Message = message;
-            return default;
+            return Task.CompletedTask;
         }
 
-        public override ValueTask SetSearchTitleAsync(string title)
+        public override Task SetSearchTitleAsync(string title)
         {
             SearchTitle = title;
-            return default;
+            return Task.CompletedTask;
         }
 
         public ImmutableArray<DefinitionItem> GetDefinitions()
@@ -59,24 +59,24 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+        public override Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
             lock (_gate)
             {
                 _definitionItems.Add(definition);
             }
 
-            return default;
+            return Task.CompletedTask;
         }
 
-        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
             lock (_gate)
             {
                 _referenceItems.Add(reference);
             }
 
-            return default;
+            return Task.CompletedTask;
         }
     }
 }

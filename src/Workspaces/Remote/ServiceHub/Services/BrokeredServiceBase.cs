@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 
@@ -71,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Remote
         protected async ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
-            using var _ = LinkToken(ref cancellationToken);
+            using var combined = cancellationToken.CombineWith(ClientDisconnectedSource.Token);
 
             try
             {
-                return await implementation(cancellationToken).ConfigureAwait(false);
+                return await implementation(combined.Token).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
@@ -86,23 +87,16 @@ namespace Microsoft.CodeAnalysis.Remote
         protected async ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
-            using var _ = LinkToken(ref cancellationToken);
+            using var combined = cancellationToken.CombineWith(ClientDisconnectedSource.Token);
 
             try
             {
-                await implementation(cancellationToken).ConfigureAwait(false);
+                await implementation(combined.Token).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private CancellationTokenSource? LinkToken(ref CancellationToken cancellationToken)
-        {
-            var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ClientDisconnectedSource.Token);
-            cancellationToken = source.Token;
-            return source;
         }
     }
 }

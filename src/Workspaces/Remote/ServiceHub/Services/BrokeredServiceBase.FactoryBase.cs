@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -28,11 +27,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal abstract class FactoryBase<TService> : IServiceHubServiceFactory, IFactory
             where TService : class
         {
-            static FactoryBase()
-            {
-                Debug.Assert(typeof(TService).IsInterface);
-            }
-
             protected abstract TService CreateService(in ServiceConstructionArguments arguments);
 
             protected virtual TService CreateService(
@@ -71,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
                IServiceBroker serviceBroker)
             {
                 var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8);
-                var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
-                var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
+                var serverConnection = descriptor.ConstructRpcConnection(pipe);
 
                 var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker, new CancellationTokenSource());
                 var service = CreateService(args, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);
@@ -88,11 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote
             where TService : class
             where TCallback : class
         {
-            static FactoryBase()
-            {
-                Debug.Assert(typeof(TCallback).IsInterface);
-            }
-
             protected abstract TService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<TCallback> callback);
 
             protected sealed override TService CreateService(in ServiceConstructionArguments arguments)

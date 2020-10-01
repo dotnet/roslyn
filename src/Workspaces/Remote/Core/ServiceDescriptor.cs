@@ -5,9 +5,6 @@
 #nullable enable
 
 using System;
-using System.IO.Pipelines;
-using MessagePack;
-using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using StreamJsonRpc;
@@ -36,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }.GetFrozenCopy();
 
         private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
+            : base(serviceMoniker, clientInterface, Formatters.UTF8, MessageDelimiters.HttpLikeHeaders, s_multiplexingStreamOptions)
         {
         }
 
@@ -55,18 +52,11 @@ namespace Microsoft.CodeAnalysis.Remote
             => new ServiceDescriptor(this);
 
         protected override IJsonRpcMessageFormatter CreateFormatter()
-            => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
+            => ConfigureFormatter((JsonMessageFormatter)base.CreateFormatter());
 
-        private static readonly MessagePackSerializerOptions s_options = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
-            .WithResolver(CompositeResolver.Create(
-                MessagePackFormatters.GetFormatters(),
-                new IFormatterResolver[] { ImmutableCollectionMessagePackResolver.Instance, StandardResolverAllowPrivate.Instance }));
-
-        private static MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
+        internal static JsonMessageFormatter ConfigureFormatter(JsonMessageFormatter formatter)
         {
-            // See https://github.com/neuecc/messagepack-csharp.
-            formatter.SetMessagePackSerializerOptions(s_options);
+            formatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             return formatter;
         }
 
