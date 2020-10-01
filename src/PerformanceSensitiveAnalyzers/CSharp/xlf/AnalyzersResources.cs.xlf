@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
-        <target state="translated">Tato lokalita volání volá funkci s parametrem params. Výsledkem je přidělení pole.</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">Tato lokalita volání volá funkci s parametrem params. Výsledkem je přidělení pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">Typ hodnoty pro převod typu odkazu způsobuje zabalení v lokalitě volání (tady) a rozbalení v lokalitě volajícího. Zvažte možnost použít obecné typy, pokud je to možné.</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">Typ hodnoty pro převod typu odkazu způsobuje zabalení v lokalitě volání (tady) a rozbalení v lokalitě volajícího. Zvažte možnost použít obecné typy, pokud je to možné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -113,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">Typ hodnoty ({0}) se balí do typu odkazu pro zřetězení řetězců.</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">Typ hodnoty ({0}) se balí do typu odkazu pro zřetězení řetězců.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

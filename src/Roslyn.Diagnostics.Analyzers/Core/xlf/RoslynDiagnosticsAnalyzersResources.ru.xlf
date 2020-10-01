@@ -2,9 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">Удалите суффикс "Opt"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">Не используйте суффикс "Opt" в коде, допускающем значения null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">Не используйте суффикс "Opt" в коде, допускающем значения null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">Не используйте суффикс "Opt"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="translated">Избегайте использования нескольких пустых строк</target>
+        <target state="needs-review-translation">Избегайте использования нескольких пустых строк</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BlankLinesTitle">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
@@ -29,7 +54,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">Типы, допускающие значения по умолчанию, должны иметь соответствующие поля.</target>
+        <target state="translated">Типы, для которых имеются значения по умолчанию, должны иметь соответствующие поля.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -205,6 +230,11 @@
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">Размещайте оператор на отдельной строке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">Свойство "Type.FullName" не может иметь значение null при использовании синтаксиса "typeof(T).FullName".</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

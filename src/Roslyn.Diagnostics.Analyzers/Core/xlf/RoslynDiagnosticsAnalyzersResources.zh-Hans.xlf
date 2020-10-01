@@ -2,9 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANS" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">请删除 "Opt" 后缀</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">请避免在可为 null 的代码中使用 "Opt" 后缀。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">请避免在启用了 null 的代码中使用 "Opt" 后缀</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">请避免使用 "Opt" 后缀</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="translated">避免出现多个空白行</target>
+        <target state="needs-review-translation">避免出现多个空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BlankLinesTitle">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
@@ -29,7 +54,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">可默认类型应具有可默认字段。</target>
+        <target state="translated">默认值可用的类型应具有默认值可用的字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -205,6 +230,11 @@
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">将语句另起一行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">使用语法 "typeof(T).FullName" 时，"Type.FullName" 属性不会为 null</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

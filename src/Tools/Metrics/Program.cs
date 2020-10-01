@@ -83,7 +83,7 @@ namespace Metrics
                         return usage();
                     }
 
-                    arg = arg.Substring(1);
+                    arg = arg[1..];
                     switch (arg.ToUpperInvariant())
                     {
                         case "Q":
@@ -103,7 +103,7 @@ namespace Metrics
                             }
 
                             var key = arg.Substring(0, index).ToUpperInvariant();
-                            var value = arg.Substring(index + 1);
+                            var value = arg[(index + 1)..];
                             switch (key)
                             {
                                 case "P":
@@ -368,5 +368,4 @@ Display this help message.");
             WriteException
         }
     }
-
 }

@@ -9,8 +9,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     public abstract partial class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
     {
-        protected abstract class SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TSyntaxNodeOfInterest> : DiagnosticAnalyzerSymbolAnalyzer
+        protected abstract class SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TSyntaxNodeOfInterest> : DiagnosticAnalyzerSymbolAnalyzer
             where TClassDeclarationSyntax : SyntaxNode
+            where TStructDeclarationSyntax : SyntaxNode
             where TSyntaxNodeOfInterest : SyntaxNode
         {
             protected SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
@@ -39,7 +40,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 IEnumerable<TClassDeclarationSyntax> classDecls = GetClassDeclarationNodes(namedType, symbolContext.CancellationToken);
                 foreach (TClassDeclarationSyntax classDecl in classDecls)
                 {
-                    IEnumerable<TSyntaxNodeOfInterest> syntaxNodes = classDecl.DescendantNodes(n => !(n is TClassDeclarationSyntax) || ReferenceEquals(n, classDecl)).OfType<TSyntaxNodeOfInterest>();
+                    IEnumerable<TSyntaxNodeOfInterest> syntaxNodes =
+                        classDecl.DescendantNodes(n => n is not (TClassDeclarationSyntax or TStructDeclarationSyntax) ||
+                                                       ReferenceEquals(n, classDecl))
+                                 .OfType<TSyntaxNodeOfInterest>();
                     if (syntaxNodes.Any())
                     {
                         SemanticModel semanticModel = symbolContext.Compilation.GetSemanticModel(classDecl.SyntaxTree);

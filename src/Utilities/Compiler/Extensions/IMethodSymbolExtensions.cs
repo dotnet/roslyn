@@ -70,7 +70,7 @@ namespace Analyzer.Utilities.Extensions
                    method.IsOverride &&
                    method.Name == WellKnownMemberNames.ObjectGetHashCode &&
                    method.ReturnType.SpecialType == SpecialType.System_Int32 &&
-                   method.Parameters.Length == 0 &&
+                   method.Parameters.IsEmpty &&
                    IsObjectMethodOverride(method);
         }
 
@@ -83,7 +83,7 @@ namespace Analyzer.Utilities.Extensions
                    method.IsOverride &&
                    method.ReturnType.SpecialType == SpecialType.System_String &&
                    method.Name == WellKnownMemberNames.ObjectToString &&
-                   method.Parameters.Length == 0 &&
+                   method.Parameters.IsEmpty &&
                    IsObjectMethodOverride(method);
         }
 
@@ -116,7 +116,7 @@ namespace Analyzer.Utilities.Extensions
                 return true; // for C#
             }
 
-            if (method.Name != WellKnownMemberNames.DestructorName || method.Parameters.Length != 0 || !method.ReturnsVoid)
+            if (method.Name != WellKnownMemberNames.DestructorName || !method.Parameters.IsEmpty || !method.ReturnsVoid)
             {
                 return false;
             }
@@ -180,7 +180,7 @@ namespace Analyzer.Utilities.Extensions
             // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
             return method.ReturnsVoid &&
-                method.Parameters.Length == 0 &&
+                method.Parameters.IsEmpty &&
                 method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
         }
 
@@ -381,8 +381,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsPropertyAccessor(this IMethodSymbol method)
         {
-            return method.MethodKind == MethodKind.PropertyGet ||
-                   method.MethodKind == MethodKind.PropertySet;
+            return method.MethodKind is MethodKind.PropertyGet or
+                   MethodKind.PropertySet;
         }
 
         /// <summary>
@@ -390,14 +390,14 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsEventAccessor(this IMethodSymbol method)
         {
-            return method.MethodKind == MethodKind.EventAdd ||
-                   method.MethodKind == MethodKind.EventRaise ||
-                   method.MethodKind == MethodKind.EventRemove;
+            return method.MethodKind is MethodKind.EventAdd or
+                   MethodKind.EventRaise or
+                   MethodKind.EventRemove;
         }
 
         public static bool IsOperator(this IMethodSymbol methodSymbol)
         {
-            return methodSymbol.MethodKind == MethodKind.UserDefinedOperator || methodSymbol.MethodKind == MethodKind.BuiltinOperator;
+            return methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
         }
 
         public static bool HasOptionalParameters(this IMethodSymbol methodSymbol)
@@ -590,10 +590,9 @@ namespace Analyzer.Utilities.Extensions
             return method.Name == "Enter" &&
                    method.ContainingType.Equals(systemThreadingMonitor) &&
                    method.ReturnsVoid &&
-                   method.Parameters.Length >= 1 &&
+                   !method.Parameters.IsEmpty &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
-
 
         public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
         {
@@ -673,5 +672,26 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        /// <summary>
+        /// Check if a method is an auto-property accessor.
+        /// </summary>
+        public static bool IsAutoPropertyAccessor(this IMethodSymbol methodSymbol)
+            => methodSymbol.IsPropertyAccessor()
+            && methodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
+            && propertySymbol.IsAutoProperty();
+
+        /// <summary>
+        /// Check if the given <paramref name="methodSymbol"/> is an implicitly generated method for top level statements.
+        /// </summary>
+        public static bool IsTopLevelStatementsEntryPointMethod([NotNullWhen(true)] this IMethodSymbol? methodSymbol)
+            => methodSymbol?.ContainingType.IsTopLevelStatementsEntryPointType() == true &&
+               methodSymbol.IsStatic &&
+               methodSymbol.Name switch
+               {
+                   "$Main" => true,
+                   "<Main>$" => true,
+                   _ => false
+               };
     }
 }

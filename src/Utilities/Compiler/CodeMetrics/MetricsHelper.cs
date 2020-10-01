@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
                     var model = context.GetSemanticModel(declSyntax);
-                    if (model.GetDeclaredSymbol(declSyntax, context.CancellationToken) != (object)symbol)
+                    if (!Equals(model.GetDeclaredSymbol(declSyntax, context.CancellationToken), symbol))
                     {
                         continue;
                     }
@@ -86,11 +86,41 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     // Declaration on a single line, we count it as a separate line.
                     delta = 1;
                 }
+                else
+                {
+                    // Ensure that we do not count the leading and trailing emtpy new lines.
+                    var additionalNewLines = Math.Max(0, GetNewlineCount(declSyntax.GetLeadingTrivia(), leading: true) + GetNewlineCount(declSyntax.GetTrailingTrivia(), leading: false) - 1);
+                    delta -= additionalNewLines;
+                }
 
                 linesOfCode += delta;
             }
 
             return linesOfCode;
+
+            static int GetNewlineCount(SyntaxTriviaList trivialList, bool leading)
+            {
+                var triviaParts = trivialList.ToFullString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToImmutableArray();
+                return GetNewlineCount(triviaParts, leading);
+
+                static int GetNewlineCount(ImmutableArray<string> triviaParts, bool leading)
+                {
+                    var index = leading ? 0 : triviaParts.Length - 1;
+                    var loopCondition = leading ? LoopConditionForLeading : (Func<int, int, bool>)LoopConditionForTrailing;
+                    var incrementOrDecrement = leading ? 1 : -1;
+                    var count = 0;
+                    while (loopCondition(index, triviaParts.Length) && string.IsNullOrWhiteSpace(triviaParts[index]))
+                    {
+                        index += incrementOrDecrement;
+                        count++;
+                    }
+
+                    return count;
+
+                    static bool LoopConditionForLeading(int index, int length) => index < length - 1;
+                    static bool LoopConditionForTrailing(int index, int _) => index > 0;
+                }
+            }
         }
 
         internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
@@ -204,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
 #if LEGACY_CODE_METRICS_MODE
                             // Legacy mode does not account for code within lambdas/local functions for code metrics.
-                            if (operation.IsWithinLambdaOrLocalFunction())
+                            if (operation.IsWithinLambdaOrLocalFunction(out _))
                             {
                                 continue;
                             }

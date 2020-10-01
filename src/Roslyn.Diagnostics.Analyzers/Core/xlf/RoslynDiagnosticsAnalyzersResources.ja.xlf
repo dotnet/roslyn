@@ -2,9 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">'Opt' サフィックスの削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">null 許容型のコードでは 'Opt' サフィックスを使用しないでください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">null 許容型のコードでは 'Opt' サフィックスを使用しません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">'Opt' サフィックスを使用しない</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="translated">複数の空白行は使用できません</target>
+        <target state="needs-review-translation">複数の空白行は使用できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BlankLinesTitle">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
@@ -29,7 +54,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">既定に設定可能な型には、既定に設定可能なフィールドが必要です。</target>
+        <target state="translated">既定値を使用可能な型には、既定に設定可能なフィールドが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -205,6 +230,11 @@
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">次の行にステートメントを配置する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">構文 'typeof(T).FullName' を使用している場合、'Type.FullName' プロパティが null になることはありません</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

@@ -2,9 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">'Opt' 접미사 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">nullable 지원 코드에서는 'Opt' 접미사를 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">nullable 지원 코드에서는 'Opt' 접미사를 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">'Opt' 접미사 사용 방지</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="translated">여러 빈 줄 방지</target>
+        <target state="needs-review-translation">여러 빈 줄 방지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BlankLinesTitle">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
@@ -205,6 +230,11 @@
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">다음 줄에 문 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">'typeof(T).FullName' 구문을 사용하는 경우 'Type.FullName' 속성은 null일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

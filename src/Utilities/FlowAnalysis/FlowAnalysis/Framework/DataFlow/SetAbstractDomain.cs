@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (value1.IsEmpty)
             {
-                return value2;
+                return merge ? value2 : value1;
             }
             else if (value2.IsEmpty || ReferenceEquals(value1, value2))
             {
-                return value1;
+                return merge ? value1 : value2;
             }
 
             // PERF: Avoid additional allocations by using the overload that takes a set argument

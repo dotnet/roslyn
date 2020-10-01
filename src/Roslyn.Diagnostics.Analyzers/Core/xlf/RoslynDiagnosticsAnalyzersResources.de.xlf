@@ -2,9 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">Suffix "Opt" entfernen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">Hiermit wird das Suffix "Opt" in einem Code vermieden, der NULL-Werte zulässt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">Vermeiden Sie das Suffix "Opt" in einem Code, der NULL-Werte zulässt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">Suffix "Opt" vermeiden</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="translated">Vermeiden Sie mehrere Leerzeilen.</target>
+        <target state="needs-review-translation">Vermeiden Sie mehrere Leerzeilen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BlankLinesTitle">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
@@ -29,7 +54,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">Auf den Standard festlegbare Typen müssen auf den Standard festlegbare Felder aufweisen.</target>
+        <target state="translated">Typen, für die ein Standardwert verfügbar ist, müssen auf den Standardwert festlegbare Felder aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -205,6 +230,11 @@
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">Anweisung in folgender Zeile platzieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">Die Type.FullName-Eigenschaft ist bei Verwendung der Syntax "typeof(T).FullName" nie NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

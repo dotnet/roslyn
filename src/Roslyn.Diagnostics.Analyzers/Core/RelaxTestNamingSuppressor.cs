@@ -27,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
-            if (!(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitFactAttribute) is { } factAttribute))
+            if (context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitFactAttribute) is not { } factAttribute)
             {
                 return;
             }
@@ -37,7 +37,7 @@ namespace Roslyn.Diagnostics.Analyzers
             foreach (var diagnostic in context.ReportedDiagnostics)
             {
                 // The diagnostic is reported on the test method
-                if (!(diagnostic.Location.SourceTree is { } tree))
+                if (diagnostic.Location.SourceTree is not { } tree)
                 {
                     continue;
                 }

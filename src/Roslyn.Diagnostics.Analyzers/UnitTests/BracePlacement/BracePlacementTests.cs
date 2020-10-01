@@ -123,8 +123,6 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests.BracePlacement
             }.RunAsync();
         }
 
-
-
         [Fact]
         public async Task NotForBracesOnSubsequentLinesIndented()
         {

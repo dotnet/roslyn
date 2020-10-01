@@ -390,7 +390,6 @@ class TestClass
                 (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
         }
 
-
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AString property
         /// is not null when calling its Method() method.
@@ -830,8 +829,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (argumentPointsToAbstractValues[1].Locations.Any(l =>
-                                l.LocationTypeOpt != null
-                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                                l.LocationType != null
+                                && l.LocationType.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -850,8 +849,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (pointsToAbstractValue.Locations.Any(l =>
-                                l.LocationTypeOpt != null
-                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                                l.LocationType != null
+                                && l.LocationType.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -1301,12 +1300,16 @@ class TestClass
                 .AddMetadataReferences(projectId, references)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
+#endif
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
+#endif
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, null)
                 .GetProject(projectId);
@@ -1390,7 +1393,7 @@ class TestClass
 
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(EndString))
+                    if (exprFullText.Contains(EndString, StringComparison.Ordinal))
                     {
                         if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                         {
@@ -1409,7 +1412,7 @@ class TestClass
 
                 if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(StartString))
+                    if (exprFullText.Contains(StartString, StringComparison.Ordinal))
                     {
                         if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                         {

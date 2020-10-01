@@ -127,6 +127,16 @@
         <target state="translated">İsteğe bağlı parametreleri olan genel API'nin, genel aşırı yüklemeleri arasında en çok parametreye sahip olması gerekir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
         <target state="translated">Genel API dosyalarının içerikleri geçersiz: {0}</target>
@@ -179,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">PublicAPI.txt dosyalarında null değer alabilme bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null değer alabilme etkin olduğunda, PublicAPI.txt, null değer alabilen (türde `?` soneki) veya null değer alamayan `!` türleri kaydeder Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
+        <target state="translated">PublicAPI.txt dosyalarında null atanabilirlik bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null atanabilirlik etkin olduğunda PublicAPI.txt, null atanabilir (türde `?` soneki) veya null atanamaz (`!` soneki) türleri kaydeder. Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">

@@ -25,7 +25,7 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <param name="obj">The System.Object to compare with the current <see cref="Unit"/>.</param>
         /// <returns><c>true</c> if the specified System.Object is a <see cref="Unit"/> value; otherwise, <c>false</c>.</returns>
-        public override bool Equals(object obj) => obj is Unit;
+        public override bool Equals(object? obj) => obj is Unit;
 
         /// <summary>
         /// Returns the hash code for the current <see cref="Unit"/> value.

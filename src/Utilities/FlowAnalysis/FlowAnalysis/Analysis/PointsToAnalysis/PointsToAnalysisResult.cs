@@ -20,14 +20,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughOperationsMap,
             ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughReturnValuesMap,
             ImmutableDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>> escapedLocationsThroughEntitiesMap,
-            TrackedEntitiesBuilder trackedEntitiesAndPointsToValuesBuilder)
+            TrackedEntitiesBuilder trackedEntitiesBuilder)
             : base(corePointsToAnalysisResult)
         {
             _escapedLocationsThroughOperationsMap = escapedLocationsThroughOperationsMap;
             _escapedLocationsThroughReturnValuesMap = escapedLocationsThroughReturnValuesMap;
             _escapedLocationsThroughEntitiesMap = escapedLocationsThroughEntitiesMap;
-            (_trackedEntities, _trackedPointsToValues) = trackedEntitiesAndPointsToValuesBuilder.ToImmutable();
+            (_trackedEntities, _trackedPointsToValues) = trackedEntitiesBuilder.ToImmutable();
+            PointsToAnalysisKind = trackedEntitiesBuilder.PointsToAnalysisKind;
         }
+
+        public PointsToAnalysisKind PointsToAnalysisKind { get; }
 
         public ImmutableHashSet<AbstractLocation> GetEscapedAbstractLocations(IOperation operation)
             => GetEscapedAbstractLocations(operation, _escapedLocationsThroughOperationsMap)

@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedApiText != null)
@@ -47,8 +46,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         private async Task VerifyAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newShippedApiText, string newUnshippedApiText)
         {
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
-
-            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, oldShippedApiText));
@@ -256,7 +253,7 @@ public class C
     public string? {|RS0036:ChangedField|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
 C.ChangedField -> string";
@@ -275,7 +272,7 @@ public class C
     public string {|RS0036:{|RS0041:Field|}|}; // oblivious
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
 C.Field -> string";
@@ -294,12 +291,12 @@ public class C
     public string {|RS0036:{|RS0041:Field|}|}; // oblivious
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
@@ -316,12 +313,12 @@ public class C
     public string? {|RS0036:Field|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string?";
@@ -338,12 +335,12 @@ public class C
     public string {|RS0036:Field|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string!";

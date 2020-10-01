@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,25 +16,13 @@ namespace Analyzer.Utilities
 
     /// <summary>
     /// Aggregate analyzer configuration options:
-    /// 1. Per syntax tree options from <see cref="AnalyzerConfigOptionsProvider"/>.
-    /// 2. Options from an .editorconfig file passed in as an additional file (back compat).
-    /// 
-    /// These options are parsed into general and specific configuration options.
-    /// 
-    /// .editorconfig format:
-    ///  1) General configuration option:
-    ///     (a) "dotnet_code_quality.OptionName = OptionValue"
-    ///  2) Specific configuration option:
-    ///     (a) "dotnet_code_quality.RuleId.OptionName = OptionValue"
-    ///     (b) "dotnet_code_quality.RuleCategory.OptionName = OptionValue"
-    ///    
-    /// .editorconfig examples to configure API surface analyzed by analyzers:
-    ///  1) General configuration option:
-    ///     (a) "dotnet_code_quality.api_surface = all"
-    ///  2) Specific configuration option:
-    ///     (a) "dotnet_code_quality.CA1040.api_surface = public, internal"
-    ///     (b) "dotnet_code_quality.Naming.api_surface = public"
-    ///  See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.
+    ///
+    /// <list type="number">
+    /// <item><description>Per syntax tree options from <see cref="AnalyzerConfigOptionsProvider"/>.</description></item>
+    /// <item><description>Options from an <strong>.editorconfig</strong> file passed in as an additional file (back compat).</description></item>
+    /// </list>
+    ///
+    /// <inheritdoc cref="ICategorizedAnalyzerConfigOptions"/>
     /// </summary>
     internal sealed class AggregateCategorizedAnalyzerConfigOptions : ICategorizedAnalyzerConfigOptions
     {
@@ -84,9 +73,10 @@ namespace Analyzer.Utilities
             }
         }
 
-        public T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
+        [return: MaybeNull, NotNullIfNotNull("defaultValue")]
+        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
-            if (TryGetOptionValue(optionName, tree, rule, tryParseValue, defaultValue, out var value))
+            if (TryGetOptionValue(optionName, kind, tree, rule, tryParseValue, defaultValue, out var value))
             {
                 return value;
             }
@@ -94,7 +84,7 @@ namespace Analyzer.Utilities
             return defaultValue;
         }
 
-        private bool TryGetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue, out T value)
+        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, [MaybeNullWhen(false), NotNullIfNotNull("defaultValue")] out T value)
         {
             if (ReferenceEquals(this, Empty))
             {
@@ -103,13 +93,13 @@ namespace Analyzer.Utilities
             }
 
             // Prefer additional file based options for back compat.
-            if (_additionalFileBasedOptions.TryGetOptionValue(optionName, rule, tryParseValue, defaultValue, out value))
+            if (_additionalFileBasedOptions.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value))
             {
                 return true;
             }
 
             return _perTreeOptions.TryGetValue(tree, out var lazyTreeOptions) &&
-                lazyTreeOptions.Value.TryGetOptionValue(optionName, rule, tryParseValue, defaultValue, out value);
+                lazyTreeOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value);
         }
     }
 }

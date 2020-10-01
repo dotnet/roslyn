@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 long linesOfCode = @namespace.IsImplicitlyDeclared ?
                     childrenLinesOfCode :
                     await MetricsHelper.GetLinesOfCodeAsync(@namespace.DeclaringSyntaxReferences, @namespace, context).ConfigureAwait(false);
-                int maintainabilityIndex = children.Length > 0 ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
+                int maintainabilityIndex = !children.IsEmpty ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
                 return new NamespaceMetricData(@namespace, maintainabilityIndex,
                     coupledTypesBuilder.ToImmutable(), linesOfCode, cyclomaticComplexity, depthOfInheritance, children);
             }

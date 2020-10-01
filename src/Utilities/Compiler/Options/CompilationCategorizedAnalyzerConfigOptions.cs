@@ -9,25 +9,7 @@ using System.Linq;
 
 namespace Analyzer.Utilities
 {
-    /// <summary>
-    /// Analyzer configuration options from an .editorconfig file that are parsed into general
-    /// and specific configuration options.
-    /// 
-    /// .editorconfig format:
-    ///  1) General configuration option:
-    ///     (a) "dotnet_code_quality.OptionName = OptionValue"
-    ///  2) Specific configuration option:
-    ///     (a) "dotnet_code_quality.RuleId.OptionName = OptionValue"
-    ///     (b) "dotnet_code_quality.RuleCategory.OptionName = OptionValue"
-    ///    
-    /// .editorconfig examples to configure API surface analyzed by analyzers:
-    ///  1) General configuration option:
-    ///     (a) "dotnet_code_quality.api_surface = all"
-    ///  2) Specific configuration option:
-    ///     (a) "dotnet_code_quality.CA1040.api_surface = public, internal"
-    ///     (b) "dotnet_code_quality.Naming.api_surface = public"
-    ///  See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.
-    /// </summary>
+    /// <inheritdoc cref="ICategorizedAnalyzerConfigOptions"/>
     internal sealed class CompilationCategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
     {
         public static readonly CompilationCategorizedAnalyzerConfigOptions Empty = new CompilationCategorizedAnalyzerConfigOptions(
@@ -49,7 +31,7 @@ namespace Analyzer.Utilities
         {
             get
             {
-                Debug.Assert(ReferenceEquals(this, Empty) || _generalOptions.Count > 0 || _specificOptions.Count > 0);
+                Debug.Assert(ReferenceEquals(this, Empty) || !_generalOptions.IsEmpty || !_specificOptions.IsEmpty);
                 return ReferenceEquals(this, Empty);
             }
         }
@@ -70,12 +52,12 @@ namespace Analyzer.Utilities
                 var key = kvp.Key;
                 var value = kvp.Value;
 
-                if (!key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
+                if (!HasSupportedKeyPrefix(key, out var keyPrefix))
                 {
                     continue;
                 }
 
-                key = key.Substring(KeyPrefix.Length);
+                key = key[keyPrefix.Length..];
                 var keyParts = key.Split('.').Select(s => s.Trim()).ToImmutableArray();
                 switch (keyParts.Length)
                 {

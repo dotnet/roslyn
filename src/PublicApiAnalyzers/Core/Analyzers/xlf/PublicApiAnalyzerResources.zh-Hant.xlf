@@ -127,6 +127,16 @@
         <target state="translated">具有選擇性參數的公用 API，大部分的參數應位於其公用多載之間。</target>
         <note />
       </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
         <target state="translated">公用 API 檔案的內容無效: {0}</target>
@@ -179,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">PublicAPI.txt 檔案應具有 `#nullable enable` 以追蹤可 NULL 性資訊，否則應隱藏此診斷。透過啟用可 NULL 性，PublicAPI.txt 會記錄哪些類型可為 Null (類型的尾碼 `?`) 或不可為 Null (尾碼 `!`)。該檔案也會追蹤仍在使用未察覺參考型別的任何 API (行的首碼 `~`)。</target>
+        <target state="translated">PublicAPI.txt 檔案必須具備 '#nullable enable'，才能追蹤可為 NULL 的資訊，否則應隱藏此診斷。若啟用可為 NULL，PublicAPI.txt 便能記錄型可為 Null (類型的尾碼為 '?') 或不可為 Null (尾碼為 '!') 的類型。其也會追蹤仍在使用未經察覺之參考型別的任何 API (行的首碼為 '~')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">

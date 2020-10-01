@@ -1399,8 +1399,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeInteropServicesGCHandle) is { } gcHandle)
                     _typesToNonCopyable[gcHandle] = true;
 
-                ValueTaskT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericValueTask);
-                ConfiguredValueTaskAwaitableT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesGenericConfiguredValueTaskAwaitable);
+                ValueTaskT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask1);
+                ConfiguredValueTaskAwaitableT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1);
             }
 
             internal bool IsNonCopyableType(ITypeSymbol symbol)
@@ -1410,7 +1410,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return false;
                 }
 
-                if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+                if (symbol is not INamedTypeSymbol namedTypeSymbol)
                 {
                     return false;
                 }

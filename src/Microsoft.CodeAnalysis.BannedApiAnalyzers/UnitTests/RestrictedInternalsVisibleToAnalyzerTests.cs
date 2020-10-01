@@ -78,7 +78,6 @@ End Namespace";
                 {
                     (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.CSharp),
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);
@@ -97,7 +96,6 @@ End Namespace";
                 {
                     (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.VisualBasic),
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);

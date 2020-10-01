@@ -2,12 +2,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Net;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Test.Utilities
 {
@@ -17,6 +19,20 @@ namespace Test.Utilities
     {
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
+            static Test()
+            {
+                // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
+                // reasonable TLS protocol version for outgoing connections.
+#pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+            }
+
             internal static readonly ImmutableDictionary<string, ReportDiagnostic> NullableWarnings = GetNullableWarningsFromCompiler();
 
             public Test()
@@ -25,12 +41,22 @@ namespace Test.Utilities
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
+                    var compilationOptions = project.CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
+
+                    if (AnalyzerConfigDocument is not null)
+                    {
+                        solution = solution.AddAnalyzerConfigDocument(
+                            DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
+                            ".editorconfig",
+                            SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
+                            filePath: @"z:\.editorconfig");
+                    }
 
                     return solution;
                 });
@@ -51,6 +77,8 @@ namespace Test.Utilities
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp7_3;
+
+            public string? AnalyzerConfigDocument { get; set; }
         }
     }
 }

@@ -99,7 +99,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var sourceSymbol = (field.IsImplicitlyDeclared ? field.AssociatedSymbol : null) ?? field;
-            originalContext.ReportDiagnostic(Diagnostic.Create(Rule, field.Locations[0], field.ContainingType, sourceSymbol.Name));
+            originalContext.ReportDiagnostic(field.CreateDiagnostic(Rule, field.ContainingType, sourceSymbol.Name));
         }
 
         private static bool IsDefaultable(ITypeSymbol type, INamedTypeSymbol nonDefaultableAttribute, ConcurrentDictionary<ITypeSymbol, bool> knownNonDefaultableTypes)
@@ -115,7 +115,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return true;
 
                 case TypeKind.Struct:
-                    if (!(type is INamedTypeSymbol namedType))
+                    if (type is not INamedTypeSymbol namedType)
                         return true;
 
                     if (knownNonDefaultableTypes.TryGetValue(namedType, out var isNonDefaultable))

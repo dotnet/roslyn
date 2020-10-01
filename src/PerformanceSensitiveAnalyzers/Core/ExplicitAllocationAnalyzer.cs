@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -78,17 +79,17 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 // The implicit case is handled by HAA0101
                 if (!arrayCreation.IsImplicit)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ArrayCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    context.ReportDiagnostic(context.Operation.CreateDiagnostic(ArrayCreationRule, EmptyMessageArgs));
                 }
 
                 return;
             }
 
-            if (context.Operation is IObjectCreationOperation || context.Operation is ITypeParameterObjectCreationOperation)
+            if (context.Operation is IObjectCreationOperation or ITypeParameterObjectCreationOperation)
             {
                 if (context.Operation.Type.IsReferenceType)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    context.ReportDiagnostic(context.Operation.CreateDiagnostic(ObjectCreationRule, EmptyMessageArgs));
                     return;
                 }
 
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 {
                     if (conversion.Type.IsReferenceType && conversion.Operand.Type.IsValueType)
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                        context.ReportDiagnostic(context.Operation.CreateDiagnostic(ObjectCreationRule, EmptyMessageArgs));
                     }
 
                     return;
@@ -107,11 +108,11 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             {
                 if (context.Operation.IsImplicit)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(LetCauseRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    context.ReportDiagnostic(context.Operation.CreateDiagnostic(LetCauseRule, EmptyMessageArgs));
                 }
                 else
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(AnonymousObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    context.ReportDiagnostic(context.Operation.CreateDiagnostic(AnonymousObjectCreationRule, EmptyMessageArgs));
                 }
 
                 return;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 // The implicit case is handled by HAA0603
                 if (!delegateCreationOperation.IsImplicit)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    context.ReportDiagnostic(context.Operation.CreateDiagnostic(ObjectCreationRule, EmptyMessageArgs));
                 }
 
                 return;

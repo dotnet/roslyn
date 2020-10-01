@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private readonly struct ApiData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
+            public static readonly ApiData Empty = new ApiData(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
+
             public ImmutableArray<ApiLine> ApiList { get; }
             public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
             // Number for the max line where #nullable enable was found (-1 otherwise)
@@ -372,8 +374,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 void reportDeclareNewApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, string publicApiName)
                 {
                     // TODO: workaround for https://github.com/dotnet/wpf/issues/2690
-                    if (publicApiName == "XamlGeneratedNamespace.GeneratedInternalTypeHelper" ||
-                        publicApiName == "XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void")
+                    if (publicApiName is "XamlGeneratedNamespace.GeneratedInternalTypeHelper" or
+                        "XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void")
                     {
                         return;
                     }
@@ -761,7 +763,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 // not internal, private or protected&internal
                 return !type.IsSealed &&
                     type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
-                        m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
+                        m => m.DeclaredAccessibility is not Accessibility.Internal and not Accessibility.Private and not Accessibility.ProtectedAndInternal
                     );
             }
 
@@ -832,7 +834,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     foreach (var typeArgument in symbol.TypeArguments)
                     {
-                        if (Instance.Visit(typeArgument))
+                        // type parameters will already have been checked on the type defining them, so we can just do a shallow check
+                        if (typeArgument.TypeKind == TypeKind.TypeParameter)
+                        {
+                            if (typeArgument.IsReferenceType &&
+                                typeArgument.NullableAnnotation() == NullableAnnotation.None)
+                            {
+                                return true;
+                            }
+                        }
+                        else if (Instance.Visit(typeArgument))
                         {
                             return true;
                         }

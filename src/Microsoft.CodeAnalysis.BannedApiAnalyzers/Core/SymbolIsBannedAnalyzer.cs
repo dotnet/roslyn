@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), context.CancellationToken);
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes()),
+                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken),
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -234,13 +235,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return result;
             }
 
-            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
                 foreach (var attribute in attributes)
                 {
                     if (entryByAttributeSymbol.TryGetValue(attribute.AttributeClass, out var entry))
                     {
-                        var node = attribute.ApplicationSyntaxReference?.GetSyntax();
+                        var node = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
                         if (node != null)
                         {
                             reportDiagnostic(
@@ -273,9 +274,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 type.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return false;
@@ -331,9 +331,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 currentSymbol.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return;
@@ -392,13 +391,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
                 else if (index == text.Length - 1)
                 {
-                    DeclarationId = text.Substring(0, text.Length - 1).Trim();
+                    DeclarationId = text[0..^1].Trim();
                     Message = "";
                 }
                 else
                 {
                     DeclarationId = text.Substring(0, index).Trim();
-                    Message = text.Substring(index + 1).Trim();
+                    Message = text[(index + 1)..].Trim();
                 }
 
                 Span = span;

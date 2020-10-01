@@ -19,6 +19,5 @@
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="2.6.3" />
   </ItemGroup>
 </Project>

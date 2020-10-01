@@ -92,7 +92,7 @@ namespace Analyzer.Utilities
             {
                 if (!char.IsWhiteSpace(c))
                 {
-                    return c == '#' || c == ';';
+                    return c is '#' or ';';
                 }
             }
 

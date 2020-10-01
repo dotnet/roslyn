@@ -169,7 +169,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return HazardousIfAllFlagged(propertySetAbstractValue, assumeAllUnknownInsecure: false);
         }
 
-
         /// <summary>
         /// A <see cref="HazardousUsageEvaluator.EvaluationCallback"/> for all properties flagged being hazardous.
         /// </summary>

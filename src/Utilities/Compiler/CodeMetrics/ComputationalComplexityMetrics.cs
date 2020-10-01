@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
 #if LEGACY_CODE_METRICS_MODE
                 // Legacy mode does not account for code within lambdas/local functions for code metrics.
-                if (operation.IsWithinLambdaOrLocalFunction())
+                if (operation.IsWithinLambdaOrLocalFunction(out _))
                 {
                     continue;
                 }

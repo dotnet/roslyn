@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -30,11 +31,11 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(context.Span);
+            var literal = await context.TryGetRelevantNodeAsync<LiteralExpressionSyntax>(CSharpRefactoringHelpers.Instance).ConfigureAwait(false);
+            if (literal is null)
+                return;
 
-            if (node is LiteralExpressionSyntax literal &&
-                literal.Kind() == SyntaxKind.StringLiteralExpression &&
+            if (literal.Kind() == SyntaxKind.StringLiteralExpression &&
                 !IsProperlyNumbered(literal.Token.ValueText))
             {
                 var action = CodeAction.Create(
@@ -46,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static async Task<Document> FixCommentsAsync(Document document, LiteralExpressionSyntax stringLiteral, CancellationToken c)
         {
-            var newValueText = FixComments(stringLiteral.Token.ValueText, prefixOpt: null);
+            var newValueText = FixComments(stringLiteral.Token.ValueText, prefix: null);
             var oldText = stringLiteral.Token.Text;
             var newText = FixComments(oldText, getPrefix(oldText));
             var newStringLiteral = stringLiteral.Update(SyntaxFactory.Literal(text: newText, value: newValueText)).WithTriviaFrom(stringLiteral);
@@ -81,7 +82,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 (int commentStartIndex, _) = FindNumberComment(cursor, eolOrEofIndex, text);
                 if (commentStartIndex > 0)
                 {
-                    var separatedNumbers = text.Substring(commentStartIndex, eolOrEofIndex - commentStartIndex);
+                    var separatedNumbers = text[commentStartIndex..eolOrEofIndex];
                     var numbers = separatedNumbers.Split(',').Select(s => removeWhiteSpace(s));
                     foreach (var number in numbers)
                     {
@@ -161,11 +162,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
         internal static bool IsDigitOrComma(char c)
         {
-            if (c >= '0' && c <= '9')
+            if (c is >= '0' and <= '9')
             {
                 return true;
             }
-            if (c == ' ' || c == ',')
+            if (c is ' ' or ',')
             {
                 return true;
             }
@@ -181,23 +182,23 @@ namespace Roslyn.Diagnostics.Analyzers
             return text.Length;
         }
 
-        private static string FixComments(string text, string? prefixOpt)
+        private static string FixComments(string text, string? prefix)
         {
             var builder = new StringBuilder();
             int nextNumber = 1;
             int cursor = 0;
 
-            if (prefixOpt != null)
+            if (prefix != null)
             {
-                builder.Append(prefixOpt);
-                cursor += prefixOpt.Length;
+                builder.Append(prefix);
+                cursor += prefix.Length;
             }
 
-            int length = GetStringLengthIgnoringQuote(text, prefixOpt != null);
+            int length = GetStringLengthIgnoringQuote(text, prefix != null);
 
             do
             {
-                var (eolOrEofIndex, newLine) = FindNewLineOrEndOfFile(cursor, text, prefixOpt != null);
+                var (eolOrEofIndex, newLine) = FindNewLineOrEndOfFile(cursor, text, prefix != null);
                 // find the last comment between cursor and newLineIndex
                 (int commentStartIndex, int commaCount) = FindNumberComment(cursor, eolOrEofIndex, text);
                 if (commentStartIndex > 0)
@@ -214,9 +215,9 @@ namespace Roslyn.Diagnostics.Analyzers
             }
             while (cursor < length);
 
-            if (prefixOpt != null)
+            if (prefix != null)
             {
-                builder.Append("\"");
+                builder.Append('"');
             }
 
             return builder.ToString();

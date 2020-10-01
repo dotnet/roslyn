@@ -47,8 +47,11 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string ObliviousPublicApiRuleId = "RS0041";
         public const string DoNotCopyValueRuleId = "RS0042";
         public const string DoNotCallGetTestAccessorRuleId = "RS0043";
-        public const string CreateTestAccessorRuleId = "RS0044";
-        public const string ExposeMemberForTestingRuleId = "RS0045";
+        // public const string CreateTestAccessorRuleId = "RS0044"; // Now converted to a refactoring
+        // public const string ExposeMemberForTestingRuleId = "RS0045"; // Now converted to a refactoring
+        public const string AvoidOptSuffixForNullableEnableCodeRuleId = "RS0046";
+        public const string NamedTypeFullNameNotNullSuppressionRuleId = "RS0047";
+        public const string PublicApiFileMissing = "RS0048";
 
         public const string WrapStatementsRuleId = "RS0100";
         public const string BlankLinesRuleId = "RS0101";

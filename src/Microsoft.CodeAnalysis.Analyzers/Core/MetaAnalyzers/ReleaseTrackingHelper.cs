@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                             expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderTitle;
 
                             // Parse the release version.
-                            string versionString = lineText.Substring(ReleasePrefix.Length).Trim();
+                            string versionString = lineText[ReleasePrefix.Length..].Trim();
                             if (!Version.TryParse(versionString, out var version))
                             {
                                 OnInvalidEntry(line, InvalidEntryKind.Header);
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                 //
                 // NOTE: Last field 'Helplink' is optional for both cases.
 
-                if (parts.Length < 3 || parts.Length > 6)
+                if (parts.Length is < 3 or > 6)
                 {
                     return true;
                 }
@@ -320,7 +320,6 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
         UndetectedField,
         Other
     }
-
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     internal sealed class ReleaseTrackingData
@@ -472,7 +471,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
             string path, bool isShipped, ReleaseTrackingRuleEntryKind kind)
             : base(ruleId, category, enabledByDefault, defaultSeverity, span, sourceText, path, isShipped, kind)
         {
-            Debug.Assert(kind == ReleaseTrackingRuleEntryKind.New || kind == ReleaseTrackingRuleEntryKind.Removed);
+            Debug.Assert(kind is ReleaseTrackingRuleEntryKind.New or ReleaseTrackingRuleEntryKind.Removed);
         }
     }
 

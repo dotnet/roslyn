@@ -178,6 +178,12 @@
   <data name="PublicApiFilesInvalidMessage" xml:space="preserve">
     <value>The contents of the public API files are invalid: {0}</value>
   </data>
+  <data name="PublicApiFileMissingTitle" xml:space="preserve">
+    <value>Missing shipped or unshipped public API file</value>
+  </data>
+  <data name="PublicApiFileMissingMessage" xml:space="preserve">
+    <value>Public API file '{0}' is missing or not marked as an additional analyzer file</value>
+  </data>
   <data name="DuplicateSymbolsInPublicApiFilesTitle" xml:space="preserve">
     <value>Do not duplicate symbols in public API files</value>
   </data>

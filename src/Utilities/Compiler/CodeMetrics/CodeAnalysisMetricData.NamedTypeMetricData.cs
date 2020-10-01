@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
 #if LEGACY_CODE_METRICS_MODE
                 // Legacy mode skips metrics for field/property/event symbols, and explicitly includes accessors as methods.
-                members = members.Where(m => m.Kind != SymbolKind.Field && m.Kind != SymbolKind.Property && m.Kind != SymbolKind.Event);
+                members = members.Where(m => m.Kind is not SymbolKind.Field and not SymbolKind.Property and not SymbolKind.Event);
 #else
                 // Filter out accessors as they are children of their associated symbols, for which we generate a separate node.
                 members = members.Where(m => m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null);
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 ImmutableHashSet<IFieldSymbol> getFilteredFieldsForComplexity()
                 {
-                    ImmutableHashSet<IFieldSymbol>.Builder? builderOpt = null;
+                    ImmutableHashSet<IFieldSymbol>.Builder? builder = null;
                     var orderedFieldDatas = children.Where(c => c.Symbol.Kind == SymbolKind.Field).OrderBy(c => c.MaintainabilityIndex);
                     var indexThreshold = 99;
                     foreach (CodeAnalysisMetricData fieldData in orderedFieldDatas)
@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             break;
                         }
 
-                        builderOpt ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
-                        builderOpt.Add((IFieldSymbol)fieldData.Symbol);
+                        builder ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
+                        builder.Add((IFieldSymbol)fieldData.Symbol);
                         indexThreshold -= 4;
                     }
 
-                    return builderOpt?.ToImmutable() ?? ImmutableHashSet<IFieldSymbol>.Empty;
+                    return builder?.ToImmutable() ?? ImmutableHashSet<IFieldSymbol>.Empty;
                 }
             }
 

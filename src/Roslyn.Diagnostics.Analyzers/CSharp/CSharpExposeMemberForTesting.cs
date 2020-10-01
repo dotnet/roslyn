@@ -2,17 +2,25 @@
 
 using System;
 using System.Composition;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    public sealed class CSharpExposeMemberForTestingFixer : ExposeMemberForTestingFixer
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpExposeMemberForTesting))]
+    [Shared]
+    public sealed class CSharpExposeMemberForTesting : AbstractExposeMemberForTesting<TypeDeclarationSyntax>
     {
+        public CSharpExposeMemberForTesting()
+        {
+        }
+
+        private protected override IRefactoringHelpers RefactoringHelpers => CSharpRefactoringHelpers.Instance;
+
         protected override bool HasRefReturns => true;
 
         protected override SyntaxNode GetTypeDeclarationForNode(SyntaxNode reportedNode)

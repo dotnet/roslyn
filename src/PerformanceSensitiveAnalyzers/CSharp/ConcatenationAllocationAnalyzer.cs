@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
@@ -70,11 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
                 var left = semanticModel.GetTypeInfo(binaryExpression.Left, cancellationToken);
                 var leftConversion = semanticModel.GetConversion(binaryExpression.Left, cancellationToken);
-                CheckTypeConversion(left, leftConversion, reportDiagnostic, binaryExpression.Left.GetLocation());
+                CheckTypeConversion(left, leftConversion, reportDiagnostic, binaryExpression.Left);
 
                 var right = semanticModel.GetTypeInfo(binaryExpression.Right, cancellationToken);
                 var rightConversion = semanticModel.GetConversion(binaryExpression.Right, cancellationToken);
-                CheckTypeConversion(right, rightConversion, reportDiagnostic, binaryExpression.Right.GetLocation());
+                CheckTypeConversion(right, rightConversion, reportDiagnostic, binaryExpression.Right);
 
                 // regular string allocation
                 if (left.Type?.SpecialType == SpecialType.System_String || right.Type?.SpecialType == SpecialType.System_String)
@@ -85,25 +86,25 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
             if (stringConcatenationCount > 3)
             {
-                reportDiagnostic(Diagnostic.Create(StringConcatenationAllocationRule, node.GetLocation(), EmptyMessageArgs));
+                reportDiagnostic(node.CreateDiagnostic(StringConcatenationAllocationRule, EmptyMessageArgs));
             }
         }
 
-        private static void CheckTypeConversion(TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, Location location)
+        private static void CheckTypeConversion(TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, ExpressionSyntax expression)
         {
             if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type))
             {
-                reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeInAStringConcatenationRule, location, new[] { typeInfo.Type.ToDisplayString() }));
+                reportDiagnostic(expression.CreateDiagnostic(ValueTypeToReferenceTypeInAStringConcatenationRule, typeInfo.Type.ToDisplayString()));
             }
 
             return;
 
             static bool IsOptimizedValueType(ITypeSymbol type)
             {
-                return type.SpecialType == SpecialType.System_Boolean ||
-                       type.SpecialType == SpecialType.System_Char ||
-                       type.SpecialType == SpecialType.System_IntPtr ||
-                       type.SpecialType == SpecialType.System_UIntPtr;
+                return type.SpecialType is SpecialType.System_Boolean or
+                       SpecialType.System_Char or
+                       SpecialType.System_IntPtr or
+                       SpecialType.System_UIntPtr;
             }
         }
     }

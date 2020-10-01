@@ -30,17 +30,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 public void Free()
                 {
-                    this.AssignmentsWithUnknownLocation?.Free();
+                    this.AssignmentsWithUnknownLocation?.Dispose();
                     this.AssignmentsWithUnknownLocation = null;
 
                     if (this.AbstractLocationsToAssignments != null)
                     {
                         foreach (PooledHashSet<IAssignmentOperation> hashSet in this.AbstractLocationsToAssignments.Values)
                         {
-                            hashSet?.Free();
+                            hashSet?.Dispose();
                         }
 
-                        this.AbstractLocationsToAssignments.Free();
+                        this.AbstractLocationsToAssignments.Dispose();
                         this.AbstractLocationsToAssignments = null;
                     }
                 }
