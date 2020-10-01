@@ -9341,7 +9341,7 @@ namespace ConsoleApp5
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingOfferParameterInTopLevel()
         {
-            await TestMissingInRegularAndScriptAsync("[|Console|].WriteLine();");
+            await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
         }
     }
 }
