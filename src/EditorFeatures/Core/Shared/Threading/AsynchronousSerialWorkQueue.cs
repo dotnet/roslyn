@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
         private Task _currentBackgroundTask;
 
         // The cancellation source for the current chain of work.
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
         #endregion
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
                 _cancellationTokenSource.Cancel();
                 if (!remainCancelled)
                 {
-                    _cancellationTokenSource = new CancellationTokenSource();
+                    _cancellationTokenSource = CancellationTokenSourceFactory.Create();
                 }
             }
         }

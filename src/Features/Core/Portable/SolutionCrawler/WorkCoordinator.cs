@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentTrackingService = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
 
                 // event and worker queues
-                _shutdownNotificationSource = new CancellationTokenSource();
+                _shutdownNotificationSource = CancellationTokenSourceFactory.Create();
                 _shutdownToken = _shutdownNotificationSource.Token;
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);

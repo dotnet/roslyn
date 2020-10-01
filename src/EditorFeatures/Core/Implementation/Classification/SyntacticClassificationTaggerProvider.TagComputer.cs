@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _taggerProvider = taggerProvider;
 
                 _workQueue = new AsynchronousSerialWorkQueue(taggerProvider._threadingContext, asyncListener);
-                _reportChangeCancellationSource = new CancellationTokenSource();
+                _reportChangeCancellationSource = CancellationTokenSourceFactory.Create();
 
                 _lastLineCache = new LastLineCache();
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _lastProcessedDocument = document;
                 }
 
-                _reportChangeCancellationSource = new CancellationTokenSource();
+                _reportChangeCancellationSource = CancellationTokenSourceFactory.Create();
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();

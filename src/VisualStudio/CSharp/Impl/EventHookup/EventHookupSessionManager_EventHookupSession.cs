@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 : base(eventHookupSessionManager.ThreadingContext)
             {
                 AssertIsForeground();
-                _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationTokenSource = CancellationTokenSourceFactory.Create();
                 var cancellationToken = _cancellationTokenSource.Token;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;

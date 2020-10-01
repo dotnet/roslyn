@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using var nestedTokenSource = new CancellationTokenSource();
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+            using var nestedTokenSource = CancellationTokenSourceFactory.Create();
+            using var linkedTokenSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
 
             foreach (var unreferencedProject in viableUnreferencedProjects)
             {
@@ -260,8 +260,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using var nestedTokenSource = new CancellationTokenSource();
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+            using var nestedTokenSource = CancellationTokenSourceFactory.Create();
+            using var linkedTokenSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
 
             foreach (var (referenceProjectId, reference) in newReferences)
             {

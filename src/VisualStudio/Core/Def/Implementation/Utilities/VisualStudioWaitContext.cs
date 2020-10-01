@@ -4,6 +4,7 @@
 
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             _title = title;
             _message = message;
             _allowCancel = allowCancel;
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             this.ProgressTracker = showProgress
                 ? new ProgressTracker((_1, _2, _3) => UpdateDialog())

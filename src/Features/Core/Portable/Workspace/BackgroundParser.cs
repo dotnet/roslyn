@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Task ParseDocumentAsync(Document document)
         {
-            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             using (_stateLock.DisposableWrite())
             {

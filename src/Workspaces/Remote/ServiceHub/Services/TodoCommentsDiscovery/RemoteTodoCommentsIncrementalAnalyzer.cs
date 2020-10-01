@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.TodoComments;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected override async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
         {
             // cancel whenever the analyzer runner cancels or the client disconnects and the request is canceled:
-            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
+            using var linkedSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
 
             await _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken),

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _threadingContext = threadingContext;
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
-            _shutdownCancellationSource = new CancellationTokenSource();
+            _shutdownCancellationSource = CancellationTokenSourceFactory.Create();
             _contentType = contentType;
             _responseFileName = responseFileName;
             _workspace = new InteractiveWorkspace(hostServices, this);

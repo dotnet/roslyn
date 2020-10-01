@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [Shared]
     internal sealed class ThreadingContext : IThreadingContext, IDisposable
     {
-        private readonly CancellationTokenSource _disposalTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _disposalTokenSource = CancellationTokenSourceFactory.Create();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

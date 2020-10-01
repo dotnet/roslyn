@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                         IsCheckable = true
                     });
 
-            using var cancellationTokenSource = new CancellationTokenSource();
+            using var cancellationTokenSource = CancellationTokenSourceFactory.Create();
             var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
                 _glyphService,
                 document.Project.Solution,

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
@@ -55,7 +56,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             private const int MonitorDelay = 10000; // 10 seconds
 
             private readonly List<byte[]> _blocks = new List<byte[]>();
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             public MemoryHogger()
             {

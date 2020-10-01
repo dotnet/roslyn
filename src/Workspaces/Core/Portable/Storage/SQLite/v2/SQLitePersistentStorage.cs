@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
-        private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _shutdownTokenSource = CancellationTokenSourceFactory.Create();
 
         private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;

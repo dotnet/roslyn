@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 _workspace = workspace;
                 _trackingSpans = new Dictionary<DocumentId, ImmutableArray<ActiveStatementTrackingSpan>>();
-                _cancellationSource = new CancellationTokenSource();
+                _cancellationSource = CancellationTokenSourceFactory.Create();
                 _encService = encService;
 
                 _workspace.DocumentOpened += DocumentOpened;

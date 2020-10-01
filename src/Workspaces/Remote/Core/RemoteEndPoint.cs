@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // if this end-point is already disconnected do not log more errors:
             var logError = _disconnectedReason == null;
 
-            using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var linkedCancellationSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(cancellationToken);
 
             var pipeName = Guid.NewGuid().ToString();
 

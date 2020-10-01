@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 _asyncListener = asyncListener;
                 _trackingSpan = snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, SpanTrackingMode.EdgeInclusive);
-                _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationTokenSource = CancellationTokenSourceFactory.Create();
                 _cancellationToken = _cancellationTokenSource.Token;
 
                 if (snapshotSpan.Length > 0)

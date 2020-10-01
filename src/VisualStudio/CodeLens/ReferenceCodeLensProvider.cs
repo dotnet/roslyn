@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         private readonly Lazy<ICodeLensCallbackService> _lazyCodeLensCallbackService;
 
         // Map of project GUID -> data points
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
+        private readonly CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
         private Task? _pollingTask;
         private readonly Dictionary<Guid, (string version, HashSet<DataPoint> dataPoints)> _dataPoints = new();
 

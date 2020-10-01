@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Notification
             _done = false;
             this.Operation = operation;
 
-            _source = new CancellationTokenSource();
+            _source = CancellationTokenSourceFactory.Create();
             _logging = Logger.LogBlock(FunctionId.GlobalOperationRegistration, operation, _source.Token);
         }
 

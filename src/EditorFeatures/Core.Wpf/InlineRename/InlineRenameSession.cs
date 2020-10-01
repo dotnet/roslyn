@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// The cancellation token for most work being done by the inline rename session. This
         /// includes the <see cref="_allRenameLocationsTask"/> tasks.
         /// </summary>
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
         /// <summary>
         /// This task is a continuation of the <see cref="_allRenameLocationsTask"/> that is the result of computing
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// The cancellation source for <see cref="_conflictResolutionTask"/>.
         /// </summary>
-        private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _conflictResolutionTaskCancellationSource = CancellationTokenSourceFactory.Create();
 
         private readonly IInlineRenameInfo _renameInfo;
 
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             AssertIsForeground();
 
             _conflictResolutionTaskCancellationSource.Cancel();
-            _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
+            _conflictResolutionTaskCancellationSource = CancellationTokenSourceFactory.Create();
 
             // If the replacement text is empty, we do not update the results of the conflict
             // resolution task. We instead wait for a non-empty identifier.

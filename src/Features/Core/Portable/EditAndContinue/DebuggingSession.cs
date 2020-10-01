@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class DebuggingSession : IDisposable
     {
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
-        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationSource = CancellationTokenSourceFactory.Create();
 
         /// <summary>
         /// MVIDs read from the assembly built for given project id.

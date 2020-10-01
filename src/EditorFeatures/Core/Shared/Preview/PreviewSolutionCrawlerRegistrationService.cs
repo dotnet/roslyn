@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             {
                 _owner = owner;
                 _workspace = workspace;
-                _source = new CancellationTokenSource();
+                _source = CancellationTokenSourceFactory.Create();
             }
 
             public void Register(Workspace workspace)

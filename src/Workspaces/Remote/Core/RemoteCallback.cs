@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(cancellationToken);
+                throw OnUnexpectedException(exception, cancellationToken);
             }
         }
 
@@ -127,11 +127,17 @@ namespace Microsoft.CodeAnalysis.Remote
             return FatalError.ReportWithoutCrashAndPropagate(exception);
         }
 
-        private static Exception OnUnexpectedException(CancellationToken cancellationToken)
+        private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token.
+
+            if (exception is OperationCanceledException oce)
+            {
+                return new InvalidOperationException(CancellationTokenSourceFactory.GetUnexpectedCancellationMessage(oce, cancellationToken), oce);
+            }
+
             return ExceptionUtilities.Unreachable;
         }
     }

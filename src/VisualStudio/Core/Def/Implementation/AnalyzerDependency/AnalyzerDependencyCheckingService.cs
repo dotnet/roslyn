@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// Object given to synchronize access to the mutable fields in this class.
         /// </summary>
         private readonly object _gate = new object();
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
         /// <summary>
         /// The most recently started analysis task; if we start a new analysis we will cancel the previous one and start the next one
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationTokenSource = CancellationTokenSourceFactory.Create();
                 _previousAnalyzerPaths = currentAnalyzerPaths;
 
                 // Capturing cancellationToken here so the right instance is passed into the delegates below

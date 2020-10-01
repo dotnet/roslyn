@@ -362,7 +362,7 @@ namespace Roslyn.Utilities
             Contract.ThrowIfTrue(_computationActive);
             Contract.ThrowIfNull(_asynchronousComputeFunction);
 
-            _asynchronousComputationCancellationSource = new CancellationTokenSource();
+            _asynchronousComputationCancellationSource = CancellationTokenSourceFactory.Create();
             _computationActive = true;
 
             return new AsynchronousComputationToStart(_asynchronousComputeFunction, _asynchronousComputationCancellationSource);

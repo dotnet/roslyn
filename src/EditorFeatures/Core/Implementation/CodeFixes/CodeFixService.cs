@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var linkedTokenSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(cancellationToken);
 
             var linkedToken = linkedTokenSource.Token;
 

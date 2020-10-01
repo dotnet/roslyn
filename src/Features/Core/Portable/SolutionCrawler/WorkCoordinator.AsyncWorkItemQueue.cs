@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     Debug.Assert(!_cancellationMap.ContainsKey(key));
 
-                    var source = new CancellationTokenSource();
+                    var source = CancellationTokenSourceFactory.Create();
                     _cancellationMap.Add(key, source);
 
                     return source.Token;

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private CancellationTokenSource? LinkToken(ref CancellationToken cancellationToken)
         {
-            var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ClientDisconnectedSource.Token);
+            var source = CancellationTokenSourceFactory.CreateLinkedTokenSource(cancellationToken, ClientDisconnectedSource.Token);
             cancellationToken = source.Token;
             return source;
         }

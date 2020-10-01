@@ -480,7 +480,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 if (_stateDoNotAccessDirectly == null)
                 {
                     _activeCancellationSourceDoNotAccessDirectly?.Cancel();
-                    _activeCancellationSourceDoNotAccessDirectly = CancellationTokenSource.CreateLinkedTokenSource(_disposalToken);
+                    _activeCancellationSourceDoNotAccessDirectly = CancellationTokenSourceFactory.CreateLinkedTokenSource(_disposalToken);
 
                     // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
                     // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have

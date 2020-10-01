@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private OleComponent _oleComponent;
         private uint _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
         /// <summary>
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             // cancel previous state machine update request
             _cancellationTokenSource.Cancel();
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = CancellationTokenSourceFactory.Create();
             var cancellationToken = _cancellationTokenSource.Token;
 
             // make sure all state machine change work is serialized so that cancellation

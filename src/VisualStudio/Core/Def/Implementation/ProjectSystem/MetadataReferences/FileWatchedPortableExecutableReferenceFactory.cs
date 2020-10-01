@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
 {
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
                     _metadataReferenceRefreshCancellationTokenSources.Remove(fullFilePath);
                 }
 
-                cancellationTokenSource = new CancellationTokenSource();
+                cancellationTokenSource = CancellationTokenSourceFactory.Create();
                 _metadataReferenceRefreshCancellationTokenSources.Add(fullFilePath, cancellationTokenSource);
 
                 Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token).ContinueWith(_ =>

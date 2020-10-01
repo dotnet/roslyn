@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToItemDisplayFactory _displayFactory;
 
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
         public NavigateToItemProvider(
             Workspace workspace,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         public void StopSearch()
         {
             _cancellationTokenSource.Cancel();
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = CancellationTokenSourceFactory.Create();
         }
 
         public void Dispose()

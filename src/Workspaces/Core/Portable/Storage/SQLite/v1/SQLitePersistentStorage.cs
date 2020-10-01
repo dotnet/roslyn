@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v1.Interop;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1
 {
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
-        private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _shutdownTokenSource = CancellationTokenSourceFactory.Create();
 
         private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             // create its own cancellation token source
-            _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownToken);
+            _globalOperationCancellationSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(shutdownToken);
 
             Start();
         }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var previousCancellationSource = _globalOperationCancellationSource;
 
             // create new cancellation token source linked with given shutdown cancellation token
-            _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(ShutdownCancellationToken);
+            _globalOperationCancellationSource = CancellationTokenSourceFactory.CreateLinkedTokenSource(ShutdownCancellationToken);
 
             CancelAndDispose(previousCancellationSource);
         }

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
-                var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker, new CancellationTokenSource());
+                var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker, CancellationTokenSourceFactory.Create());
                 var service = CreateService(args, descriptor, serverConnection, serviceActivationOptions.ClientRpcTarget);
 
                 serverConnection.AddLocalRpcTarget(service);

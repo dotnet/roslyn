@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private Task<NavigationBarModel> _modelTask;
         private NavigationBarModel _lastCompletedModel;
-        private CancellationTokenSource _modelTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _modelTaskCancellationSource = CancellationTokenSourceFactory.Create();
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Cancel off any existing work
             _modelTaskCancellationSource.Cancel();
 
-            _modelTaskCancellationSource = new CancellationTokenSource();
+            _modelTaskCancellationSource = CancellationTokenSourceFactory.Create();
             var cancellationToken = _modelTaskCancellationSource.Token;
 
             // Enqueue a new computation for the model
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         }
 
         private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
-        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = CancellationTokenSourceFactory.Create();
 
         /// <summary>
         /// Starts a new task to compute what item should be selected.
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Cancel off any existing work
             _selectedItemInfoTaskCancellationSource.Cancel();
-            _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+            _selectedItemInfoTaskCancellationSource = CancellationTokenSourceFactory.Create();
 
             var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
             var subjectBufferCaretPosition = currentView.GetCaretPoint(_subjectBuffer);

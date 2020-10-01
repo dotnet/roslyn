@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            _shutdownCancellationSource = new CancellationTokenSource();
+            _shutdownCancellationSource = CancellationTokenSourceFactory.Create();
 
             if (TestData == null || !TestData.IsInProc)
             {

@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// A cancellation token used for any background updating of this file; this is cancelled on the UI thread
             /// when the file is closed.
             /// </summary>
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
             /// <summary>
             /// A queue used to batch updates to the file.

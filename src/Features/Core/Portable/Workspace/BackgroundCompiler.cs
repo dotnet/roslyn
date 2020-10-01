@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
             _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
-            _cancellationSource = new CancellationTokenSource();
+            _cancellationSource = CancellationTokenSourceFactory.Create();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workspace.DocumentOpened += OnDocumentOpened;
             _workspace.DocumentClosed += OnDocumentClosed;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Host
             lock (_buildGate)
             {
                 _cancellationSource.Cancel();
-                _cancellationSource = new CancellationTokenSource();
+                _cancellationSource = CancellationTokenSourceFactory.Create();
                 if (releasePreviousCompilations)
                 {
                     _mostRecentCompilations = null;

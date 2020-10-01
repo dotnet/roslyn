@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public VisualStudioWorkspaceServiceHubConnector(IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listenerProvider = listenerProvider;
-            _disposalCancellationSource = new CancellationTokenSource();
+            _disposalCancellationSource = CancellationTokenSourceFactory.Create();
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)

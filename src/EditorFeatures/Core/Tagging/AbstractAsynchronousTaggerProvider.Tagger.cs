@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Contract.ThrowIfNull(subjectBuffer);
 
                 _subjectBuffer = subjectBuffer;
-                _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationTokenSource = CancellationTokenSourceFactory.Create();
 
                 _batchChangeNotifier = new BatchChangeNotifier(
                     threadingContext,

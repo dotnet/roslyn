@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _controller = controller;
             __taskScheduler = computationTaskScheduler;
 
-            _stopTokenSource = new CancellationTokenSource();
+            _stopTokenSource = CancellationTokenSourceFactory.Create();
             _stopCancellationToken = _stopTokenSource.Token;
 
             // Dummy up a new task so we don't need to check for null.

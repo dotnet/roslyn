@@ -203,7 +203,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // It's a bug for a service to throw OCE based on a different cancellation token than it has received in the call.
                 // The server side filter will report NFW in such scenario, so that the underlying issue can be fixed.
                 // Do not treat this as a critical failure of the service for now and only fail in debug build.
-                Debug.Assert(cancellationToken.IsCancellationRequested);
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    return true;
+                }
 
                 return false;
             }
@@ -234,6 +237,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // Throw cancellation exception if the cancellation token is signaled.
             // If it is not then show info to the user that the service is not available dure to shutdown.
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (exception is OperationCanceledException oce)
+            {
+                throw new InvalidOperationException(CancellationTokenSourceFactory.GetUnexpectedCancellationMessage(oce, cancellationToken), oce);
+            }
 
             if (_errorReportingService == null)
             {
