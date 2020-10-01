@@ -9,5 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     internal interface ISplitCommentService : ILanguageService
     {
         string CommentStart { get; }
+
+        bool IsAllowed(SyntaxNode root, SyntaxTrivia trivia);
     }
 }

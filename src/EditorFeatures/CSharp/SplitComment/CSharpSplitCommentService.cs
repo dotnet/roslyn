@@ -19,5 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
         }
 
         public string CommentStart => "//";
+
+        public bool IsAllowed(SyntaxNode root, SyntaxTrivia trivia)
+            => true;
     }
 }

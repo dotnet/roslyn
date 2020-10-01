@@ -3,11 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
     <UseExportProvider>
     Public Class SplitCommentCommandHandlerTests
         Inherits AbstractSplitCommentCommandHandlerTests
+
+        Protected Overrides Function CreateWorkspace(markup As String) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(markup)
+        End Function
 
         <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
@@ -16,6 +21,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
 "Module Program
     Sub Main(args As String())
         '[||]Test Comment
+    End Sub
+End Module
+",
+"Module Program
+    Sub Main(args As String())
+        '
+        'Test Comment
+    End Sub
+End Module
+")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitStartOfCommentWithLeadingSpace1()
+            TestHandled(
+"Module Program
+    Sub Main(args As String())
+        ' [||]Test Comment
+    End Sub
+End Module
+",
+"Module Program
+    Sub Main(args As String())
+        '
+        ' Test Comment
+    End Sub
+End Module
+")
+        End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitStartOfCommentWithLeadingSpace2()
+            TestHandled(
+"Module Program
+    Sub Main(args As String())
+        '[||] Test Comment
     End Sub
 End Module
 ",
@@ -150,18 +193,10 @@ End Namespace
         <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
         Public Sub TestSplitCommentWithLineContinuation()
-            TestHandled(
+            TestNotHandled(
 "Module Program
     Sub Main(args As String())
         Dim X As Integer _ ' Comment [||]is here
-                       = 4
-    End Sub
-End Module
-",
-"Module Program
-    Sub Main(args As String())
-        Dim X As Integer _ ' Comment
- _ ' is here
                        = 4
     End Sub
 End Module

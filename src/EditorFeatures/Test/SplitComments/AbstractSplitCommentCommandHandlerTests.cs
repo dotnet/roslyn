@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,25 +25,34 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 {
-    public class AbstractSplitCommentCommandHandlerTests
+    public abstract class AbstractSplitCommentCommandHandlerTests
     {
+        protected abstract TestWorkspace CreateWorkspace(string markup);
+
         /// <summary>
         /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
         /// Most tests will continue to verifyUndo, but select tests will skip it due to
-        /// this known test infrastructure issure. This bug does not represent a product
+        /// this known test infrastructure issue. This bug does not represent a product
         /// failure.
         /// </summary>
-        private static void TestWorker(
+        private void TestWorker(
             string inputMarkup,
             string? expectedOutputMarkup,
             Action callback,
-            bool verifyUndo = true,
-            IndentStyle indentStyle = IndentStyle.Smart)
+            bool useTabs)
         {
-            using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
-            var workspaceOptions = workspace.Options.WithChangedOption(new OptionKey(SmartIndent, LanguageNames.CSharp), indentStyle);
-            var workspaceChanges = workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspaceOptions));
-            Assert.True(workspaceChanges);
+            if (useTabs)
+            {
+                // Make sure the tests seem well formed (i.e. no one accidentally replaced the tabs in them with spaces.
+                Assert.True(inputMarkup.Contains("\t"));
+                if (expectedOutputMarkup != null)
+                    Assert.True(expectedOutputMarkup.Contains("\t"));
+            }
+
+            using var workspace = this.CreateWorkspace(inputMarkup);
+
+            if (useTabs)
+                workspace.SetOptions(workspace.Options.WithChangedOption(FormattingOptions.UseTabs, workspace.Projects.Single().Language, true));
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
@@ -70,15 +80,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
                 Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
 
-                if (verifyUndo)
-                {
-                    // Ensure that after undo we go back to where we were to begin with.
-                    var history = undoHistoryRegistry.GetHistory(document.GetTextBuffer());
-                    history.Undo(count: originalSelections.Count);
+                // Ensure that after undo we go back to where we were to begin with.
+                var history = undoHistoryRegistry.GetHistory(document.GetTextBuffer());
+                history.Undo(count: originalSelections.Count);
 
-                    var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
-                    Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
-                }
+                var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
+                Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
             }
         }
 
@@ -88,20 +95,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
         /// this known test infrastructure issue. This bug does not represent a product
         /// failure.
         /// </summary>
-        protected static void TestHandled(
-            string inputMarkup, string expectedOutputMarkup,
-            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart)
+        protected void TestHandled(string inputMarkup, string expectedOutputMarkup, bool useTabs = false)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
                 callback: () =>
                 {
                     Assert.True(false, "Should not reach here.");
-                },
-                verifyUndo, indentStyle);
+                }, useTabs);
         }
 
-        protected static void TestNotHandled(string inputMarkup)
+        protected void TestNotHandled(string inputMarkup, bool useTabs = false)
         {
             var notHandled = false;
             TestWorker(
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
                 callback: () =>
                 {
                     notHandled = true;
-                });
+                }, useTabs);
 
             Assert.True(notHandled);
         }
