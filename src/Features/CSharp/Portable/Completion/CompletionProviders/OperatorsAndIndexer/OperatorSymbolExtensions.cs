@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 WellKnownMemberNames.UnaryNegationOperatorName => "-",
                 WellKnownMemberNames.UnaryPlusOperatorName => "+",
 
-                _ => throw ExceptionUtilities.UnexpectedValue(m.Name),
+                var name => throw ExceptionUtilities.UnexpectedValue(name),
             };
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 WellKnownMemberNames.FalseOperatorName => 22, // false
                 WellKnownMemberNames.TrueOperatorName => 23, // true
 
-                _ => throw ExceptionUtilities.UnexpectedValue(m.Name),
+                var name => throw ExceptionUtilities.UnexpectedValue(name),
             };
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 WellKnownMemberNames.UnaryNegationOperatorName => "-a",
                 WellKnownMemberNames.UnaryPlusOperatorName => "+a",
 
-                _ => throw ExceptionUtilities.UnexpectedValue(m.Name),
+                var name => throw ExceptionUtilities.UnexpectedValue(name),
             };
         }
 
