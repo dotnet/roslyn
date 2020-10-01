@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -40,11 +39,8 @@ namespace Microsoft.CodeAnalysis
         // but once initialized, will never change
         private IOperation? _parentDoNotAccessDirectly;
 
-        protected Operation(OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+        protected Operation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            // Constant value cannot be "null" for non-nullable value type operations.
-            Debug.Assert(type?.IsValueType != true || ITypeSymbolHelpers.IsNullableType(type) || constantValue == null || constantValue == CodeAnalysis.ConstantValue.Unset || !constantValue.IsNull);
-
 #if DEBUG
             if (semanticModel != null)
             {
@@ -62,10 +58,7 @@ namespace Microsoft.CodeAnalysis
 #endif
             _owningSemanticModelOpt = semanticModel;
 
-            Kind = kind;
             Syntax = syntax;
-            Type = type;
-            OperationConstantValue = constantValue;
             IsImplicit = isImplicit;
 
             _parentDoNotAccessDirectly = s_unset;
@@ -95,7 +88,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Identifies the kind of the operation.
         /// </summary>
-        public OperationKind Kind { get; }
+        public abstract OperationKind Kind { get; }
 
         /// <summary>
         /// Syntax that was analyzed to produce the operation.
@@ -105,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Result type of the operation, or null if the operation does not produce a result.
         /// </summary>
-        public ITypeSymbol? Type { get; }
+        public abstract ITypeSymbol? Type { get; }
 
         /// <summary>
         /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
@@ -119,7 +112,7 @@ namespace Microsoft.CodeAnalysis
             get => Syntax.Language;
         }
 
-        internal CodeAnalysis.ConstantValue? OperationConstantValue { get; }
+        internal abstract CodeAnalysis.ConstantValue? OperationConstantValue { get; }
 
         /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
@@ -209,7 +202,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (child is object)
             {
-                Debug.Assert((object)child.Parent == parent);
+                Debug.Assert((object?)child.Parent == parent);
             }
         }
 

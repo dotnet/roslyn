@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
     /// </summary>
-    internal abstract class BaseNoneOperation : Operation
+    internal abstract class BaseNoneOperation : OperationOld
     {
         protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, ConstantValue constantValue, bool isImplicit, ITypeSymbol type) :
             base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     }
 
-    internal abstract partial class BaseConversionOperation : Operation, IConversionOperation
+    internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
     {
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
     }
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal abstract partial class BaseInvalidOperation : Operation, IInvalidOperation
+    internal abstract partial class BaseInvalidOperation : OperationOld, IInvalidOperation
     {
         protected BaseInvalidOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(OperationKind.Invalid, semanticModel, syntax, type, constantValue, isImplicit)
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal sealed class FlowAnonymousFunctionOperation : Operation, IFlowAnonymousFunctionOperation
+    internal sealed class FlowAnonymousFunctionOperation : OperationOld, IFlowAnonymousFunctionOperation
     {
         public readonly ControlFlowGraphBuilder.Context Context;
         public readonly IAnonymousFunctionOperation Original;
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseMemberReferenceOperation : Operation, IMemberReferenceOperation
+    internal abstract partial class BaseMemberReferenceOperation : OperationOld, IMemberReferenceOperation
     {
         public abstract ISymbol Member { get; }
     }
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class HasDynamicArgumentsExpression : Operation
+    internal abstract partial class HasDynamicArgumentsExpression : OperationOld
     {
         protected HasDynamicArgumentsExpression(OperationKind operationKind, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit) :
             base(operationKind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.Operations
         { }
     }
 
-    internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
+    internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
     {
         public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue) :
             base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class FlowCaptureOperation : Operation, IFlowCaptureOperation
+    internal sealed partial class FlowCaptureOperation : OperationOld, IFlowCaptureOperation
     {
         public FlowCaptureOperation(int id, SyntaxNode syntax, IOperation value) :
             base(OperationKind.FlowCapture, semanticModel: null, syntax: syntax, type: null, constantValue: null, isImplicit: true)
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class IsNullOperation : Operation, IIsNullOperation
+    internal sealed partial class IsNullOperation : OperationOld, IIsNullOperation
     {
         public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, ConstantValue constantValue) :
             base(OperationKind.IsNull, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
+    internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
     {
         public CaughtExceptionOperation(SyntaxNode syntax, ITypeSymbol type) :
             this(semanticModel: null, syntax: syntax, type: type, constantValue: null, isImplicit: true)
@@ -949,7 +949,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed partial class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
+    internal sealed partial class StaticLocalInitializationSemaphoreOperation : OperationOld, IStaticLocalInitializationSemaphoreOperation
     {
         public StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SyntaxNode syntax, ITypeSymbol type) :
             base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: null, isImplicit: true)

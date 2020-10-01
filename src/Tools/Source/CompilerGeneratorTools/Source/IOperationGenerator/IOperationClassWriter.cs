@@ -394,6 +394,10 @@ namespace IOperationGenerator
                     {
                         baseType = $"Base{baseType}";
                     }
+                    else
+                    {
+                        baseType = "OperationOld";
+                    }
 
                     writeClassHeader("abstract", @class, baseType, type.Name);
 
@@ -480,6 +484,10 @@ namespace IOperationGenerator
                     if (@base != "Operation")
                     {
                         @base = $"Base{@base}";
+                    }
+                    else
+                    {
+                        @base = "OperationOld";
                     }
 
                     writeClassHeader("sealed", @class, @base, type.Name);

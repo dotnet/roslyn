@@ -3313,7 +3313,7 @@ namespace Microsoft.CodeAnalysis.Operations
     #endregion
 
     #region Implementations
-    internal abstract partial class BaseBlockOperation : Operation, IBlockOperation
+    internal abstract partial class BaseBlockOperation : OperationOld, IBlockOperation
     {
         internal BaseBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Block, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3364,7 +3364,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseVariableDeclarationGroupOperation : Operation, IVariableDeclarationGroupOperation
+    internal abstract partial class BaseVariableDeclarationGroupOperation : OperationOld, IVariableDeclarationGroupOperation
     {
         internal BaseVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.VariableDeclarationGroup, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -3411,7 +3411,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseSwitchOperation : Operation, ISwitchOperation
+    internal abstract partial class BaseSwitchOperation : OperationOld, ISwitchOperation
     {
         internal BaseSwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Switch, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3483,7 +3483,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseLoopOperation : Operation, ILoopOperation
+    internal abstract partial class BaseLoopOperation : OperationOld, ILoopOperation
     {
         protected BaseLoopOperation(LoopKind loopKind, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3941,7 +3941,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseLabeledOperation : Operation, ILabeledOperation
+    internal abstract partial class BaseLabeledOperation : OperationOld, ILabeledOperation
     {
         internal BaseLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Labeled, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3989,7 +3989,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class BranchOperation : Operation, IBranchOperation
+    internal sealed partial class BranchOperation : OperationOld, IBranchOperation
     {
         internal BranchOperation(ILabelSymbol target, BranchKind branchKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Branch, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4003,7 +4003,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitBranch(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBranch(this, argument);
     }
-    internal sealed partial class EmptyOperation : Operation, IEmptyOperation
+    internal sealed partial class EmptyOperation : OperationOld, IEmptyOperation
     {
         internal EmptyOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Empty, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4011,7 +4011,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitEmpty(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEmpty(this, argument);
     }
-    internal abstract partial class BaseReturnOperation : Operation, IReturnOperation
+    internal abstract partial class BaseReturnOperation : OperationOld, IReturnOperation
     {
         internal BaseReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4055,7 +4055,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseLockOperation : Operation, ILockOperation
+    internal abstract partial class BaseLockOperation : OperationOld, ILockOperation
     {
         internal BaseLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Lock, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4122,7 +4122,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseTryOperation : Operation, ITryOperation
+    internal abstract partial class BaseTryOperation : OperationOld, ITryOperation
     {
         internal BaseTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Try, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4211,7 +4211,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseUsingOperation : Operation, IUsingOperation
+    internal abstract partial class BaseUsingOperation : OperationOld, IUsingOperation
     {
         internal BaseUsingOperation(ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Using, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4280,7 +4280,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseExpressionStatementOperation : Operation, IExpressionStatementOperation
+    internal abstract partial class BaseExpressionStatementOperation : OperationOld, IExpressionStatementOperation
     {
         internal BaseExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ExpressionStatement, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4324,7 +4324,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseLocalFunctionOperation : Operation, ILocalFunctionOperation
+    internal abstract partial class BaseLocalFunctionOperation : OperationOld, ILocalFunctionOperation
     {
         internal BaseLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.LocalFunction, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4391,7 +4391,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class StopOperation : Operation, IStopOperation
+    internal sealed partial class StopOperation : OperationOld, IStopOperation
     {
         internal StopOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Stop, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4399,7 +4399,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitStop(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitStop(this, argument);
     }
-    internal sealed partial class EndOperation : Operation, IEndOperation
+    internal sealed partial class EndOperation : OperationOld, IEndOperation
     {
         internal EndOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.End, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4407,7 +4407,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitEnd(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitEnd(this, argument);
     }
-    internal abstract partial class BaseRaiseEventOperation : Operation, IRaiseEventOperation
+    internal abstract partial class BaseRaiseEventOperation : OperationOld, IRaiseEventOperation
     {
         internal BaseRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.RaiseEvent, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4473,7 +4473,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class LiteralOperation : Operation, ILiteralOperation
+    internal sealed partial class LiteralOperation : OperationOld, ILiteralOperation
     {
         internal LiteralOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Literal, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4481,7 +4481,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitLiteral(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLiteral(this, argument);
     }
-    internal abstract partial class BaseConversionOperation : Operation, IConversionOperation
+    internal abstract partial class BaseConversionOperation : OperationOld, IConversionOperation
     {
         internal BaseConversionOperation(IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Conversion, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4534,7 +4534,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseInvocationOperation : Operation, IInvocationOperation
+    internal abstract partial class BaseInvocationOperation : OperationOld, IInvocationOperation
     {
         internal BaseInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Invocation, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4606,7 +4606,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseArrayElementReferenceOperation : Operation, IArrayElementReferenceOperation
+    internal abstract partial class BaseArrayElementReferenceOperation : OperationOld, IArrayElementReferenceOperation
     {
         internal BaseArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ArrayElementReference, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4672,7 +4672,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class LocalReferenceOperation : Operation, ILocalReferenceOperation
+    internal sealed partial class LocalReferenceOperation : OperationOld, ILocalReferenceOperation
     {
         internal LocalReferenceOperation(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.LocalReference, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4686,7 +4686,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitLocalReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitLocalReference(this, argument);
     }
-    internal sealed partial class ParameterReferenceOperation : Operation, IParameterReferenceOperation
+    internal sealed partial class ParameterReferenceOperation : OperationOld, IParameterReferenceOperation
     {
         internal ParameterReferenceOperation(IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ParameterReference, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4698,7 +4698,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitParameterReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitParameterReference(this, argument);
     }
-    internal abstract partial class BaseMemberReferenceOperation : Operation, IMemberReferenceOperation
+    internal abstract partial class BaseMemberReferenceOperation : OperationOld, IMemberReferenceOperation
     {
         protected BaseMemberReferenceOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -4918,7 +4918,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseUnaryOperation : Operation, IUnaryOperation
+    internal abstract partial class BaseUnaryOperation : OperationOld, IUnaryOperation
     {
         internal BaseUnaryOperation(UnaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Unary, semanticModel, syntax, type, constantValue, isImplicit)
@@ -4972,7 +4972,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseBinaryOperation : Operation, IBinaryOperation
+    internal abstract partial class BaseBinaryOperation : OperationOld, IBinaryOperation
     {
         internal BaseBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Binary, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5049,7 +5049,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseConditionalOperation : Operation, IConditionalOperation
+    internal abstract partial class BaseConditionalOperation : OperationOld, IConditionalOperation
     {
         internal BaseConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Conditional, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5135,7 +5135,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseCoalesceOperation : Operation, ICoalesceOperation
+    internal abstract partial class BaseCoalesceOperation : OperationOld, ICoalesceOperation
     {
         internal BaseCoalesceOperation(IConvertibleConversion valueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Coalesce, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5203,7 +5203,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseAnonymousFunctionOperation : Operation, IAnonymousFunctionOperation
+    internal abstract partial class BaseAnonymousFunctionOperation : OperationOld, IAnonymousFunctionOperation
     {
         internal BaseAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.AnonymousFunction, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5251,7 +5251,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseObjectCreationOperation : Operation, IObjectCreationOperation
+    internal abstract partial class BaseObjectCreationOperation : OperationOld, IObjectCreationOperation
     {
         internal BaseObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ObjectCreation, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5321,7 +5321,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseTypeParameterObjectCreationOperation : Operation, ITypeParameterObjectCreationOperation
+    internal abstract partial class BaseTypeParameterObjectCreationOperation : OperationOld, ITypeParameterObjectCreationOperation
     {
         internal BaseTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.TypeParameterObjectCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5365,7 +5365,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseArrayCreationOperation : Operation, IArrayCreationOperation
+    internal abstract partial class BaseArrayCreationOperation : OperationOld, IArrayCreationOperation
     {
         internal BaseArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ArrayCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5431,7 +5431,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class InstanceReferenceOperation : Operation, IInstanceReferenceOperation
+    internal sealed partial class InstanceReferenceOperation : OperationOld, IInstanceReferenceOperation
     {
         internal InstanceReferenceOperation(InstanceReferenceKind referenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.InstanceReference, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5443,7 +5443,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitInstanceReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitInstanceReference(this, argument);
     }
-    internal abstract partial class BaseIsTypeOperation : Operation, IIsTypeOperation
+    internal abstract partial class BaseIsTypeOperation : OperationOld, IIsTypeOperation
     {
         internal BaseIsTypeOperation(ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.IsType, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5493,7 +5493,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseAwaitOperation : Operation, IAwaitOperation
+    internal abstract partial class BaseAwaitOperation : OperationOld, IAwaitOperation
     {
         internal BaseAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Await, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5537,7 +5537,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseAssignmentOperation : Operation, IAssignmentOperation
+    internal abstract partial class BaseAssignmentOperation : OperationOld, IAssignmentOperation
     {
         protected BaseAssignmentOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5686,7 +5686,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseParenthesizedOperation : Operation, IParenthesizedOperation
+    internal abstract partial class BaseParenthesizedOperation : OperationOld, IParenthesizedOperation
     {
         internal BaseParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Parenthesized, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5730,7 +5730,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseEventAssignmentOperation : Operation, IEventAssignmentOperation
+    internal abstract partial class BaseEventAssignmentOperation : OperationOld, IEventAssignmentOperation
     {
         internal BaseEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.EventAssignment, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5797,7 +5797,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseConditionalAccessOperation : Operation, IConditionalAccessOperation
+    internal abstract partial class BaseConditionalAccessOperation : OperationOld, IConditionalAccessOperation
     {
         internal BaseConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ConditionalAccess, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5860,7 +5860,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class ConditionalAccessInstanceOperation : Operation, IConditionalAccessInstanceOperation
+    internal sealed partial class ConditionalAccessInstanceOperation : OperationOld, IConditionalAccessInstanceOperation
     {
         internal ConditionalAccessInstanceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ConditionalAccessInstance, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5868,7 +5868,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitConditionalAccessInstance(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitConditionalAccessInstance(this, argument);
     }
-    internal abstract partial class BaseInterpolatedStringOperation : Operation, IInterpolatedStringOperation
+    internal abstract partial class BaseInterpolatedStringOperation : OperationOld, IInterpolatedStringOperation
     {
         internal BaseInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.InterpolatedString, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5915,7 +5915,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseAnonymousObjectCreationOperation : Operation, IAnonymousObjectCreationOperation
+    internal abstract partial class BaseAnonymousObjectCreationOperation : OperationOld, IAnonymousObjectCreationOperation
     {
         internal BaseAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.AnonymousObjectCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -5962,7 +5962,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseObjectOrCollectionInitializerOperation : Operation, IObjectOrCollectionInitializerOperation
+    internal abstract partial class BaseObjectOrCollectionInitializerOperation : OperationOld, IObjectOrCollectionInitializerOperation
     {
         internal BaseObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ObjectOrCollectionInitializer, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6009,7 +6009,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseMemberInitializerOperation : Operation, IMemberInitializerOperation
+    internal abstract partial class BaseMemberInitializerOperation : OperationOld, IMemberInitializerOperation
     {
         internal BaseMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.MemberInitializer, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6072,7 +6072,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseNameOfOperation : Operation, INameOfOperation
+    internal abstract partial class BaseNameOfOperation : OperationOld, INameOfOperation
     {
         internal BaseNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.NameOf, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6116,7 +6116,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseTupleOperation : Operation, ITupleOperation
+    internal abstract partial class BaseTupleOperation : OperationOld, ITupleOperation
     {
         internal BaseTupleOperation(ITypeSymbol naturalType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Tuple, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6167,7 +6167,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseDynamicMemberReferenceOperation : Operation, IDynamicMemberReferenceOperation
+    internal abstract partial class BaseDynamicMemberReferenceOperation : OperationOld, IDynamicMemberReferenceOperation
     {
         internal BaseDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.DynamicMemberReference, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6219,7 +6219,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseTranslatedQueryOperation : Operation, ITranslatedQueryOperation
+    internal abstract partial class BaseTranslatedQueryOperation : OperationOld, ITranslatedQueryOperation
     {
         internal BaseTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.TranslatedQuery, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6263,7 +6263,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseDelegateCreationOperation : Operation, IDelegateCreationOperation
+    internal abstract partial class BaseDelegateCreationOperation : OperationOld, IDelegateCreationOperation
     {
         internal BaseDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.DelegateCreation, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6307,7 +6307,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class DefaultValueOperation : Operation, IDefaultValueOperation
+    internal sealed partial class DefaultValueOperation : OperationOld, IDefaultValueOperation
     {
         internal DefaultValueOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.DefaultValue, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6315,7 +6315,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitDefaultValue(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDefaultValue(this, argument);
     }
-    internal sealed partial class TypeOfOperation : Operation, ITypeOfOperation
+    internal sealed partial class TypeOfOperation : OperationOld, ITypeOfOperation
     {
         internal TypeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.TypeOf, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6327,7 +6327,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitTypeOf(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTypeOf(this, argument);
     }
-    internal sealed partial class SizeOfOperation : Operation, ISizeOfOperation
+    internal sealed partial class SizeOfOperation : OperationOld, ISizeOfOperation
     {
         internal SizeOfOperation(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.SizeOf, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6339,7 +6339,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitSizeOf(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitSizeOf(this, argument);
     }
-    internal abstract partial class BaseAddressOfOperation : Operation, IAddressOfOperation
+    internal abstract partial class BaseAddressOfOperation : OperationOld, IAddressOfOperation
     {
         internal BaseAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.AddressOf, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6383,7 +6383,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseIsPatternOperation : Operation, IIsPatternOperation
+    internal abstract partial class BaseIsPatternOperation : OperationOld, IIsPatternOperation
     {
         internal BaseIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.IsPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6446,7 +6446,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseIncrementOrDecrementOperation : Operation, IIncrementOrDecrementOperation
+    internal abstract partial class BaseIncrementOrDecrementOperation : OperationOld, IIncrementOrDecrementOperation
     {
         internal BaseIncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6500,7 +6500,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseThrowOperation : Operation, IThrowOperation
+    internal abstract partial class BaseThrowOperation : OperationOld, IThrowOperation
     {
         internal BaseThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Throw, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6605,7 +6605,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseDeclarationExpressionOperation : Operation, IDeclarationExpressionOperation
+    internal abstract partial class BaseDeclarationExpressionOperation : OperationOld, IDeclarationExpressionOperation
     {
         internal BaseDeclarationExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.DeclarationExpression, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6649,7 +6649,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class OmittedArgumentOperation : Operation, IOmittedArgumentOperation
+    internal sealed partial class OmittedArgumentOperation : OperationOld, IOmittedArgumentOperation
     {
         internal OmittedArgumentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.OmittedArgument, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6657,7 +6657,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitOmittedArgument(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitOmittedArgument(this, argument);
     }
-    internal abstract partial class BaseSymbolInitializerOperation : Operation, ISymbolInitializerOperation
+    internal abstract partial class BaseSymbolInitializerOperation : OperationOld, ISymbolInitializerOperation
     {
         protected BaseSymbolInitializerOperation(ImmutableArray<ILocalSymbol> locals, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6851,7 +6851,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseArrayInitializerOperation : Operation, IArrayInitializerOperation
+    internal abstract partial class BaseArrayInitializerOperation : OperationOld, IArrayInitializerOperation
     {
         internal BaseArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ArrayInitializer, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -6898,7 +6898,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseVariableDeclaratorOperation : Operation, IVariableDeclaratorOperation
+    internal abstract partial class BaseVariableDeclaratorOperation : OperationOld, IVariableDeclaratorOperation
     {
         internal BaseVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.VariableDeclarator, semanticModel, syntax, type, constantValue, isImplicit)
@@ -6968,7 +6968,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseVariableDeclarationOperation : Operation, IVariableDeclarationOperation
+    internal abstract partial class BaseVariableDeclarationOperation : OperationOld, IVariableDeclarationOperation
     {
         internal BaseVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.VariableDeclaration, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -7056,7 +7056,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseArgumentOperation : Operation, IArgumentOperation
+    internal abstract partial class BaseArgumentOperation : OperationOld, IArgumentOperation
     {
         internal BaseArgumentOperation(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Argument, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7106,7 +7106,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseCatchClauseOperation : Operation, ICatchClauseOperation
+    internal abstract partial class BaseCatchClauseOperation : OperationOld, ICatchClauseOperation
     {
         internal BaseCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7194,7 +7194,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseSwitchCaseOperation : Operation, ISwitchCaseOperation
+    internal abstract partial class BaseSwitchCaseOperation : OperationOld, ISwitchCaseOperation
     {
         internal BaseSwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.SwitchCase, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7267,7 +7267,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseCaseClauseOperation : Operation, ICaseClauseOperation
+    internal abstract partial class BaseCaseClauseOperation : OperationOld, ICaseClauseOperation
     {
         protected BaseCaseClauseOperation(CaseKind caseKind, ILabelSymbol label, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7441,7 +7441,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseInterpolatedStringContentOperation : Operation, IInterpolatedStringContentOperation
+    internal abstract partial class BaseInterpolatedStringContentOperation : OperationOld, IInterpolatedStringContentOperation
     {
         protected BaseInterpolatedStringContentOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -7572,7 +7572,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BasePatternOperation : Operation, IPatternOperation
+    internal abstract partial class BasePatternOperation : OperationOld, IPatternOperation
     {
         protected BasePatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7643,7 +7643,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitDeclarationPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDeclarationPattern(this, argument);
     }
-    internal abstract partial class BaseTupleBinaryOperation : Operation, ITupleBinaryOperation
+    internal abstract partial class BaseTupleBinaryOperation : OperationOld, ITupleBinaryOperation
     {
         internal BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7710,7 +7710,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseMethodBodyBaseOperation : Operation, IMethodBodyBaseOperation
+    internal abstract partial class BaseMethodBodyBaseOperation : OperationOld, IMethodBodyBaseOperation
     {
         protected BaseMethodBodyBaseOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -7862,7 +7862,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class DiscardOperation : Operation, IDiscardOperation
+    internal sealed partial class DiscardOperation : OperationOld, IDiscardOperation
     {
         internal DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7874,7 +7874,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardOperation(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardOperation(this, argument);
     }
-    internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
+    internal sealed partial class FlowCaptureReferenceOperation : OperationOld, IFlowCaptureReferenceOperation
     {
         internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.FlowCaptureReference, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7886,7 +7886,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitFlowCaptureReference(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitFlowCaptureReference(this, argument);
     }
-    internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
+    internal sealed partial class CaughtExceptionOperation : OperationOld, ICaughtExceptionOperation
     {
         internal CaughtExceptionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.CaughtException, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -7894,7 +7894,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitCaughtException(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitCaughtException(this, argument);
     }
-    internal sealed partial class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
+    internal sealed partial class StaticLocalInitializationSemaphoreOperation : OperationOld, IStaticLocalInitializationSemaphoreOperation
     {
         internal StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.StaticLocalInitializationSemaphore, semanticModel, syntax, type, constantValue, isImplicit)
@@ -7967,7 +7967,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseRangeOperation : Operation, IRangeOperation
+    internal abstract partial class BaseRangeOperation : OperationOld, IRangeOperation
     {
         internal BaseRangeOperation(bool isLifted, IMethodSymbol method, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.Range, semanticModel, syntax, type, constantValue, isImplicit)
@@ -8036,7 +8036,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseReDimOperation : Operation, IReDimOperation
+    internal abstract partial class BaseReDimOperation : OperationOld, IReDimOperation
     {
         internal BaseReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ReDim, semanticModel, syntax, type, constantValue, isImplicit)
@@ -8087,7 +8087,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseReDimClauseOperation : Operation, IReDimClauseOperation
+    internal abstract partial class BaseReDimClauseOperation : OperationOld, IReDimClauseOperation
     {
         internal BaseReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.ReDimClause, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8238,7 +8238,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardPattern(this, argument);
     }
-    internal abstract partial class BaseSwitchExpressionOperation : Operation, ISwitchExpressionOperation
+    internal abstract partial class BaseSwitchExpressionOperation : OperationOld, ISwitchExpressionOperation
     {
         internal BaseSwitchExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.SwitchExpression, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8304,7 +8304,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseSwitchExpressionArmOperation : Operation, ISwitchExpressionArmOperation
+    internal abstract partial class BaseSwitchExpressionArmOperation : OperationOld, ISwitchExpressionArmOperation
     {
         internal BaseSwitchExpressionArmOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.SwitchExpressionArm, semanticModel, syntax, type, constantValue, isImplicit)
@@ -8390,7 +8390,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BasePropertySubpatternOperation : Operation, IPropertySubpatternOperation
+    internal abstract partial class BasePropertySubpatternOperation : OperationOld, IPropertySubpatternOperation
     {
         internal BasePropertySubpatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.PropertySubpattern, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8453,7 +8453,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseAggregateQueryOperation : Operation, IAggregateQueryOperation
+    internal abstract partial class BaseAggregateQueryOperation : OperationOld, IAggregateQueryOperation
     {
         internal BaseAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8516,7 +8516,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseFixedOperation : Operation, IFixedOperation
+    internal abstract partial class BaseFixedOperation : OperationOld, IFixedOperation
     {
         internal BaseFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
@@ -8583,7 +8583,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseNoPiaObjectCreationOperation : Operation, INoPiaObjectCreationOperation
+    internal abstract partial class BaseNoPiaObjectCreationOperation : OperationOld, INoPiaObjectCreationOperation
     {
         internal BaseNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8627,7 +8627,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal sealed partial class PlaceholderOperation : Operation, IPlaceholderOperation
+    internal sealed partial class PlaceholderOperation : OperationOld, IPlaceholderOperation
     {
         internal PlaceholderOperation(PlaceholderKind placeholderKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
@@ -8639,7 +8639,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitPlaceholder(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPlaceholder(this, argument);
     }
-    internal abstract partial class BasePointerIndirectionReferenceOperation : Operation, IPointerIndirectionReferenceOperation
+    internal abstract partial class BasePointerIndirectionReferenceOperation : OperationOld, IPointerIndirectionReferenceOperation
     {
         internal BasePointerIndirectionReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8683,7 +8683,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseWithStatementOperation : Operation, IWithStatementOperation
+    internal abstract partial class BaseWithStatementOperation : OperationOld, IWithStatementOperation
     {
         internal BaseWithStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
@@ -8746,7 +8746,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseUsingDeclarationOperation : Operation, IUsingDeclarationOperation
+    internal abstract partial class BaseUsingDeclarationOperation : OperationOld, IUsingDeclarationOperation
     {
         internal BaseUsingDeclarationOperation(bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.UsingDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
@@ -8965,7 +8965,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseWithOperation : Operation, IWithOperation
+    internal abstract partial class BaseWithOperation : OperationOld, IWithOperation
     {
         internal BaseWithOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(OperationKind.With, semanticModel, syntax, type, constantValue, isImplicit)
