@@ -279,9 +279,7 @@ public static {typeKind} Foo
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
-        [InlineData("class")]
-        [InlineData("record")]
-        public async Task FixAll(string typeKind)
+        public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
 @"namespace NS
