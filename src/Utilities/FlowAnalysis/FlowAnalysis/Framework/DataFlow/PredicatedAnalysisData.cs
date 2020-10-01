@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
     {
-#pragma warning disable CA2213 // Disposable fields should be disposed - https://github.com/dotnet/roslyn-analyzers/issues/2182
         private DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? _lazyPredicateDataMap;
-#pragma warning restore CA2213 // Disposable fields should be disposed
 
         protected PredicatedAnalysisData()
         {
