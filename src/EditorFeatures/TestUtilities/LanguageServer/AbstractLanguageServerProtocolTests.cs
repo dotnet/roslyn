@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -39,9 +38,7 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspSolutionProvider))
-            .AddParts(typeof(TestDocumentTrackingService))
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+            .AddParts(typeof(TestLspSolutionProvider));
 
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider
@@ -66,13 +63,13 @@ namespace Roslyn.Test.Utilities
                 return _currentSolution;
             }
 
-            public ImmutableArray<Document> GetDocuments(Uri? documentUri)
+            public ImmutableArray<Document> GetDocuments(Uri documentUri)
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
             }
 
-            public ImmutableArray<TextDocument> GetTextDocuments(Uri? documentUri)
+            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetTextDocuments(documentUri);
