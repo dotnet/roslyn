@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
@@ -18,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 {
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(nameof(SplitCommentCommandHandler))]
+    [Name(nameof(CSharpSplitCommentCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal partial class SplitCommentCommandHandler : AbstractSplitCommentCommandHandler
+    internal partial class CSharpSplitCommentCommandHandler : AbstractSplitCommentCommandHandler
     {
         [ImportingConstructor]
-        public SplitCommentCommandHandler(
+        public CSharpSplitCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {

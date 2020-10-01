@@ -17,9 +17,9 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
     <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
-    <Name(NameOf(SplitCommentCommandHandler))>
+    <Name(NameOf(VisualBasicSplitCommentCommandHandler))>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
-    Partial Friend Class SplitCommentCommandHandler
+    Partial Friend Class VisualBasicSplitCommentCommandHandler
         Inherits AbstractSplitCommentCommandHandler
 
         <ImportingConstructor>

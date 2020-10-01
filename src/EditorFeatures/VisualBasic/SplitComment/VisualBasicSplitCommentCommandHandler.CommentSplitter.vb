@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Formatting.FormattingOptions
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
-    Partial Friend Class SplitCommentCommandHandler
+    Partial Friend Class VisualBasicSplitCommentCommandHandler
         Private Class CommentSplitter
             Inherits AbstractCommentSplitter
 

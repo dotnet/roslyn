@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 {
-    internal partial class SplitCommentCommandHandler
+    internal partial class CSharpSplitCommentCommandHandler
     {
         internal class CommentSplitter : AbstractCommentSplitter
         {
