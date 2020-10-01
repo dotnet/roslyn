@@ -95,6 +95,8 @@ namespace Roslyn.Utilities
             var sourceLocation = TryGetCreationSourceLocation(exception.CancellationToken, out var sourcePath, out var sourceLine) ?
                 $"{sourcePath}({sourceLine})" : "unknown";
 
+            Thread.Sleep(TimeSpan.FromHours(1));
+
             return $"Unexpected cancellation triggered by cancellation source at {sourceLocation}: " +
                 (cancellationToken == CancellationToken.None ? "caller does not expect cancellation" : "caller expects different token signaled");
         }
