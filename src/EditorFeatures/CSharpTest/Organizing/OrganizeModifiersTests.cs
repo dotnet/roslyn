@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeModifiersTests : AbstractOrganizerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestTypes1(string typeKind)
@@ -25,7 +25,7 @@ $@"public static {typeKind} C {{
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestTypes2(string typeKind)
@@ -40,7 +40,7 @@ $@"public static {typeKind} D {{
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestTypes3(string typeKind)
@@ -55,7 +55,7 @@ $@"public static partial {typeKind} E {{
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestTypes4(string typeKind)
@@ -70,7 +70,7 @@ $@"public static partial {typeKind} F {{
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
         public async Task TestTypes5(string typeKind)
