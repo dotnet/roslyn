@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis
         private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         private protected virtual Compilation RunTransformers(
-            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
         { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
@@ -1041,34 +1041,78 @@ namespace Microsoft.CodeAnalysis
                 if (!transfomers.IsEmpty)
                 {
                     var compilationBefore = compilation;
-                    compilation = RunTransformers(compilation, transfomers, analyzerConfigProvider, diagnostics);
+                    compilation = RunTransformers(ref compilationBefore, transfomers, analyzerConfigProvider, diagnostics);
 
-                    // fix whitespace and embed transformed code into PDB if we want to debug transformed code
-                    if (compilation != compilationBefore && ShouldDebugTransformedCode(analyzerConfigProvider))
+                    bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(Arguments.TransformedFilesOutputDirectory);
+
+                    // fix whitespace and embed transformed code into PDB or write it to disk
+                    if (compilation != compilationBefore && (ShouldDebugTransformedCode(analyzerConfigProvider) || hasTransformedOutputPath))
                     {
-                        foreach (var tree in compilation.SyntaxTrees)
+                        var transformedTrees = compilation.SyntaxTrees.Where(tree => !compilationBefore.ContainsSyntaxTree(tree)).ToList();
+                        var prefixRemover = CommonPath.MakePrefixRemover(transformedTrees.Select(t => t.FilePath));
+                        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                        foreach (var tree in transformedTrees)
                         {
-                            if (compilationBefore.ContainsSyntaxTree(tree))
-                                continue;
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var path = prefixRemover(tree.FilePath);
+
+                            ensurePathIsUnique();
 
                             var newTree = tree
                                 // TODO: this causes https://github.com/dotnet/roslyn/issues/47278; fix that bug in Roslyn
-                                .WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(), tree.Options);
+                                .WithRootAndOptions(tree.GetRoot(cancellationToken).NormalizeWhitespace(), tree.Options);
 
-                            var text = newTree.GetText();
+                            var text = newTree.GetText(cancellationToken);
                             if (!text.CanBeEmbedded)
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
 
-                            static string createUniquePath(string oldPath) =>
-                                string.IsNullOrEmpty(oldPath) ? $"{Guid.NewGuid()}.cs" : Path.Combine(Guid.NewGuid().ToString(), Path.GetFileName(oldPath));
-
-                            newTree = newTree
-                                .WithFilePath(createUniquePath(tree.FilePath))
-                                .WithChangedText(text);
+                            newTree = newTree.WithFilePath(path).WithChangedText(text);
 
                             compilation = compilation.ReplaceSyntaxTree(tree, newTree);
 
-                            embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(newTree.FilePath, text));
+                            if (hasTransformedOutputPath)
+                            {
+                                var fullPath = Path.Combine(Arguments.TransformedFilesOutputDirectory, path);
+                                if (Directory.Exists(Arguments.TransformedFilesOutputDirectory))
+                                {
+                                    Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                                }
+
+                                var fileStream = OpenFile(fullPath, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                if (fileStream is not null)
+                                {
+                                    using var disposer = new NoThrowStreamDisposer(fileStream, fullPath, diagnostics, MessageProvider);
+                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
+
+                                    text.Write(writer, cancellationToken);
+                                    touchedFilesLogger?.AddWritten(fullPath);
+                                }
+                            }
+                            else
+                            {
+                                embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(path, text));
+                            }
+
+                            void ensurePathIsUnique()
+                            {
+                                // tree has no path, generate one
+                                if (string.IsNullOrWhiteSpace(path))
+                                {
+                                    path = $"{Guid.NewGuid()}.cs";
+                                    return;
+                                }
+
+                                // tree has path, make sure it's unique by adding a numeric discriminator if necessary
+                                string originalPath = path;
+                                int i = 2;
+
+                                while (!paths.Add(path))
+                                {
+                                    path = Path.Combine(Path.GetDirectoryName(originalPath), $"{Path.GetFileNameWithoutExtension(originalPath)}{i}{Path.GetExtension(originalPath)}");
+                                }
+                            }
                         }
                     }
                 }

@@ -296,5 +296,35 @@
     <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
              Directories="$(CompilerGeneratedFilesOutputPath)"  />
   </Target>
-  
+
+  <!--
+    ========================
+    CompilerTransformedFilesOutputPath
+    ========================
+    
+    Controls output of files transformed by RoslynEx.
+    
+    CompilerTransformedFilesOutputPath controls the location the files will be output to.
+    The compiler will not emit any transformed files when the path is empty, and defaults to a /transformed directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
+    EmitCompilerTransformedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When EmitCompilerTransformedFiles is true, we ensure that CompilerTransformedFilesOutputPath has a value and issue a warning if not.
+    We will create CompilerTransformedFilesOutputPath if it does not exist.
+    -->
+  <PropertyGroup>
+    <EmitCompilerTransformedFiles Condition="'$(EmitCompilerTransformedFiles)' == ''">false</EmitCompilerTransformedFiles>
+    <CompilerTransformedFilesOutputPath Condition="'$(EmitCompilerTransformedFiles)' != 'true'"></CompilerTransformedFilesOutputPath>
+    <CompilerTransformedFilesOutputPath Condition="'$(EmitCompilerTransformedFiles)' == 'true' and '$(CompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</CompilerTransformedFilesOutputPath>
+  </PropertyGroup>
+
+  <Target Name="CreateCompilerTransformedFilesOutputPath"
+        BeforeTargets="CoreCompile"
+        Condition="'$(EmitCompilerTransformedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
+
+    <Warning Condition="'$(CompilerTransformedFilesOutputPath)' == ''"
+             Text="EmitCompilerTransformedFiles was true, but no CompilerTransformedFilesOutputPath was provided. CompilerTransformedFilesOutputPath must be set in order to emit transformed files." />
+
+    <MakeDir Condition="'$(CompilerTransformedFilesOutputPath)' != ''"
+             Directories="$(CompilerTransformedFilesOutputPath)"  />
+  </Target>
+
 </Project>

@@ -10,7 +10,7 @@ namespace Roslyn.Test.Utilities
 {
     public static class RoslynExTest
     {
-        private static AsyncLocal<bool> shouldExecuteTransformer = new();
+        private static readonly AsyncLocal<bool> shouldExecuteTransformer = new();
 
         public static bool ShouldExecuteTransformer
         {
@@ -24,7 +24,7 @@ namespace Roslyn.Test.Utilities
             var diagnostics = new DiagnosticBag();
 
             var result = CSharpCompiler.RunTransformers(
-                compilation, transformers, CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null);
+                ref compilation, transformers, CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 

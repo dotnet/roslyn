@@ -390,26 +390,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private protected override Compilation RunTransformers(
-            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics) =>
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics) =>
             RunTransformers(
-                input, transformers, analyzerConfigProvider, diagnostics,
+                ref input, transformers, analyzerConfigProvider, diagnostics,
                 resources => Arguments.ManifestResources = Arguments.ManifestResources.AddRange(resources));
 
 
         internal static Compilation RunTransformers(
-            Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
             Action<IEnumerable<ResourceDescription>>? addManifestResources)
         {
-            var compilation = input;
-
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
                 // mark old trees as debuggable
-                foreach (var tree in compilation.SyntaxTrees)
+                foreach (var tree in input.SyntaxTrees)
                 {
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options));
+                    input = input.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options));
                 }
             }
+
+            var compilation = input;
 
             foreach (var transformer in transformers)
             {

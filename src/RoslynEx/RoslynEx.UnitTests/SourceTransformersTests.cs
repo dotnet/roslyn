@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
@@ -124,6 +126,52 @@ error RE0001: Transformer 'TransformerOrderTransformer2' failed: System.Exceptio
 error RE0001: Transformer 'TransformerOrderTransformer1' failed: System.Exception: ", output);
 
             CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Fact]
+        public void WriteTransformedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src1 = dir.CreateFile("C.cs").WriteAllText("class C { }");
+            var src2 = dir.CreateDirectory("dir").CreateFile("D.cs").WriteAllText("class D { }");
+            var transformedDir = dir.CreateDirectory("transformed");
+
+            var args = new[] { "/t:library", $"/transformedfilesout:{transformedDir.Path}", src1.Path, src2.Path, "/out:lib.dll" };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new DoSomethingTransformer() }).ToImmutableArray());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+
+            Assert.Equal(0, exitCode);
+
+            Assert.Equal("/* comment */\r\nclass C\r\n{\r\n}", File.ReadAllText(Path.Combine(transformedDir.Path, "C.cs")));
+            Assert.Equal("/* comment */\r\nclass D\r\n{\r\n}", File.ReadAllText(Path.Combine(transformedDir.Path, "dir/D.cs")));
+
+            var generatedFile = Directory.EnumerateFiles(transformedDir.Path).Single(p => Guid.TryParse(Path.GetFileNameWithoutExtension(p), out _));
+            Assert.Equal("class G\r\n{\r\n}", File.ReadAllText(generatedFile));
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src1.Path);
+            CleanupAllGeneratedFiles(src2.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        class DoSomethingTransformer : ISourceTransformer
+        {
+            public Compilation Execute(TransformerContext context)
+            {
+                var compilation = context.Compilation;
+
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithInsertAt(0, "/* comment */"));
+                }
+
+                compilation = compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class G {}"));
+
+                return compilation;
+            }
         }
     }
 }

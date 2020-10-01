@@ -9,6 +9,7 @@
     <Import_RootNamespace>RoslynEx</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\AbstractGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\Graph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\SimpleLinkedListNode.cs" />

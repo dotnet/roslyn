@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CommandLineArguments.TransformedFilesOutputDirectory.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.TransformerOrder.get -> System.Collections.Immutable.ImmutableArray<string>
 RoslynEx.ISourceTransformer
 RoslynEx.ISourceTransformer.Execute(RoslynEx.TransformerContext context) -> Microsoft.CodeAnalysis.Compilation
@@ -11,3 +12,4 @@ RoslynEx.TransformerAttribute.TransformerAttribute() -> void
 RoslynEx.TransformerOrderAttribute
 RoslynEx.TransformerOrderAttribute.TransformerNames.get -> string[]
 RoslynEx.TransformerOrderAttribute.TransformerOrderAttribute(params string[] transformerNames) -> void
+Microsoft.CodeAnalysis.CommandLineArguments.TransformerOrder.get -> System.Collections.Immutable.ImmutableArray<string>
