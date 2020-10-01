@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Remote
             using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _callback.ClientDisconnectedSource.Token);
 
             await _callback.InvokeAsync(
-               linkedSource.Token).ConfigureAwait(false);        }
+               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken),
+               linkedSource.Token).ConfigureAwait(false);
+        }
     }
 }

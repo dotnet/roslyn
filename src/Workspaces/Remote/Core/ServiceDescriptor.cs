@@ -67,10 +67,5 @@ namespace Microsoft.CodeAnalysis.Remote
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
         }
-
-        internal static class TestAccessor
-        {
-            public static MessagePackSerializerOptions Options => s_options;
-        }
     }
 }
