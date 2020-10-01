@@ -52,13 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             var snapshotSpans = new List<SnapshotSpan>();
             foreach (var selection in originalSelections)
-            {
                 snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
-            }
+
             view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
-            var commandHandler = workspace.ExportProvider.GetCommandHandler<AbstractSplitCommentCommandHandler>(nameof(SplitCommandCom));
+            var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitCommentCommandHandler>(nameof(SplitCommentCommandHandler));
             if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
             {
                 callback();
