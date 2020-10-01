@@ -223,8 +223,8 @@ public class Program
         [InlineData("System.Boolean", 0)]
         [InlineData("char", 0)]
         [InlineData("System.Char", 0)]
-        [InlineData("string", 2)] // Invalid: misses concatenation (2 = equality operators)
-        [InlineData("System.String", 2)] // Invalid: misses concatenation (2 = equality operators)
+        [InlineData("string", 0)]
+        [InlineData("System.String", 0)]
         [InlineData("sbyte", 0)]
         [InlineData("System.SByte", 0)]
         [InlineData("byte", 0)]
@@ -241,14 +241,16 @@ public class Program
         [InlineData("System.Int64", 0)]
         [InlineData("ulong", 0)]
         [InlineData("System.UInt64", 0)]
-        [InlineData("float", 6)] // Invalid: misses arithmetical operators (6 = comparison operators)
-        [InlineData("System.Single", 6)] // Invalid: misses arithmetical operators (6 = comparison operators)
-        [InlineData("double", 6)] // Invalid: misses arithmetical operators (6 = comparison operators)
-        [InlineData("System.Double", 6)] // Invalid: misses arithmetical operators (6 = comparison operators)
-        [InlineData("decimal", 15)]
-        [InlineData("System.Decimal", 15)]
-        [InlineData("System.IntPtr", 4)]
-        [InlineData("System.UIntPtr", 4)]
+        [InlineData("float", 0)]
+        [InlineData("System.Single", 0)]
+        [InlineData("double", 0)]
+        [InlineData("System.Double", 0)]
+        [InlineData("decimal", 0)]
+        [InlineData("System.Decimal", 0)]
+        [InlineData("nint", 0)]
+        [InlineData("System.IntPtr", 0)]
+        [InlineData("nuint", 0)]
+        [InlineData("System.UIntPtr", 0)]
         [InlineData("System.DateTime", 8)]
         [InlineData("System.TimeSpan", 10)]
         [InlineData("System.DateTimeOffset", 8)]

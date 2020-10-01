@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(ITypeSymbol container, bool isAccessedByConditionalAccess, SemanticModel semanticModel, int position)
         {
+            if (IsExcludedSymbol(container))
+            {
+                return ImmutableArray<CompletionItem>.Empty;
+            }
+
             var containerIsNullable = container.IsNullable();
             container = container.RemoveNullableIfPresent();
             var allMembers = container.GetMembers();
@@ -49,6 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 rules: CompletionItemRules.Default,
                                 contextPosition: position);
             return operators.ToImmutableArray();
+        }
+
+        private static bool IsExcludedSymbol(ITypeSymbol container)
+        {
+            if (container.IsSpecialType() || // System.IntPtr is not considered a special type but nint is. We unify both:
+                container.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr)
+            {
+                // Built-in types have built-in operators. These are not listed as `IMethodSymbols` with the following exceptions:
+                // * string: == != are listed but + not 
+                // * float/double: The 6 comparison operators are listed but not the arithmetical operators
+                // * decimal: complete (all 15 operators)
+                // * IntPtr/UIntPtr: complete (+ - == !=)
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsExcludedOperator(IMethodSymbol m)
