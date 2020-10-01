@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
+using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
             view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
-            var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
+            var commandHandler = workspace.ExportProvider.GetCommandHandler<AbstractSplitCommentCommandHandler>(nameof(SplitCommandCom));
             if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
             {
                 callback();

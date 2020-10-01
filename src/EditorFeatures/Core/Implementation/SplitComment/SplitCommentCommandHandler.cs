@@ -3,37 +3,46 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
-    internal abstract class AbstractSplitCommentCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    [Export(typeof(ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(nameof(SplitCommentCommandHandler))]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
+    internal sealed class SplitCommentCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
-        protected readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        protected readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
-        protected AbstractSplitCommentCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SplitCommentCommandHandler(
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
-
-        protected abstract string CommentStart { get; }
-        // protected abstract AbstractCommentSplitter CreateCommentSplitter(Document document, SyntaxNode root, DocumentOptionSet options, int position, CancellationToken cancellationToken);
 
         public string DisplayName => EditorFeaturesResources.Split_comment;
 
@@ -50,23 +59,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (spans.Count != 1 || !spans[0].IsEmpty)
                 return false;
 
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return false;
+
+            var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
+
             var position = spans[0].Start;
             // Quick check.  If the line doesn't contain a comment in it before the caret,
             // then no point in doing any more expensive synchronous work.
             var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(position);
-            if (!LineProbablyContainsComment(line, position))
+            if (!LineProbablyContainsComment(splitCommentService, line, position))
                 return false;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                return SplitCommentAsync(textView, subjectBuffer, position, cancellationToken).WaitAndGetResult(cancellationToken);
+                return SplitCommentAsync(textView, subjectBuffer, document, position, cancellationToken).WaitAndGetResult(cancellationToken);
             }
         }
 
-        private bool LineProbablyContainsComment(ITextSnapshotLine line, int caretPosition)
+        private static bool LineProbablyContainsComment(ISplitCommentService service, ITextSnapshotLine line, int caretPosition)
         {
-            var commentStart = this.CommentStart;
+            var commentStart = service.CommentStart;
 
             var end = Math.Max(caretPosition, line.Length);
             for (var i = 0; i < end; i++)
@@ -91,12 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         }
 
         private async Task<bool> SplitCommentAsync(
-            ITextView textView, ITextBuffer subjectBuffer, int position, CancellationToken cancellationToken)
+            ITextView textView, ITextBuffer subjectBuffer, Document document, int position, CancellationToken cancellationToken)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return false;
-
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var enabled = options.GetOption(SplitCommentOptions.Enabled);
             if (!enabled)
@@ -118,12 +129,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
             var commentStartColumn = triviaLine.GetColumnFromLineOffset(trivia.SpanStart - triviaLine.Start, textView.Options);
 
+            var service = document.GetRequiredLanguageService<ISplitCommentService>();
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
             var insertionText =
                 options.GetOption(FormattingOptions.NewLine) +
                 commentStartColumn.CreateIndentationString(useTabs, tabSize) +
-                this.CommentStart;
+                service.CommentStart;
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 EditorFeaturesResources.Split_comment, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
