@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
-        <target state="needs-review-translation">Questo sito di chiamata chiama una funzione con un parametro 'params', di conseguenza viene generata un'allocazione di matrice</target>
+        <target state="translated">Questo sito di chiamata chiama una funzione con un parametro 'params', di conseguenza viene generata un'allocazione di matrice.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
-        <target state="needs-review-translation">La conversione da tipo valore a tipo riferimento causa la conversione boxing nel sito di chiamata (qui) e la conversione unboxing nel sito chiamato. Se applicabile, provare a usare generics</target>
+        <target state="translated">La conversione da tipo valore a tipo riferimento causa la conversione boxing nel sito di chiamata (qui) e la conversione unboxing nel sito chiamato. Se applicabile, provare a usare generics.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
         <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
-        <target state="needs-review-translation">Verrà eseguita la conversione boxing del tipo valore ({0}) in un tipo riferimento per una concatenazione di stringhe.</target>
+        <target state="translated">Verrà eseguita la conversione boxing del tipo valore ({0}) in un tipo riferimento per una concatenazione di stringhe</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
