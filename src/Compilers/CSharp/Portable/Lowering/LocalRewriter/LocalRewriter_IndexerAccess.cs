@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
-            Debug.Assert(node.Indexer.GetOwnOrInheritedGetMethod() is not null);
+            Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
             return VisitIndexerAccess(node, isLeftOfAssignment: false);
         }

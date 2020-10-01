@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
                         var property = (PropertySymbol?)boundObjectInitializerMember.MemberSymbol;
-                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         Debug.Assert(property is not null);
+                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         return DeriveArguments(
                                     boundObjectInitializerMember,
                                     boundObjectInitializerMember.Binder,
