@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -281,6 +281,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                                 argumentNode, cancellationToken, out options);
                         }
                     }
+                }
+            }
+            else if (syntaxFacts.IsImplicitObjectCreationExpression(invocationOrCreation))
+            {
+                var constructor = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                if (_regexType.Equals(constructor?.ContainingType))
+                {
+                    // Argument to "new Regex".  Need to do deeper analysis
+                    return AnalyzeStringLiteral(
+                        argumentNode, cancellationToken, out options);
                 }
             }
 
