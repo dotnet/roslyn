@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -21,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioRemoteHostClientShutdownCancellationService()
         {
+            CancellationTokenSourceFactory.TryAddLocation(ShutdownToken, "VsShellUtilities.ShutdownToken", 0);
         }
 
         public CancellationToken ShutdownToken => VsShellUtilities.ShutdownToken;

@@ -6,10 +6,14 @@
 
 using System;
 using System.IO.Pipelines;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
 using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -75,8 +79,16 @@ namespace Microsoft.CodeAnalysis.Remote
             jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
+
+            CancellationTokenSourceFactory.TryAddLocation((CancellationTokenSource?)s_disconnectedSourceField.Value?.GetValue(jsonRpc), "JsonRpc DisconnectedSource", 0);
+
             return connection;
         }
+
+        private static readonly Lazy<FieldInfo?> s_disconnectedSourceField = new(() =>
+            typeof(JsonRpc)
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .FirstOrDefault(field => field.FieldType == typeof(CancellationTokenSource)));
 
         internal static class TestAccessor
         {

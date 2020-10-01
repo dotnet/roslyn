@@ -17,38 +17,72 @@ namespace Roslyn.Utilities
     internal static class CancellationTokenSourceFactory
     {
         private static readonly ConditionalWeakTable<CancellationTokenSource, Tuple<string, int>> s_tokenCreators = new();
+        private static readonly object s_guard = new();
 
-        private static CancellationTokenSource RecordLocation(CancellationTokenSource source, string? sourcePath, int sourceLine)
+        private static readonly Lazy<FieldInfo?> s_tokenSourceField = new(() =>
+            typeof(CancellationToken)
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault(field => field.FieldType == typeof(CancellationTokenSource)));
+
+        private static CancellationTokenSource AddLocation(CancellationTokenSource source, string? sourcePath, int sourceLine)
         {
             Contract.ThrowIfNull(sourcePath);
-            s_tokenCreators.Add(source, Tuple.Create(sourcePath, sourceLine));
+            lock (s_guard)
+            {
+                s_tokenCreators.Add(source, Tuple.Create(sourcePath, sourceLine));
+            }
+
             return source;
         }
 
+        private static CancellationTokenSource? GetSource(CancellationToken cancellationToken)
+            => (CancellationTokenSource?)s_tokenSourceField.Value?.GetValue(cancellationToken);
+
+#pragma warning disable CA1068 // CancellationToken parameters must come last
+        internal static void TryAddLocation(CancellationToken cancellationToken, string sourcePath, int sourceLine)
+            => TryAddLocation(GetSource(cancellationToken), sourcePath, sourceLine);
+#pragma warning restore
+
+        internal static void TryAddLocation(CancellationTokenSource? source, string sourcePath, int sourceLine)
+        {
+            if (source == null)
+            {
+                return;
+            }
+
+            lock (s_guard)
+            {
+                if (!s_tokenCreators.TryGetValue(source, out _))
+                {
+                    s_tokenCreators.Add(source, Tuple.Create(sourcePath, sourceLine));
+                }
+            }
+        }
+
         public static CancellationTokenSource Create([CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
-            => RecordLocation(new CancellationTokenSource(), sourcePath, sourceLine);
+            => AddLocation(new CancellationTokenSource(), sourcePath, sourceLine);
 
 #pragma warning disable CA1068 // CancellationToken parameters must come last
         internal static CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken, [CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
-            => RecordLocation(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken), sourcePath, sourceLine);
+            => AddLocation(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken), sourcePath, sourceLine);
 #pragma warning restore
 
 #pragma warning disable CA1068 // CancellationToken parameters must come last
         internal static CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken1, CancellationToken cancellationToken2, [CallerFilePath] string? sourcePath = null, [CallerLineNumber] int sourceLine = 0)
-            => RecordLocation(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken1, cancellationToken2), sourcePath, sourceLine);
+            => AddLocation(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken1, cancellationToken2), sourcePath, sourceLine);
 #pragma warning restore
 
         internal static bool TryGetCreationSourceLocation(CancellationToken cancellationToken, [NotNullWhen(true)] out string? sourcePath, out int sourceLine)
         {
-            var source = (CancellationTokenSource?)typeof(CancellationToken)
-                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .FirstOrDefault(field => field.FieldType == typeof(CancellationTokenSource))?
-                .GetValue(cancellationToken);
+            var source = (CancellationTokenSource?)s_tokenSourceField.Value?.GetValue(cancellationToken);
 
-            if (source != null && s_tokenCreators.TryGetValue(source, out var location))
+            lock (s_guard)
             {
-                (sourcePath, sourceLine) = location;
-                return true;
+                if (source != null && s_tokenCreators.TryGetValue(source, out var location))
+                {
+                    (sourcePath, sourceLine) = location;
+                    return true;
+                }
             }
 
             sourcePath = null;
@@ -62,7 +96,7 @@ namespace Roslyn.Utilities
                 $"{sourcePath}({sourceLine})" : "unknown";
 
             return $"Unexpected cancellation triggered by cancellation source at {sourceLocation}: " +
-                (cancellationToken == CancellationToken.None ? " caller does not expect cancellation" : "caller expects different token signaled");
+                (cancellationToken == CancellationToken.None ? "caller does not expect cancellation" : "caller expects different token signaled");
         }
     }
 }
