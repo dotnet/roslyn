@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.MakeClassAbstract
 {
     internal abstract class AbstractMakeClassAbstractCodeFixProvider<TClassDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
-        where TClassDeclarationSyntax : SyntaxNode
+        where TTypeDeclarationSyntax : SyntaxNode
     {
-        protected abstract bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TClassDeclarationSyntax? classDeclaration);
+        protected abstract bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TTypeDeclarationSyntax? typeDeclaration);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
-                if (IsValidRefactoringContext(diagnostics[i].Location?.FindNode(cancellationToken), out var classDeclaration))
+                if (IsValidRefactoringContext(diagnostics[i].Location?.FindNode(cancellationToken), out var typeDeclaration))
                 {
-                    editor.ReplaceNode(classDeclaration,
-                        (currentClassDeclaration, generator) => generator.WithModifiers(currentClassDeclaration, DeclarationModifiers.Abstract));
+                    editor.ReplaceNode(type,
+                        (currentTypeDeclaration, generator) => generator.WithModifiers(currentTypeDeclaration, DeclarationModifiers.Abstract));
                 }
             }
 
