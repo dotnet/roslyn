@@ -3167,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    size = BindToNaturalType(size, diagnostics);
+                    size = BindToTypeForErrorRecovery(size);
                 }
 
                 return size;
