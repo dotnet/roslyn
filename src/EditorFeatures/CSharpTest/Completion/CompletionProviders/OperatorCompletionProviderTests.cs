@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -27,24 +28,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         // The suggestion is e.g. "+". If the user actually types "+" the completion list is closed. Operators therefore do not support partially written items.
         protected override string? ItemPartiallyWritten(string? expectedItemOrNull) => "";
 
-        private static IEnumerable<string[]> BinaryOperators()
+        private static IEnumerable<string[]> BinaryArithmeticAndLogicalOperators()
         {
             yield return new[] { "+" };
             yield return new[] { "&" };
             yield return new[] { "|" };
             yield return new[] { "/" };
-            yield return new[] { "==" };
             yield return new[] { "^" };
-            yield return new[] { ">" };
-            yield return new[] { ">=" };
-            yield return new[] { "!=" };
-            yield return new[] { "<<" };
-            yield return new[] { "<" };
-            yield return new[] { "<=" };
             yield return new[] { "%" };
             yield return new[] { "*" };
             yield return new[] { ">>" };
+            yield return new[] { "<<" };
             yield return new[] { "-" };
+        }
+
+        private static IEnumerable<string[]> BinaryEqualityAndRelationalOperators()
+        {
+            yield return new[] { "==" };
+            yield return new[] { ">" };
+            yield return new[] { ">=" };
+            yield return new[] { "!=" };
+            yield return new[] { "<" };
+            yield return new[] { "<=" };
         }
 
         private static IEnumerable<string[]> PostfixOperators()
@@ -60,6 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "-" };
             yield return new[] { "+" };
         }
+
+        private static IEnumerable<string[]> BinaryOperators()
+            => BinaryArithmeticAndLogicalOperators().Union(BinaryEqualityAndRelationalOperators());
+
+        private static IEnumerable<string[]> UnaryOperators()
+            => PostfixOperators().Union(PrefixOperators());
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
@@ -536,6 +547,116 @@ public class Program
     }}
 }}
 ");
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(UnaryOperators))]
+        public async Task OperatorLiftingUnary(string operatorSign)
+        {
+            const string template = @"
+public struct S
+{{
+    {0} => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        S? s = null;
+        s.$$
+    }}
+}}";
+            await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S _)"), operatorSign);
+            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S _)"), operatorSign);
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static object operator {operatorSign}(S _)"));
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(BinaryArithmeticAndLogicalOperators))]
+        public async Task OperatorLiftingBinary(string operatorSign)
+        {
+            const string template = @"
+public struct S
+{{
+    {0} => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        S? s = null;
+        s.$$
+    }}
+}}";
+            await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b)"), operatorSign);
+            await VerifyItemExistsAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"), operatorSign);
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static object operator {operatorSign}(S a, S b)"));
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, object b)"));
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [MemberData(nameof(BinaryEqualityAndRelationalOperators))]
+        public async Task OperatorLiftingEqualityRelational(string operatorSign)
+        {
+            const string template = @"
+public struct S
+{{
+    {0} => default;
+}}
+
+public class Program
+{{
+    public void Main()
+    {{
+        S? s = null;
+        s.$$
+    }}
+}}";
+            await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b)"), operatorSign);
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"));
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b, S c)"));
+            await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, object b)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorLiftingIsApplied()
+        {
+
+            await VerifyCustomCommitProviderAsync(@"
+public struct S
+{
+    public static bool operator ==(S a, S b) => default;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        S? s = null;
+        s.$$
+    }
+}", "==", @"
+public struct S
+{
+    public static bool operator ==(S a, S b) => default;
+}
+
+public class Program
+{
+    public void Main()
+    {
+        S? s = null;
+        s == $$
+    }
+}");
         }
     }
 }
