@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpMakeClassAbstractCodeFixProvider()
+        public CSharpMakeTypeAbstractCodeFixProvider()
         {
         }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
 
         protected override bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration)
         {
-            classDeclaration = null;
+            typeDeclaration = null;
 
             switch (node)
             {
@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                     return false;
             }
 
-            var enclosingType = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if (!enclosingType.IsKind(SyntaxKind.ClassDeclaration) || !enclosingType.IsKind(SyntaxKind.RecordDeclaration))
+            var typeDeclaration = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            if (!typeDeclaration.IsKind(SyntaxKind.ClassDeclaration) || !typeDeclaration.IsKind(SyntaxKind.RecordDeclaration))
             {
                 return false;
             }
 
-            return !enclosingType.Modifiers.Any(SyntaxKind.AbstractKeyword) && !enclosingType.Modifiers.Any(SyntaxKind.StaticKeyword);
+            return !typeDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword) && !typeDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
     }
 }
