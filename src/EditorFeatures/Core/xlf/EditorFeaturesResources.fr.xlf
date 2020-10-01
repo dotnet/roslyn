@@ -143,8 +143,8 @@
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="Split_comment">
-        <source>Split Comment</source>
-        <target state="new">Split Comment</target>
+        <source>Split comment</source>
+        <target state="new">Split comment</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">

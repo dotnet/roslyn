@@ -928,7 +928,7 @@ Do you want to proceed?</value>
     <value>Removal of document not supported</value>
   </data>
   <data name="Split_comment" xml:space="preserve">
-    <value>Split Comment</value>
+    <value>Split comment</value>
   </data>
   <data name="_0_implemented_members" xml:space="preserve">
     <value>'{0}' implemented members</value>
