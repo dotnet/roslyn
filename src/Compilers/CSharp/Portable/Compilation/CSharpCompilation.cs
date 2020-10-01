@@ -2037,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            ITypeSymbol sourceType = source.Type;
+            ITypeSymbol? sourceType = source.Type;
 
             ConstantValue? sourceConstantValue = source.GetConstantValue();
             if (sourceType is null)

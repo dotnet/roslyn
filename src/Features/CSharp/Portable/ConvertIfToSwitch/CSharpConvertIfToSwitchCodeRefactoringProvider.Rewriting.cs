@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         public override IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation)
         {
             var node = operation.Syntax;
+            Debug.Assert(operation.SemanticModel is not null);
             var requiresBreak = operation.SemanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
             var requiresBlock = !operation.SemanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
 
