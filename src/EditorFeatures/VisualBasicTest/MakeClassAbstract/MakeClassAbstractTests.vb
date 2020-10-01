@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeClassAbstract
             Return (Nothing, New VisualBasicMakeClassAbstractCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestMethod_CodeFix() As Task
             Await TestInRegularAndScript1Async("
 Public Class [|Foo|]
@@ -27,7 +27,7 @@ Public MustOverride Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestMethodEnclosingClassWithoutAccessibility_NoCodeFix() As Task
             Await TestMissingInRegularAndScriptAsync("
 Class Foo
@@ -35,7 +35,7 @@ Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestMethodEnclosingClassDocumentationComment() As Task
             Await TestMissingInRegularAndScriptAsync("
 ''' <summary>
@@ -46,7 +46,7 @@ Public Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestProperty() As Task
             Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
@@ -54,7 +54,7 @@ Public Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestIndexer() As Task
             Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
@@ -62,7 +62,7 @@ Public Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestEvent() As Task
             Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
@@ -70,7 +70,7 @@ Public Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestMethodWithBody() As Task
             Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
@@ -80,7 +80,7 @@ Public Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestPropertyWithBody() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -93,7 +93,7 @@ Public Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestStructNestedInClass() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -104,7 +104,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestMethodEnclosingClassStatic() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -113,7 +113,7 @@ Public Static Class Foo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function FixAll() As Task
             Await TestMissingInRegularAndScriptAsync("
 Namespace NS
