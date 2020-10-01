@@ -102,7 +102,7 @@ namespace IOperationGenerator
             foreach (var grouping in _tree.Types.OfType<AbstractNode>().GroupBy(n => n.Namespace))
             {
                 var @namespace = grouping.Key ?? "Operations";
-                var outFileName = Path.Combine(_location, $"{@namespace}.Generated.cs");
+                var outFileName = Path.Combine(_location, $"{@namespace}.new.Generated.cs");
                 using (_writer = new StreamWriter(File.Open(outFileName, FileMode.Create), Encoding.UTF8))
                 {
                     writeHeader();
@@ -131,10 +131,11 @@ namespace IOperationGenerator
                     WriteLine("#region Interfaces");
                     foreach (var node in grouping)
                     {
-                        if (PortedTypes.Contains(node.Name))
+                        if (!PortedTypes.Contains(node.Name))
                         {
                             continue;
                         }
+
                         WriteInterface(node);
                     }
 
@@ -144,12 +145,27 @@ namespace IOperationGenerator
                     {
                         Blank();
                         WriteClasses();
-                        // WriteVisitors();
+                        WriteVisitors();
                     }
 
                     WriteEndNamespace();
                     _writer.Flush();
                 }
+            }
+
+            using (_writer = new StreamWriter(File.Open(Path.Combine(_location, "OperationKind.Generated.cs"), FileMode.Create)))
+            {
+                writeHeader();
+                WriteUsing("System");
+                WriteUsing("System.ComponentModel");
+                WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
+                WriteUsing("Microsoft.CodeAnalysis.Operations");
+
+                WriteStartNamespace(namespaceSuffix: null);
+
+                WriteOperationKind();
+
+                WriteEndNamespace();
             }
 
             void writeHeader()
@@ -368,7 +384,7 @@ namespace IOperationGenerator
             WriteLine("#region Implementations");
             foreach (var type in _tree.Types.OfType<AbstractNode>())
             {
-                if (type.SkipClassGeneration || PortedTypes.Contains(type.Name))
+                if (type.SkipClassGeneration || !PortedTypes.Contains(type.Name))
                     continue;
 
                 var allProps = GetAllProperties(type);
